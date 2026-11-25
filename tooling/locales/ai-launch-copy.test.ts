@@ -10,7 +10,30 @@ it("binds AI launch recovery and local interview availability to Arabic and Engl
 	const entries = deck.entries.filter(
 		(entry) => entry.key.startsWith("review.launch.") || entry.key === "reviewGuide.ai.interview.location",
 	);
-	expect(entries).toHaveLength(10);
+	expect(entries.map((entry) => entry.key)).toEqual(
+		expect.arrayContaining([
+			"review.launch.budgetReached",
+			"review.launch.allowanceUsed",
+			"review.launch.consentRequired",
+			"review.launch.translationStructure",
+			"review.launch.busy",
+			"review.launch.providerError",
+			"review.launch.requestChanged",
+			"review.launch.reviewConsent",
+			"review.launch.documentLimit",
+			"review.launch.jobRequired",
+			"review.launch.jobTextRequired",
+			"review.launch.unexpectedError",
+			"review.launch.sourceChanged",
+			"review.launch.sourceUnavailable",
+			"review.launch.sourceLocked",
+			"reviewGuide.ai.interview.location",
+		]),
+	);
+	expect(entries.find(({ key }) => key === "reviewGuide.ai.interview.location")?.messages).toEqual({
+		"ar-SA": "غير متاح في المشغّل المحلي. يظل التحضير للمقابلة مخصصًا للتقييم فقط.",
+		"en-US": "Not available in the local launcher. Interview preparation remains benchmark-only.",
+	});
 	const parse = async (locale: "ar-SA" | "en-US") =>
 		formatter().parse(await readFile(new URL(`../../apps/web/locales/${locale}.po`, import.meta.url), "utf8"), {
 			locale,

@@ -49,17 +49,20 @@ vi.mock("./review", () => ({
 		onSaved,
 		onBack,
 		onCheckpoint,
+		onOpenExisting,
 	}: {
 		initial: typeof defaultResumeData;
 		onSaved: (id: string) => void;
 		onBack: () => void;
 		onCheckpoint: (state: ReturnType<typeof createReviewState>) => Promise<void>;
+		onOpenExisting: (id: string) => void;
 	}) => (
 		<>
 			<p>{initial.basics.name}</p>
 			<button onClick={() => onSaved("created-cv")}>Finish review</button>
 			<button onClick={onBack}>Cancel review</button>
 			<button onClick={() => void onCheckpoint(createReviewState(initial, mocks.flowId))}>Checkpoint</button>
+			<button onClick={() => onOpenExisting("existing-cv")}>Open existing</button>
 		</>
 	),
 }));
@@ -106,6 +109,17 @@ const page = () => {
 it("uses the shell's existing canvas instead of nesting a second dashboard body", () => {
 	render(page());
 	expect(screen.queryByRole("main")).not.toBeInTheDocument();
+});
+it("opens the existing CV without removing the import draft or marking a new CV", () => {
+	render(page());
+	fireEvent.click(screen.getByRole("button", { name: "Open existing" }));
+	expect(mocks.navigate).toHaveBeenCalledWith({
+		to: "/builder/$resumeId",
+		params: { resumeId: "existing-cv" },
+		search: { mode: "write" },
+	});
+	expect(mocks.remove).not.toHaveBeenCalled();
+	expect(mocks.markNew).not.toHaveBeenCalled();
 });
 it("does not display cached loader data belonging to another owner", () => {
 	if (!mocks.draft) throw new Error("Missing initial draft");

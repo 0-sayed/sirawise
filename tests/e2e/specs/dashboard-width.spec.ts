@@ -50,6 +50,14 @@ for (const locale of ["ar-SA", "en-US"]) {
 				]) {
 					await page.goto(`${route}?locale=${locale}`);
 					await expect(page.locator("main h1")).toBeVisible();
+					if (route === "/dashboard") {
+						await expect(page.locator("main article").filter({ hasText: "Width guard" })).toBeVisible();
+					} else if (route.endsWith("applications") || route.endsWith("trash")) {
+						await expect(page.locator('[data-slot="empty-state"]')).toBeVisible();
+					} else if (route.endsWith("information")) {
+						await expect(page.locator('[data-slot="career-section-index"]')).toBeVisible();
+						await expect(page.locator('[data-slot="section-card"]')).toHaveCount(6);
+					}
 					const aside = page.locator("aside");
 					const asideBox = await aside.boundingBox();
 					if (!asideBox) throw new Error("Sidebar missing");

@@ -1,7 +1,7 @@
 import { plural, t } from "@lingui/core/macro";
 import { ORPCError } from "@orpc/client";
 import { authErrorMessage } from "@/features/auth/errors";
-import { getCreationLimit } from "@/features/documents/creation-error";
+import { getAllowanceFailure, getAllowanceModel, getAllowanceReason } from "@/features/usage/allowance-limit";
 
 export function getReadableErrorMessage(error: unknown, fallback: string): string {
 	// A font download failed (see `assertPdfFonts`).
@@ -32,6 +32,11 @@ export function getOrpcErrorMessage(
 		byCode?: ErrorMessageByCode;
 	},
 ): string {
+	const allowance = getAllowanceReason(error);
+	if (allowance) {
+		const model = getAllowanceModel(allowance, undefined, getAllowanceFailure(error)?.allowance);
+		return `${model.description} ${model.nextStep}`;
+	}
 	if (!(error instanceof ORPCError)) return getReadableErrorMessage(error, options.fallback);
 	if (error.code === "AI_CREDENTIAL_DECRYPTION_FAILED")
 		return t`The saved provider key can't be decrypted. Enter the key again in Settings → AI & developer.`;
@@ -43,12 +48,6 @@ export function getOrpcErrorMessage(
 }
 
 export function getResumeErrorMessage(error: unknown): string {
-	const limit = getCreationLimit(error);
-	if (limit === "BASE_CV_LIMIT")
-		return t`You have reached the limit for base CVs. Your existing documents remain available to edit and download.`;
-	if (limit === "JOB_COPY_LIMIT") return t`You already have a job copy for this base CV. Your selections are kept.`;
-	if (limit === "LANGUAGE_COPY_LIMIT")
-		return t`You already have a language copy for this base CV. Your selections are kept.`;
 	return getOrpcErrorMessage(error, {
 		byCode: {
 			RESUME_SLUG_ALREADY_EXISTS: t`A resume with this slug already exists.`,

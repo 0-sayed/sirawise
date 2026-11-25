@@ -1,6 +1,7 @@
 vi.mock("@reactive-resume/db/owner-scope", () => ({
 	withDatabaseOwner: (_userId: string, work: () => unknown) => work(),
 }));
+import { readFile } from "node:fs/promises";
 import { expect, it, vi } from "vite-plus/test";
 import { call } from "@orpc/server";
 const create = vi.hoisted(() => vi.fn());
@@ -36,6 +37,21 @@ it("imports JSON Resume into the authenticated account and rejects invalid files
 	create.mockClear();
 	await expect(
 		call(importResumeFile, { file: new File(["bad json"], "resume.json"), format: "JSON_RESUME" }, { context }),
+	).rejects.toMatchObject({ code: "BAD_REQUEST" });
+	expect(create).not.toHaveBeenCalled();
+});
+
+it("rejects incomplete PDF text before saving any resume", async () => {
+	create.mockClear();
+	const bytes = await readFile(
+		new URL("../../../../../tooling/document-qualification/import-layout/ambiguous.pdf", import.meta.url),
+	);
+	await expect(
+		call(
+			importResumeFile,
+			{ file: new File([new Uint8Array(bytes)], "ambiguous.pdf"), format: "PDF" },
+			{ context: { locale: "en-US", reqHeaders: new Headers() } },
+		),
 	).rejects.toMatchObject({ code: "BAD_REQUEST" });
 	expect(create).not.toHaveBeenCalled();
 });

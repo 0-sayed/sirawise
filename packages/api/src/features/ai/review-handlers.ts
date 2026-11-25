@@ -5,11 +5,20 @@ import type { OperationRequest } from "@reactive-resume/schema/ai-operation";
 import type { ReviewResult } from "@reactive-resume/schema/resume/ai-review";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { reviewSystemPrompt, extractionReviewSystemPrompt, reviewVerifierPrompt } from "@reactive-resume/ai/prompts";
+import {
+	reviewSystemPrompt,
+	extractionReviewSystemPrompt,
+	reviewVerifierPrompt,
+	reviewExtractionVerifierPrompt,
+} from "@reactive-resume/ai/prompts";
 import { withOwnerDatabase } from "@reactive-resume/db/owner-scope";
 import { resume } from "@reactive-resume/db/schema";
-import { readTarget, replaceBlockText, splitBlocks } from "@reactive-resume/resume/proposals";
-import { hashReviewTarget } from "@reactive-resume/resume/review-evidence";
+import { proposalStart, readTarget, splitBlocks } from "@reactive-resume/resume/proposals";
+import {
+	hashReviewTarget,
+	repeatsUntouchedReviewPassage,
+	replaceReviewPassageText,
+} from "@reactive-resume/resume/review-evidence";
 import { masterFields } from "@reactive-resume/schema/career-master";
 import {
 	claimsCoverText,
@@ -18,16 +27,27 @@ import {
 	reviewTargetSchema,
 } from "@reactive-resume/schema/resume/ai-review";
 import { parseResumeDataForWrite } from "@reactive-resume/schema/resume/write";
-import { resumeContactValues } from "./payload";
+import { buildModelPayload, resumeContactValues } from "./payload";
+import { filterExtractionProvenance, type ExtractionWithholding } from "./review-provenance";
 import {
+	boundQuestionEvidence,
+	reviewEvidenceSelection,
 	loadReviewSource,
 	loadBoundReviewAnswer,
 	prepareResumeReviewInTransaction,
 	reviewPassageId,
 	sameReviewSource,
 } from "./review-sources";
-import { validateReviewResult } from "./review-validation";
-import { reviewVerifierSchema, buildVerificationPayload, assertVerification } from "./review-verifier";
+import { parseReviewResultForSource, validateReviewResult } from "./review-validation";
+import {
+	reviewVerifierSchema,
+	buildVerificationPayload,
+	buildWordingVerifierSchema,
+	buildExtractionVerifierSchema,
+	filterReviewVerification,
+	filterExtractionVerification,
+	extractionVerifierSchema,
+} from "./review-verifier";
 
 const id = z.string().min(1).max(200);
 const plain = z
@@ -109,15 +129,12 @@ async function snapshot(
 		expected.some((source) => !request.sources.some((bound) => sameReviewSource(source, bound)))
 	)
 		throw new Error("AI_SOURCE_BINDING");
+	const selectedEvidence =
+		parameters.action === "result" && !parameters.answerIds?.length ? boundQuestionEvidence(evidence) : evidence;
 	return {
 		source,
-		evidence,
-		selections: evidence.map((entry) => ({
-			id: entry.id,
-			kind: entry.confirmation === "user_supplied" ? "user_supplied" : "confirmed_content",
-			section: "summary",
-			text: entry.quote,
-		})),
+		evidence: selectedEvidence,
+		selections: selectedEvidence.map(reviewEvidenceSelection),
 		expiresAt: null,
 		partial: false,
 	};
@@ -126,11 +143,12 @@ async function snapshot(
 const makeHandler = (kind: "review.wording" | "review.extraction"): OperationHandler => ({
 	verifier: {
 		output: reviewVerifierSchema,
+		...(kind === "review.wording" ? { outputForPayload: buildWordingVerifierSchema } : {}),
 		systemPrompt: reviewVerifierPrompt,
 		buildInput: buildVerificationPayload,
-		validate: assertVerification,
+		validate: filterReviewVerification,
 	},
-	promptVersion: kind === "review.wording" ? "t006-wording-v5" : "t006-extraction-v5",
+	promptVersion: kind === "review.wording" ? "t006-wording-v7-passages" : "t006-extraction-v5",
 	schemaVersion: "t006-review-v3",
 	parameters: kind === "review.wording" ? wordingParameters : extractionParameters,
 	output: kind === "review.wording" ? wordingOutput : extractionOutput,
@@ -201,17 +219,43 @@ const makeHandler = (kind: "review.wording" | "review.extraction"): OperationHan
 					const target = entry.target;
 					const value = readTarget(data, target);
 					if (value === undefined) throw new Error("AI_INVALID_PASSAGE");
-					const block = splitBlocks(value).find(
-						(block) => reviewPassageId(loaded.source, target, block.html) === proposal.passageId,
+					const blocks = splitBlocks(value);
+					const citedPassages = new Set(
+						proposal.evidenceIds.filter((id) => evidence.get(id)?.source.kind === "resume"),
 					);
-					if (!block) throw new Error("AI_INVALID_PASSAGE");
+					const selected = blocks.flatMap((block, index) =>
+						citedPassages.has(reviewPassageId(loaded.source, target, block.html, index)) ? [{ block, index }] : [],
+					);
+					const first = selected[0];
+					const last = selected.at(-1);
+					if (
+						!first ||
+						!last ||
+						selected.length !== citedPassages.size ||
+						last.index - first.index + 1 !== selected.length ||
+						reviewPassageId(loaded.source, target, first.block.html, first.index) !== proposal.passageId
+					)
+						throw new Error("AI_INVALID_MARKUP");
+					const start = proposalStart(value, { before: first.block.html, blockIndex: first.index });
+					const end =
+						proposalStart(value, { before: last.block.html, blockIndex: last.index }) + last.block.html.length;
+					const before = value.slice(start, end);
+					let after: string;
+					try {
+						after = replaceReviewPassageText(before, proposal.text);
+					} catch {
+						throw new Error("AI_INVALID_MARKUP");
+					}
+					if (repeatsUntouchedReviewPassage(value, { before, after, blockIndex: first.index }))
+						throw new Error("AI_INVALID_MARKUP");
 					return {
 						schemaVersion: 2,
 						id: proposal.id,
 						target,
 						location: entry.target.sectionId,
-						before: block.html,
-						after: replaceBlockText(block.html, proposal.text),
+						before,
+						blockIndex: first.index,
+						after,
 						why: proposal.reason,
 						status: "pending",
 						source: "improve",
@@ -231,4 +275,78 @@ const makeHandler = (kind: "review.wording" | "review.extraction"): OperationHan
 export const reviewHandlers: Readonly<Record<"review.wording" | "review.extraction", OperationHandler>> = {
 	"review.wording": makeHandler("review.wording"),
 	"review.extraction": makeHandler("review.extraction"),
+};
+
+function extractionResult(loaded: ReviewSourceSnapshot, raw: Record<string, unknown>) {
+	const output = extractionOutput.parse(raw);
+	if (output.questions.some((question) => question.passageId !== null)) throw new Error("AI_INVALID_PASSAGE");
+	const questionIds = new Set(output.questions.map(({ id }) => `question:${id}`));
+	if (output.candidates.some(({ id }) => questionIds.has(id))) throw new Error("AI_DUPLICATE_SUBJECT");
+	const result = parseReviewResultForSource(loaded, {
+		schemaVersion: 2,
+		kind: "extraction",
+		sourceRevision: loaded.source,
+		evidence: loaded.evidence,
+		candidates: output.candidates,
+		questions: output.questions.map(({ id, prompt, evidenceIds }) => ({ id, target: null, prompt, evidenceIds })),
+	});
+	if (result.kind !== "extraction") throw new Error("AI_INVALID_EXTRACTION");
+	return { result, output };
+}
+
+export async function prepareExtractionVerification(
+	tx: OwnerTransaction,
+	ownerId: string,
+	request: OperationRequest,
+	raw: Record<string, unknown>,
+): Promise<{ output: Record<string, unknown>; withheld: ExtractionWithholding[] }> {
+	return prepareExtractionFromSnapshot(await snapshot(tx, ownerId, request), raw);
+}
+
+export function prepareExtractionFromSnapshot(loaded: ReviewSourceSnapshot, raw: Record<string, unknown>) {
+	const { result, output } = extractionResult(loaded, raw);
+	const { keptIds, withheld } = filterExtractionProvenance(loaded, result);
+	const kept = new Set(keptIds);
+	const candidates = output.candidates.filter((candidate) => kept.has(candidate.id));
+	if (!candidates.some((candidate) => candidate.value !== null) && !output.questions.length)
+		throw new Error(withheld[0]?.reason ?? "AI_UNSUPPORTED_CLAIM");
+	return { output: { ...output, candidates }, withheld };
+}
+
+export const extractionCandidateHandler: OperationHandler = {
+	...reviewHandlers["review.extraction"],
+	promptVersion: "extraction-v7-source-span-verification",
+	schemaVersion: "extraction-v5-selective-delivery",
+	validateCandidate: async (tx, ownerId, request, raw) =>
+		(await prepareExtractionVerification(tx, ownerId, request, raw)).output,
+	validateDelivery: async (tx, ownerId, request, raw) => {
+		const { result } = extractionResult(await snapshot(tx, ownerId, request), raw);
+		if (!result.candidates.some((candidate) => candidate.value !== null) && !result.questions.length)
+			throw new Error("AI_UNSUPPORTED_CLAIM");
+		return result;
+	},
+	verifier: {
+		output: extractionVerifierSchema,
+		outputForPayload: buildExtractionVerifierSchema,
+		systemPrompt: reviewExtractionVerifierPrompt,
+		buildInput: buildVerificationPayload,
+		validate: filterExtractionVerification,
+		buildInputInContext: async (tx, ownerId, request, raw) => {
+			const loaded = await snapshot(tx, ownerId, request);
+			const prepared = prepareExtractionFromSnapshot(loaded, raw);
+			return buildVerificationPayload(
+				buildModelPayload({ selections: loaded.selections, contactValues: [] }, true),
+				prepared.output,
+			);
+		},
+		validateInContext: async (tx, ownerId, request, raw, verdict) => {
+			const prepared = await prepareExtractionVerification(tx, ownerId, request, raw);
+			const filtered = filterExtractionVerification(prepared.output, verdict);
+			const items = [...prepared.withheld, ...(filtered.withheld?.items ?? [])];
+			const rules = [
+				...new Set([...prepared.withheld.map((item) => item.reason), ...(filtered.withheld?.rules ?? [])]),
+			];
+			return { output: filtered.output, ...(items.length ? { withheld: { count: items.length, items, rules } } : {}) };
+		},
+	},
 };

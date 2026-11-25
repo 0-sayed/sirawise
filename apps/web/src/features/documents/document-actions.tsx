@@ -32,6 +32,7 @@ import { useDialogStore } from "@/dialogs/store";
 import { ApplicationPicker } from "@/features/applications/components/application-picker";
 import { applicationsListQueryOptions } from "@/features/applications/queries";
 import { usePersonalToolAvailable } from "@/features/personal-tools/availability";
+import { getAllowanceReason } from "@/features/usage/allowance-limit";
 import { useClosingValue } from "@/hooks/use-closing-value";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useCurrentSession } from "@/hooks/use-current-session";
@@ -92,7 +93,20 @@ export function useDocumentActions() {
 				markNew(await copied);
 				toast.add({ description: t`Duplicated` });
 			} catch (error) {
-				failed(error);
+				if (getAllowanceReason(error)) {
+					toast.add({
+						type: "error",
+						description: getOrpcErrorMessage(error, { fallback: t`Something went wrong. Try again.` }),
+						actionProps: {
+							children: t`Open`,
+							onClick: () => {
+								if (document.type === "resume")
+									void navigate({ to: "/builder/$resumeId", params: { resumeId: document.id } });
+								else void navigate({ to: "/builder/letter/$coverLetterId", params: { coverLetterId: document.id } });
+							},
+						},
+					});
+				} else failed(error);
 			}
 		},
 

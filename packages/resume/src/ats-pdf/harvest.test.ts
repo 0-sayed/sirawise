@@ -1,6 +1,6 @@
 import type { PdfDocumentLike, PdfPageLike } from "./harvest";
 import { describe, expect, it, vi } from "vite-plus/test";
-import { harvestPdfDocument } from "./harvest";
+import { harvestPdfDocument, PDF_IMPORT_OPERATOR_BUDGET_MS } from "./harvest";
 import { PDF_OPS } from "./pdf-ops";
 
 const FILE = { name: "resume.pdf", sizeBytes: 120_000, magicBytesOk: true };
@@ -177,4 +177,58 @@ it("propagates cancellation when the last getPage rejects", async () => {
 	await expect(harvestPdfDocument(document, { file: FILE, signal: controller.signal })).rejects.toMatchObject({
 		name: "HarvestAbortedError",
 	});
+});
+
+it("binds marked content and font metrics to unmodified reader strings", async () => {
+	const text = "نواف السهلي";
+	const page = {
+		...makePage(1),
+		getTextContent: vi.fn(async () => ({
+			items: [
+				{ type: "beginMarkedContentProps", id: "p0" },
+				{ str: text, transform: [10, 0, 0, 10, 20, 40], width: 60, height: 10, fontName: "f", dir: "rtl" },
+				{ type: "endMarkedContent" },
+			],
+			styles: { f: { ascent: 0.85, descent: -0.2 } },
+		})),
+		getStructTree: async () => ({
+			role: "Document",
+			children: [{ role: "P", children: [{ type: "content", id: "p0" }] }],
+		}),
+	};
+	const raw = await harvestPdfDocument(makeDocument([page]), {
+		file: FILE,
+		operatorBudgetMs: PDF_IMPORT_OPERATOR_BUDGET_MS,
+	});
+	expect(page.getTextContent).toHaveBeenCalledWith({ disableNormalization: true, includeMarkedContent: true });
+	expect(page.getOperatorList).not.toHaveBeenCalled();
+	expect(raw.pages[0]?.structure).toContainEqual(expect.objectContaining({ role: "P", contentIds: ["p0"] }));
+	expect(raw.pages[0]?.items[0]).toMatchObject({
+		str: text,
+		markedContentId: "p0",
+		rawStart: 0,
+		rawEnd: text.length,
+		fontMetrics: { ascent: 0.85, descent: -0.2 },
+	});
+});
+
+it("keeps measurable text without a structure tree and retains unmeasurable text", async () => {
+	const page = makePage(1, { items: [{ str: "Readable", width: 40, height: 10 }] });
+	const raw = await harvestPdfDocument(makeDocument([page]), { file: FILE });
+	expect(raw.pages[0]?.structure).toEqual([]);
+	expect(raw.pages[0]?.items[0]).toMatchObject({ str: "Readable", geometryUncertain: true });
+	expect(raw.coverage?.pages[0]?.text).toBe("partial");
+});
+
+it("keeps readable Forme text on glyph timeout and shares the operator request", async () => {
+	const page = makePage(1, {
+		items: [{ str: "مهندس", dir: "rtl", transform: [10, 0, 0, 10, 20, 40], width: 60, height: 10 }],
+		operatorDelayMs: 50,
+	});
+	const document = makeDocument([page]);
+	document.getMetadata = async () => ({ info: { Producer: "Forme" } });
+	const raw = await harvestPdfDocument(document, { file: FILE, operatorBudgetPerPageMs: 5 });
+	expect(page.getOperatorList).toHaveBeenCalledTimes(1);
+	expect(raw.pages[0]?.items[0]?.str).toBe("مهندس");
+	expect(raw.coverage?.pages[0]?.text).toBe("partial");
 });

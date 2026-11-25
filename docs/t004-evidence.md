@@ -314,3 +314,62 @@ After the second ten-minute quiet window, the incremental scan found three addit
 - CI at `3d6e4ee03` passed static validation, both security checks, container build and PR metadata. Unit/integration, all four browser shards and document qualification failed during Ubuntu DNS-dependent reader setup; **zero application/document cases executed**. The 12 smoke and 50 pilot cases, matrix and historical diagnostics were skipped, and upload correctly failed without artifacts. These are infrastructure failures, not qualification scores. The next pushed head must rerun CI; no reader pin, threshold, policy or gate was weakened.
 
 T004 remains unchecked and the PR must not be merged by this lane. A01/A04 document qualification, A13 copy review, terms/privacy destinations and hidden/unapproved OAuth/passkey options remain as recorded above.
+
+## Import fact confirmation regression, 2026-11-21
+
+B-C02, S07: [desktop 28:875](https://www.figma.com/design/K3UTevGCFBhsoSLXH7BDni?node-id=28-875) and [mobile 43:755](https://www.figma.com/design/K3UTevGCFBhsoSLXH7BDni?node-id=43-755).
+The tested worktree uses `fixes-batch-3` at `13f5b8f4d` with existing uncommitted changes preserved.
+
+PR #34 added field Confirm actions that cleared warnings without accepting their candidate facts.
+Section and entry confirmation already accepted their facts, as the new rendered-component tests demonstrate on the old code.
+The field-confirmation regression test failed with an empty `acceptedFacts` array before the fix.
+The empty array also prevented the existing API from filling contact and summary.
+Fields, entries, and sections now share the same fact-confirmation path, including the existing guards for changed career facts.
+Editing still invalidates acceptance, and creating a CV alone still leaves career information unchanged.
+
+D36 copy change: the AR/EN final button distinguishes career-information saving from CV-only creation because the previous label concealed that difference.
+The copy deck, catalogs, and active-surface inventory contain both labels.
+No shared control dimensions or layout tokens changed.
+
+Validation: changed-file format/lint, typecheck, and `validate:static` passed, with the owner's unchanged `zz-owner-visual.spec.ts` excluded from formatting.
+The four web files passed 53 tests, the API integration and import-profile files passed 21, and delivered-copy/active-binding tests passed four.
+The new-account integration test calls `confirmImport` against restricted-role PostgreSQL and asserts all five fact sections, contact, summary, document links, and repeat submission.
+The requested `cv-import-review`, `pending-import`, and `career-information` browser specs plus `cv-native-import` passed 27 cases without retries.
+Four native import-assistance cases and two import conflict/recovery cases also passed without retries.
+The four new PDF-import cases assert the actual submitted facts and persisted career data in AR/EN at 1440 and 390.
+Their final-button screenshots were inspected in `.cache/b-XdWbHQ/browser`; text fits without horizontal overflow.
+The browser tests use synthetic PDF data and an isolated PostgreSQL database, with no external AI calls.
+Figma links identify mapped frames; this change uses the implemented shared UI as its visual reference under D35/D36 and claims no fresh Figma inspection.
+
+## Import assistance and translation allowance, 2026-11-21
+
+B-C02/S07 uses the desktop and mobile frames linked above. The current review-guide illustration supplies the visual reference under D35/D36.
+Pending entry confirmation now uses the shared primary variant. Section confirmation stays secondary while entries remain pending.
+Basics and summary use primary section confirmation. The final create action retains its existing behavior and copy.
+
+The PDF reader previously preserved geometry for parsing but flattened the review text into spaces.
+Both paths now share line reconstruction, including Arabic direction and columns.
+The section selector uses parser boundaries and keeps exact passage offsets and source pages.
+The panel explains text selection, reports selected characters, and explains the full-text fallback when a heading is absent.
+
+The collapsible tutorial reuses the guide paper, shared controls, and tokens.
+Its six-second animation demonstrates highlighting, section selection, and review. Reduced motion shows the final frame with three accessible text steps.
+The browser test caught an unavailable timing alias. The animation now uses the emitted shared timing token.
+
+The owner replaced per-part user charging with one charge when a translation starts.
+Only the root operation charges the user. Internal parts and retries retain platform budget admission, per-call limits, and verification.
+Tests cover one remaining use across three parts, retry without remaining uses, request replay, cancellation, and rejected admission.
+The AR/EN copy explains the single charge and preserves the unchanged-CV guarantee until final approval.
+
+All checks use synthetic data and an isolated local PostgreSQL instance. No external AI calls, environment-file reads, commits, or releases occur.
+
+Validation passed: changed-file format/lint, delivered-copy and active-binding tests, all workspace typechecks, and `validate:static`.
+The owner's unchanged visual throwaway spec was excluded from formatting.
+Seven web suites passed 107 tests. The final native-reader and tutorial run passed five tests.
+Section-boundary and import-helper tests also passed. Seven API suites passed 68 tests, and the schema suite passed two.
+The scoped browser runs passed 16 distinct cases without retries: eight PDF imports, four assistance flows, and four translation flows.
+The assistance cases cover AR/EN at 1440 and 390, section isolation, readable lines, passage evidence, and reduced motion.
+The translation cases preserve one charge through three parts and a failed-part retry.
+The initial assistance failures exposed flattened text and the missing animation timing value. Both defects were fixed before the passing rerun.
+The four static tutorial captures and the menu-selection frame were inspected in `.cache/b-MoPI6G/browser`.
+The miniature CV, controls, and labels fit both directions and widths. No fresh Figma inspection or release approval is claimed.

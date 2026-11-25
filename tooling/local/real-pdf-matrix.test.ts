@@ -142,8 +142,7 @@ it.each(cases)(
 				splitArabicWords: ["التقار ير", "الإنجليز ية"].filter((word) => text.includes(word)),
 			}));
 			for (const diagnostic of diagnostics) {
-				const wrappedEmail = diagnostic.reader === "PDF.js" && template === "glalie" && locale === "ar-SA" && !weak;
-				expect.soft(diagnostic.missingWords, diagnostic.reader).toEqual(wrappedEmail ? ["test"] : []);
+				expect.soft(diagnostic.missingWords, diagnostic.reader).toEqual([]);
 				expect.soft(diagnostic.damagedCharacters, diagnostic.reader).toBe(false);
 				expect.soft(diagnostic.splitArabicWords, diagnostic.reader).toEqual([]);
 				expect.soft(diagnostic.fragmentedWords, diagnostic.reader).toEqual([]);

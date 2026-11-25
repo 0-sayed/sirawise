@@ -15,9 +15,12 @@ import { acceptResumeProposals } from "./proposals";
 import { WordingDiff } from "./wording-diff";
 import { useIsResumeLocked } from "@/features/resume/builder/draft";
 
-/** The visible text of a passage's HTML, for the card. */
+/** Read the original HTML as text while keeping adjacent paragraphs separate. */
 const passageText = (html: string) =>
-	new DOMParser().parseFromString(html, "text/html").body.textContent?.replaceAll("\u00a0", " ").trim() ?? "";
+	Array.from(new DOMParser().parseFromString(html, "text/html").body.childNodes, (node) => node.textContent)
+		.join(" ")
+		.replace(/\s+/gu, " ")
+		.trim();
 
 type ProposalListProps = {
 	proposals: readonly Proposal[];
@@ -214,7 +217,7 @@ function ProposalItem(props: ProposalItemProps) {
 				data-review-action={props.feedback?.action}
 				className="review-wording grid gap-2 type-body"
 			>
-				<del dir="auto" className="text-ink-3">
+				<del dir="auto" hidden={state === "accepted"} className="text-ink-3">
 					{passageText(proposal.before)}
 				</del>
 				<WordingDiff

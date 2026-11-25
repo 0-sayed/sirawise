@@ -9,17 +9,23 @@ import type {
 } from "@reactive-resume/schema/resume/ai-review";
 import { createHash } from "node:crypto";
 import { ORPCError } from "@orpc/client";
-import { and, asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { withOwnerDatabase } from "@reactive-resume/db/owner-scope";
 import { aiOperation, aiReviewDecision, careerFact, resume } from "@reactive-resume/db/schema";
-import { applyTo, readTarget, replaceBlockText, splitBlocks, writeTarget } from "@reactive-resume/resume/proposals";
-import { applyReviewProposals, rebaseReviewProposal } from "@reactive-resume/resume/review-evidence";
+import { applyTo, readTarget, splitBlocks, writeTarget } from "@reactive-resume/resume/proposals";
+import {
+	applyReviewProposals,
+	hasCompleteReviewScope,
+	replaceReviewPassageText,
+	reviewProposalPosition,
+} from "@reactive-resume/resume/review-evidence";
 import { splitReviewClaims } from "@reactive-resume/schema/resume/ai-review";
 import {
 	reviewAnswerInputSchema,
 	reviewDecisionInputSchema,
 	reviewQuestionDismissalSchema,
 	reviewResultSchema,
+	reviewTargetSchema,
 } from "@reactive-resume/schema/resume/ai-review";
 import { variantReviewResultSchema } from "@reactive-resume/schema/resume/variants";
 import { parseResumeDataForWrite } from "@reactive-resume/schema/resume/write";
@@ -44,7 +50,7 @@ const decisionsFor = (tx: OwnerTransaction, ownerId: string, operationId: string
 		.from(aiReviewDecision)
 		.where(and(eq(aiReviewDecision.userId, ownerId), eq(aiReviewDecision.operationId, operationId)))
 		.orderBy(asc(aiReviewDecision.createdAt), asc(aiReviewDecision.id));
-function statusesFor(result: ReviewResult, decisions: Decision[]): Statuses {
+function statusesFor(result: ReviewResult, decisions: readonly Pick<Decision, "event" | "subjectIds">[]): Statuses {
 	const statuses: Statuses = Object.fromEntries(
 		result.kind === "wording" ? result.proposals.map((proposal) => [proposal.id, "pending"]) : [],
 	);
@@ -54,6 +60,36 @@ function statusesFor(result: ReviewResult, decisions: Decision[]): Statuses {
 				statuses[id] = decision.event === "undo" ? "pending" : decision.event === "reject" ? "rejected" : "accepted";
 	return statuses;
 }
+
+const acceptedReviewDecision = (decision: Decision) =>
+	decision.event === "accept" || decision.event === "accept_edited";
+const activeReviewChanges = (decisions: readonly Decision[]) => {
+	const undone = new Set(decisions.map((decision) => decision.previousDecisionId));
+	return decisions
+		.filter((decision) => acceptedReviewDecision(decision) && !undone.has(decision.id))
+		.flatMap((decision) => decision.changes);
+};
+const rightToLeft = (changes: readonly ReviewProposal[]) =>
+	changes.toSorted((a, b) => (b.blockIndex ?? -1) - (a.blockIndex ?? -1));
+const inverseReviewChange = (change: ReviewProposal) => ({ ...change, before: change.after, after: change.before });
+
+function expectedUndoField(accepted: Decision, decisions: readonly Decision[], target: ReviewProposal["target"]) {
+	let expected = accepted.response ? readTarget(accepted.response.data, target) : undefined;
+	const key = canonicalJson(target);
+	for (let index = decisions.indexOf(accepted) + 1; index < decisions.length; index++) {
+		const later = decisions[index];
+		if (!later || (later.event !== "undo" && !acceptedReviewDecision(later))) continue;
+		const changes = later.changes.filter((change) => canonicalJson(change.target) === key);
+		if (!changes.length) continue;
+		const active = activeReviewChanges(decisions.slice(0, index));
+		for (const change of rightToLeft(changes)) {
+			const positioned = reviewProposalPosition(change, active);
+			expected = applyTo(expected, later.event === "undo" ? inverseReviewChange(positioned) : positioned);
+		}
+	}
+	return expected;
+}
+
 async function ownedReview(tx: OwnerTransaction, ownerId: string, operationId: string, variantQuestions = false) {
 	const [operation] = await tx
 		.select()
@@ -219,6 +255,79 @@ export function getLatestResumeReview(ownerId: string, resumeId: string) {
 	});
 }
 
+/** Persisted per-field reviews, including unresolved suggestions from older operations. */
+export function listResumeReviews(ownerId: string, resumeId: string) {
+	return withOwnerDatabase(ownerId, async (tx) => {
+		const [document] = await tx
+			.select({ id: resume.id })
+			.from(resume)
+			.where(and(eq(resume.userId, ownerId), eq(resume.id, resumeId)));
+		if (!document) throw new ORPCError("NOT_FOUND");
+		const operations = await tx
+			.select({ id: aiOperation.id, result: aiOperation.result, parameters: aiOperation.parameters })
+			.from(aiOperation)
+			.where(
+				and(
+					eq(aiOperation.userId, ownerId),
+					eq(aiOperation.kind, "review.wording"),
+					sql`${aiOperation.sources} @> ${JSON.stringify([{ kind: "resume", id: resumeId }])}::jsonb`,
+				),
+			)
+			.orderBy(desc(aiOperation.createdAt), desc(aiOperation.id));
+		if (!operations.length) return [];
+		const decisions = await tx
+			.select({
+				operationId: aiReviewDecision.operationId,
+				event: aiReviewDecision.event,
+				subjectIds: aiReviewDecision.subjectIds,
+			})
+			.from(aiReviewDecision)
+			.where(
+				and(
+					eq(aiReviewDecision.userId, ownerId),
+					inArray(
+						aiReviewDecision.operationId,
+						operations.map((operation) => operation.id),
+					),
+				),
+			)
+			.orderBy(asc(aiReviewDecision.createdAt), asc(aiReviewDecision.id));
+		return operations
+			.map((operation) => {
+				const parsed = reviewResultSchema.safeParse(operation.result);
+				const result =
+					parsed.success &&
+					parsed.data.kind === "wording" &&
+					parsed.data.sourceRevision.kind === "resume" &&
+					parsed.data.sourceRevision.id === resumeId
+						? parsed.data
+						: null;
+				const statuses = result
+					? statusesFor(
+							result,
+							decisions.filter((decision) => decision.operationId === operation.id),
+						)
+					: {};
+				const parameters = operation.parameters as { targets?: unknown[] } | null;
+				const targets = new Map<string, { target: ReviewProposal["target"]; pendingCount: number }>();
+				for (const raw of [
+					...(Array.isArray(parameters?.targets) ? parameters.targets : []),
+					...(result?.evidence.map((entry) => entry.target) ?? []),
+					...(result?.proposals.map((proposal) => proposal.target) ?? []),
+				]) {
+					const parsed = reviewTargetSchema.safeParse(raw);
+					if (parsed.success) targets.set(canonicalJson(parsed.data), { target: parsed.data, pendingCount: 0 });
+				}
+				for (const proposal of result?.proposals ?? []) {
+					const entry = targets.get(canonicalJson(proposal.target));
+					if (entry && statuses[proposal.id] === "pending") entry.pendingCount++;
+				}
+				return { operationId: operation.id, targets: [...targets.values()] };
+			})
+			.filter((operation) => operation.targets.length > 0);
+	});
+}
+
 export async function decideReview(ownerId: string, raw: ReviewDecisionInput): Promise<ReviewDecisionView> {
 	const input = reviewDecisionInputSchema.parse(raw);
 	let changed = false;
@@ -255,59 +364,47 @@ export async function decideReview(ownerId: string, raw: ReviewDecisionInput): P
 			if (selected.some((proposal) => statuses[proposal.id] !== "accepted")) return conflict();
 			selected = accepted.changes;
 			data = structuredClone(originalData);
-			for (const proposal of selected) {
+			const active = activeReviewChanges(decisions);
+			for (const change of rightToLeft(selected)) {
+				const proposal = reviewProposalPosition(change, active);
 				const value = readTarget(originalData, proposal.target);
 				// The accepted snapshot binds Undo to its passage and adjacent context, never
 				// to a replacement string found elsewhere in a manually edited field.
-				let expected = accepted.response ? readTarget(accepted.response.data, proposal.target) : undefined;
-				for (const later of decisions.slice(decisions.indexOf(accepted) + 1)) {
-					for (const change of later.changes) {
-						if (canonicalJson(change.target) !== canonicalJson(proposal.target)) continue;
-						if (["accept", "accept_edited", "undo"].includes(later.event)) {
-							expected = applyTo(
-								expected,
-								later.event === "undo" ? { before: change.after, after: change.before } : change,
-							);
-						}
-					}
-				}
+				const expected = expectedUndoField(accepted, decisions, proposal.target);
 				if (expected === undefined || value === undefined) return conflict("AI_UNDO_CHANGED");
 				const savedBlocks = splitBlocks(expected);
 				const currentBlocks = splitBlocks(value);
-				const index = savedBlocks.findIndex((block) => block.html === proposal.after);
+				const index = proposal.blockIndex ?? savedBlocks.findIndex((block) => block.html === proposal.after);
 				if (
 					index < 0 ||
+					savedBlocks[index]?.html !== proposal.after ||
 					savedBlocks.length !== currentBlocks.length ||
 					[index - 1, index, index + 1].some((i) => savedBlocks[i]?.html !== currentBlocks[i]?.html)
 				)
 					return conflict("AI_UNDO_CHANGED");
-				const restored = applyTo(readTarget(data, proposal.target), { before: proposal.after, after: proposal.before });
+				const restored = applyTo(readTarget(data, proposal.target), inverseReviewChange(proposal));
 				if (restored === undefined) return conflict("AI_UNDO_CHANGED");
 				writeTarget(data, proposal.target, restored);
 			}
 			data = parseResumeDataForWrite(data);
 		} else {
 			if (selected.some((proposal) => statuses[proposal.id] !== "pending")) return conflict();
-			if (input.decision !== "reject") await assertEvidence(tx, ownerId, result, selected, decisions);
+			if (input.decision !== "reject") {
+				if (selected.some((proposal) => !hasCompleteReviewScope(proposal, result.evidence)))
+					return conflict("AI_SOURCE_CHANGED");
+				await assertEvidence(tx, ownerId, result, selected, decisions);
+			}
 			const editedText = input.editedText;
 			if (input.decision === "accept_edited" && editedText !== undefined)
 				selected = selected.map((proposal) => ({
 					...proposal,
-					after: replaceBlockText(proposal.before, editedText),
+					after: replaceReviewPassageText(proposal.before, editedText),
 					claims: splitReviewClaims(editedText, proposal.evidenceIds),
 				}));
 			// Dismissal only records the pending proposal's disposition; it never applies old text.
 			if (input.decision !== "reject") {
 				try {
-					const activeChanges = decisions
-						.filter(
-							(decision) =>
-								["accept", "accept_edited"].includes(decision.event) &&
-								!decisions.some((later) => later.previousDecisionId === decision.id),
-						)
-						.flatMap((decision) => decision.changes);
-					selected = selected.map((proposal) => rebaseReviewProposal(originalData, proposal, activeChanges));
-					data = applyReviewProposals(originalData, selected);
+					data = applyReviewProposals(originalData, selected, activeReviewChanges(decisions));
 				} catch {
 					return conflict("AI_SOURCE_CHANGED");
 				}

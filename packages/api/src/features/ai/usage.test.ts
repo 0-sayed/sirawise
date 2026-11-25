@@ -5,7 +5,7 @@ import { env } from "@reactive-resume/env/server";
 import { startUsageViewSchema } from "@reactive-resume/schema/ai-usage";
 import { withAiRuntime } from "./route-policy";
 import { syntheticRuntime } from "./testing/runtime";
-import { admitResumeCreation, reserveOperation, settleOperation } from "./usage";
+import { admitResumeCreation, releaseOperation, reserveOperation, settleOperation } from "./usage";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -26,7 +26,7 @@ it.each([0, 1, 2])("keeps the normal one-base-CV admission limit with %i existin
 	else
 		await expect(admitResumeCreation(tx, "ordinary-user", { variantKind: "base" })).rejects.toMatchObject({
 			code: "PRECONDITION_FAILED",
-			data: { reason: "BASE_CV_LIMIT" },
+			data: { reason: "BASE_CV_LIMIT", allowance: { limit: 1, used, reserved: 0, remaining: 0 } },
 		});
 });
 
@@ -64,6 +64,36 @@ function allowanceTransaction(email: string, emailVerified: boolean, used = 8) {
 	} as unknown as OwnerTransaction;
 	return { tx, entries };
 }
+
+it("debits start-charged work once and retains the charge after cancellation or failure", async () => {
+	const { tx, entries } = allowanceTransaction("ordinary@example.test", true, 4);
+	await reserveOperation(tx, "owner", "operation");
+	expect(entries.filter((entry) => entry.operationId === "operation")).toEqual([
+		{ userId: "owner", operationId: "operation", kind: "reserve" },
+	]);
+	await settleOperation(tx, "owner", "operation");
+	expect(entries.filter((entry) => entry.operationId === "operation")).toEqual([
+		{ userId: "owner", operationId: "operation", kind: "reserve" },
+		{ userId: "owner", operationId: "operation", kind: "settle" },
+	]);
+	await reserveOperation(tx, "owner", "operation");
+	await settleOperation(tx, "owner", "operation");
+	await releaseOperation(tx, "owner", "operation");
+	expect(entries.filter((entry) => entry.operationId === "operation")).toHaveLength(2);
+});
+
+it("keeps delivery-charged work reserved until delivery and refunds unsuccessful work", async () => {
+	const { tx, entries } = allowanceTransaction("ordinary@example.test", true, 4);
+	await reserveOperation(tx, "owner", "operation");
+	expect(entries.filter((entry) => entry.operationId === "operation")).toEqual([
+		{ userId: "owner", operationId: "operation", kind: "reserve" },
+	]);
+	await releaseOperation(tx, "owner", "operation");
+	expect(entries.filter((entry) => entry.operationId === "operation")).toEqual([
+		{ userId: "owner", operationId: "operation", kind: "reserve" },
+		{ userId: "owner", operationId: "operation", kind: "release" },
+	]);
+});
 
 it.each(["development", "production"])(
 	"admits verified admins beyond both AI allowances in %s and keeps the ledger",
@@ -116,7 +146,13 @@ it.each([
 		await withAiRuntime({ ...syntheticRuntime, localOwnerAllowance: { ownerId: "owner", limit } }, async () => {
 			const admission = reserveOperation(tx, "owner", "operation");
 			if (allowed) await expect(admission).resolves.toBeUndefined();
-			else await expect(admission).rejects.toMatchObject({ data: { reason: "AI_OPERATIONS_LIMIT" } });
+			else
+				await expect(admission).rejects.toMatchObject({
+					data: {
+						reason: "AI_OPERATIONS_LIMIT",
+						allowance: { limit: mode === "development" ? limit : 5, used: 8, reserved: 0, remaining: 0 },
+					},
+				});
 		});
 	} finally {
 		vi.unstubAllEnvs();
@@ -176,3 +212,36 @@ it.each(["language", "job"] as const)(
 		}
 	},
 );
+
+it.each(["language", "job"] as const)("reports settled and reserved %s copies separately", async (variantKind) => {
+	for (const pending of [false, true]) {
+		const responses = [
+			[{ dataDeletionRequestedAt: null }],
+			[],
+			[{ used: 1 }],
+			[{ email: "ordinary@example.test", emailVerified: true }],
+			[{ id: "root", baseResumeId: null }],
+			[{ id: "root" }],
+			pending ? [] : [{ id: "copy" }],
+			pending ? [{ id: "operation" }] : [],
+		];
+		const tx = {
+			select: () => ({
+				from: () => ({
+					where: () => {
+						const rows = responses.shift();
+						return Object.assign(Promise.resolve(rows), { for: async () => rows });
+					},
+				}),
+			}),
+		} as unknown as OwnerTransaction;
+		await expect(admitResumeCreation(tx, "owner", { variantKind, baseResumeId: "root" })).rejects.toMatchObject({
+			data: {
+				reason: variantKind === "language" ? "LANGUAGE_COPY_LIMIT" : "JOB_COPY_LIMIT",
+				allowance: pending
+					? { limit: 1, used: 0, reserved: 1, remaining: 0 }
+					: { limit: 1, used: 1, reserved: 0, remaining: 0 },
+			},
+		});
+	}
+});

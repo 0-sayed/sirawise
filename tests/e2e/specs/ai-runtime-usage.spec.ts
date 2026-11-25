@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { copyMessage } from "../fixtures/copy";
 import { createSampleResumeFromDashboard } from "../fixtures/resume";
 import { expect, test } from "../fixtures/test";
 
@@ -57,6 +58,10 @@ test("Start blocks another base while exhausted accounts retain editing and PDF 
 	await page.goto("/dashboard");
 	await page.getByRole("button", { name: "New", exact: true }).click();
 	await page.getByRole("button", { name: /^Write from scratch/ }).click();
-	await expect(page.getByRole("dialog")).toContainText("You have reached the limit for base CVs");
+	await expect(page.getByRole("dialog").getByRole("alert")).toContainText(copyMessage("allowance.base.title"));
+	await expect(page.getByRole("dialog").getByRole("alert")).toContainText("1 of 1 base CVs used.");
 	await expect(page.getByRole("radio", { name: "English", exact: true })).toBeVisible();
+	await page.getByRole("dialog").getByRole("button", { name: "Open existing CV", exact: true }).click();
+	await expect(page).toHaveURL(new RegExp(`/builder/${id}`));
+	await expect(page.getByLabel("Full name", { exact: true })).toHaveValue("Still editable after exhaustion");
 });

@@ -231,7 +231,7 @@ Retry transient rate limits, timeouts and provider failures with bounded exponen
 
 Workers need leases/heartbeats or equivalent queue recovery behavior. A recovered worker must check whether the external step already succeeded before repeating a side effect. Store completed artifacts under stable job/revision identities. Treat delivery and execution as potentially repeatable.
 
-Maintain an append-only credit ledger with reservation, settlement and release entries under the [usage contract](../business/requirements.md#usage-contract). One successfully delivered user-requested task costs one operation regardless of internal calls. Settle once; failed/cancelled work costs zero, automatic retries add no charge. Show cost and check/reserve limits before execution. T005 owns Start enforcement; T010 adds paid grants.
+Maintain an append-only credit ledger with reservation, settlement and release entries under the [usage contract](../business/requirements.md#usage-contract). One successfully delivered user-requested task costs one operation regardless of internal calls. Settle once; failed/cancelled work costs zero, automatic retries add no charge. Translation is the owner-approved exception: charge one user use at successful admission, retain it after failure or cancellation, and charge no further user uses for parts or retries. Show cost and check/reserve limits before execution. T005 owns Start enforcement; T010 adds paid grants.
 
 Cancellation is best effort once an external request has started. Stop unstarted steps, preserve a clear final status, and reconcile reservations. The provider may still charge the platform for an in-flight request. Track that expense separately from the user’s entitlement.
 

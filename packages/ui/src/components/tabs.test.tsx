@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, it } from "vite-plus/test";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "./tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent, TabsCount } from "./tabs";
 it("offers raised page segments with count descriptions and keyboard panel selection", async () => {
 	render(
 		<Tabs defaultValue="ats">
@@ -85,4 +85,27 @@ it("offers equal panel tabs with complete labels and icons", () => {
 	expect(screen.getByRole("tablist", { name: "Export sections" })).toHaveAttribute("data-size", "panel");
 	expect(screen.getByRole("tab", { name: "Version history" })).toHaveAttribute("aria-selected", "true");
 	expect(screen.getByRole("tab", { name: "Download PDF" })).toHaveClass("group-data-[layout=equal]/tabs-list:flex-1");
+});
+
+it("keeps full review labels, counts and keyboard selection together", async () => {
+	render(
+		<Tabs defaultValue="ats">
+			<TabsList variant="line" size="review" layout="equal" aria-label="Review">
+				<TabsTrigger value="ats">
+					<span data-review-label>Machine readability (ATS)</span>
+					<TabsCount>2</TabsCount>
+				</TabsTrigger>
+				<TabsTrigger value="writing">
+					<span data-review-label>Information completeness</span>
+					<TabsCount>3</TabsCount>
+				</TabsTrigger>
+			</TabsList>
+			<TabsContent value="ats">Can hiring systems read your CV file: text, headings, layout</TabsContent>
+			<TabsContent value="writing">Are dates, details and sections complete and consistent</TabsContent>
+		</Tabs>,
+	);
+	await userEvent.click(screen.getByRole("tab", { name: "Machine readability (ATS) 2" }));
+	await userEvent.keyboard("{ArrowRight}{Enter}");
+	expect(screen.getByRole("tab", { name: "Information completeness 3" })).toHaveAttribute("aria-selected", "true");
+	expect(screen.getByRole("tabpanel")).toHaveTextContent("Are dates, details and sections complete and consistent");
 });

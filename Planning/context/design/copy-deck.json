@@ -27914,8 +27914,8 @@
 		{
 			"key": "review.import.saveAndContinue",
 			"messages": {
-				"en-US": "Create CV and open editor",
-				"ar-SA": "إنشاء السيرة وفتح المحرر"
+				"en-US": "Create CV and save career information",
+				"ar-SA": "إنشاء السيرة وحفظ المعلومات المهنية"
 			},
 			"context": {
 				"surfaces": ["screens:S07"],
@@ -27928,9 +27928,47 @@
 			"interpolations": [],
 			"variants": [],
 			"lingui": {
-				"msgid": "Create CV and open editor",
+				"msgid": "Create CV and save career information",
 				"msgctxt": "review.import.saveAndContinue",
-				"runtimeId": "Z7La93",
+				"runtimeId": "GPsf4F",
+				"mappingStatus": "verified temporary extraction and compilation",
+				"sourceLocale": "en-US",
+				"sourcePath": "apps/web/src (planned; metadata only, not a second runtime catalog)",
+				"verification": "Saved temporary Lingui extraction and compilation evidence; owner locale review remains pending."
+			},
+			"review": {
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "T004 D36 / 2026-11-11"
+				},
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "T004 D36 / 2026-11-11"
+				}
+			}
+		},
+		{
+			"key": "review.import.createOnly",
+			"messages": {
+				"en-US": "Create CV only",
+				"ar-SA": "إنشاء السيرة فقط"
+			},
+			"context": {
+				"surfaces": ["screens:S07"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Create CV only",
+				"msgctxt": "review.import.createOnly",
+				"runtimeId": "-KFYlX",
 				"mappingStatus": "verified temporary extraction and compilation",
 				"sourceLocale": "en-US",
 				"sourcePath": "apps/web/src (planned; metadata only, not a second runtime catalog)",
@@ -70518,8 +70556,8 @@
 		{
 			"key": "workspace.cv.2VZHlg",
 			"messages": {
-				"en-US": "Data check",
-				"ar-SA": "فحص البيانات"
+				"en-US": "Information completeness",
+				"ar-SA": "اكتمال المعلومات"
 			},
 			"context": {
 				"surfaces": ["messages:workspace"],
@@ -70532,13 +70570,13 @@
 			"interpolations": [],
 			"variants": [],
 			"lingui": {
-				"msgid": "Data check",
+				"msgid": "Information completeness",
 				"msgctxt": "",
-				"mappingStatus": "verified runtime extraction",
+				"runtimeId": "AySEQa",
 				"sourceLocale": "en-US",
-				"sourcePath": "src/features/resume/editor/check/check-panel.tsx",
-				"verification": "T004 scoped extraction, 2026-11-11.",
-				"runtimeId": "RogT4K"
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/editor/check/review-tabs.ts",
+				"verification": "Delivered copy bindings and regression tests."
 			},
 			"review": {
 				"ar-SA": {
@@ -86883,8 +86921,8 @@
 		{
 			"key": "review.check.copy4kJRen",
 			"messages": {
-				"en-US": "Data check",
-				"ar-SA": "فحص البيانات"
+				"en-US": "Information completeness",
+				"ar-SA": "اكتمال المعلومات"
 			},
 			"context": {
 				"surfaces": ["messages:workspace"],
@@ -86897,13 +86935,13 @@
 			"interpolations": [],
 			"variants": [],
 			"lingui": {
-				"msgid": "Data check",
+				"msgid": "Information completeness",
 				"msgctxt": "",
-				"mappingStatus": "verified runtime extraction",
+				"runtimeId": "AySEQa",
 				"sourceLocale": "en-US",
-				"sourcePath": "src/features/ats-checker/messages.ts",
-				"verification": "T006 scoped extraction, 2026-11-12.",
-				"runtimeId": "RogT4K"
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/editor/check/review-tabs.ts",
+				"verification": "Delivered copy bindings and regression tests."
 			},
 			"review": {
 				"ar-SA": {
@@ -86921,8 +86959,8 @@
 		{
 			"key": "review.check.copy7rEglx",
 			"messages": {
-				"en-US": "Data check",
-				"ar-SA": "فحص البيانات"
+				"en-US": "Information completeness",
+				"ar-SA": "اكتمال المعلومات"
 			},
 			"context": {
 				"surfaces": ["messages:workspace"],
@@ -86935,13 +86973,13 @@
 			"interpolations": [],
 			"variants": [],
 			"lingui": {
-				"msgid": "Data check",
+				"msgid": "Information completeness",
 				"msgctxt": "",
-				"mappingStatus": "verified runtime extraction",
+				"runtimeId": "AySEQa",
 				"sourceLocale": "en-US",
-				"sourcePath": "src/features/resume/editor/check/check-panel.tsx",
-				"verification": "T006 scoped extraction, 2026-11-12.",
-				"runtimeId": "RogT4K"
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/editor/check/review-tabs.ts",
+				"verification": "Delivered copy bindings and regression tests."
 			},
 			"review": {
 				"ar-SA": {
@@ -124825,8 +124863,8 @@
 		{
 			"key": "atsGuide.pdf",
 			"messages": {
-				"ar-SA": "فحص ATS",
-				"en-US": "ATS check"
+				"en-US": "Machine readability (ATS)",
+				"ar-SA": "قابلية القراءة الآلية (ATS)"
 			},
 			"context": {
 				"surfaces": [],
@@ -124839,20 +124877,20 @@
 			"interpolations": [],
 			"variants": [],
 			"lingui": {
-				"msgid": "ATS check",
+				"msgid": "Machine readability (ATS)",
 				"msgctxt": "atsGuide.pdf",
-				"runtimeId": "uFS-VJ",
+				"runtimeId": "7ZVQJ-",
 				"sourceLocale": "en-US",
 				"mappingStatus": "verified binding",
 				"sourcePath": "src/features/ats-guide/copy.ts",
-				"verification": "Owner-directed ATS guide update, 2026-11-19."
+				"verification": "Delivered copy bindings and regression tests."
 			}
 		},
 		{
 			"key": "atsGuide.editor",
 			"messages": {
-				"en-US": "Data check",
-				"ar-SA": "فحص البيانات"
+				"en-US": "Information completeness",
+				"ar-SA": "اكتمال المعلومات"
 			},
 			"context": {
 				"surfaces": [],
@@ -124865,20 +124903,20 @@
 			"interpolations": [],
 			"variants": [],
 			"lingui": {
-				"msgid": "Data check",
+				"msgid": "Information completeness",
 				"msgctxt": "atsGuide.editor",
-				"runtimeId": "Xm5nyh",
+				"runtimeId": "ybWnIW",
 				"sourceLocale": "en-US",
 				"mappingStatus": "verified binding",
 				"sourcePath": "src/features/ats-guide/copy.ts",
-				"verification": "Owner-directed ATS guide update, 2026-11-19."
+				"verification": "Delivered copy bindings and regression tests."
 			}
 		},
 		{
 			"key": "atsGuide.blocker",
 			"messages": {
-				"ar-SA": "فحص ATS · عائق",
-				"en-US": "ATS check · Blocker"
+				"en-US": "Machine readability (ATS) · Blocker",
+				"ar-SA": "قابلية القراءة الآلية (ATS) · عائق"
 			},
 			"context": {
 				"surfaces": [],
@@ -124891,20 +124929,20 @@
 			"interpolations": [],
 			"variants": [],
 			"lingui": {
-				"msgid": "ATS check · Blocker",
+				"msgid": "Machine readability (ATS) · Blocker",
 				"msgctxt": "atsGuide.blocker",
-				"runtimeId": "Dh9QFZ",
+				"runtimeId": "Hepvrm",
 				"sourceLocale": "en-US",
 				"mappingStatus": "verified binding",
 				"sourcePath": "src/features/ats-guide/copy.ts",
-				"verification": "Owner-directed ATS guide update, 2026-11-19."
+				"verification": "Delivered copy bindings and regression tests."
 			}
 		},
 		{
 			"key": "atsGuide.warning",
 			"messages": {
-				"ar-SA": "فحص ATS · تحذير",
-				"en-US": "ATS check · Warning"
+				"en-US": "Machine readability (ATS) · Warning",
+				"ar-SA": "قابلية القراءة الآلية (ATS) · تحذير"
 			},
 			"context": {
 				"surfaces": [],
@@ -124917,20 +124955,20 @@
 			"interpolations": [],
 			"variants": [],
 			"lingui": {
-				"msgid": "ATS check · Warning",
+				"msgid": "Machine readability (ATS) · Warning",
 				"msgctxt": "atsGuide.warning",
-				"runtimeId": "qmmpLr",
+				"runtimeId": "4RCNJW",
 				"sourceLocale": "en-US",
 				"mappingStatus": "verified binding",
 				"sourcePath": "src/features/ats-guide/copy.ts",
-				"verification": "Owner-directed ATS guide update, 2026-11-19."
+				"verification": "Delivered copy bindings and regression tests."
 			}
 		},
 		{
 			"key": "atsGuide.tip",
 			"messages": {
-				"ar-SA": "فحص ATS · نصيحة",
-				"en-US": "ATS check · Tip"
+				"en-US": "Machine readability (ATS) · Tip",
+				"ar-SA": "قابلية القراءة الآلية (ATS) · نصيحة"
 			},
 			"context": {
 				"surfaces": [],
@@ -124943,20 +124981,20 @@
 			"interpolations": [],
 			"variants": [],
 			"lingui": {
-				"msgid": "ATS check · Tip",
+				"msgid": "Machine readability (ATS) · Tip",
 				"msgctxt": "atsGuide.tip",
-				"runtimeId": "rSpXIp",
+				"runtimeId": "FrLEO-",
 				"sourceLocale": "en-US",
 				"mappingStatus": "verified binding",
 				"sourcePath": "src/features/ats-guide/copy.ts",
-				"verification": "Owner-directed ATS guide update, 2026-11-19."
+				"verification": "Delivered copy bindings and regression tests."
 			}
 		},
 		{
 			"key": "atsGuide.blockerHelp",
 			"messages": {
-				"ar-SA": "تضع عوائق فحص ATS حدًا أعلى للدرجة حتى تعالج المشكلة.",
-				"en-US": "ATS check blockers cap the score until the issue is resolved."
+				"en-US": "Machine readability (ATS) blockers cap the score until the issue is resolved.",
+				"ar-SA": "تضع عوائق قابلية القراءة الآلية (ATS) حدًا أعلى للدرجة حتى تعالج المشكلة."
 			},
 			"context": {
 				"surfaces": [],
@@ -124969,13 +125007,13 @@
 			"interpolations": [],
 			"variants": [],
 			"lingui": {
-				"msgid": "ATS check blockers cap the score until the issue is resolved.",
+				"msgid": "Machine readability (ATS) blockers cap the score until the issue is resolved.",
 				"msgctxt": "atsGuide.blockerHelp",
-				"runtimeId": "4KLTBp",
+				"runtimeId": "Op3EBG",
 				"sourceLocale": "en-US",
 				"mappingStatus": "verified binding",
 				"sourcePath": "src/features/ats-guide/copy.ts",
-				"verification": "Owner-directed ATS guide update, 2026-11-19."
+				"verification": "Delivered copy bindings and regression tests."
 			}
 		},
 		{
@@ -125007,8 +125045,8 @@
 		{
 			"key": "atsGuide.tipHelp",
 			"messages": {
-				"ar-SA": "لا تغيّر نصائح فحص ATS الدرجة.",
-				"en-US": "ATS check tips do not change the score."
+				"en-US": "Machine readability (ATS) tips do not change the score.",
+				"ar-SA": "لا تغيّر نصائح قابلية القراءة الآلية (ATS) الدرجة."
 			},
 			"context": {
 				"surfaces": [],
@@ -125021,13 +125059,13 @@
 			"interpolations": [],
 			"variants": [],
 			"lingui": {
-				"msgid": "ATS check tips do not change the score.",
+				"msgid": "Machine readability (ATS) tips do not change the score.",
 				"msgctxt": "atsGuide.tipHelp",
-				"runtimeId": "hEdf-j",
+				"runtimeId": "UwHeF_",
 				"sourceLocale": "en-US",
 				"mappingStatus": "verified binding",
 				"sourcePath": "src/features/ats-guide/copy.ts",
-				"verification": "Owner-directed ATS guide update, 2026-11-19."
+				"verification": "Delivered copy bindings and regression tests."
 			}
 		},
 		{
@@ -125547,8 +125585,8 @@
 		{
 			"key": "atsGuide.editorEffect",
 			"messages": {
-				"ar-SA": "لا يؤثر في درجة فحص ATS.",
-				"en-US": "No ATS score effect."
+				"en-US": "No ATS score effect.",
+				"ar-SA": "لا يؤثر في درجة قابلية القراءة الآلية (ATS)."
 			},
 			"context": {
 				"surfaces": [],
@@ -125567,7 +125605,7 @@
 				"sourceLocale": "en-US",
 				"mappingStatus": "verified binding",
 				"sourcePath": "src/features/ats-guide/copy.ts",
-				"verification": "Owner-directed ATS guide update, 2026-11-19."
+				"verification": "Delivered copy bindings and regression tests."
 			}
 		},
 		{
@@ -125921,8 +125959,8 @@
 		{
 			"key": "review.check.copyoVdfYq",
 			"messages": {
-				"en-US": "ATS check",
-				"ar-SA": "فحص ATS"
+				"en-US": "Machine readability (ATS)",
+				"ar-SA": "قابلية القراءة الآلية (ATS)"
 			},
 			"context": {
 				"surfaces": ["messages:workspace"],
@@ -125935,13 +125973,13 @@
 			"interpolations": [],
 			"variants": [],
 			"lingui": {
-				"msgid": "ATS check",
+				"msgid": "Machine readability (ATS)",
 				"msgctxt": "",
-				"runtimeId": "oVdfYq",
+				"runtimeId": "u2Ut8o",
 				"sourceLocale": "en-US",
-				"mappingStatus": "verified runtime extraction",
-				"sourcePath": "src/features/resume/editor/check/review-workspace.tsx",
-				"verification": "CV Review scoped extraction, 2026-11-18."
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/editor/check/review-tabs.ts",
+				"verification": "Delivered copy bindings and regression tests."
 			},
 			"review": {
 				"ar-SA": {
@@ -132042,8 +132080,8 @@
 		{
 			"key": "reviewGuide.tabs.atsDescription",
 			"messages": {
-				"ar-SA": "كيف تقرأ أنظمة التوظيف ملف PDF الخاص بك.",
-				"en-US": "How hiring systems read your PDF."
+				"en-US": "Can hiring systems read your CV file: text, headings, layout",
+				"ar-SA": "هل تستطيع أنظمة التوظيف قراءة ملف سيرتك: النص والعناوين والتخطيط"
 			},
 			"context": {
 				"surfaces": [],
@@ -132056,20 +132094,20 @@
 			"interpolations": [],
 			"variants": [],
 			"lingui": {
-				"msgid": "How hiring systems read your PDF.",
+				"msgid": "Can hiring systems read your CV file: text, headings, layout",
 				"msgctxt": "reviewGuide.tabs.atsDescription",
-				"runtimeId": "PkYZdB",
+				"runtimeId": "NwPw8V",
 				"sourceLocale": "en-US",
 				"mappingStatus": "verified binding",
 				"sourcePath": "src/features/ats-guide/copy.ts",
-				"verification": "Owner Review guide tab update, 2026-11-19."
+				"verification": "Delivered copy bindings and regression tests."
 			}
 		},
 		{
 			"key": "reviewGuide.tabs.dataDescription",
 			"messages": {
-				"ar-SA": "فحوص لاكتمال بيانات سيرتك واتساقها.",
-				"en-US": "Checks for complete and consistent CV data."
+				"en-US": "Are dates, details and sections complete and consistent",
+				"ar-SA": "هل التواريخ والتفاصيل والأقسام مكتملة ومتسقة"
 			},
 			"context": {
 				"surfaces": [],
@@ -132082,13 +132120,13 @@
 			"interpolations": [],
 			"variants": [],
 			"lingui": {
-				"msgid": "Checks for complete and consistent CV data.",
+				"msgid": "Are dates, details and sections complete and consistent",
 				"msgctxt": "reviewGuide.tabs.dataDescription",
-				"runtimeId": "a6JkRQ",
+				"runtimeId": "6A0HA7",
 				"sourceLocale": "en-US",
 				"mappingStatus": "verified binding",
 				"sourcePath": "src/features/ats-guide/copy.ts",
-				"verification": "Owner Review guide tab update, 2026-11-19."
+				"verification": "Delivered copy bindings and regression tests."
 			}
 		},
 		{
@@ -135582,6 +135620,37 @@
 			}
 		},
 		{
+			"key": "review.launch.translationUnsupported",
+			"messages": {
+				"ar-SA": "لا يمكن ترجمة هذه الأقسام بعد: {sections}. أخفِ هذه الأقسام من السيرة الأصلية والنسخة اللغوية، أو انقل نصها إلى قسم مدعوم في كلتيهما، ثم أعد المحاولة. مسودتك محفوظة.",
+				"en-US": "Translation does not support these sections yet: {sections}. Hide them in the source CV and language copy. Alternatively, move their text into supported sections in both CVs. Then try again. Your draft is kept."
+			},
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": ["Local AI admission errors. Recovery actions preserve the draft."]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner local AI repair request, 2026-11-19"],
+			"interpolations": [
+				{
+					"name": "sections",
+					"type": "string"
+				}
+			],
+			"variants": [],
+			"lingui": {
+				"msgid": "Translation does not support these sections yet: {sections}. Hide them in the source CV and language copy. Alternatively, move their text into supported sections in both CVs. Then try again. Your draft is kept.",
+				"msgctxt": "review.launch.translationUnsupported",
+				"runtimeId": "OBABx0",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Local AI launch recovery, 2026-11-19."
+			}
+		},
+		{
 			"key": "review.launch.translationStructure",
 			"messages": {
 				"ar-SA": "تختلف أقسام الأصل والنسخة اللغوية أو كتل النص فيهما. افتح السيرة المحفوظة وطابق بنيتها مع الأصل قبل طلب الترجمة.",
@@ -135683,6 +135752,58 @@
 				"mappingStatus": "verified binding",
 				"sourcePath": "src/features/assistant/copy.generated.ts",
 				"verification": "Local AI launch recovery, 2026-11-19."
+			}
+		},
+		{
+			"key": "review.launch.loadingConsent",
+			"messages": {
+				"ar-SA": "جارٍ تحميل إشعار المعالجة…",
+				"en-US": "Loading the processing notice…"
+			},
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": ["Local AI admission errors. Recovery actions preserve the draft."]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["B-C12, D16 and Run D processor notice"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Loading the processing notice…",
+				"msgctxt": "review.launch.loadingConsent",
+				"runtimeId": "XSGvit",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Localized processing notice."
+			}
+		},
+		{
+			"key": "privacy.ai.backupNotice",
+			"messages": {
+				"ar-SA": "قد يستخدم مدقق DeepSeek خدمة Parasail لمعالجة هذا الطلب خارج السعودية عند تعذّر استخدام المزوّد الأساسي.",
+				"en-US": "The DeepSeek checker can use Parasail to process this request outside Saudi Arabia when the primary provider is unavailable."
+			},
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": ["Local AI admission errors. Recovery actions preserve the draft."]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["B-C12, D16 and Run D processor notice"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "The DeepSeek checker can use Parasail to process this request outside Saudi Arabia when the primary provider is unavailable.",
+				"msgctxt": "privacy.ai.backupNotice",
+				"runtimeId": "HMwoY0",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "packages/api/src/features/ai/processing-copy.generated.ts",
+				"verification": "Localized processing notice."
 			}
 		},
 		{
@@ -136496,6 +136617,4748 @@
 					"version": "2026-11-20"
 				}
 			}
+		},
+		{
+			"key": "jobs.coverage.occurrences",
+			"messages": {
+				"en-US": "Occurrences: {total}",
+				"ar-SA": "مرات الظهور: {total}"
+			},
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": [
+					"Literal phrase counts use Latin digits. Expand a phrase for linked CV context. Additional phrases start collapsed."
+				]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner production bug reports 30 and 31, 2026-11-21"],
+			"interpolations": [
+				{
+					"name": "total",
+					"type": "string"
+				}
+			],
+			"variants": [],
+			"lingui": {
+				"msgid": "Occurrences: {total}",
+				"msgctxt": "jobs.coverage.occurrences",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered-copy bindings and localized behavior tests, 2026-11-21.",
+				"runtimeId": "32DxXa"
+			}
+		},
+		{
+			"key": "jobs.coverage.excluded",
+			"messages": {
+				"ar-SA": "عرض العبارات الإضافية ({total})",
+				"en-US": "Show additional phrases ({total})"
+			},
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": [
+					"Literal phrase counts use Latin digits. Expand a phrase for linked CV context. Additional phrases start collapsed."
+				]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner production bug reports 30 and 31, 2026-11-21"],
+			"interpolations": [
+				{
+					"name": "total",
+					"type": "string"
+				}
+			],
+			"variants": [],
+			"lingui": {
+				"msgid": "Show additional phrases ({total})",
+				"msgctxt": "jobs.coverage.excluded",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered-copy bindings and localized behavior tests, 2026-11-21.",
+				"runtimeId": "gifX3j"
+			}
+		},
+		{
+			"key": "review.launch.inputTooLarge",
+			"messages": {
+				"ar-SA": "اختصر إعلان الوظيفة أو أطول وصف في سيرتك الذاتية، ثم حاول مرة أخرى. لم تتغير سيرتك الذاتية.",
+				"en-US": "Shorten the job ad or the longest CV description, then try again. Your CV is unchanged."
+			},
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": [
+					"The request exceeds the approved AI input budget. Name the text to shorten and preserve the saved CV."
+				]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner production bug reports 30 and 31, 2026-11-21"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Shorten the job ad or the longest CV description, then try again. Your CV is unchanged.",
+				"msgctxt": "review.launch.inputTooLarge",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Delivered-copy bindings and localized behavior tests, 2026-11-21.",
+				"runtimeId": "wW_O-u"
+			}
+		},
+		{
+			"key": "review.progress.queued",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": [
+					"Owner-approved review status and recovery copy. Preserve the saved CV and explicit approval scope. Interface numbers use Latin digits."
+				]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner AI queue decision, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "طلبك في قائمة الانتظار. سيبدأ قريبًا.",
+				"en-US": "Your request is waiting. It will start shortly."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Your request is waiting. It will start shortly.",
+				"msgctxt": "review.progress.queued",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Localized queue behavior and delivered-copy bindings.",
+				"runtimeId": "xSvgd7"
+			}
+		},
+		{
+			"key": "review.progress.queuePosition",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": [
+					"Owner-approved review status and recovery copy. Preserve the saved CV and explicit approval scope. Interface numbers use Latin digits."
+				]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner AI queue decision, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "الترتيب في قائمة الانتظار: {position}",
+				"en-US": "Position in queue: {position}"
+			},
+			"interpolations": [
+				{
+					"name": "position",
+					"type": "number"
+				}
+			],
+			"lingui": {
+				"msgid": "Position in queue: {position}",
+				"msgctxt": "review.progress.queuePosition",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Localized queue behavior and delivered-copy bindings.",
+				"runtimeId": "2DGKyZ"
+			}
+		},
+		{
+			"key": "review.progress.queueNoCharge",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": [
+					"Owner-approved review status and recovery copy. Preserve the saved CV and explicit approval scope. Interface numbers use Latin digits."
+				]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner AI queue decision, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "لم يُحتسب أي استخدام للمساعد.",
+				"en-US": "No AI use was charged."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "No AI use was charged.",
+				"msgctxt": "review.progress.queueNoCharge",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Localized queue behavior and delivered-copy bindings.",
+				"runtimeId": "Pcna8Z"
+			}
+		},
+		{
+			"key": "review.progress.queueExpired",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": [
+					"Owner-approved review status and recovery copy. Preserve the saved CV and explicit approval scope. Interface numbers use Latin digits."
+				]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner AI queue decision, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "انتهت مهلة الطلب قبل بدء المعالجة.",
+				"en-US": "This request expired while waiting to start."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "This request expired while waiting to start.",
+				"msgctxt": "review.progress.queueExpired",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Localized queue behavior and delivered-copy bindings.",
+				"runtimeId": "6rkxXi"
+			}
+		},
+		{
+			"key": "review.progress.drafting",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": [
+					"Owner-approved review status and recovery copy. Preserve the saved CV and explicit approval scope. Interface numbers use Latin digits."
+				]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved review progress, saved reviews and batched translation copy, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "جارٍ إعداد الاقتراحات…",
+				"en-US": "Drafting suggestions…"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Drafting suggestions…",
+				"msgctxt": "review.progress.drafting",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Delivered-copy bindings and localized behavior tests, 2026-11-21.",
+				"runtimeId": "O3FhV1"
+			}
+		},
+		{
+			"key": "review.progress.checking",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": [
+					"Owner-approved review status and recovery copy. Preserve the saved CV and explicit approval scope. Interface numbers use Latin digits."
+				]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved review progress, saved reviews and batched translation copy, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "جارٍ التحقق من المعلومات بمقارنتها بسيرتك الذاتية…",
+				"en-US": "Checking facts against your CV…"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Checking facts against your CV…",
+				"msgctxt": "review.progress.checking",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Delivered-copy bindings and localized behavior tests, 2026-11-21.",
+				"runtimeId": "7OHq5I"
+			}
+		},
+		{
+			"key": "review.progress.cancelling",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": [
+					"Owner-approved review status and recovery copy. Preserve the saved CV and explicit approval scope. Interface numbers use Latin digits."
+				]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved review progress, saved reviews and batched translation copy, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "جارٍ الإلغاء…",
+				"en-US": "Cancelling…"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Cancelling…",
+				"msgctxt": "review.progress.cancelling",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Delivered-copy bindings and localized behavior tests, 2026-11-21.",
+				"runtimeId": "kuN4Wh"
+			}
+		},
+		{
+			"key": "review.progress.elapsed",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": [
+					"Owner-approved review status and recovery copy. Preserve the saved CV and explicit approval scope. Interface numbers use Latin digits."
+				]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved review progress, saved reviews and batched translation copy, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "الوقت المنقضي: {seconds} ث",
+				"en-US": "Elapsed: {seconds}s"
+			},
+			"interpolations": [
+				{
+					"name": "seconds",
+					"type": "string"
+				}
+			],
+			"lingui": {
+				"msgid": "Elapsed: {seconds}s",
+				"msgctxt": "review.progress.elapsed",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Delivered-copy bindings and localized behavior tests, 2026-11-21.",
+				"runtimeId": "Y7zpto"
+			}
+		},
+		{
+			"key": "review.beta",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner decision on PDF import and job evidence beta, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "تجريبي",
+				"en-US": "Beta"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Beta",
+				"msgctxt": "review.beta",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests.",
+				"runtimeId": "tSOTRJ"
+			}
+		},
+		{
+			"key": "review.progress.completedParts",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner decision on PDF import and job evidence beta, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "اكتمل {completed} من {total} أجزاء",
+				"en-US": "{completed} of {total} parts complete"
+			},
+			"interpolations": [
+				{
+					"name": "completed",
+					"type": "string"
+				},
+				{
+					"name": "total",
+					"type": "string"
+				}
+			],
+			"lingui": {
+				"msgid": "{completed} of {total} parts complete",
+				"msgctxt": "review.progress.completedParts",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests.",
+				"runtimeId": "BvXFUx"
+			}
+		},
+		{
+			"key": "review.withheldFinding",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Neon run 14 and Terra run 14"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "نتيجة غير متحقق منها",
+				"en-US": "Unverified finding"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Unverified finding",
+				"msgctxt": "review.withheldFinding",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests.",
+				"runtimeId": "8oNzkn"
+			}
+		},
+		{
+			"key": "review.importRetainedField",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Neon run 14 and Terra run 14"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "تم الإبقاء على الحقل الأصلي. راجع الاقتراح قبل التأكيد.",
+				"en-US": "Original field kept. Review the suggestion before confirming."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Original field kept. Review the suggestion before confirming.",
+				"msgctxt": "review.importRetainedField",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests.",
+				"runtimeId": "fGy6BS"
+			}
+		},
+		{
+			"key": "review.import.aiUncertain",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner decision on PDF import and job evidence beta, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "راجع هذا الحقل المقترح",
+				"en-US": "Review this suggested field"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Review this suggested field",
+				"msgctxt": "review.import.aiUncertain",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests.",
+				"runtimeId": "KTBxOc"
+			}
+		},
+		{
+			"key": "review.import.confirmBeforeCreate",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner decision on PDF import and job evidence beta, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "أكّد الأقسام المستوردة قبل إنشاء السيرة الذاتية.",
+				"en-US": "Confirm the imported sections before creating the CV."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Confirm the imported sections before creating the CV.",
+				"msgctxt": "review.import.confirmBeforeCreate",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests.",
+				"runtimeId": "eHnbPN"
+			}
+		},
+		{
+			"key": "review.withheldReason.incomplete",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner decision on PDF import and job evidence beta, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "لم تُرجع المراجعة قرارًا مكتملًا لهذا العنصر.",
+				"en-US": "The review did not return a complete decision for this item."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "The review did not return a complete decision for this item.",
+				"msgctxt": "review.withheldReason.incomplete",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests.",
+				"runtimeId": "k7RHwq"
+			}
+		},
+		{
+			"key": "review.withheldReason.unsupported",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner decision on PDF import and job evidence beta, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "لم تدعم الأدلة التي تمت مراجعتها هذه النتيجة.",
+				"en-US": "The checked evidence did not support this finding."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "The checked evidence did not support this finding.",
+				"msgctxt": "review.withheldReason.unsupported",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests.",
+				"runtimeId": "N_iJJs"
+			}
+		},
+		{
+			"key": "review.withheldRequirement",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner decision on PDF import and job evidence beta, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "متطلب الوظيفة {number}",
+				"en-US": "Job requirement {number}"
+			},
+			"interpolations": [
+				{
+					"name": "number",
+					"type": "string"
+				}
+			],
+			"lingui": {
+				"msgid": "Job requirement {number}",
+				"msgctxt": "review.withheldRequirement",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests.",
+				"runtimeId": "qPedwu"
+			}
+		},
+		{
+			"key": "review.withheldNote",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner decision on PDF import and job evidence beta, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "ملاحظة المراجعة {number}",
+				"en-US": "Review note {number}"
+			},
+			"interpolations": [
+				{
+					"name": "number",
+					"type": "string"
+				}
+			],
+			"lingui": {
+				"msgid": "Review note {number}",
+				"msgctxt": "review.withheldNote",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests.",
+				"runtimeId": "W4IYOH"
+			}
+		},
+		{
+			"key": "review.progress.part",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": [
+					"Owner-approved review status and recovery copy. Preserve the saved CV and explicit approval scope. Interface numbers use Latin digits."
+				]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved review progress, saved reviews and batched translation copy, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "الجزء {part} من {total}",
+				"en-US": "Part {part} of {total}"
+			},
+			"interpolations": [
+				{
+					"name": "part",
+					"type": "string"
+				},
+				{
+					"name": "total",
+					"type": "string"
+				}
+			],
+			"lingui": {
+				"msgid": "Part {part} of {total}",
+				"msgctxt": "review.progress.part",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Delivered-copy bindings and localized behavior tests, 2026-11-21.",
+				"runtimeId": "tWfcWm"
+			}
+		},
+		{
+			"key": "review.wording.pendingCount",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": [
+					"Owner-approved review status and recovery copy. Preserve the saved CV and explicit approval scope. Interface numbers use Latin digits."
+				]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved review progress, saved reviews and batched translation copy, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "الاقتراحات المعلّقة: {count}",
+				"en-US": "Pending suggestions: {count}"
+			},
+			"interpolations": [
+				{
+					"name": "count",
+					"type": "string"
+				}
+			],
+			"lingui": {
+				"msgid": "Pending suggestions: {count}",
+				"msgctxt": "review.wording.pendingCount",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Delivered-copy bindings and localized behavior tests, 2026-11-21.",
+				"runtimeId": "aaIeJD"
+			}
+		},
+		{
+			"key": "review.wording.savedReviews",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": [
+					"Owner-approved review status and recovery copy. Preserve the saved CV and explicit approval scope. Interface numbers use Latin digits."
+				]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved review progress, saved reviews and batched translation copy, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "المراجعات المحفوظة",
+				"en-US": "Saved reviews"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Saved reviews",
+				"msgctxt": "review.wording.savedReviews",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Delivered-copy bindings and localized behavior tests, 2026-11-21.",
+				"runtimeId": "HI6MhR"
+			}
+		},
+		{
+			"key": "review.wording.savedReview",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": [
+					"Owner-approved review status and recovery copy. Preserve the saved CV and explicit approval scope. Interface numbers use Latin digits."
+				]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved review progress, saved reviews and batched translation copy, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "المراجعة {number} · الاقتراحات المعلّقة: {count}",
+				"en-US": "Review {number} · pending suggestions: {count}"
+			},
+			"interpolations": [
+				{
+					"name": "number",
+					"type": "string"
+				},
+				{
+					"name": "count",
+					"type": "string"
+				}
+			],
+			"lingui": {
+				"msgid": "Review {number} · pending suggestions: {count}",
+				"msgctxt": "review.wording.savedReview",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Delivered-copy bindings and localized behavior tests, 2026-11-21.",
+				"runtimeId": "E08nwh"
+			}
+		},
+		{
+			"key": "review.summary.factsRequired",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": [
+					"Owner-approved review status and recovery copy. Preserve the saved CV and explicit approval scope. Interface numbers use Latin digits."
+				]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved review progress, saved reviews and batched translation copy, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "اختر معلومة واحدة على الأقل لمراجعة ملخصك.",
+				"en-US": "Select at least one fact to review your summary."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Select at least one fact to review your summary.",
+				"msgctxt": "review.summary.factsRequired",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered-copy bindings and localized behavior tests, 2026-11-21.",
+				"runtimeId": "RFezkK"
+			}
+		},
+		{
+			"key": "review.translation.batchCost",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": [
+					"Owner-approved review status and recovery copy. Preserve the saved CV and explicit approval scope. Interface numbers use Latin digits."
+				]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner import assistance and single-use translation decisions, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "This translation has {total} parts. Starting it uses one AI use in total. Retrying parts uses no extra AI uses. Verified parts are applied automatically to the translated copy. Parts that fail verification keep their original text.",
+				"ar-SA": "تتكون هذه الترجمة من {total} أجزاء. يستهلك بدء الترجمة استخدامًا واحدًا للمساعد إجمالًا. إعادة محاولة الأجزاء لا تستهلك استخدامات إضافية. تُطبَّق الأجزاء التي تجتاز التحقق تلقائيًا في النسخة المترجمة. وتبقى الأجزاء التي لم تجتز التحقق بالنص الأصلي."
+			},
+			"interpolations": [
+				{
+					"name": "total",
+					"type": "string"
+				}
+			],
+			"lingui": {
+				"msgid": "This translation has {total} parts. Starting it uses one AI use in total. Retrying parts uses no extra AI uses. Verified parts are applied automatically to the translated copy. Parts that fail verification keep their original text.",
+				"msgctxt": "review.translation.batchCost",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Delivered-copy bindings and localized behavior tests, 2026-11-21.",
+				"runtimeId": "Z4NB_s"
+			}
+		},
+		{
+			"key": "review.translation.partialFailure",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": [
+					"Owner-approved review status and recovery copy. Preserve the saved CV and explicit approval scope. Interface numbers use Latin digits."
+				]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved review progress, saved reviews and batched translation copy, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "توقف الجزء {part} من {total}. الأجزاء التي اجتازت التحقق محفوظة. أعد محاولة هذا الجزء للمتابعة. لا تُطبَّق أي تغييرات حتى تجتاز جميع الأجزاء التحقق.",
+				"en-US": "Part {part} of {total} stopped. Verified parts are saved. Retry this part to continue. Nothing is applied until every part passes."
+			},
+			"interpolations": [
+				{
+					"name": "part",
+					"type": "string"
+				},
+				{
+					"name": "total",
+					"type": "string"
+				}
+			],
+			"lingui": {
+				"msgid": "Part {part} of {total} stopped. Verified parts are saved. Retry this part to continue. Nothing is applied until every part passes.",
+				"msgctxt": "review.translation.partialFailure",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Delivered-copy bindings and localized behavior tests, 2026-11-21.",
+				"runtimeId": "Q23cx2"
+			}
+		},
+		{
+			"key": "review.translation.retryPart",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": [
+					"Owner-approved review status and recovery copy. Preserve the saved CV and explicit approval scope. Interface numbers use Latin digits."
+				]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved review progress, saved reviews and batched translation copy, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "إعادة محاولة هذا الجزء",
+				"en-US": "Retry this part"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Retry this part",
+				"msgctxt": "review.translation.retryPart",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Delivered-copy bindings and localized behavior tests, 2026-11-21.",
+				"runtimeId": "QbVeBp"
+			}
+		},
+		{
+			"key": "review.translation.prepare",
+			"messages": {
+				"ar-SA": "مراجعة أجزاء الترجمة",
+				"en-US": "Review translation parts"
+			},
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": ["Review translation parts and the single user charge before starting."]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved batched translation preflight copy, 2026-11-21"],
+			"variants": [],
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Review translation parts",
+				"msgctxt": "review.translation.prepare",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Delivered-copy bindings and localized behavior tests, 2026-11-21.",
+				"runtimeId": "Tcp8E2"
+			}
+		},
+		{
+			"key": "review.import.guide.title",
+			"messages": {
+				"en-US": "How to review extracted text",
+				"ar-SA": "كيفية مراجعة النص المستخرج"
+			},
+			"context": {
+				"surfaces": ["screens:S07"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner import assistance and single-use translation decisions, 2026-11-21"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "How to review extracted text",
+				"msgctxt": "review.import.guide.title",
+				"runtimeId": "bk5BwV",
+				"mappingStatus": "verified temporary extraction and compilation",
+				"sourceLocale": "en-US",
+				"sourcePath": "apps/web/src (planned; metadata only, not a second runtime catalog)",
+				"verification": "Saved temporary Lingui extraction and compilation evidence; owner locale review remains pending."
+			},
+			"review": {
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "T004 D36 / 2026-11-11"
+				},
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "T004 D36 / 2026-11-11"
+				}
+			}
+		},
+		{
+			"key": "review.import.guide.choose",
+			"messages": {
+				"en-US": "Choose the section.",
+				"ar-SA": "اختر القسم."
+			},
+			"context": {
+				"surfaces": ["screens:S07"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner import assistance and single-use translation decisions, 2026-11-21"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Choose the section.",
+				"msgctxt": "review.import.guide.choose",
+				"runtimeId": "A8DTZM",
+				"mappingStatus": "verified temporary extraction and compilation",
+				"sourceLocale": "en-US",
+				"sourcePath": "apps/web/src (planned; metadata only, not a second runtime catalog)",
+				"verification": "Saved temporary Lingui extraction and compilation evidence; owner locale review remains pending."
+			},
+			"review": {
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "T004 D36 / 2026-11-11"
+				},
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "T004 D36 / 2026-11-11"
+				}
+			}
+		},
+		{
+			"key": "review.import.guide.highlight",
+			"messages": {
+				"en-US": "Highlight the text you want help with.",
+				"ar-SA": "حدد النص الذي تريد المساعدة فيه."
+			},
+			"context": {
+				"surfaces": ["screens:S07"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner import assistance and single-use translation decisions, 2026-11-21"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Highlight the text you want help with.",
+				"msgctxt": "review.import.guide.highlight",
+				"runtimeId": "860FVf",
+				"mappingStatus": "verified temporary extraction and compilation",
+				"sourceLocale": "en-US",
+				"sourcePath": "apps/web/src (planned; metadata only, not a second runtime catalog)",
+				"verification": "Saved temporary Lingui extraction and compilation evidence; owner locale review remains pending."
+			},
+			"review": {
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "T004 D36 / 2026-11-11"
+				},
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "T004 D36 / 2026-11-11"
+				}
+			}
+		},
+		{
+			"key": "review.import.guide.review",
+			"messages": {
+				"en-US": "Press Review selected text.",
+				"ar-SA": "اضغط على «مراجعة النص المحدد»."
+			},
+			"context": {
+				"surfaces": ["screens:S07"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner import assistance and single-use translation decisions, 2026-11-21"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Press Review selected text.",
+				"msgctxt": "review.import.guide.review",
+				"runtimeId": "UJAt10",
+				"mappingStatus": "verified temporary extraction and compilation",
+				"sourceLocale": "en-US",
+				"sourcePath": "apps/web/src (planned; metadata only, not a second runtime catalog)",
+				"verification": "Saved temporary Lingui extraction and compilation evidence; owner locale review remains pending."
+			},
+			"review": {
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "T004 D36 / 2026-11-11"
+				},
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "T004 D36 / 2026-11-11"
+				}
+			}
+		},
+		{
+			"key": "review.import.assistance.highlight",
+			"messages": {
+				"en-US": "Highlight the text you want help with",
+				"ar-SA": "حدد النص الذي تريد المساعدة فيه"
+			},
+			"context": {
+				"surfaces": ["screens:S07"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner import assistance and single-use translation decisions, 2026-11-21"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Highlight the text you want help with",
+				"msgctxt": "",
+				"runtimeId": "4IRiId",
+				"mappingStatus": "verified temporary extraction and compilation",
+				"sourceLocale": "en-US",
+				"sourcePath": "apps/web/src (planned; metadata only, not a second runtime catalog)",
+				"verification": "Saved temporary Lingui extraction and compilation evidence; owner locale review remains pending."
+			},
+			"review": {
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "T004 D36 / 2026-11-11"
+				},
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "T004 D36 / 2026-11-11"
+				}
+			}
+		},
+		{
+			"key": "review.import.assistance.selectedCount",
+			"messages": {
+				"en-US": "{selectionCount} characters selected",
+				"ar-SA": "تم تحديد {selectionCount} حرفًا"
+			},
+			"context": {
+				"surfaces": ["screens:S07"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner import assistance and single-use translation decisions, 2026-11-21"],
+			"interpolations": [
+				{
+					"name": "selectionCount",
+					"type": "string"
+				}
+			],
+			"variants": [],
+			"lingui": {
+				"msgid": "{selectionCount} characters selected",
+				"msgctxt": "",
+				"runtimeId": "gLYsue",
+				"mappingStatus": "verified temporary extraction and compilation",
+				"sourceLocale": "en-US",
+				"sourcePath": "apps/web/src (planned; metadata only, not a second runtime catalog)",
+				"verification": "Saved temporary Lingui extraction and compilation evidence; owner locale review remains pending."
+			},
+			"review": {
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "T004 D36 / 2026-11-11"
+				},
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "T004 D36 / 2026-11-11"
+				}
+			}
+		},
+		{
+			"key": "review.import.assistance.noHeading",
+			"messages": {
+				"en-US": "No heading was found for this section. Highlight the relevant text in the full extraction.",
+				"ar-SA": "لم نعثر على عنوان لهذا القسم. حدد النص المتعلق به ضمن النص المستخرج بالكامل."
+			},
+			"context": {
+				"surfaces": ["screens:S07"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner import assistance and single-use translation decisions, 2026-11-21"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "No heading was found for this section. Highlight the relevant text in the full extraction.",
+				"msgctxt": "",
+				"runtimeId": "po3aUf",
+				"mappingStatus": "verified temporary extraction and compilation",
+				"sourceLocale": "en-US",
+				"sourcePath": "apps/web/src (planned; metadata only, not a second runtime catalog)",
+				"verification": "Saved temporary Lingui extraction and compilation evidence; owner locale review remains pending."
+			},
+			"review": {
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "T004 D36 / 2026-11-11"
+				},
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "T004 D36 / 2026-11-11"
+				}
+			}
+		},
+		{
+			"key": "review.import.assistance.page",
+			"messages": {
+				"en-US": "PDF page {firstPage}",
+				"ar-SA": "صفحة PDF {firstPage}"
+			},
+			"context": {
+				"surfaces": ["screens:S07"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner import assistance and single-use translation decisions, 2026-11-21"],
+			"interpolations": [
+				{
+					"name": "firstPage",
+					"type": "string"
+				}
+			],
+			"variants": [],
+			"lingui": {
+				"msgid": "PDF page {firstPage}",
+				"msgctxt": "",
+				"runtimeId": "BOFpiE",
+				"mappingStatus": "verified temporary extraction and compilation",
+				"sourceLocale": "en-US",
+				"sourcePath": "apps/web/src (planned; metadata only, not a second runtime catalog)",
+				"verification": "Saved temporary Lingui extraction and compilation evidence; owner locale review remains pending."
+			},
+			"review": {
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "T004 D36 / 2026-11-11"
+				},
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "T004 D36 / 2026-11-11"
+				}
+			}
+		},
+		{
+			"key": "review.import.assistance.pages",
+			"messages": {
+				"en-US": "PDF pages {firstPage}–{lastPage}",
+				"ar-SA": "صفحات PDF {firstPage}–{lastPage}"
+			},
+			"context": {
+				"surfaces": ["screens:S07"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner import assistance and single-use translation decisions, 2026-11-21"],
+			"interpolations": [
+				{
+					"name": "firstPage",
+					"type": "string"
+				},
+				{
+					"name": "lastPage",
+					"type": "string"
+				}
+			],
+			"variants": [],
+			"lingui": {
+				"msgid": "PDF pages {firstPage}–{lastPage}",
+				"msgctxt": "",
+				"runtimeId": "G5Z2db",
+				"mappingStatus": "verified temporary extraction and compilation",
+				"sourceLocale": "en-US",
+				"sourcePath": "apps/web/src (planned; metadata only, not a second runtime catalog)",
+				"verification": "Saved temporary Lingui extraction and compilation evidence; owner locale review remains pending."
+			},
+			"review": {
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "T004 D36 / 2026-11-11"
+				},
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "T004 D36 / 2026-11-11"
+				}
+			}
+		},
+		{
+			"key": "review.translation.startChargedFailure",
+			"messages": {
+				"en-US": "This translation stopped. Its single AI use was charged when it started. Your CV is unchanged.",
+				"ar-SA": "توقفت هذه الترجمة. احتُسب استخدامها الوحيد للمساعد عند بدئها. لم تتغير سيرتك الذاتية."
+			},
+			"context": {
+				"surfaces": ["screens:S07"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner import assistance and single-use translation decisions, 2026-11-21"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "This translation stopped. Its single AI use was charged when it started. Your CV is unchanged.",
+				"msgctxt": "review.translation.startChargedFailure",
+				"runtimeId": "v1Wt6D",
+				"mappingStatus": "verified temporary extraction and compilation",
+				"sourceLocale": "en-US",
+				"sourcePath": "apps/web/src (planned; metadata only, not a second runtime catalog)",
+				"verification": "Saved temporary Lingui extraction and compilation evidence; owner locale review remains pending."
+			},
+			"review": {
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "T004 D36 / 2026-11-11"
+				},
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "T004 D36 / 2026-11-11"
+				}
+			}
+		},
+		{
+			"key": "language.terms.keepAllNames",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [
+				"Owner reliability, import recovery, guided-tour and translation review decisions, 2026-11-21"
+			],
+			"variants": [],
+			"messages": {
+				"en-US": "Keep all names as they are",
+				"ar-SA": "إبقاء كل الأسماء كما هي"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Keep all names as they are",
+				"msgctxt": "language.terms.keepAllNames",
+				"runtimeId": "aN5Vaq",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.translation.failedParts",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [
+				"Owner reliability, import recovery, guided-tour and translation review decisions, 2026-11-21"
+			],
+			"variants": [
+				{
+					"argument": "count",
+					"type": "plural",
+					"branches": {
+						"ar-SA": ["zero", "one", "two", "few", "many", "other"],
+						"en-US": ["one", "other"]
+					}
+				}
+			],
+			"messages": {
+				"en-US": "{count, plural, one {# part failed. Completed parts are kept.} other {# parts failed. Completed parts are kept.}}",
+				"ar-SA": "{count, plural, zero {لم يتعثر أي جزء. الأجزاء المكتملة محفوظة.} one {تعذرت ترجمة جزء واحد. الأجزاء المكتملة محفوظة.} two {تعذرت ترجمة جزأين. الأجزاء المكتملة محفوظة.} few {تعذرت ترجمة # أجزاء. الأجزاء المكتملة محفوظة.} many {تعذرت ترجمة # جزءًا. الأجزاء المكتملة محفوظة.} other {تعذرت ترجمة # جزء. الأجزاء المكتملة محفوظة.}}"
+			},
+			"interpolations": [
+				{
+					"name": "count",
+					"type": "integer"
+				}
+			],
+			"lingui": {
+				"msgid": "{count, plural, one {# part failed. Completed parts are kept.} other {# parts failed. Completed parts are kept.}}",
+				"msgctxt": "review.translation.failedParts",
+				"runtimeId": "IBU2JL",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.translation.retryFailedParts",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [
+				"Owner reliability, import recovery, guided-tour and translation review decisions, 2026-11-21"
+			],
+			"variants": [],
+			"messages": {
+				"en-US": "Retry failed parts",
+				"ar-SA": "إعادة محاولة الأجزاء المتعثرة"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Retry failed parts",
+				"msgctxt": "review.translation.retryFailedParts",
+				"runtimeId": "O0J02e",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.import.guide.show",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [
+				"Owner reliability, import recovery, guided-tour and translation review decisions, 2026-11-21"
+			],
+			"variants": [],
+			"messages": {
+				"en-US": "Show me how",
+				"ar-SA": "أرني الطريقة"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Show me how",
+				"msgctxt": "review.import.guide.show",
+				"runtimeId": "mu0v7f",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/import",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.import.guide.step",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [
+				"Owner reliability, import recovery, guided-tour and translation review decisions, 2026-11-21"
+			],
+			"variants": [],
+			"messages": {
+				"en-US": "Step {current} of {total}",
+				"ar-SA": "الخطوة {current} من {total}"
+			},
+			"interpolations": [
+				{
+					"name": "current",
+					"type": "string"
+				},
+				{
+					"name": "total",
+					"type": "string"
+				}
+			],
+			"lingui": {
+				"msgid": "Step {current} of {total}",
+				"msgctxt": "review.import.guide.step",
+				"runtimeId": "x6HgLF",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/import",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.import.help.description",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [
+				"Owner reliability, import recovery, guided-tour and translation review decisions, 2026-11-21"
+			],
+			"variants": [],
+			"messages": {
+				"en-US": "Choose a section and highlight the uncertain text before requesting a review.",
+				"ar-SA": "اختر قسمًا وحدد النص غير الواضح قبل طلب المراجعة."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Choose a section and highlight the uncertain text before requesting a review.",
+				"msgctxt": "review.import.help.description",
+				"runtimeId": "865O3_",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/import",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.import.help.expand",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [
+				"Owner reliability, import recovery, guided-tour and translation review decisions, 2026-11-21"
+			],
+			"variants": [],
+			"messages": {
+				"en-US": "Open text assistance",
+				"ar-SA": "فتح المساعدة في النص"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Open text assistance",
+				"msgctxt": "review.import.help.expand",
+				"runtimeId": "raLQtM",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/import",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.import.help.collapse",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [
+				"Owner reliability, import recovery, guided-tour and translation review decisions, 2026-11-21"
+			],
+			"variants": [],
+			"messages": {
+				"en-US": "Close text assistance",
+				"ar-SA": "إغلاق المساعدة في النص"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Close text assistance",
+				"msgctxt": "review.import.help.collapse",
+				"runtimeId": "PYnrm7",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/import",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "documents.baseCvLimit.title",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [
+				"Owner reliability, import recovery, guided-tour and translation review decisions, 2026-11-21"
+			],
+			"variants": [],
+			"messages": {
+				"en-US": "Base CV limit reached",
+				"ar-SA": "وصلت إلى حد السير الأساسية"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Base CV limit reached",
+				"msgctxt": "documents.baseCvLimit.title",
+				"runtimeId": "8Thjto",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/import",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "documents.baseCvLimit.message",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [
+				"Owner reliability, import recovery, guided-tour and translation review decisions, 2026-11-21"
+			],
+			"variants": [],
+			"messages": {
+				"en-US": "Your plan includes 1 base CV. Open your existing CV or replace it to create another.",
+				"ar-SA": "تتضمن خطتك سيرة ذاتية أساسية واحدة. افتح سيرتك الحالية أو استبدلها لإنشاء سيرة أخرى."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Your plan includes 1 base CV. Open your existing CV or replace it to create another.",
+				"msgctxt": "documents.baseCvLimit.message",
+				"runtimeId": "82xWqs",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/import",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.import.baseCvLimit",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [
+				"Owner reliability, import recovery, guided-tour and translation review decisions, 2026-11-21"
+			],
+			"variants": [],
+			"messages": {
+				"en-US": "Your plan includes 1 base CV. Replace your existing base CV, save only confirmed facts to Career information, or open your existing CV. Your review is kept.",
+				"ar-SA": "تتضمن خطتك سيرة ذاتية أساسية واحدة. استبدل سيرتك الأساسية الحالية، أو احفظ المعلومات المؤكدة فقط في معلوماتك المهنية، أو افتح سيرتك الحالية. تبقى مراجعتك محفوظة."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Your plan includes 1 base CV. Replace your existing base CV, save only confirmed facts to Career information, or open your existing CV. Your review is kept.",
+				"msgctxt": "review.import.baseCvLimit",
+				"runtimeId": "gCYi6G",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/import",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.import.replaceExisting",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [
+				"Owner reliability, import recovery, guided-tour and translation review decisions, 2026-11-21"
+			],
+			"variants": [],
+			"messages": {
+				"en-US": "Replace existing base CV",
+				"ar-SA": "استبدال السيرة الأساسية الحالية"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Replace existing base CV",
+				"msgctxt": "review.import.replaceExisting",
+				"runtimeId": "NkEXPq",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/import",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.import.saveFactsOnly",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [
+				"Owner reliability, import recovery, guided-tour and translation review decisions, 2026-11-21"
+			],
+			"variants": [],
+			"messages": {
+				"en-US": "Save confirmed facts only",
+				"ar-SA": "حفظ المعلومات المؤكدة فقط"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Save confirmed facts only",
+				"msgctxt": "review.import.saveFactsOnly",
+				"runtimeId": "fuGfTY",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/import",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "documents.baseCvLimit.openExisting",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [
+				"Owner reliability, import recovery, guided-tour and translation review decisions, 2026-11-21"
+			],
+			"variants": [],
+			"messages": {
+				"en-US": "Open existing CV",
+				"ar-SA": "فتح السيرة الحالية"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Open existing CV",
+				"msgctxt": "documents.baseCvLimit.openExisting",
+				"runtimeId": "0EWRXQ",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/import",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.import.replaceTitle",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [
+				"Owner reliability, import recovery, guided-tour and translation review decisions, 2026-11-21"
+			],
+			"variants": [],
+			"messages": {
+				"en-US": "Replace this base CV?",
+				"ar-SA": "استبدال هذه السيرة الأساسية؟"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Replace this base CV?",
+				"msgctxt": "review.import.replaceTitle",
+				"runtimeId": "hUYAgD",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/import",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.import.replaceDescription",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [
+				"Owner reliability, import recovery, guided-tour and translation review decisions, 2026-11-21"
+			],
+			"variants": [],
+			"messages": {
+				"en-US": "The reviewed CV will replace the contents of “{name}”. Its saved history and copies are kept.",
+				"ar-SA": "ستحل السيرة التي راجعتها محل محتوى «{name}». سيبقى سجلها المحفوظ ونسخها."
+			},
+			"interpolations": [
+				{
+					"name": "name",
+					"type": "string"
+				}
+			],
+			"lingui": {
+				"msgid": "The reviewed CV will replace the contents of “{name}”. Its saved history and copies are kept.",
+				"msgctxt": "review.import.replaceDescription",
+				"runtimeId": "bJliaY",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/import",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.import.factsSaved",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [
+				"Owner reliability, import recovery, guided-tour and translation review decisions, 2026-11-21"
+			],
+			"variants": [],
+			"messages": {
+				"en-US": "Confirmed facts saved to Career information. Your existing CV and import review are kept.",
+				"ar-SA": "حُفظت المعلومات المؤكدة في معلوماتك المهنية. بقيت سيرتك الحالية ومراجعة الاستيراد محفوظتين."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Confirmed facts saved to Career information. Your existing CV and import review are kept.",
+				"msgctxt": "review.import.factsSaved",
+				"runtimeId": "AEw3r_",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/import",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "documents.baseCvLimit.loadExisting",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [
+				"Owner reliability, import recovery, guided-tour and translation review decisions, 2026-11-21"
+			],
+			"variants": [],
+			"messages": {
+				"en-US": "Could not load your existing CV. Try again.",
+				"ar-SA": "تعذر تحميل سيرتك الحالية. حاول مرة أخرى."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Could not load your existing CV. Try again.",
+				"msgctxt": "documents.baseCvLimit.loadExisting",
+				"runtimeId": "24JZjc",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/import",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "documents.baseCvLimit.existing",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [
+				"Owner reliability, import recovery, guided-tour and translation review decisions, 2026-11-21"
+			],
+			"variants": [],
+			"messages": {
+				"en-US": "Existing CV",
+				"ar-SA": "السيرة الحالية"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Existing CV",
+				"msgctxt": "documents.baseCvLimit.existing",
+				"runtimeId": "DqONKG",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/import",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.import.help.title",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [
+				"Owner reliability, import recovery, guided-tour and translation review decisions, 2026-11-21"
+			],
+			"variants": [],
+			"messages": {
+				"en-US": "Get AI help with text the import was unsure about",
+				"ar-SA": "احصل على مساعدة الذكاء الاصطناعي في النص الذي لم يتأكد منه الاستيراد"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Get AI help with text the import was unsure about",
+				"msgctxt": "review.import.help.title",
+				"runtimeId": "Su1G2B",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/import",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "allowance.ai.title",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner allowance recovery decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "AI use limit reached",
+				"ar-SA": "وصلت إلى حد استخدام الذكاء الاصطناعي"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "AI use limit reached",
+				"msgctxt": "allowance.ai.title",
+				"runtimeId": "3ZoYtr",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.ai.usage",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner allowance recovery decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "{used} of {limit} AI uses used. {reserved} reserved for operations in progress.",
+				"ar-SA": "الاستخدامات المستهلكة: {used} من {limit}. الاستخدامات المحجوزة للعمليات الجارية: {reserved}."
+			},
+			"interpolations": [
+				{
+					"name": "used",
+					"type": "integer"
+				},
+				{
+					"name": "limit",
+					"type": "integer"
+				},
+				{
+					"name": "reserved",
+					"type": "integer"
+				}
+			],
+			"lingui": {
+				"msgid": "{used} of {limit} AI uses used. {reserved} reserved for operations in progress.",
+				"msgctxt": "allowance.ai.usage",
+				"runtimeId": "i0Da3J",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.ai.description",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner allowance recovery decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "No AI uses are available in your current allowance.",
+				"ar-SA": "لا توجد استخدامات متاحة للذكاء الاصطناعي ضمن رصيدك الحالي."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "No AI uses are available in your current allowance.",
+				"msgctxt": "allowance.ai.description",
+				"runtimeId": "PvuJqm",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.ai.next",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner allowance recovery decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "This allowance does not reset automatically. Continue editing manually or contact support. Your draft is kept.",
+				"ar-SA": "لا يتجدد هذا الرصيد تلقائيًا. واصل التعديل يدويًا أو تواصل مع الدعم. تبقى مسودتك محفوظة."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "This allowance does not reset automatically. Continue editing manually or contact support. Your draft is kept.",
+				"msgctxt": "allowance.ai.next",
+				"runtimeId": "SOpZvb",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.base.title",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner allowance recovery decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Base CV limit reached",
+				"ar-SA": "وصلت إلى حد السير الأساسية"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Base CV limit reached",
+				"msgctxt": "allowance.base.title",
+				"runtimeId": "yAtl99",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.base.usage",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner allowance recovery decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "{used} of {limit} base CVs used.",
+				"ar-SA": "عدد السير الذاتية الأساسية: {used} من {limit}."
+			},
+			"interpolations": [
+				{
+					"name": "used",
+					"type": "integer"
+				},
+				{
+					"name": "limit",
+					"type": "integer"
+				}
+			],
+			"lingui": {
+				"msgid": "{used} of {limit} base CVs used.",
+				"msgctxt": "allowance.base.usage",
+				"runtimeId": "JM2Zd3",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.base.description",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner allowance recovery decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Your base CV allowance is full.",
+				"ar-SA": "وصلت إلى الحد المسموح للسير الذاتية الأساسية."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Your base CV allowance is full.",
+				"msgctxt": "allowance.base.description",
+				"runtimeId": "Tweqwi",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.base.next",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner allowance recovery decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Open your existing CV to continue. Your selections are kept.",
+				"ar-SA": "افتح سيرتك الحالية للمتابعة. تبقى اختياراتك محفوظة."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Open your existing CV to continue. Your selections are kept.",
+				"msgctxt": "allowance.base.next",
+				"runtimeId": "Q-z1dZ",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.language.title",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner allowance recovery decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Language copy limit reached",
+				"ar-SA": "وصلت إلى حد النسخ اللغوية"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Language copy limit reached",
+				"msgctxt": "allowance.language.title",
+				"runtimeId": "jODB-O",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.job.title",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner allowance recovery decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Job copy limit reached",
+				"ar-SA": "وصلت إلى حد النسخ المخصصة للوظائف"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Job copy limit reached",
+				"msgctxt": "allowance.job.title",
+				"runtimeId": "ocad-j",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.language.usage",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner allowance recovery decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "{used} of {limit} language copies used for this base CV. {reserved} being created.",
+				"ar-SA": "النسخ اللغوية المستخدمة لهذه السيرة الأساسية: {used} من {limit}. قيد الإنشاء: {reserved}."
+			},
+			"interpolations": [
+				{
+					"name": "used",
+					"type": "integer"
+				},
+				{
+					"name": "limit",
+					"type": "integer"
+				},
+				{
+					"name": "reserved",
+					"type": "integer"
+				}
+			],
+			"lingui": {
+				"msgid": "{used} of {limit} language copies used for this base CV. {reserved} being created.",
+				"msgctxt": "allowance.language.usage",
+				"runtimeId": "YemKwG",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.job.usage",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner allowance recovery decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "{used} of {limit} job copies used for this base CV. {reserved} being created.",
+				"ar-SA": "النسخ المخصصة للوظائف المستخدمة لهذه السيرة الأساسية: {used} من {limit}. قيد الإنشاء: {reserved}."
+			},
+			"interpolations": [
+				{
+					"name": "used",
+					"type": "integer"
+				},
+				{
+					"name": "limit",
+					"type": "integer"
+				},
+				{
+					"name": "reserved",
+					"type": "integer"
+				}
+			],
+			"lingui": {
+				"msgid": "{used} of {limit} job copies used for this base CV. {reserved} being created.",
+				"msgctxt": "allowance.job.usage",
+				"runtimeId": "5jJYmP",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.language.description",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner allowance recovery decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "The language copy allowance for this base CV is full.",
+				"ar-SA": "وصلت إلى الحد المسموح للنسخ اللغوية لهذه السيرة الأساسية."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "The language copy allowance for this base CV is full.",
+				"msgctxt": "allowance.language.description",
+				"runtimeId": "TAu7bb",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.job.description",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner allowance recovery decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "The job copy allowance for this base CV is full.",
+				"ar-SA": "وصلت إلى الحد المسموح للنسخ المخصصة للوظائف لهذه السيرة الأساسية."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "The job copy allowance for this base CV is full.",
+				"msgctxt": "allowance.job.description",
+				"runtimeId": "pMttDC",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.language.next",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner allowance recovery decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Open the existing language copy, or wait for its creation to finish. Your selections are kept.",
+				"ar-SA": "افتح النسخة اللغوية الحالية، أو انتظر اكتمال إنشائها. تبقى اختياراتك محفوظة."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Open the existing language copy, or wait for its creation to finish. Your selections are kept.",
+				"msgctxt": "allowance.language.next",
+				"runtimeId": "hqaoML",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.job.next",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner allowance recovery decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Open the existing job copy, or wait for its creation to finish. Your selections are kept.",
+				"ar-SA": "افتح النسخة الحالية المخصصة للوظيفة، أو انتظر اكتمال إنشائها. تبقى اختياراتك محفوظة."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Open the existing job copy, or wait for its creation to finish. Your selections are kept.",
+				"msgctxt": "allowance.job.next",
+				"runtimeId": "_81bYB",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.busy.title",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner allowance recovery decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "AI is busy",
+				"ar-SA": "الذكاء الاصطناعي مشغول"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "AI is busy",
+				"msgctxt": "allowance.busy.title",
+				"runtimeId": "guNIPe",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.busy.description",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner allowance recovery decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "AI is temporarily unavailable.",
+				"ar-SA": "الذكاء الاصطناعي غير متاح مؤقتًا."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "AI is temporarily unavailable.",
+				"msgctxt": "allowance.busy.description",
+				"runtimeId": "h3RfmI",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.busy.next",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner allowance recovery decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Try again later. Your draft is kept.",
+				"ar-SA": "حاول مرة أخرى لاحقًا. تبقى مسودتك محفوظة."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Try again later. Your draft is kept.",
+				"msgctxt": "allowance.busy.next",
+				"runtimeId": "2pQXB4",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.concurrent.title",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner AI concurrency decision, 2026-11-24"],
+			"variants": [],
+			"messages": {
+				"en-US": "Simultaneous AI operation limit reached",
+				"ar-SA": "وصلت إلى الحد الأقصى لعمليات الذكاء الاصطناعي المتزامنة"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Simultaneous AI operation limit reached",
+				"msgctxt": "allowance.concurrent.title",
+				"runtimeId": "IH5bEu",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.concurrent.usage",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner allowance recovery decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "{reserved} of {limit} simultaneous AI operations in progress.",
+				"ar-SA": "عمليات الذكاء الاصطناعي الجارية في الوقت نفسه: {reserved} من {limit}."
+			},
+			"interpolations": [
+				{
+					"name": "reserved",
+					"type": "integer"
+				},
+				{
+					"name": "limit",
+					"type": "integer"
+				}
+			],
+			"lingui": {
+				"msgid": "{reserved} of {limit} simultaneous AI operations in progress.",
+				"msgctxt": "allowance.concurrent.usage",
+				"runtimeId": "xTWLbn",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.concurrent.description",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner allowance recovery decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Your simultaneous AI operation allowance is in use.",
+				"ar-SA": "الحد المسموح لعمليات الذكاء الاصطناعي المتزامنة مستخدم حاليًا."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Your simultaneous AI operation allowance is in use.",
+				"msgctxt": "allowance.concurrent.description",
+				"runtimeId": "A699La",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.concurrent.next",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner AI concurrency decision, 2026-11-24"],
+			"variants": [],
+			"messages": {
+				"en-US": "Wait for an operation to finish, then try again. Your draft is kept.",
+				"ar-SA": "انتظر حتى تنتهي إحدى العمليات، ثم حاول مرة أخرى. تبقى مسودتك محفوظة."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Wait for an operation to finish, then try again. Your draft is kept.",
+				"msgctxt": "allowance.concurrent.next",
+				"runtimeId": "pCl394",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.provider.title",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner allowance recovery decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "AI settings changed",
+				"ar-SA": "تغيرت إعدادات الذكاء الاصطناعي"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "AI settings changed",
+				"msgctxt": "allowance.provider.title",
+				"runtimeId": "ybyFPc",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.provider.description",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner allowance recovery decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "This conversation no longer matches the active AI settings.",
+				"ar-SA": "لم تعد هذه المحادثة تتوافق مع إعدادات الذكاء الاصطناعي الحالية."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "This conversation no longer matches the active AI settings.",
+				"msgctxt": "allowance.provider.description",
+				"runtimeId": "pjLxg3",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.provider.next",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner allowance recovery decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Review the current processing notice before trying again. Your draft is kept.",
+				"ar-SA": "راجع إشعار المعالجة الحالي قبل المحاولة مرة أخرى. تبقى مسودتك محفوظة."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Review the current processing notice before trying again. Your draft is kept.",
+				"msgctxt": "allowance.provider.next",
+				"runtimeId": "fG9cNI",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "review.failure.checkerIncomplete",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner recovery and clarity decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "The checker did not answer every item after two attempts. Nothing was applied. Try the review again.",
+				"ar-SA": "لم يُجب المدقق عن كل العناصر بعد محاولتين. لم يُطبَّق أي تغيير. اطلب المراجعة مرة أخرى."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "The checker did not answer every item after two attempts. Nothing was applied. Try the review again.",
+				"msgctxt": "review.failure.checkerIncomplete",
+				"runtimeId": "E-vZNL",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/editor/proposals/review-failure.tsx",
+				"verification": "Delivered copy bindings and regression tests."
+			}
+		},
+		{
+			"key": "review.failure.queueExpired",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["AI reliability offline integration, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"en-US": "This request expired while waiting to start. Your draft is kept. Retry to put it back in the queue.",
+				"ar-SA": "انتهت مهلة الطلب قبل بدء المعالجة. بقيت مسودتك محفوظة. أعد المحاولة لإضافته إلى قائمة الانتظار."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "This request expired while waiting to start. Your draft is kept. Retry to put it back in the queue.",
+				"msgctxt": "review.failure.queueExpired",
+				"runtimeId": "5u1TrC",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/editor/proposals/review-failure.tsx",
+				"verification": "Delivered copy bindings and regression tests."
+			}
+		},
+		{
+			"key": "review.failure.timeout",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner recovery and clarity decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "The assistant ran out of time. Your draft is kept. Retry to start a new review.",
+				"ar-SA": "انتهى الوقت المتاح للمساعد. مسودتك محفوظة. أعد المحاولة لبدء مراجعة جديدة."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "The assistant ran out of time. Your draft is kept. Retry to start a new review.",
+				"msgctxt": "review.failure.timeout",
+				"runtimeId": "sz6jjJ",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/editor/proposals/review-failure.tsx",
+				"verification": "Delivered copy bindings and regression tests."
+			}
+		},
+		{
+			"key": "review.failure.provider",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner recovery and clarity decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "The AI service did not finish this review. Your draft is kept. Retry can help after a temporary service failure.",
+				"ar-SA": "لم تُكمل خدمة الذكاء الاصطناعي هذه المراجعة. مسودتك محفوظة. قد تنجح إعادة المحاولة بعد عطل مؤقت في الخدمة."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "The AI service did not finish this review. Your draft is kept. Retry can help after a temporary service failure.",
+				"msgctxt": "review.failure.provider",
+				"runtimeId": "2LRosx",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/editor/proposals/review-failure.tsx",
+				"verification": "Delivered copy bindings and regression tests."
+			}
+		},
+		{
+			"key": "review.failure.safety",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner recovery and clarity decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "The response did not pass the factual safety checks. Nothing was applied. Retry can produce a different response.",
+				"ar-SA": "لم تجتز الإجابة فحوص دقة الحقائق. لم يُطبَّق أي تغيير. قد تنتج إعادة المحاولة إجابة مختلفة."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "The response did not pass the factual safety checks. Nothing was applied. Retry can produce a different response.",
+				"msgctxt": "review.failure.safety",
+				"runtimeId": "PQHxwY",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/editor/proposals/review-failure.tsx",
+				"verification": "Delivered copy bindings and regression tests."
+			}
+		},
+		{
+			"key": "review.failure.inputLimit",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner recovery and clarity decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "This request is too large. Select fewer facts or a shorter passage, then start a new review.",
+				"ar-SA": "هذا الطلب كبير جدًا. اختر حقائق أقل أو مقطعًا أقصر، ثم ابدأ مراجعة جديدة."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "This request is too large. Select fewer facts or a shorter passage, then start a new review.",
+				"msgctxt": "review.failure.inputLimit",
+				"runtimeId": "LriwtC",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/editor/proposals/review-failure.tsx",
+				"verification": "Delivered copy bindings and regression tests."
+			}
+		},
+		{
+			"key": "review.failure.changed",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner recovery and clarity decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "The saved source or review settings changed. Retry to prepare a fresh request from the current draft.",
+				"ar-SA": "تغير المصدر المحفوظ أو إعدادات المراجعة. أعد المحاولة لتحضير طلب جديد من المسودة الحالية."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "The saved source or review settings changed. Retry to prepare a fresh request from the current draft.",
+				"msgctxt": "review.failure.changed",
+				"runtimeId": "ovXSYl",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/editor/proposals/review-failure.tsx",
+				"verification": "Delivered copy bindings and regression tests."
+			}
+		},
+		{
+			"key": "review.failure.budget",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner recovery and clarity decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "This review reached its processing budget. Use a shorter passage or fewer selected facts before starting again.",
+				"ar-SA": "وصلت هذه المراجعة إلى ميزانية المعالجة. استخدم مقطعًا أقصر أو حقائق أقل قبل البدء مجددًا."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "This review reached its processing budget. Use a shorter passage or fewer selected facts before starting again.",
+				"msgctxt": "review.failure.budget",
+				"runtimeId": "tud7_e",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/editor/proposals/review-failure.tsx",
+				"verification": "Delivered copy bindings and regression tests."
+			}
+		},
+		{
+			"key": "review.failure.unknown",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner recovery and clarity decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "No review was delivered. Your draft is kept. Retry to review the current draft again, or keep editing manually.",
+				"ar-SA": "لم تُسلَّم مراجعة. مسودتك محفوظة. أعد المحاولة لمراجعة المسودة الحالية أو واصل التعديل يدويًا."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "No review was delivered. Your draft is kept. Retry to review the current draft again, or keep editing manually.",
+				"msgctxt": "review.failure.unknown",
+				"runtimeId": "Xgv_Ix",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/editor/proposals/review-failure.tsx",
+				"verification": "Delivered copy bindings and regression tests."
+			}
+		},
+		{
+			"key": "auth.validation.email",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner recovery and clarity decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Enter a valid email address, such as name@example.com.",
+				"ar-SA": "أدخل بريدًا إلكترونيًا صالحًا، مثل name@example.com."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Enter a valid email address, such as name@example.com.",
+				"msgctxt": "auth.validation.email",
+				"runtimeId": "75Rdtz",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/auth/errors.ts",
+				"verification": "Delivered copy bindings and regression tests."
+			}
+		},
+		{
+			"key": "auth.validation.username",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner recovery and clarity decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Use 3 to 64 lowercase letters, digits, dots, underscores or hyphens for your username.",
+				"ar-SA": "استخدم من 3 إلى 64 حرفًا إنجليزيًا صغيرًا أو رقمًا أو نقطة أو شرطة سفلية أو شرطة لاسم المستخدم."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Use 3 to 64 lowercase letters, digits, dots, underscores or hyphens for your username.",
+				"msgctxt": "auth.validation.username",
+				"runtimeId": "-4Hu6X",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/auth/errors.ts",
+				"verification": "Delivered copy bindings and regression tests."
+			}
+		},
+		{
+			"key": "auth.validation.password",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner recovery and clarity decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Use a stronger password with 8 to 64 characters.",
+				"ar-SA": "استخدم كلمة مرور أقوى تتكون من 8 إلى 64 حرفًا."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Use a stronger password with 8 to 64 characters.",
+				"msgctxt": "auth.validation.password",
+				"runtimeId": "1wp38z",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/auth/errors.ts",
+				"verification": "Delivered copy bindings and regression tests."
+			}
+		},
+		{
+			"key": "jobs.coverage.foundGroup",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner recovery and clarity decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Found in CV: {count}",
+				"ar-SA": "موجود في السيرة: {count}"
+			},
+			"interpolations": [
+				{
+					"name": "count",
+					"type": "integer"
+				}
+			],
+			"lingui": {
+				"msgid": "Found in CV: {count}",
+				"msgctxt": "jobs.coverage.foundGroup",
+				"runtimeId": "tuZew_",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/career/literal-job-evidence.tsx",
+				"verification": "Delivered copy bindings and regression tests."
+			}
+		},
+		{
+			"key": "jobs.coverage.missingGroup",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner recovery and clarity decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Not found in CV: {count}",
+				"ar-SA": "غير موجود في السيرة: {count}"
+			},
+			"interpolations": [
+				{
+					"name": "count",
+					"type": "integer"
+				}
+			],
+			"lingui": {
+				"msgid": "Not found in CV: {count}",
+				"msgctxt": "jobs.coverage.missingGroup",
+				"runtimeId": "VMlPIt",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/career/literal-job-evidence.tsx",
+				"verification": "Delivered copy bindings and regression tests."
+			}
+		},
+		{
+			"key": "jobs.coverage.more",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner recovery and clarity decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Show {remaining} more terms",
+				"ar-SA": "عرض {remaining} مصطلحات أخرى"
+			},
+			"interpolations": [
+				{
+					"name": "remaining",
+					"type": "integer"
+				}
+			],
+			"lingui": {
+				"msgid": "Show {remaining} more terms",
+				"msgctxt": "jobs.coverage.more",
+				"runtimeId": "B8p2qv",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/career/literal-job-evidence.tsx",
+				"verification": "Delivered copy bindings and regression tests."
+			}
+		},
+		{
+			"key": "import.help.useAll",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner recovery and clarity decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Use all in draft",
+				"ar-SA": "استخدام الكل في المسودة"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Use all in draft",
+				"msgctxt": "import.help.useAll",
+				"runtimeId": "sCohhE",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/import/ai-assistance-panel.tsx",
+				"verification": "Delivered copy bindings and regression tests."
+			}
+		},
+		{
+			"key": "import.help.localOnly",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner recovery and clarity decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "These choices update this draft only. Review and confirm the import to save them.",
+				"ar-SA": "تحدّث هذه الاختيارات المسودة فقط. راجع الاستيراد وأكّده لحفظها."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "These choices update this draft only. Review and confirm the import to save them.",
+				"msgctxt": "import.help.localOnly",
+				"runtimeId": "W2PxYW",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/import/ai-assistance-panel.tsx",
+				"verification": "Delivered copy bindings and regression tests."
+			}
+		},
+		{
+			"key": "import.help.targetEntry",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner recovery and clarity decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Add to which entry?",
+				"ar-SA": "إلى أي عنصر تريد الإضافة؟"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Add to which entry?",
+				"msgctxt": "import.help.targetEntry",
+				"runtimeId": "4OP2Dh",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/import/ai-assistance-panel.tsx",
+				"verification": "Delivered copy bindings and regression tests."
+			}
+		},
+		{
+			"key": "import.help.source",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner recovery and clarity decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Source",
+				"ar-SA": "المصدر"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Source",
+				"msgctxt": "import.help.source",
+				"runtimeId": "w23uY2",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/import/ai-assistance-panel.tsx",
+				"verification": "Delivered copy bindings and regression tests."
+			}
+		},
+		{
+			"key": "import.help.undo",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner recovery and clarity decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Undo this item",
+				"ar-SA": "التراجع عن هذا العنصر"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Undo this item",
+				"msgctxt": "import.help.undo",
+				"runtimeId": "VerSmy",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/import/ai-assistance-panel.tsx",
+				"verification": "Delivered copy bindings and regression tests."
+			}
+		},
+		{
+			"key": "review.launch.saveRequired",
+			"messages": {
+				"ar-SA": "احفظ المسودة الحالية قبل بدء المراجعة. إذا تعذر الحفظ، أعد تحميل المستند المحفوظ. تعديلاتك محفوظة.",
+				"en-US": "Save the current draft before starting this review. If saving fails, reload the saved document. Your edits are kept."
+			},
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": ["Local AI admission errors. Recovery actions preserve the draft."]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner local AI repair request, 2026-11-19"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Save the current draft before starting this review. If saving fails, reload the saved document. Your edits are kept.",
+				"msgctxt": "review.launch.saveRequired",
+				"runtimeId": "qMzFbn",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Owner launch recovery, 2026-11-21."
+			}
+		},
+		{
+			"key": "review.launch.jobRequired",
+			"messages": {
+				"ar-SA": "اختر وظيفة محفوظة تحتوي على وصف وظيفي قبل مراجعة الخطاب. استخدم رابط الوظيفة بجوار زر المراجعة.",
+				"en-US": "Choose a saved job with a job description before reviewing this letter. Use the job link beside the review button."
+			},
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": ["Local AI admission errors. Recovery actions preserve the draft."]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner local AI repair request, 2026-11-19"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Choose a saved job with a job description before reviewing this letter. Use the job link beside the review button.",
+				"msgctxt": "review.launch.jobRequired",
+				"runtimeId": "KrGxgn",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Owner launch recovery, 2026-11-21."
+			}
+		},
+		{
+			"key": "review.launch.jobTextRequired",
+			"messages": {
+				"ar-SA": "الوظيفة المرتبطة لا تحتوي على وصف وظيفي. أضف الوصف إلى الوظيفة المحفوظة، ثم ابدأ المراجعة.",
+				"en-US": "The linked job has no job description. Add the job description to that saved job, then start the review."
+			},
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": ["Local AI admission errors. Recovery actions preserve the draft."]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner local AI repair request, 2026-11-19"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "The linked job has no job description. Add the job description to that saved job, then start the review.",
+				"msgctxt": "review.launch.jobTextRequired",
+				"runtimeId": "ziaXBH",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Owner launch recovery, 2026-11-21."
+			}
+		},
+		{
+			"key": "review.launch.cvRequired",
+			"messages": {
+				"ar-SA": "اربط سيرة ذاتية محفوظة بهذا الخطاب قبل بدء المراجعة. اختر السيرة في قسم المرسل.",
+				"en-US": "Link a saved CV to this letter before starting the review. Choose a CV in the sender section."
+			},
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": ["Local AI admission errors. Recovery actions preserve the draft."]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner local AI repair request, 2026-11-19"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Link a saved CV to this letter before starting the review. Choose a CV in the sender section.",
+				"msgctxt": "review.launch.cvRequired",
+				"runtimeId": "gwKX8W",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Owner launch recovery, 2026-11-21."
+			}
+		},
+		{
+			"key": "review.launch.languageRequired",
+			"messages": {
+				"ar-SA": "تدعم هذه المراجعة المستندات العربية والإنجليزية. اختر إحدى لغتي المستند قبل البدء.",
+				"en-US": "This review supports Arabic and English documents. Choose one of these document languages before starting."
+			},
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": ["Local AI admission errors. Recovery actions preserve the draft."]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner local AI repair request, 2026-11-19"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "This review supports Arabic and English documents. Choose one of these document languages before starting.",
+				"msgctxt": "review.launch.languageRequired",
+				"runtimeId": "BBXmeX",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Owner launch recovery, 2026-11-21."
+			}
+		},
+		{
+			"key": "review.launch.sourceChanged",
+			"messages": {
+				"ar-SA": "تغيرت السيرة أو الخطاب أو النص المحدد أو الوظيفة. ألغِ الطلب، وأعد تحميل المصدر المحفوظ، ثم ابدأ مراجعة جديدة. مسودتك محفوظة.",
+				"en-US": "The CV, letter, selected text, or job changed. Cancel this request, reload the saved source, and start a new review. Your draft is kept."
+			},
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": ["Local AI admission errors. Recovery actions preserve the draft."]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner local AI repair request, 2026-11-19"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "The CV, letter, selected text, or job changed. Cancel this request, reload the saved source, and start a new review. Your draft is kept.",
+				"msgctxt": "review.launch.sourceChanged",
+				"runtimeId": "bmRek3",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Owner launch recovery, 2026-11-21."
+			}
+		},
+		{
+			"key": "review.launch.sourceUnavailable",
+			"messages": {
+				"ar-SA": "المستند المصدر أو الوظيفة المحفوظة غير متاح. افتح المصدر المحفوظ أو اختر مصدرًا آخر، ثم ابدأ مراجعة جديدة.",
+				"en-US": "A source document or saved job is unavailable. Open the saved source or choose another one, then start a new review."
+			},
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": ["Local AI admission errors. Recovery actions preserve the draft."]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner local AI repair request, 2026-11-19"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "A source document or saved job is unavailable. Open the saved source or choose another one, then start a new review.",
+				"msgctxt": "review.launch.sourceUnavailable",
+				"runtimeId": "N1dUxb",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Owner launch recovery, 2026-11-21."
+			}
+		},
+		{
+			"key": "review.launch.sourceExpired",
+			"messages": {
+				"ar-SA": "انتهت جلسة مراجعة الاستيراد. استورد الملف مرة أخرى وحدد النص للمراجعة. لم تتغير سيرتك المحفوظة.",
+				"en-US": "The import review session expired. Import the file again and select the text to review. Your saved CV is unchanged."
+			},
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": ["Local AI admission errors. Recovery actions preserve the draft."]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner local AI repair request, 2026-11-19"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "The import review session expired. Import the file again and select the text to review. Your saved CV is unchanged.",
+				"msgctxt": "review.launch.sourceExpired",
+				"runtimeId": "eEZS-e",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Owner launch recovery, 2026-11-21."
+			}
+		},
+		{
+			"key": "review.launch.sourceLocked",
+			"messages": {
+				"ar-SA": "المستند المصدر مقفل أو سبق إرساله. افتح قفل مستند قابل للتعديل أو أنشئ نسخة قابلة للتعديل قبل طلب المراجعة.",
+				"en-US": "The source document is locked or already submitted. Unlock an editable document or create an editable copy before requesting a review."
+			},
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": ["Local AI admission errors. Recovery actions preserve the draft."]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner local AI repair request, 2026-11-19"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "The source document is locked or already submitted. Unlock an editable document or create an editable copy before requesting a review.",
+				"msgctxt": "review.launch.sourceLocked",
+				"runtimeId": "Cnmgbn",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Owner launch recovery, 2026-11-21."
+			}
+		},
+		{
+			"key": "review.launch.invalidSelection",
+			"messages": {
+				"ar-SA": "تحديد المراجعة غير مكتمل أو غير صالح. ألغِ الطلب وحدد النص أو المعلومات من جديد، ثم ابدأ مراجعة جديدة.",
+				"en-US": "The review selection is incomplete or invalid. Cancel and select the text or facts again, then start a new review."
+			},
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": ["Local AI admission errors. Recovery actions preserve the draft."]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner local AI repair request, 2026-11-19"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "The review selection is incomplete or invalid. Cancel and select the text or facts again, then start a new review.",
+				"msgctxt": "review.launch.invalidSelection",
+				"runtimeId": "0aaP57",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Owner launch recovery, 2026-11-21."
+			}
+		},
+		{
+			"key": "review.launch.ambiguousPassage",
+			"messages": {
+				"ar-SA": "يطابق النص المحدد أكثر من مقطع. حدد كتلة نصية واحدة واطلب مراجعة جديدة.",
+				"en-US": "The selected text matches more than one passage. Select one text block and request a new review."
+			},
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": ["Local AI admission errors. Recovery actions preserve the draft."]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner local AI repair request, 2026-11-19"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "The selected text matches more than one passage. Select one text block and request a new review.",
+				"msgctxt": "review.launch.ambiguousPassage",
+				"runtimeId": "cMgNUS",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Owner launch recovery, 2026-11-21."
+			}
+		},
+		{
+			"key": "review.launch.requestReused",
+			"messages": {
+				"ar-SA": "ينتمي هذا الطلب إلى تحديد سابق. ألغِه وابدأ مراجعة جديدة لتحديدك الحالي.",
+				"en-US": "This request belongs to an earlier selection. Cancel it and start a new review for your current selection."
+			},
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": ["Local AI admission errors. Recovery actions preserve the draft."]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner local AI repair request, 2026-11-19"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "This request belongs to an earlier selection. Cancel it and start a new review for your current selection.",
+				"msgctxt": "review.launch.requestReused",
+				"runtimeId": "vxRTHw",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Owner launch recovery, 2026-11-21."
+			}
+		},
+		{
+			"key": "review.launch.batchIncomplete",
+			"messages": {
+				"ar-SA": "بعض أجزاء الترجمة لم تكتمل. افتح مراجعة اللغة وأعد محاولة الأجزاء المتعثرة قبل التأكيد.",
+				"en-US": "Some translation parts are unfinished. Open the language review and retry the failed parts before confirming."
+			},
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": ["Local AI admission errors. Recovery actions preserve the draft."]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner local AI repair request, 2026-11-19"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Some translation parts are unfinished. Open the language review and retry the failed parts before confirming.",
+				"msgctxt": "review.launch.batchIncomplete",
+				"runtimeId": "ZAH-iE",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Owner launch recovery, 2026-11-21."
+			}
+		},
+		{
+			"key": "review.launch.unexpectedError",
+			"messages": {
+				"ar-SA": "منع خطأ غير متوقع في التطبيق بدء هذه المراجعة. مسودتك محفوظة. أعد تحميل الصفحة وحاول مجددًا. إذا استمر الخطأ، تواصل مع الدعم.",
+				"en-US": "An unexpected application error prevented this review from starting. Your draft is kept. Reload the page and try again. If it continues, contact support."
+			},
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": ["Local AI admission errors. Recovery actions preserve the draft."]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner local AI repair request, 2026-11-19"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "An unexpected application error prevented this review from starting. Your draft is kept. Reload the page and try again. If it continues, contact support.",
+				"msgctxt": "review.launch.unexpectedError",
+				"runtimeId": "juvD_f",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Owner launch recovery, 2026-11-21."
+			}
+		},
+		{
+			"key": "review.launch.chooseJob",
+			"messages": {
+				"ar-SA": "اختر وظيفة أو احفظ وظيفة",
+				"en-US": "Choose or save a job"
+			},
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": ["Local AI admission errors. Recovery actions preserve the draft."]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner local AI repair request, 2026-11-19"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Choose or save a job",
+				"msgctxt": "review.launch.chooseJob",
+				"runtimeId": "8DNv7J",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Owner launch recovery, 2026-11-21."
+			}
+		},
+		{
+			"key": "review.launch.editJob",
+			"messages": {
+				"ar-SA": "أضف الوصف الوظيفي",
+				"en-US": "Add the job description"
+			},
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": ["Local AI admission errors. Recovery actions preserve the draft."]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner local AI repair request, 2026-11-19"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Add the job description",
+				"msgctxt": "review.launch.editJob",
+				"runtimeId": "AN1gPF",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Owner launch recovery, 2026-11-21."
+			}
+		},
+		{
+			"key": "review.launch.linkedJob",
+			"messages": {
+				"ar-SA": "الوظيفة المحفوظة لهذا الخطاب: {job}",
+				"en-US": "Saved job for this letter: {job}"
+			},
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": ["Local AI admission errors. Recovery actions preserve the draft."]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner local AI repair request, 2026-11-19"],
+			"interpolations": [
+				{
+					"name": "job",
+					"type": "string"
+				}
+			],
+			"variants": [],
+			"lingui": {
+				"msgid": "Saved job for this letter: {job}",
+				"msgctxt": "review.launch.linkedJob",
+				"runtimeId": "iBLqE4",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Owner launch recovery, 2026-11-21."
+			}
+		},
+		{
+			"key": "review.launch.linkingHint",
+			"messages": {
+				"ar-SA": "اربط وظيفة محفوظة من محدد الوظيفة أعلاه، أو اختر وظيفة للسيرة المرتبطة. يلزم وصف وظيفي للمراجعة بالذكاء الاصطناعي.",
+				"en-US": "Link a saved job in the job selector above, or choose a job for the linked CV. A job description is required for AI review."
+			},
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": ["Local AI admission errors. Recovery actions preserve the draft."]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner local AI repair request, 2026-11-19"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Link a saved job in the job selector above, or choose a job for the linked CV. A job description is required for AI review.",
+				"msgctxt": "review.launch.linkingHint",
+				"runtimeId": "4po9bO",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Owner launch recovery, 2026-11-21."
+			}
+		},
+		{
+			"key": "review.launch.cvJobLink",
+			"messages": {
+				"ar-SA": "اختر وظيفة لهذه السيرة أو غيّرها",
+				"en-US": "Choose or change the job for this CV"
+			},
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": ["Local AI admission errors. Recovery actions preserve the draft."]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner local AI repair request, 2026-11-19"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Choose or change the job for this CV",
+				"msgctxt": "review.launch.cvJobLink",
+				"runtimeId": "TSWXBK",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Owner launch recovery, 2026-11-21."
+			}
+		},
+		{
+			"key": "review.launch.savedJob",
+			"messages": {
+				"en-US": "Saved job",
+				"ar-SA": "الوظيفة المحفوظة"
+			},
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": ["Local AI admission errors. Recovery actions preserve the draft."]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner local AI repair request, 2026-11-19"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Saved job",
+				"msgctxt": "review.launch.savedJob",
+				"runtimeId": "f62ROu",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"verification": "Owner launch recovery, 2026-11-21."
+			}
+		},
+		{
+			"key": "language.terms.allConfirmed",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review usability improvements (item 62), 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "All names are confirmed.",
+				"ar-SA": "تم تأكيد كل الأسماء."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "All names are confirmed.",
+				"msgctxt": "language.terms.allConfirmed",
+				"runtimeId": "UaZGPg",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.terms.showConfirmed",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review usability improvements (item 62), 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "{count, plural, one {Show # confirmed name} other {Show # confirmed names}}",
+				"ar-SA": "{count, plural, zero {عرض # اسم مؤكد} one {عرض اسم واحد مؤكد} two {عرض اسمين مؤكدين} few {عرض # أسماء مؤكدة} many {عرض # اسمًا مؤكدًا} other {عرض # اسم مؤكد}}"
+			},
+			"interpolations": ["count"],
+			"lingui": {
+				"msgid": "{count, plural, one {Show # confirmed name} other {Show # confirmed names}}",
+				"msgctxt": "language.terms.showConfirmed",
+				"runtimeId": "uzcMan",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.terms.occurrences",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review usability improvements (item 62), 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "{count, plural, one {# occurrence} other {# occurrences}}",
+				"ar-SA": "{count, plural, zero {# موضع} one {موضع واحد} two {موضعان} few {# مواضع} many {# موضعًا} other {# موضع}}"
+			},
+			"interpolations": ["count"],
+			"lingui": {
+				"msgid": "{count, plural, one {# occurrence} other {# occurrences}}",
+				"msgctxt": "language.terms.occurrences",
+				"runtimeId": "gT93kf",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.progress",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review usability improvements (item 62), 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "{accepted} of {total} accepted",
+				"ar-SA": "تم قبول {accepted} من {total}"
+			},
+			"interpolations": ["accepted", "total"],
+			"lingui": {
+				"msgid": "{accepted} of {total} accepted",
+				"msgctxt": "language.translation.progress",
+				"runtimeId": "sf7Tzl",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.acceptSection",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review usability improvements (item 62), 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Accept section",
+				"ar-SA": "قبول القسم"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Accept section",
+				"msgctxt": "language.translation.acceptSection",
+				"runtimeId": "vIlA1N",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.acceptAllDisabledNames",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review usability improvements (item 62), 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Confirm all names before accepting all segments.",
+				"ar-SA": "أكّد كل الأسماء قبل قبول كل الفقرات."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Confirm all names before accepting all segments.",
+				"msgctxt": "language.translation.acceptAllDisabledNames",
+				"runtimeId": "1Gyl08",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.otherSection",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review usability improvements (item 62), 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Other sections",
+				"ar-SA": "أقسام أخرى"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Other sections",
+				"msgctxt": "language.translation.otherSection",
+				"runtimeId": "rPVRpI",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.undoLastAction",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review contextual undo improvements (item 63), 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Undo last action",
+				"ar-SA": "التراجع عن آخر إجراء"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Undo last action",
+				"msgctxt": "language.translation.undoLastAction",
+				"runtimeId": "uYC5pB",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.undoAllDetail",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review contextual undo improvements (item 63), 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "{count, plural, one {Accepted all · # part} other {Accepted all · # parts}}",
+				"ar-SA": "{count, plural, zero {قبول الكل · # فقرة} one {قبول الكل · فقرة واحدة} two {قبول الكل · فقرتان} few {قبول الكل · # فقرات} many {قبول الكل · # فقرة} other {قبول الكل · # فقرة}}"
+			},
+			"interpolations": ["count"],
+			"lingui": {
+				"msgid": "{count, plural, one {Accepted all · # part} other {Accepted all · # parts}}",
+				"msgctxt": "language.translation.undoAllDetail",
+				"runtimeId": "2nmkd_",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.undoSectionDetail",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review contextual undo improvements (item 63), 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "{count, plural, one {Accepted section {section} · # part} other {Accepted section {section} · # parts}}",
+				"ar-SA": "{count, plural, zero {قبول قسم {section} · # فقرة} one {قبول قسم {section} · فقرة واحدة} two {قبول قسم {section} · فقرتان} few {قبول قسم {section} · # فقرات} many {قبول قسم {section} · # فقرة} other {قبول قسم {section} · # فقرة}}"
+			},
+			"interpolations": ["section", "count"],
+			"lingui": {
+				"msgid": "{count, plural, one {Accepted section {section} · # part} other {Accepted section {section} · # parts}}",
+				"msgctxt": "language.translation.undoSectionDetail",
+				"runtimeId": "AUFO22",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.undoSegmentDetail",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review contextual undo improvements (item 63), 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Reviewed 1 part in {section}",
+				"ar-SA": "مراجعة فقرة واحدة في {section}"
+			},
+			"interpolations": ["section"],
+			"lingui": {
+				"msgid": "Reviewed 1 part in {section}",
+				"msgctxt": "language.translation.undoSegmentDetail",
+				"runtimeId": "ePTbrK",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.unresolvedNotice",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation placeholder resolution and approve error feedback (item 64), 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Some translated segments still contain an unresolved placeholder. Edit the marked segments before approving.",
+				"ar-SA": "لا تزال بعض الفقرات المترجمة تحتوي على عنصر نائب غير محلول. عدّل الفقرات المحددة قبل الاعتماد."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Some translated segments still contain an unresolved placeholder. Edit the marked segments before approving.",
+				"msgctxt": "language.translation.unresolvedNotice",
+				"runtimeId": "px5aci",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.needsAttention",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation placeholder resolution and approve error feedback (item 64), 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Needs edit",
+				"ar-SA": "يحتاج تعديل"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Needs edit",
+				"msgctxt": "language.translation.needsAttention",
+				"runtimeId": "z5fMdX",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.errorUnresolved",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation placeholder resolution and approve error feedback (item 64), 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Could not approve because a protected placeholder could not be restored. Edit the marked segment in {section}, then try again.",
+				"ar-SA": "تعذّر الاعتماد لأن عنصرًا محميًا لم يُستعَد تلقائيًا. عدّل الفقرة المحددة في قسم {section} ثم حاول مجددًا."
+			},
+			"interpolations": ["section"],
+			"lingui": {
+				"msgid": "Could not approve because a protected placeholder could not be restored. Edit the marked segment in {section}, then try again.",
+				"msgctxt": "language.translation.errorUnresolved",
+				"runtimeId": "COKKtG",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.errorUnresolvedGeneric",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation placeholder resolution and approve error feedback (item 64), 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Could not approve because a protected placeholder could not be restored. Reload the review and edit any marked segment.",
+				"ar-SA": "تعذّر الاعتماد لأن عنصرًا محميًا لم يُستعَد تلقائيًا. أعد تحميل المراجعة وعدّل أي فقرة محددة."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Could not approve because a protected placeholder could not be restored. Reload the review and edit any marked segment.",
+				"msgctxt": "language.translation.errorUnresolvedGeneric",
+				"runtimeId": "0mQwKe",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.errorIncomplete",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation placeholder resolution and approve error feedback (item 64), 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Could not approve yet. Confirm all names and accept all segments before approving.",
+				"ar-SA": "تعذّر الاعتماد بعد. أكّد كل الأسماء واقبل كل الفقرات قبل الاعتماد."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Could not approve yet. Confirm all names and accept all segments before approving.",
+				"msgctxt": "language.translation.errorIncomplete",
+				"runtimeId": "_s_BMu",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.errorStructureChanged",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation placeholder resolution and approve error feedback (item 64), 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Could not approve because the CV structure changed since this review started. Request a new translation review.",
+				"ar-SA": "تعذّر الاعتماد لأن بنية السيرة تغيّرت منذ بدء هذه المراجعة. اطلب مراجعة ترجمة جديدة."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Could not approve because the CV structure changed since this review started. Request a new translation review.",
+				"msgctxt": "language.translation.errorStructureChanged",
+				"runtimeId": "peSSOa",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.translateToEnglish",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner one-step plug-and-play translation decision (item 65), 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Translate to English",
+				"ar-SA": "ترجمة إلى الإنجليزية"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Translate to English",
+				"msgctxt": "language.translation.translateToEnglish",
+				"runtimeId": "UZeHIF",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.translateToArabic",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner one-step plug-and-play translation decision (item 65), 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Translate to Arabic",
+				"ar-SA": "ترجمة إلى العربية"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Translate to Arabic",
+				"msgctxt": "language.translation.translateToArabic",
+				"runtimeId": "_33Nmp",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.ready",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner one-step plug-and-play translation decision (item 65), 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Translation ready",
+				"ar-SA": "الترجمة جاهزة"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Translation ready",
+				"msgctxt": "language.translation.ready",
+				"runtimeId": "_2S0rt",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.compareWithOriginal",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner one-step plug-and-play translation decision (item 65), 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Compare with original",
+				"ar-SA": "مقارنة بالأصل"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Compare with original",
+				"msgctxt": "language.translation.compareWithOriginal",
+				"runtimeId": "KrOion",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.hideComparison",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner one-step plug-and-play translation decision (item 65), 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Hide comparison",
+				"ar-SA": "إخفاء المقارنة"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Hide comparison",
+				"msgctxt": "language.translation.hideComparison",
+				"runtimeId": "f6Hr8z",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.needsAttentionNotice",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner one-step plug-and-play translation decision (item 65), 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Resolve the items below to finish and save your language copy automatically.",
+				"ar-SA": "عالج العناصر أدناه لإكمال النسخة اللغوية وحفظها تلقائيًا."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Resolve the items below to finish and save your language copy automatically.",
+				"msgctxt": "language.translation.needsAttentionNotice",
+				"runtimeId": "0Hz-NJ",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.openCopy",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner one-step plug-and-play translation decision (item 65), 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Open",
+				"ar-SA": "فتح"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Open",
+				"msgctxt": "language.translation.openCopy",
+				"runtimeId": "Gpc5oa",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.withheldItems",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Per-item verification withholding notice (item 66), 2026-11-22"],
+			"variants": [],
+			"messages": {
+				"en-US": "{count, plural, one {# item was withheld because it could not be verified.} other {# items were withheld because they could not be verified.}}",
+				"ar-SA": "{count, plural, one {تم حجب عنصر واحد لأنه لم يجتز التحقق.} two {تم حجب عنصرين لأنهما لم يجتازا التحقق.} few {تم حجب # عناصر لأنها لم تجتز التحقق.} other {تم حجب # عنصرًا لأنها لم تجتز التحقق.}}"
+			},
+			"interpolations": ["count"],
+			"lingui": {
+				"msgid": "{count, plural, one {# item was withheld because it could not be verified.} other {# items were withheld because they could not be verified.}}",
+				"msgctxt": "review.withheldItems",
+				"runtimeId": "xEBJoL",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.withheldReason.importance",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Withheld job-evidence item reason (item 91), 2026-11-24"],
+			"variants": [],
+			"messages": {
+				"en-US": "Importance level was not stated explicitly in the job ad.",
+				"ar-SA": "لم يُذكر مستوى الأهمية صراحةً في نص الإعلان."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Importance level was not stated explicitly in the job ad.",
+				"msgctxt": "review.withheldReason.importance",
+				"runtimeId": "withheldReasonImportance",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.withheldReason.absence",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Withheld job-evidence item reason (item 91), 2026-11-24"],
+			"variants": [],
+			"messages": {
+				"en-US": "Could not be confirmed as absent from your CV.",
+				"ar-SA": "تعذّر تأكيد غياب هذا المتطلب من سيرتك الذاتية."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Could not be confirmed as absent from your CV.",
+				"msgctxt": "review.withheldReason.absence",
+				"runtimeId": "withheldReasonAbsence",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.withheldReason.default",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Withheld job-evidence item reason (item 91), 2026-11-24"],
+			"variants": [],
+			"messages": {
+				"en-US": "Could not be verified against your CV.",
+				"ar-SA": "تعذّر التحقق منه مقابل سيرتك الذاتية."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Could not be verified against your CV.",
+				"msgctxt": "review.withheldReason.default",
+				"runtimeId": "withheldReasonDefault",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.translation.notTranslated",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Per-item translation withholding badge (item 92), 2026-11-24"],
+			"variants": [],
+			"messages": {
+				"en-US": "Not translated",
+				"ar-SA": "تُرك دون ترجمة"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Not translated",
+				"msgctxt": "review.translation.notTranslated",
+				"runtimeId": "translationNotTranslated",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.translation.retryThisPart",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Per-item translation withholding retry action (item 92), 2026-11-24"],
+			"variants": [],
+			"messages": {
+				"en-US": "Retry this part",
+				"ar-SA": "إعادة محاولة هذا الجزء"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Retry this part",
+				"msgctxt": "review.translation.retryThisPart",
+				"runtimeId": "translationRetryThisPart",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.withheldReason.translation",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Per-item translation withholding reason (item 92), 2026-11-24"],
+			"variants": [],
+			"messages": {
+				"en-US": "Could not be verified as an accurate translation.",
+				"ar-SA": "تعذّر التحقق من دقة ترجمة هذا المقطع."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Could not be verified as an accurate translation.",
+				"msgctxt": "review.withheldReason.translation",
+				"runtimeId": "withheldReasonTranslation",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.withheldReason.extraction",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Per-item extraction withholding reason (item 92), 2026-11-24"],
+			"variants": [],
+			"messages": {
+				"en-US": "The assistant did not verify this field against the selected text. The field was not added.",
+				"ar-SA": "تعذر على المساعد التحقق من هذا الحقل بالاستناد إلى النص المحدد. لم يُضف الحقل."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "The assistant did not verify this field against the selected text. The field was not added.",
+				"msgctxt": "review.withheldReason.extraction",
+				"runtimeId": "7j9cH-",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "allowance.target.title",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner AI concurrency decision, 2026-11-24"],
+			"variants": [],
+			"messages": {
+				"en-US": "An AI review is already running for this draft",
+				"ar-SA": "تجري مراجعة بالذكاء الاصطناعي لهذه المسودة بالفعل"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "An AI review is already running for this draft",
+				"msgctxt": "allowance.target.title",
+				"runtimeId": "5VunMu",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.target.description",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner AI concurrency decision, 2026-11-24"],
+			"variants": [],
+			"messages": {
+				"en-US": "An AI review is already running for this CV.",
+				"ar-SA": "تجري مراجعة بالذكاء الاصطناعي لهذه السيرة الذاتية بالفعل."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "An AI review is already running for this CV.",
+				"msgctxt": "allowance.target.description",
+				"runtimeId": "Rzbsf7",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.target.letter",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner AI concurrency decision, 2026-11-24"],
+			"variants": [],
+			"messages": {
+				"en-US": "An AI review is already running for this letter.",
+				"ar-SA": "تجري مراجعة بالذكاء الاصطناعي لهذا الخطاب بالفعل."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "An AI review is already running for this letter.",
+				"msgctxt": "allowance.target.letter",
+				"runtimeId": "eZPQNH",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.target.import",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner AI concurrency decision, 2026-11-24"],
+			"variants": [],
+			"messages": {
+				"en-US": "An AI review is already running for this import.",
+				"ar-SA": "تجري مراجعة بالذكاء الاصطناعي لهذا الاستيراد بالفعل."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "An AI review is already running for this import.",
+				"msgctxt": "allowance.target.import",
+				"runtimeId": "GuQsIZ",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.target.next",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner AI concurrency decision, 2026-11-24"],
+			"variants": [],
+			"messages": {
+				"en-US": "Wait for it to finish, then try again. Your draft is kept.",
+				"ar-SA": "انتظر حتى تنتهي، ثم حاول مرة أخرى. تبقى مسودتك محفوظة."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Wait for it to finish, then try again. Your draft is kept.",
+				"msgctxt": "allowance.target.next",
+				"runtimeId": "uZzNN5",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "review.translation.partFailure",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Item 94c translation recovery"],
+			"variants": [],
+			"messages": {
+				"en-US": "Part {part}:",
+				"ar-SA": "الجزء {part}:"
+			},
+			"interpolations": [{ "name": "part", "type": "integer" }],
+			"lingui": {
+				"msgid": "Part {part}:",
+				"msgctxt": "review.translation.partFailure",
+				"runtimeId": "Tm46ve",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/editor/proposals/review-failure.tsx",
+				"verification": "Localized part recovery tests."
+			}
+		},
+		{
+			"key": "review.translation.partTimeout",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Item 94c translation recovery"],
+			"variants": [],
+			"messages": {
+				"en-US": "The assistant ran out of time for this part.",
+				"ar-SA": "نفد الوقت المتاح للمساعد لهذا الجزء."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "The assistant ran out of time for this part.",
+				"msgctxt": "review.translation.partTimeout",
+				"runtimeId": "WMSHVn",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/editor/proposals/review-failure.tsx",
+				"verification": "Localized part recovery tests."
+			}
+		},
+		{
+			"key": "review.translation.partCallLimit",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Item 94c translation recovery"],
+			"variants": [],
+			"messages": {
+				"en-US": "This part needed more retry steps than allowed.",
+				"ar-SA": "احتاج هذا الجزء إلى محاولات أكثر من المسموح."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "This part needed more retry steps than allowed.",
+				"msgctxt": "review.translation.partCallLimit",
+				"runtimeId": "ysaYNX",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/editor/proposals/review-failure.tsx",
+				"verification": "Localized part recovery tests."
+			}
+		},
+		{
+			"key": "review.translation.partSafety",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": [
+					"Keep the reason scoped to this part. Verified content in the separate language copy stays saved."
+				]
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Item 94c translation recovery"],
+			"variants": [],
+			"messages": {
+				"en-US": "Could not be verified as an accurate translation. The original text is kept.",
+				"ar-SA": "تعذر التحقق من دقة ترجمة هذا الجزء. بقي النص الأصلي محفوظًا."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Could not be verified as an accurate translation. The original text is kept.",
+				"msgctxt": "review.translation.partSafety",
+				"runtimeId": "RTQAhS",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/editor/proposals/review-failure.tsx",
+				"verification": "Localized part recovery tests."
+			}
 		}
 	],
 	"screens": {
@@ -136998,6 +141861,7 @@
 				"review.import.continueHint",
 				"onboarding.upload.replaceFile",
 				"review.import.saveAndContinue",
+				"review.import.createOnly",
 				"onboarding.progress.secondStep",
 				"review.import.subtitle",
 				"review.fact.mobileDigitsHint.compact",
@@ -137042,7 +141906,18 @@
 				"review.import.copy6gRgw8",
 				"review.import.copyzAvS8w",
 				"review.import.copydXoieq",
-				"review.import.copyMHrjPM"
+				"review.import.copyMHrjPM",
+				"review.import.guide.title",
+				"review.import.guide.choose",
+				"review.import.guide.highlight",
+				"review.import.guide.review",
+				"review.import.assistance.highlight",
+				"review.import.assistance.selectedCount",
+				"review.import.assistance.noHeading",
+				"review.import.assistance.page",
+				"review.import.assistance.pages",
+				"review.translation.batchCost",
+				"review.translation.startChargedFailure"
 			]
 		},
 		"S08": {
@@ -137624,7 +142499,9 @@
 				"jobs.comparison.resultHint",
 				"jobs.requirements.partialTotal",
 				"jobs.evidence.requiredMissingHint",
-				"jobs.requirements.showAll"
+				"jobs.requirements.showAll",
+				"jobs.coverage.occurrences",
+				"jobs.coverage.excluded"
 			]
 		},
 		"S21": {

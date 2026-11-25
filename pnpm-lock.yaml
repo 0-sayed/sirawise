@@ -1861,6 +1861,9 @@ importers:
       '@reactive-resume/utils':
         specifier: workspace:*
         version: link:../utils
+      bidi-js:
+        specifier: 1.1.0
+        version: 1.1.0
       css-tree:
         specifier: ^3.2.1
         version: 3.2.1
@@ -2029,7 +2032,7 @@ importers:
         specifier: 'catalog:'
         version: 1.15.7(ws@8.21.3)
       '@reactive-resume/auth':
-        specifier: 'workspace:*'
+        specifier: workspace:*
         version: link:../packages/auth
       '@reactive-resume/utils':
         specifier: workspace:*
@@ -2058,6 +2061,9 @@ importers:
       '@reactive-resume/db':
         specifier: workspace:*
         version: link:../packages/db
+      '@reactive-resume/docx':
+        specifier: workspace:*
+        version: link:../packages/docx
       '@reactive-resume/env':
         specifier: workspace:*
         version: link:../packages/env
@@ -7588,6 +7594,9 @@ packages:
     peerDependenciesMeta:
       zod:
         optional: true
+
+  bidi-js@1.1.0:
+    resolution: {integrity: sha512-fX1Onk0tdVPC7obPWB5EbJ1z7NVhLq4m2xZLq2YXBkxzMXIGRpNMU88n0EPgWseKl12J7zXs7qrDxPK4sRs2fg==}
 
   big-integer@1.6.52:
     resolution: {integrity: sha512-QxD8cf2eVqJOOz63z6JIN9BzvVs/dlySa5HGSBH5xtR8dPteIRQnBxxKqkNTiT6jbDTF6jAfrd4oMcND9RGbQg==}
@@ -17568,6 +17577,10 @@ snapshots:
       set-cookie-parser: 3.1.3
     optionalDependencies:
       zod: 4.6.7
+
+  bidi-js@1.1.0:
+    dependencies:
+      require-from-string: 2.0.2
 
   big-integer@1.6.52: {}
 

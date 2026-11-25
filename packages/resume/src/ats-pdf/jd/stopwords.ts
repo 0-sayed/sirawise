@@ -32,6 +32,17 @@ const RECRUITING_BOILERPLATE =
 	"regard religion remote required requirement requirements responsibilities responsibility role roles salary " +
 	"seeking sex sexual skills status team teams thrive time title veteran welcome work working workplace years";
 
+// Arabic prepositions, pronouns, demonstratives, conjunctions and other function words.
+const ARABIC_FUNCTION_WORDS =
+	"من إلى الى عن على علي في حتى مع بين عند لدى لدي دون خلال نحو حول فوق تحت أمام امام خلف بعد قبل منذ عبر بحسب " +
+	"أجل اجل بالإضافة بالاضافة أيا أية أي اي ايا اية كل كلا كلتا أحد احد إحدى احدى بعض غير سوى مثل نفس ذلك هذا هذه هذان هاتان هؤلاء أولئك اولئك تلك هنا هناك هنالك " +
+	"الذي التي الذين اللاتي اللائي اللواتي اللتان اللذان اللتين اللذين أنا انا أنت انت أنتم انتم أنتن انتن أنتما انتما هو هي هم هن هما نحن إياك إياه اياك اياه " +
+	"إن ان أن كأن كان كانت كانوا يكون تكون يكن ليس ليست لست لن لم لا ما ماذا لماذا كيف أين اين متى هل إذ اذ إذا اذا لما بينما حيث حيثما حين حينما عندما " +
+	"بل لكن ولكن إلا الا أو او أم ام ثم كما وكذلك كذا أيضا ايضا بلى نعم قد وقد فقد لقد لكي كي لعل ربما إما اما أما وإنما وانما طالما " +
+	"بها به بهم فيه فيها منهم منها عليها عليه عليهم إليهم إليها اليهم اليها عنها عنه عنهم معه معها بينهما بعده بعدها عندها عنده بدون";
+
 export const JD_STOPWORDS: ReadonlySet<string> = new Set(
-	[...FUNCTION_WORDS.split(" "), ...RECRUITING_BOILERPLATE.split(" ")].filter(Boolean),
+	[...FUNCTION_WORDS.split(" "), ...RECRUITING_BOILERPLATE.split(" "), ...ARABIC_FUNCTION_WORDS.split(" ")].filter(
+		Boolean,
+	),
 );

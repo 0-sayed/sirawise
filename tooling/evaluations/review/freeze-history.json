@@ -2466,5 +2466,43 @@
 		"reason": "Owner-requested AI worker throughput fix. Run admitted owners concurrently and drain active leases during shutdown. Start queued execution deadlines at the first claim. Preserve prompts, guards, fixtures, scoring and model pins. Incorporate the unchanged D39 billing revisions. No paid results, approval or qualification are reused.",
 		"sha256": "cd2a4cf9a6bf0bcca05b8969b8e978fc441ffc50c10380e330655b204e1dde1e",
 		"freezeHash": "27a6ccb0a8ddbc1679a386eb7c236bac2e697bf00ab580fd6673e223ba670262"
+	},
+	{
+		"name": "tasks-study-before-ai-review-contracts.json",
+		"date": "2026-11-20",
+		"reason": "Owner-requested AI worker throughput fix. Run admitted owners concurrently and drain active leases during shutdown. Start queued execution deadlines at the first claim. Preserve prompts, guards, fixtures, scoring and model pins. Incorporate the unchanged D39 billing revisions. No paid results, approval or qualification are reused.",
+		"originalName": "tasks-study.json",
+		"studyId": "tasks-v1-personal-career-c802ec134cdf",
+		"studyHash": "e82cb647b1a750c872da0f7bb7b8f299e63cc93c7c5ee981423628c66c063b85",
+		"sha256": "caca61f7bb50b047ec6ec1cf801e00bddf96286cf3a6082b878281a6fc9ac64d",
+		"archivePath": "/tmp/sirawise-fixes/ai-redesign-evidence/tasks-study-history/caca61f7bb50b047ec6ec1cf801e00bddf96286cf3a6082b878281a6fc9ac64d.json"
+	},
+	{
+		"name": "guard-controls-before-ai-review-contracts.json",
+		"date": "2026-11-20",
+		"reason": "Owner-requested AI worker throughput fix. Run admitted owners concurrently and drain active leases during shutdown. Start queued execution deadlines at the first claim. Preserve prompts, guards, fixtures, scoring and model pins. Incorporate the unchanged D39 billing revisions. No paid results, approval or qualification are reused.",
+		"originalName": "guard-controls-tasks-v1.json",
+		"freezeHash": "e82cb647b1a750c872da0f7bb7b8f299e63cc93c7c5ee981423628c66c063b85",
+		"sha256": "74672e7ceb253860598b433290c65b851b49d210ac8d1a5d9c88bdd50b8d46a7",
+		"archivePath": "/tmp/sirawise-fixes/ai-redesign-evidence/tasks-study-history/74672e7ceb253860598b433290c65b851b49d210ac8d1a5d9c88bdd50b8d46a7.json"
+	},
+	{
+		"name": "tasks-study-before-translation-retry-approval.json",
+		"date": "2026-11-25",
+		"reason": "Seal the current AI review contracts and guards. Replay the archived judge protocol and scan the controls offline.",
+		"originalName": "tasks-study.json",
+		"studyId": "tasks-v1-personal-career-106f05db7050",
+		"studyHash": "dab2492f62c52fccef809b2de1556b2cf91eae4b00c34f3cb680eb936a070891",
+		"sha256": "0f1782b63f3e608d17dcf24db3846a88f57bf416ca613fa7b5c200300bb2d69d",
+		"archivePath": "/tmp/sirawise-fixes/ai-redesign-evidence/tasks-study-history/0f1782b63f3e608d17dcf24db3846a88f57bf416ca613fa7b5c200300bb2d69d.json"
+	},
+	{
+		"name": "guard-controls-before-translation-retry-approval.json",
+		"date": "2026-11-25",
+		"reason": "Seal the current AI review contracts and guards. Replay the archived judge protocol and scan the controls offline.",
+		"originalName": "guard-controls-tasks-v1.json",
+		"freezeHash": "dab2492f62c52fccef809b2de1556b2cf91eae4b00c34f3cb680eb936a070891",
+		"sha256": "18c3bd05f8433cc262df618c603d05c8b6650736640895c9b4c857b23b3e098b",
+		"archivePath": "/tmp/sirawise-fixes/ai-redesign-evidence/tasks-study-history/18c3bd05f8433cc262df618c603d05c8b6650736640895c9b4c857b23b3e098b.json"
 	}
 ]

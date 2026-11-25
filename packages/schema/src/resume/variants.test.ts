@@ -7,6 +7,27 @@ import {
 	variantReviewViewSchema,
 } from "./variants";
 
+it("addresses custom prose by section type and ID without allowing identity or date writes", () => {
+	for (const target of [
+		{ sectionId: "summary", customSectionId: "notes", itemId: "note", field: "content", blockIndex: 0 },
+		{ sectionId: "skills", customSectionId: "tools", itemId: "tool", field: "keywords", index: 0 },
+		{ sectionId: "certifications", customSectionId: "courses", itemId: "course", field: "issuer" },
+		{ sectionId: "experience", customSectionId: "work", itemId: "job", roleId: "role", field: "position" },
+		{ sectionId: "cover-letter", customSectionId: "letter", itemId: "body", field: "content" },
+	])
+		expect(translationTargetSchema.safeParse(target).success).toBe(true);
+	for (const target of [
+		{ sectionId: "basics", customSectionId: "notes", field: "headline" },
+		{ sectionId: "summary", customSectionId: "notes", field: "content" },
+		{ sectionId: "summary", itemId: "note", field: "content" },
+		{ sectionId: "certifications", customSectionId: "courses", itemId: "course", field: "date" },
+		{ sectionId: "references", customSectionId: "refs", itemId: "person", field: "name" },
+		{ sectionId: "cover-letter", customSectionId: "letter", itemId: "body", field: "recipient" },
+		{ sectionId: "skills", customSectionId: "../basics", field: "title" },
+	])
+		expect(translationTargetSchema.safeParse(target).success).toBe(false);
+});
+
 it("requires exactly the job or language parameters for an intentional copy", () => {
 	const common = { sourceResumeId: "cv", expectedUpdatedAt: "2026-11-14T00:00:00.000Z", requestKey: "copy" };
 	expect(
@@ -65,10 +86,45 @@ it("addresses every supported visible translation field without widening contact
 		expect(translationTargetSchema.safeParse(target).success).toBe(false);
 });
 
-it("accepts full-length job text in review source segments and rejects text above the job limit", () => {
-	const schema = variantReviewViewSchema.shape.sourceSegments;
-	expect(schema.safeParse([{ id: "job", text: "x".repeat(32000) }]).success).toBe(true);
-	expect(schema.safeParse([{ id: "job", text: "x".repeat(32001) }]).success).toBe(false);
+it("bounds job review source text while allowing aggregate translation sources of any length", () => {
+	const common = {
+		beforeSummary: "",
+		answeredQuestionIds: [],
+		dismissedQuestionIds: [],
+		statuses: {},
+		terms: { schemaVersion: 1, terms: [] },
+		segments: {},
+		updatedAt: "2026-11-14T00:00:00.000Z",
+		latestDecisionId: null,
+		stale: false,
+		undoable: [],
+	};
+	const sourceRevision = { kind: "resume", id: "cv", revision: "revision" };
+	const job = {
+		...common,
+		result: { schemaVersion: 1, kind: "review.job-evidence", sourceRevision, output: { requirements: [], notes: [] } },
+	};
+	expect(
+		variantReviewViewSchema.safeParse({ ...job, sourceSegments: [{ id: "job", text: "x".repeat(32000) }] }).success,
+	).toBe(true);
+	expect(
+		variantReviewViewSchema.safeParse({ ...job, sourceSegments: [{ id: "job", text: "x".repeat(32001) }] }).success,
+	).toBe(false);
+	const translation = {
+		...common,
+		result: {
+			schemaVersion: 1,
+			kind: "review.translation",
+			sourceRevision,
+			output: { direction: "ar-en", sourceRevision: "revision", segments: [], notes: [] },
+		},
+	};
+	expect(
+		variantReviewViewSchema.safeParse({
+			...translation,
+			sourceSegments: [{ id: "paragraph", text: "x".repeat(128001) }],
+		}).success,
+	).toBe(true);
 });
 
 it("bounds summary evidence selection to the model payload's 49 passages", () => {

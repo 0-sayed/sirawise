@@ -6,7 +6,7 @@ import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Pool } from "pg";
 
 describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("AI platform budget concurrency", () => {
-	it("admits the third and fiftieth jobs at 100, and denies the fourth at 3", async () => {
+	it("admits requests independently of the route concurrency field and enforces the platform limit at claim", async () => {
 		const connection = process.env.COVER_LETTER_TEST_DATABASE_URL;
 		if (!connection) throw new Error("Disposable local database required");
 		const suffix = randomUUID().replaceAll("-", "");
@@ -35,37 +35,41 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("AI platform budget
 				"INSERT INTO ai_platform_budget (id,route_id,route_revision,window_date,cap_micros,request_cap_micros,concurrency) VALUES ($1,$2,'1',$3,10000000,1000,100)",
 				[budgetId, route.routeId, day],
 			);
+			expect((await pool.query("SELECT max_running FROM ai_platform_capacity WHERE singleton")).rows).toEqual([
+				{ max_running: 30 },
+			]);
 
-			const insertOperation = async (id: string, budget: string | null) => {
+			const admit = async (id: string) => {
 				await pool.query(
 					`INSERT INTO ai_operation
-					 (id,user_id,request_key,fingerprint,kind,sources,route,consent_version,prompt_version,schema_version,state,budget_id)
-					 VALUES ($1,$2,$1,$1,'review.extraction','[]'::jsonb,$3::jsonb,'1','1','1','queued',$4)`,
-					[id, userId, JSON.stringify(route), budget],
+					 (id,user_id,request_key,fingerprint,kind,sources,route,consent_version,prompt_version,schema_version)
+					 VALUES ($1,$2,$1,$1,'review.extraction','[]'::jsonb,$3::jsonb,'1','1','1')`,
+					[id, userId, JSON.stringify(route)],
 				);
-			};
-			const admit = async (id: string) => {
-				await insertOperation(id, null);
 				const result = await pool.query("SELECT master_cv_ai_admit_budget($1,1000,10000000) AS admitted", [id]);
 				return result.rows[0]?.admitted;
 			};
-			const seedLive = async (count: number) => {
-				for (let index = 0; index < count; index++) await insertOperation(`${operationPrefix}-live-${index}`, budgetId);
-			};
+			const claim = async (id: string) =>
+				(await pool.query("SELECT master_cv_ai_claim_slot($1) AS allowed", [id])).rows[0]?.allowed;
 
-			await seedLive(2);
-			expect(await admit(`${operationPrefix}-third`)).toBe(true);
-			await pool.query("DELETE FROM ai_operation WHERE id LIKE $1", [`${operationPrefix}%`]);
-			await pool.query("UPDATE ai_platform_budget SET active=0,reserved_micros=0 WHERE id=$1", [budgetId]);
+			for (let index = 0; index < 50; index++)
+				expect(await admit(`${operationPrefix}-${String(index).padStart(2, "0")}`)).toBe(true);
+			await pool.query("UPDATE ai_platform_budget SET concurrency=3 WHERE id=$1", [budgetId]);
+			const queued = `${operationPrefix}-later`;
+			expect(await admit(queued)).toBe(true);
+			expect(await claim(queued)).toBe(false);
 
-			await seedLive(49);
-			expect(await admit(`${operationPrefix}-fiftieth`)).toBe(true);
-			await pool.query("DELETE FROM ai_operation WHERE id LIKE $1", [`${operationPrefix}%`]);
-			await pool.query("UPDATE ai_platform_budget SET active=0,reserved_micros=0,concurrency=3 WHERE id=$1", [
-				budgetId,
-			]);
-			await seedLive(3);
-			expect(await admit(`${operationPrefix}-fourth`)).toBe(false);
+			const { rows } = await pool.query<{ id: string }>("SELECT id FROM ai_operation ORDER BY created_at,id LIMIT 31");
+			const first = rows[0];
+			const next = rows[30];
+			if (!first || !next) throw new Error("Expected the first 31 queued requests");
+			for (const { id } of rows.slice(0, 30)) {
+				expect(await claim(id)).toBe(true);
+				await pool.query("UPDATE ai_operation SET state='running' WHERE id=$1", [id]);
+			}
+			expect(await claim(next.id)).toBe(false);
+			await pool.query("UPDATE ai_operation SET state='failed' WHERE id=$1", [first.id]);
+			expect(await claim(next.id)).toBe(true);
 		} finally {
 			await pool.end();
 			await admin.query(`DROP DATABASE "${databaseName}"`);

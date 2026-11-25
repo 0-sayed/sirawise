@@ -8,6 +8,7 @@ export function realAiConfig(environment: Environment) {
 	if (environment.NODE_ENV === "production") throw new Error("LOCAL_REAL_AI_DEV_ONLY");
 	const apiKey = environment.OPENROUTER_API_KEY?.trim();
 	if (!apiKey) throw new Error("OPENROUTER_API_KEY_REQUIRED");
+	const candidatePipelines = environment.LOCAL_REAL_AI_PIPELINES === "candidates";
 	const endpoint = "https://openrouter.ai/api/v1";
 	const stubBaseUrl = environment.OPENROUTER_BASE_URL;
 	if (stubBaseUrl && stubBaseUrl !== endpoint) {
@@ -26,7 +27,7 @@ export function realAiConfig(environment: Environment) {
 	const route: ApprovedRoute = {
 		routeId: "local-real-ai",
 		routeRevision: "provisional-1",
-		configRevision: "personal-career-writers-2026-11-17-provisional-v1",
+		configRevision: "personal-career-writers-2026-11-21-provisional-v3",
 		endpoint,
 		model: "openai/gpt-6-luna",
 		downstreamProvider: "azure",
@@ -53,24 +54,28 @@ export function realAiConfig(environment: Environment) {
 		evidenceVersion: "local-synthetic-only-not-release-approved",
 		maxCalls: 2,
 		maxRepairs: 0,
-		callTimeoutMs: 30000,
+		callTimeoutMs: 60000,
+		transientRetries: 1,
 		deadlineMs: 120000,
 		maxInputCodePoints: 32000,
 		maxOutputTokens: 4096,
 		maxCallCostMicros: 100000,
 		requestCapMicros: 200000,
-		dayCapMicros: 3000000,
+		dayCapMicros: 15000000,
 		verifier: {
 			evidenceVersion: "local-synthetic-verifier-output-2026-11-17",
+			// DeepSeek spends the completion allowance on both reasoning and the structured verdict.
 			maxOutputTokens: 16384,
 			maxCallCostMicros: 100000,
 			policy: reviewVerifierPolicy("openai/gpt-6-luna"),
+			backup: null,
 		},
 	};
 	const ownerId = environment.LOCAL_REAL_AI_OWNER_ID?.trim();
 	return {
 		port: 3060,
 		appUrl: "http://localhost:3060",
+		candidatePipelines,
 		route,
 		stubBaseUrl: stubBaseUrl && stubBaseUrl !== endpoint ? stubBaseUrl : undefined,
 		allowance: ownerId ? { ownerId, limit: 50 } : undefined,

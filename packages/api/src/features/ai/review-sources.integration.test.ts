@@ -1,9 +1,11 @@
 import { beforeAll, describe, expect, it } from "vite-plus/test";
 import { sql } from "drizzle-orm";
 import { withOwnerDatabase } from "@reactive-resume/db/owner-scope";
+import { splitReviewClaims } from "@reactive-resume/schema/resume/ai-review";
 import { experienceItemSchema } from "@reactive-resume/schema/resume/data";
 import { defaultResumeData } from "@reactive-resume/schema/resume/default";
 import { discoverAiOwners } from "./operations";
+import { reviewHandlers } from "./review-handlers";
 import {
 	createImportReviewSource,
 	loadReviewSource,
@@ -28,7 +30,7 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("private review sou
 			createImportReviewSource("alice", {
 				flowId: "flow1",
 				section: "experience",
-				text: "Built services. Contact test@example.test +201234567890",
+				text: "Company: Cedar Labs\r\nPosition: Developer\r\n\r\nContact test@example.test +201234567890",
 				partial: true,
 				contactValues: ["test@example.test", "+201234567890"],
 			}),
@@ -38,6 +40,9 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("private review sou
 		const snapshot = await load("alice");
 		expect(snapshot.partial).toBe(true);
 		expect(snapshot.evidence[0]?.confirmation).toBe("source_unconfirmed");
+		expect(snapshot.evidence[0]?.quote).toBe(
+			"Company: Cedar Labs\nPosition: Developer\n\nContact [redacted] [redacted]",
+		);
 		expect(JSON.stringify(snapshot)).not.toContain("test@example.test");
 		expect(JSON.stringify(snapshot)).not.toContain("201234567890");
 		await expect(load("bob")).rejects.toMatchObject({ code: "NOT_FOUND" });
@@ -84,6 +89,69 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("private review sou
 		await expect(prepare("alice", "2000-01-01T00:00:00.000Z")).rejects.toMatchObject({ code: "CONFLICT" });
 		await database.admin().query("UPDATE resume SET is_locked=true WHERE id='cv'");
 		await expect(prepare()).rejects.toMatchObject({ code: "FORBIDDEN" });
+	});
+	it("prepares distinct stable evidence for repeated paragraphs and bullets", async () => {
+		const data = structuredClone(defaultResumeData);
+		data.summary.content =
+			"<p>Built services.</p><p>Built services.</p><ul><li>Built services.</li><li>Built services.</li></ul>";
+		const revision = (
+			await database
+				.admin()
+				.query(
+					"INSERT INTO resume(id,user_id,name,slug,data) VALUES ('repeated-cv','alice','Synthetic','repeated-cv',$1) RETURNING updated_at",
+					[JSON.stringify(data)],
+				)
+		).rows[0].updated_at.toISOString();
+		const input = {
+			resumeId: "repeated-cv",
+			expectedUpdatedAt: revision,
+			targets: [{ sectionId: "summary", field: "content" }],
+		};
+		const prepared = await database.run(() => prepareResumeReview("alice", input));
+		expect(prepared.evidence).toHaveLength(4);
+		expect(new Set(prepared.evidence.map((entry) => entry.id)).size).toBe(4);
+		expect(await database.run(() => prepareResumeReview("alice", input))).toEqual(prepared);
+		const passageId = prepared.evidence[3]?.id;
+		if (!passageId) throw new Error("Missing repeated passage");
+		const validateResult = reviewHandlers["review.wording"].validateResult;
+		if (!validateResult) throw new Error("Missing wording validator");
+		const result = await database.run(() =>
+			withOwnerDatabase("alice", (tx) =>
+				validateResult(
+					tx,
+					"alice",
+					{
+						kind: "review.wording",
+						requestKey: "repeated",
+						sources: prepared.sources,
+						route: { routeId: "synthetic", routeRevision: "1", configRevision: "1" },
+						consentVersion: "1",
+						parameters: { resumeId: input.resumeId, targets: input.targets, action: "review" },
+					},
+					{
+						proposals: [
+							{
+								id: "last",
+								passageId,
+								text: "Developed services.",
+								reason: "Clearer",
+								evidenceIds: [passageId],
+								claims: splitReviewClaims("Developed services.", [passageId]),
+							},
+						],
+						questions: [],
+						notes: [],
+					},
+				),
+			),
+		);
+		expect(result).toMatchObject({
+			proposals: [{ before: "<li>Built services.</li>", after: "<li>Developed services.</li>", blockIndex: 3 }],
+		});
+
+		await expect(
+			database.run(() => prepareResumeReview("alice", { ...input, targets: [...input.targets, ...input.targets] })),
+		).rejects.toMatchObject({ code: "CONFLICT", data: { reason: "AI_AMBIGUOUS_PASSAGE" } });
 	});
 	it("includes only linked facts for the selected entity and refuses stale or removed revisions", async () => {
 		const data = structuredClone(defaultResumeData);

@@ -26,6 +26,7 @@ it("paginates the owner's filtered list without changing legacy array responses"
 		tags: ["engineering"],
 		isPublic: false,
 		isLocked: false,
+		variantKind: "base" as const,
 		showDownloadButtons: false,
 		createdAt: new Date(),
 		updatedAt: new Date(),

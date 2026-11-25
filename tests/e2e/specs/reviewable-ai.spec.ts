@@ -1,6 +1,47 @@
 import { Pool } from "pg";
 import { openWriting, seedReview, startReview } from "../fixtures/reviewable-ai";
 import { expect, test } from "../fixtures/test";
+import { acceptProcessingNotice } from "../fixtures/variants";
+
+test("Arabic wording review replaces only the cited English paragraphs and Undo restores them", async ({
+	authPage: page,
+}, info) => {
+	await page.setViewportSize({ width: 1440, height: 900 });
+	const id = await seedReview(page, info, "ar-SA");
+	const resource = `/api/openapi/resumes/${id}`;
+	const saved = async () => (await page.request.get(resource)).json();
+	const original = await saved();
+	const entry = original.data.sections.experience.items[0];
+	const before =
+		"<p>Built a gateway that also</p><p>routes service requests.</p><p>Maintained the service logs.</p><p>Documented releases.</p>";
+	entry.description = before;
+	expect(
+		(
+			await page.request.put(resource, {
+				data: { data: original.data, expectedUpdatedAt: original.updatedAt },
+			})
+		).ok(),
+	).toBe(true);
+	await page.reload();
+	await openWriting(page);
+	await page
+		.getByRole("combobox", { name: "النص المطلوب مراجعته" })
+		.selectOption(JSON.stringify({ sectionId: "experience", itemId: entry.id, field: "description" }));
+	await startReview(page);
+	const review = page.getByTestId("durable-review");
+	const description = async () => (await saved()).data.sections.experience.items[0].description;
+	await review.getByRole("button", { name: "قبول", exact: true }).click();
+	await expect
+		.poll(description)
+		.toBe(
+			"<p>Built a gateway that routes service requests. Maintained the service logs.</p><p>Documented releases.</p>",
+		);
+	await review.getByRole("button", { name: "تراجع", exact: true }).click();
+	await expect.poll(description).toBe(before);
+	await expect(review.locator(".review-wording del")).toHaveText(
+		"Built a gateway that also routes service requests. Maintained the service logs.",
+	);
+});
 
 test("durable review accepts, reloads and undoes without an extra charge", async ({ authPage: page }, testInfo) => {
 	test.setTimeout(90_000);
@@ -60,6 +101,7 @@ test("reduced motion accepts instantly and shows a temporary static preview ackn
 	await review.getByRole("button", { name: "Accept", exact: true }).click();
 	const card = page.locator('.review-wording[data-review-action="accept"]');
 	await expect(card).toBeVisible();
+	await expect(card.locator("del")).toBeHidden();
 	expect(await card.locator("del").evaluate((node) => getComputedStyle(node).animationName)).toBe("none");
 	const highlight = page.locator('[data-slot="preview-edit-highlight"][data-review-action="accept"]');
 	await expect(highlight).toBeVisible();
@@ -141,12 +183,7 @@ test("semantic failure releases usage and keeps manual editing available", async
 			data: { resumeId, expectedUpdatedAt: current.updatedAt, targets: [{ sectionId: "summary", field: "content" }] },
 		})
 	).json();
-	const notice = (await (await page.request.get("/api/openapi/ai/processing-notices")).json())[0];
-	await expect(
-		await page.request.post("/api/openapi/ai/processing-consent", {
-			data: { route: notice.route, noticeVersion: notice.noticeVersion, purpose: "review.wording" },
-		}),
-	).toBeOK();
+	const notice = await acceptProcessingNotice(page, "review.wording");
 	const started = await page.request.post("/api/openapi/ai/operations", {
 		data: {
 			kind: "review.wording",
@@ -171,7 +208,7 @@ test("semantic failure releases usage and keeps manual editing available", async
 	await openWriting(page);
 	await expect(
 		page.getByText(
-			"No review was delivered. No operation was deducted. You can request a new review or keep editing manually.",
+			"The response did not pass the factual safety checks. Nothing was applied. Retry can produce a different response.",
 		),
 	).toBeVisible();
 	await expect(page.getByRole("button", { name: "Review wording", exact: true })).toBeEnabled();

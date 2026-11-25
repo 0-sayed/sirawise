@@ -5,15 +5,19 @@ import { Checkbox } from "@reactive-resume/ui/components/checkbox";
 import { Label } from "@reactive-resume/ui/components/label";
 import { savePendingChanges, useResumeStore } from "../builder/draft";
 import { ReviewLaunch, ReviewOperationPanel } from "../editor/proposals/review-operation";
+import { useVariantsCopy } from "./copy.generated";
 import { TranslationReview } from "./translation-review";
 import { client } from "@/libs/orpc/client";
 const MAX_SELECTED_FACTS = 49;
 export function SummaryReview({ locked }: { locked: boolean }) {
+	const copy = useVariantsCopy();
 	const document = useResumeStore((state) => state.resume);
 	const [selected, setSelected] = useState<string[]>([]);
+	const [retryRequest, setRetryRequest] = useState(0);
 	const [operationId, setOperationId] = useState<string | null>(null);
 	if (!document) return null;
 	const facts = buildJobPassages(document.data);
+	const selectedEvidenceIds = selected.filter((id) => facts.some((fact) => fact.id === id));
 	return (
 		<div className="grid gap-3">
 			<details>
@@ -44,9 +48,13 @@ export function SummaryReview({ locked }: { locked: boolean }) {
 					))}
 				</div>
 			</details>
+			{selectedEvidenceIds.length === 0 && (
+				<p className="type-body text-ink-2">{copy("review.summary.factsRequired")}</p>
+			)}
 			<ReviewLaunch
+				retryRequest={retryRequest}
 				kind="review.summary"
-				disabled={locked}
+				disabled={locked || selectedEvidenceIds.length === 0}
 				prepare={async () => {
 					if (!(await savePendingChanges(document.id))) throw new Error("SAVE_REQUIRED");
 					const saved = useResumeStore.getState();
@@ -55,7 +63,7 @@ export function SummaryReview({ locked }: { locked: boolean }) {
 						kind: "review.summary",
 						resumeId: document.id,
 						expectedUpdatedAt: saved.acknowledgedUpdatedAt.toISOString(),
-						selectedEvidenceIds: selected,
+						selectedEvidenceIds,
 					});
 				}}
 				onStarted={setOperationId}
@@ -63,8 +71,12 @@ export function SummaryReview({ locked }: { locked: boolean }) {
 				<Trans>Review summary</Trans>
 			</ReviewLaunch>
 			{operationId && (
-				<ReviewOperationPanel operationId={operationId}>
-					<TranslationReview operationId={operationId} />
+				<ReviewOperationPanel
+					kind="review.summary"
+					onRetry={() => setRetryRequest((n) => n + 1)}
+					operationId={operationId}
+				>
+					<TranslationReview operationId={operationId} onClose={() => setOperationId(null)} />
 				</ReviewOperationPanel>
 			)}
 		</div>

@@ -2,15 +2,17 @@ import { execFileSync } from "node:child_process";
 import { writeFile } from "node:fs/promises";
 import { demoAccountName, demoCredentials } from "../../../tooling/local/demo-fixture";
 import { loginViaUi } from "../fixtures/auth";
+import { expect, test } from "../fixtures/demo-test";
 import { detectAuthenticatedPage } from "../fixtures/design-detector";
 import { settleScreen } from "../fixtures/screen";
-import { expect, test } from "../fixtures/test";
 
 test("dense grouped applications keep columns stable in Arabic and English on desktop and phone", async ({
 	page,
 	baseURL,
+	demoLock,
 }, info) => {
 	test.setTimeout(300_000);
+	await demoLock();
 	if (!baseURL) throw new Error("The isolated browser server URL is required.");
 	const seed = execFileSync(process.execPath, ["tooling/local/demo-seed.mjs"], {
 		encoding: "utf8",

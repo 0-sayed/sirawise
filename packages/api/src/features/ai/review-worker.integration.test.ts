@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it, vi } from "vite-plus/test";
-import { processingConsentService } from "./consent";
+import { getProcessingNotices, processingConsentService } from "./consent";
 import { runAiOperations } from "./operation-worker";
 import { claimNextOperation, heartbeatOperation, operationService } from "./operations";
 import { withAiRuntime } from "./route-policy";
@@ -30,7 +30,12 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("review worker life
 			await database.admin().query("SELECT updated_at FROM resume WHERE id=$1", [owner])
 		).rows[0].updated_at.toISOString();
 		const route = { routeId: "synthetic", routeRevision: "1", configRevision: "1" };
-		await run(() => processingConsentService.grant(owner, { route, purpose: "review", noticeVersion: "1" }));
+		await run(async () => {
+			const [notice] = await getProcessingNotices(owner, { purpose: "review", locale: "en-US" });
+			if (!notice) throw new Error("Missing synthetic processing notice");
+			const { content: _content, alreadyGranted: _alreadyGranted, ...acceptance } = notice;
+			await processingConsentService.grant(owner, acceptance);
+		});
 		return {
 			requestKey: owner,
 			kind: "review",
@@ -40,6 +45,196 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("review worker life
 			parameters: {},
 		};
 	}
+	it.each(["writer", "verify"])(
+		"retries one known-cost %s failure without consuming its peer call or extra quota",
+		async (failedStep) => {
+			const owner = `shared-retry-${failedStep}`;
+			const request = await prepare(owner);
+			const handler = syntheticRuntime.handlers.review;
+			const transport = syntheticRuntime.fetch;
+			if (!handler || !transport) throw new Error("Missing synthetic runtime");
+			let calls = 0;
+			const runtime = {
+				...syntheticRuntime,
+				routes: [{ ...syntheticRoute, maxCalls: 2, maxRepairs: 0 }],
+				handlers: {
+					review: {
+						...handler,
+						verifier: {
+							output: handler.output,
+							systemPrompt: "Verify synthetic content.",
+							buildInput: (payload: import("./payload").ModelPayload) => payload,
+							validate: () => undefined,
+						},
+					},
+				},
+				fetch: (...args: Parameters<typeof fetch>) => {
+					calls++;
+					return calls === (failedStep === "writer" ? 1 : 2)
+						? Promise.resolve(new Response("", { status: 503 }))
+						: transport(...args);
+				},
+			};
+			const work = <T>(fn: () => T) => database.run(() => withAiRuntime(runtime, fn));
+			const operation = await work(() => operationService.start(owner, request));
+			await work(() => runAiOperations());
+			expect(await work(() => operationService.get(owner, operation.id))).toMatchObject({
+				state: "waiting_review",
+				failureCode: null,
+			});
+			expect(calls).toBe(3);
+			expect((await work(() => usageService.getStartUsage(owner))).operations.used).toBe(1);
+			const attempts = (
+				await database
+					.admin()
+					.query("SELECT step_id,outcome,output FROM ai_operation_attempt WHERE operation_id=$1 ORDER BY ordinal", [
+						operation.id,
+					])
+			).rows;
+			expect(attempts.map(({ step_id, outcome }) => ({ step_id, outcome }))).toEqual(
+				failedStep === "writer"
+					? [
+							{ step_id: "generate", outcome: "transient" },
+							{ step_id: "generate", outcome: "valid" },
+							{ step_id: "verify", outcome: "valid" },
+						]
+					: [
+							{ step_id: "generate", outcome: "valid" },
+							{ step_id: "verify", outcome: "valid" },
+						],
+			);
+			const verification = attempts.find((attempt) => attempt.step_id === "verify");
+			expect(verification?.output._verifyCalls.map((call: { outcome: string }) => call.outcome)).toEqual(
+				failedStep === "verify" ? ["transient", "valid"] : ["valid"],
+			);
+		},
+	);
+	it.each(["writer", "verify"])(
+		"stops after one automatic %s retry and releases failed-operation quota",
+		async (failedStep) => {
+			const owner = `shared-limit-${failedStep}`;
+			const request = await prepare(owner);
+			const handler = syntheticRuntime.handlers.review;
+			const transport = syntheticRuntime.fetch;
+			if (!handler || !transport) throw new Error("Missing synthetic runtime");
+			let calls = 0;
+			const runtime = {
+				...syntheticRuntime,
+				routes: [{ ...syntheticRoute, maxCalls: 2, maxRepairs: 0 }],
+				handlers: {
+					review: {
+						...handler,
+						verifier: {
+							output: handler.output,
+							systemPrompt: "Verify synthetic content.",
+							buildInput: (payload: import("./payload").ModelPayload) => payload,
+							validate: () => undefined,
+						},
+					},
+				},
+				fetch: (...args: Parameters<typeof fetch>) => {
+					calls++;
+					return failedStep === "verify" && calls === 1
+						? transport(...args)
+						: Promise.resolve(new Response("", { status: 503 }));
+				},
+			};
+			const work = <T>(fn: () => T) => database.run(() => withAiRuntime(runtime, fn));
+			const operation = await work(() => operationService.start(owner, request));
+			await work(() => runAiOperations());
+			expect(await work(() => operationService.get(owner, operation.id))).toMatchObject({
+				state: "failed",
+				failureCode: failedStep === "writer" ? "AI_TRANSIENT" : "AI_VERIFIER_UNAVAILABLE",
+			});
+			expect(calls).toBe(failedStep === "writer" ? 2 : 3);
+			expect((await work(() => usageService.getStartUsage(owner))).operations).toMatchObject({ used: 0, reserved: 0 });
+		},
+	);
+	it("completes content regeneration after both bounded transient step retries", async () => {
+		const owner = "shared-retry-regenerate";
+		const request = await prepare(owner);
+		const handler = syntheticRuntime.handlers.review;
+		const transport = syntheticRuntime.fetch;
+		if (!handler || !transport) throw new Error("Missing synthetic runtime");
+		let calls = 0;
+		let checks = 0;
+		const runtime = {
+			...syntheticRuntime,
+			routes: [{ ...syntheticRoute, maxCalls: 2, maxRepairs: 0 }],
+			handlers: {
+				review: {
+					...handler,
+					verifier: {
+						output: handler.output,
+						systemPrompt: "Verify synthetic content.",
+						buildInput: (payload: import("./payload").ModelPayload) => payload,
+						validate: () => {
+							if (++checks === 1) throw new Error("AI_VERIFICATION_FAILED");
+						},
+					},
+				},
+			},
+			fetch: (...args: Parameters<typeof fetch>) => {
+				calls++;
+				return [1, 5].includes(calls) ? Promise.resolve(new Response("", { status: 503 })) : transport(...args);
+			},
+		};
+		const work = <T>(fn: () => T) => database.run(() => withAiRuntime(runtime, fn));
+		const operation = await work(() => operationService.start(owner, request));
+		await work(() => runAiOperations());
+		expect(await work(() => operationService.get(owner, operation.id))).toMatchObject({
+			state: "waiting_review",
+			failureCode: null,
+		});
+		expect(calls).toBe(6);
+		expect((await work(() => usageService.getStartUsage(owner))).operations.used).toBe(1);
+	});
+	it("keeps the schema repair and verifier slots after a free transient writer retry", async () => {
+		const owner = "shared-retry-repair";
+		const request = await prepare(owner);
+		const handler = syntheticRuntime.handlers.review;
+		const transport = syntheticRuntime.fetch;
+		if (!handler || !transport) throw new Error("Missing synthetic runtime");
+		let calls = 0;
+		const runtime = {
+			...syntheticRuntime,
+			handlers: {
+				review: {
+					...handler,
+					verifier: {
+						output: handler.output,
+						systemPrompt: "Verify synthetic content.",
+						buildInput: (payload: import("./payload").ModelPayload) => payload,
+						validate: () => undefined,
+					},
+				},
+			},
+			fetch: async (...args: Parameters<typeof fetch>) => {
+				calls++;
+				if (calls === 1) return new Response("", { status: 503 });
+				const response = await transport(...args);
+				if (calls !== 2) return response;
+				const body = await response.json();
+				body.choices[0].message.content = '{"wrong":true}';
+				return new Response(JSON.stringify(body), { headers: { "content-type": "application/json" } });
+			},
+		};
+		const work = <T>(fn: () => T) => database.run(() => withAiRuntime(runtime, fn));
+		const operation = await work(() => operationService.start(owner, request));
+		await work(() => runAiOperations());
+		expect(await work(() => operationService.get(owner, operation.id))).toMatchObject({
+			state: "waiting_review",
+			failureCode: null,
+		});
+		expect(calls).toBe(4);
+		expect(
+			(
+				await database
+					.admin()
+					.query("SELECT step_id FROM ai_operation_attempt WHERE operation_id=$1 ORDER BY ordinal", [operation.id])
+			).rows,
+		).toEqual([{ step_id: "generate" }, { step_id: "generate" }, { step_id: "repair" }, { step_id: "verify" }]);
+	});
 	it.each(["deadline", "shutdown"])("bounds stalled input loading on %s without provider egress", async (cause) => {
 		const owner = `input-${cause}`;
 		const request = await prepare(owner);
@@ -184,5 +379,111 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("review worker life
 			.admin()
 			.query("UPDATE ai_operation SET lease_until=now()-interval '1 minute' WHERE id=$1", [operation.id]);
 		await run(() => runAiOperations());
+	});
+
+	it("retries one pre-response transient transport error and charges one user credit", async () => {
+		const owner = "pre-response-retry-pass";
+		const request = await prepare(owner);
+		const transport = syntheticRuntime.fetch;
+		if (!transport) throw new Error("Missing synthetic transport");
+		let calls = 0;
+		const runtime = {
+			...syntheticRuntime,
+			routes: [{ ...syntheticRoute, maxCalls: 1, maxRepairs: 0 }],
+			fetch: (...args: Parameters<typeof fetch>) => {
+				calls++;
+				if (calls === 1) return Promise.reject(new TypeError("terminated"));
+				return transport(...args);
+			},
+		};
+		const work = <T>(fn: () => T) => database.run(() => withAiRuntime(runtime, fn));
+		const operation = await work(() => operationService.start(owner, request));
+		await work(() => runAiOperations());
+		expect(await work(() => operationService.get(owner, operation.id))).toMatchObject({
+			state: "waiting_review",
+			failureCode: null,
+		});
+		expect(calls).toBe(2);
+		expect((await work(() => usageService.getStartUsage(owner))).operations.used).toBe(1);
+		const attempts = (
+			await database
+				.admin()
+				.query(
+					"SELECT step_id, outcome, cost_micros FROM ai_operation_attempt WHERE operation_id=$1 ORDER BY ordinal",
+					[operation.id],
+				)
+		).rows;
+		expect(attempts).toHaveLength(2);
+		expect(attempts[0]).toMatchObject({ step_id: "generate", outcome: "transient", cost_micros: null });
+		expect(attempts[1]).toMatchObject({ step_id: "generate", outcome: "valid" });
+	});
+
+	it("fails with AI_OUTCOME_UNKNOWN after two pre-response transient transport errors", async () => {
+		const owner = "pre-response-retry-twice";
+		const request = await prepare(owner);
+		let calls = 0;
+		const runtime = {
+			...syntheticRuntime,
+			routes: [{ ...syntheticRoute, maxCalls: 1, maxRepairs: 0 }],
+			fetch: () => {
+				calls++;
+				return Promise.reject(new TypeError("terminated"));
+			},
+		};
+		const work = <T>(fn: () => T) => database.run(() => withAiRuntime(runtime, fn));
+		const operation = await work(() => operationService.start(owner, request));
+		await work(() => runAiOperations());
+		expect(await work(() => operationService.get(owner, operation.id))).toMatchObject({
+			state: "failed",
+			failureCode: "AI_OUTCOME_UNKNOWN",
+		});
+		expect(calls).toBe(2);
+	});
+
+	it("does not pre-response-retry transient errors that include usage or nearly spent deadlines", async () => {
+		const ownerUsage = "pre-response-usage-no-retry";
+		const reqUsage = await prepare(ownerUsage);
+		let usageCalls = 0;
+		const usageRuntime = {
+			...syntheticRuntime,
+			routes: [{ ...syntheticRoute, maxCalls: 1, maxRepairs: 0 }],
+			fetch: () => {
+				usageCalls++;
+				return Promise.resolve(
+					Response.json({
+						error: { code: 503, message: "temporarily unavailable" },
+						usage: { prompt_tokens: 2 },
+					}),
+				);
+			},
+		};
+		const workUsage = <T>(fn: () => T) => database.run(() => withAiRuntime(usageRuntime, fn));
+		const opUsage = await workUsage(() => operationService.start(ownerUsage, reqUsage));
+		await workUsage(() => runAiOperations());
+		expect(await workUsage(() => operationService.get(ownerUsage, opUsage.id))).toMatchObject({
+			state: "failed",
+			failureCode: "AI_OUTCOME_UNKNOWN",
+		});
+		expect(usageCalls).toBe(1);
+
+		const ownerDeadline = "pre-response-deadline-no-retry";
+		const reqDeadline = await prepare(ownerDeadline);
+		let deadlineCalls = 0;
+		const deadlineRuntime = {
+			...syntheticRuntime,
+			routes: [{ ...syntheticRoute, maxCalls: 1, maxRepairs: 0, deadlineMs: 400 }],
+			fetch: () => {
+				deadlineCalls++;
+				return Promise.reject(new TypeError("terminated"));
+			},
+		};
+		const workDeadline = <T>(fn: () => T) => database.run(() => withAiRuntime(deadlineRuntime, fn));
+		const opDeadline = await workDeadline(() => operationService.start(ownerDeadline, reqDeadline));
+		await workDeadline(() => runAiOperations());
+		expect(await workDeadline(() => operationService.get(ownerDeadline, opDeadline.id))).toMatchObject({
+			state: "failed",
+			failureCode: "AI_OUTCOME_UNKNOWN",
+		});
+		expect(deadlineCalls).toBe(1);
 	});
 });

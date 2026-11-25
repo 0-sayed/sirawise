@@ -111,6 +111,13 @@ it("keeps launched browser temporary files in the synthetic run directory", () =
 		fixture.directory,
 	);
 });
+it("writes JUnit directly into the owned directory regardless of the Playwright configuration path", () => {
+	const env = ciBrowserEnvironment({
+		...fixture,
+		parent: { ...fixture.parent, PLAYWRIGHT_JUNIT_OUTPUT_FILE: "/external.xml" },
+	});
+	expect(env.PLAYWRIGHT_JUNIT_OUTPUT_FILE).toBe(`${fixture.directory}/junit.xml`);
+});
 it("preloads isolation for child builds and production runtimes without inherited Node options", () => {
 	const env = ciBrowserEnvironment({ ...fixture, parent: { ...fixture.parent, NODE_OPTIONS: "--require /private" } });
 	expect(env.NODE_OPTIONS).toMatch(/^--import=file:.*\/tooling\/local\/test-isolation\.mjs$/u);

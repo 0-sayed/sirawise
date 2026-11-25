@@ -1,3 +1,4 @@
+import type { OperatorListLike } from "./analyze/operators";
 import type {
 	ColumnGutter,
 	ExtractedDocument,
@@ -7,7 +8,12 @@ import type {
 	TextLine,
 	TextSpan,
 } from "./types";
+import { normalizeArabicPresentationForms } from "@reactive-resume/utils/string";
 import { normalizeSectionHeading, PDF_SECTION_HEADING_LOOKUP } from "../ats/section-aliases";
+import { IDENTITY, multiply, toMatrix } from "./analyze/operators";
+import { bidi } from "./bidi";
+import { layoutPdfPage } from "./line-layout";
+import { PDF_OPS } from "./pdf-ops";
 
 /** Vertical slack when deciding two spans share a line, as a share of the modal font size. */
 const LINE_TOLERANCE_RATIO = 0.35;
@@ -37,11 +43,287 @@ function fontSizeOf(item: RawPage["items"][number]): number {
 	return derived > 0 ? derived : 0;
 }
 
+const ARABIC_LETTER = /\p{Script=Arabic}/u;
+
+export function isPdfSpanScriptBoundary(previous: TextSpan, current: TextSpan): boolean {
+	return (
+		previous.dir !== current.dir &&
+		((/\p{Script=Latin}$/u.test(previous.text) &&
+			/^\p{Script=Arabic}/u.test(current.text) &&
+			current.text.length > 1) ||
+			(/\p{Script=Arabic}$/u.test(previous.text) &&
+				/^\p{Script=Latin}/u.test(current.text) &&
+				previous.text.length > 1))
+	);
+}
+
+export function isReversedPdfRtlWordPair(previous: TextSpan, current: TextSpan): boolean {
+	return (
+		previous.dir === "rtl" &&
+		current.dir === "rtl" &&
+		current.streamIndex < previous.streamIndex &&
+		previous.text.length >= 2 &&
+		current.text.length >= 2
+	);
+}
+
+type GlyphPosition = { left: number; right: number; baseline: number };
+
+function pdfTextPosition() {
+	let state = { matrix: IDENTITY, size: 0, spacing: 0, wordSpacing: 0, scale: 1, rise: 0 };
+	const saved: (typeof state)[] = [];
+	let textMatrix = IDENTITY;
+	let lineX = 0;
+	let y = 0;
+	let x = 0;
+	let positioned = false;
+	let hasAdvance = true;
+	return {
+		update(operator: number | undefined, args: unknown) {
+			if (operator === PDF_OPS.save) saved.push({ ...state });
+			if (operator === PDF_OPS.restore) state = saved.pop() ?? state;
+			if (operator === PDF_OPS.beginText) {
+				textMatrix = IDENTITY;
+				x = lineX = y = 0;
+				positioned = false;
+				hasAdvance = true;
+			}
+			const values = Array.isArray(args) ? args : [];
+			const [first, second] = values;
+			if (operator === PDF_OPS.transform) {
+				const matrix = toMatrix(values);
+				if (matrix) state.matrix = multiply(state.matrix, matrix);
+			}
+			if (operator === PDF_OPS.setTextMatrix) {
+				const matrix = toMatrix(first) ?? toMatrix(values);
+				if (!matrix) return;
+				textMatrix = matrix;
+				x = lineX = y = 0;
+				positioned = hasAdvance = true;
+			}
+			if (
+				(operator === PDF_OPS.moveText || operator === PDF_OPS.setLeadingMoveText) &&
+				typeof first === "number" &&
+				typeof second === "number"
+			) {
+				x = lineX += first;
+				y += second;
+				positioned = hasAdvance = true;
+			}
+			if (operator === PDF_OPS.setFont && typeof second === "number") state.size = second;
+			if (typeof first !== "number") return;
+			if (operator === PDF_OPS.setCharSpacing) state.spacing = first;
+			if (operator === PDF_OPS.setWordSpacing) state.wordSpacing = first;
+			if (operator === PDF_OPS.setHScale) state.scale = first / 100;
+			if (operator === PDF_OPS.setTextRise) state.rise = first;
+		},
+		show(glyphs: readonly unknown[]): GlyphPosition | undefined {
+			const start = x;
+			const reliableStart = hasAdvance;
+			for (const glyph of glyphs) {
+				if (typeof glyph === "number") x -= (glyph * state.size * state.scale) / 1000;
+				else if (glyph && typeof glyph === "object" && "width" in glyph && typeof glyph.width === "number")
+					x +=
+						((glyph.width * state.size) / 1000 +
+							state.spacing +
+							("isSpace" in glyph && glyph.isSpace === true ? state.wordSpacing : 0)) *
+						state.scale;
+				else hasAdvance = false;
+			}
+			const [a, b, c, d, e, f] = multiply(state.matrix, textMatrix);
+			if (!positioned || !reliableStart || Math.abs(b) > 0.001 || a <= 0) return;
+			return {
+				left: a * start + c * (y + state.rise) + e,
+				right: a * x + c * (y + state.rise) + e,
+				baseline: d * (y + state.rise) + f,
+			};
+		},
+	};
+}
+
+/** Match damaged runs to their embedded glyphs before transferring missing letters. */
+export function restoreFormatMarkGlyphs(items: RawPage["items"], operators: OperatorListLike): RawPage["items"] {
+	type GlyphRun = { damaged: string; original: string; missing: string; missingAt?: number; position?: GlyphPosition };
+	const emptyRun = (): GlyphRun => ({ damaged: "", original: "", missing: "" });
+	const repairs = new Map<string, Map<number, { value: string; position: GlyphPosition | undefined }>>();
+	const position = pdfTextPosition();
+	const logical = (text: string) =>
+		normalizeArabicPresentationForms(bidi.getReorderedString(text, bidi.getEmbeddingLevels(text, "rtl"))).trim();
+	let font = "";
+	let block = emptyRun();
+	const record = ({ damaged, original, missing, missingAt, position }: GlyphRun) => {
+		if (missingAt === undefined) return;
+		const before = logical(damaged);
+		const after = logical(original);
+		if (!before || [...after].length - [...before].length !== [...missing].length) return;
+		let cursor = 0;
+		for (const character of after) if (character === before[cursor]) cursor += character.length;
+		if (cursor !== before.length) return;
+		const key = `${font}\0${before}`;
+		const occurrences = repairs.get(key) ?? new Map();
+		if (!occurrences.has(missingAt)) occurrences.set(missingAt, { value: after, position });
+		repairs.set(key, occurrences);
+	};
+	for (let index = 0; index < operators.fnArray.length; index++) {
+		const operator = operators.fnArray[index];
+		const args = operators.argsArray[index];
+		if (
+			operator === PDF_OPS.beginText ||
+			operator === PDF_OPS.endText ||
+			operator === PDF_OPS.beginMarkedContentProps ||
+			operator === PDF_OPS.endMarkedContent ||
+			operator === PDF_OPS.setFont ||
+			operator === PDF_OPS.setTextMatrix
+		) {
+			record(block);
+			block = emptyRun();
+		}
+		position.update(operator, args);
+		if (operator === PDF_OPS.setFont && Array.isArray(args) && typeof args[0] === "string") font = args[0];
+		if (operator !== PDF_OPS.showText || !Array.isArray(args) || !Array.isArray(args[0])) continue;
+		const run = emptyRun();
+		const bounds = position.show(args[0]);
+		if (bounds) {
+			run.position = bounds;
+			const previous = block.position;
+			if (!previous) block.position = bounds;
+			else if (Math.abs(previous.baseline - bounds.baseline) <= 1)
+				block.position = {
+					...previous,
+					left: Math.min(previous.left, bounds.left),
+					right: Math.max(previous.right, bounds.right),
+				};
+		}
+		for (const glyph of args[0]) {
+			if (!glyph || typeof glyph !== "object" || typeof glyph.unicode !== "string") continue;
+			const value = glyph.unicode.replace(/\p{Cf}/gu, "");
+			run.original += value;
+			if (value !== glyph.unicode && ARABIC_LETTER.test(value)) {
+				run.missing += value;
+				run.missingAt = index;
+			} else run.damaged += value;
+		}
+		record(run);
+		block.damaged += run.damaged;
+		block.original += run.original;
+		block.missing += run.missing;
+		if (run.missingAt !== undefined) block.missingAt ??= run.missingAt;
+	}
+	record(block);
+	const matchingItems = new Map<string, { item: RawPage["items"][number]; index: number }[]>();
+	for (const [index, item] of items.entries()) {
+		if (item.dir !== "rtl") continue;
+		const key = `${item.fontRef}\0${normalizeArabicPresentationForms(item.str).trim()}`;
+		if (!repairs.has(key)) continue;
+		const indices = matchingItems.get(key) ?? [];
+		indices.push({ item, index });
+		matchingItems.set(key, indices);
+	}
+	const output = [...items];
+	for (const [key, matches] of matchingItems) {
+		const occurrences = [...(repairs.get(key)?.values() ?? [])];
+		const byItem = new Map<number, string[]>();
+		let unmatched = 0;
+		const propose = (index: number, value: string) => {
+			const options = byItem.get(index) ?? [];
+			options.push(value);
+			byItem.set(index, options);
+		};
+		for (const { value, position } of occurrences) {
+			const candidates = position
+				? matches.filter(({ item }) => {
+						const {
+							transform: [, , , , x, y],
+							width,
+						} = item;
+						return (
+							Math.abs(y - position.baseline) <= 1.5 && x + width > position.left + 0.5 && x < position.right - 0.5
+						);
+					})
+				: [];
+			const [candidate] = candidates;
+			if (candidate && candidates.length === 1) propose(candidate.index, value);
+			else unmatched++;
+		}
+		const values = new Set(occurrences.map(({ value }) => value));
+		const [onlyValue] = values;
+		if (unmatched && onlyValue && values.size === 1 && occurrences.length === matches.length)
+			for (const { index } of matches) byItem.set(index, [onlyValue]);
+		for (const { item, index } of matches) {
+			const choices = byItem.get(index);
+			const [value] = choices ?? [];
+			if (choices?.length === 1 && value)
+				output[index] = { ...item, glyphText: item.str.replace(/\S(?:[\s\S]*\S)?/u, () => value) };
+			else if (choices || unmatched) output[index] = { ...item, glyphRecoveryUncertain: true };
+		}
+	}
+	return output;
+}
+
+function isMultiWordArabicPhrase(text: string): boolean {
+	const arabicTokens = text.match(/\p{Script=Arabic}+/gu) ?? [];
+	if (arabicTokens.length >= 5) return true;
+	return arabicTokens.filter((token) => token.length >= 3).length >= 3;
+}
+
+/**
+ * Chromium/Skia Arabic PDFs often emit one `dir: "rtl"` text item per word in visual-LTR order
+ * (left word first, right word second on the same baseline) and insert spurious internal spaces
+ * inside single words at glyph-kerning boundaries (e.g. "برمج يات", "الملخ ص").
+ * Single-glyph RTL PDFs (length 1) and full-line/multi-word RTL PDFs (which contain multi-word
+ * phrases and may still emit reversed city/company header pairs) are excluded.
+ */
+function isWordTokenizedRtlPage(page: RawPage): boolean {
+	let prevY = Number.NaN;
+	let prevX = Number.NaN;
+	let reversedWordPairs = 0;
+	for (const item of page.items) {
+		const trimmed = item.str.trim();
+		if (trimmed.length === 0) continue;
+		if (item.dir === "rtl" && ARABIC_LETTER.test(trimmed)) {
+			if (isMultiWordArabicPhrase(trimmed)) return false;
+			if (trimmed.length >= 2) {
+				const [, , , , x, y] = item.transform;
+				if (!Number.isNaN(prevY) && Math.abs(y - prevY) <= 3 && x > prevX) {
+					reversedWordPairs += 1;
+				}
+				prevY = y;
+				prevX = x;
+			} else {
+				prevY = Number.NaN;
+				prevX = Number.NaN;
+			}
+		} else {
+			prevY = Number.NaN;
+			prevX = Number.NaN;
+		}
+	}
+	return reversedWordPairs >= 2;
+}
+
+function cleanWordTokenizedRtlText(text: string): string {
+	return text
+		.replace(/(?<=\p{Script=Arabic}) +(?=\p{Script=Arabic})/gu, "")
+		.replace(/(?<=\p{Script=Arabic}) +(?=[،؛؟.,:!?])/gu, "")
+		.trim();
+}
+
 function buildSpans(page: RawPage): TextSpan[] {
 	const spans: TextSpan[] = [];
+	const wordTokenizedRtl = isWordTokenizedRtlPage(page);
+	let pendingSpaceBefore = false;
 
 	page.items.forEach((item, streamIndex) => {
-		if (item.str.trim().length === 0) return;
+		if (item.str.trim().length === 0) {
+			if (item.str.length > 0 && !item.hasEol) {
+				const prev = spans.at(-1);
+				if (prev) prev.spaceAfter = true;
+				pendingSpaceBefore = true;
+			} else {
+				pendingSpaceBefore = false;
+			}
+			return;
+		}
 
 		const fontSize = fontSizeOf(item);
 		const [, , , , e, f] = item.transform;
@@ -49,10 +331,15 @@ function buildSpans(page: RawPage): TextSpan[] {
 		// PDF user space puts the origin bottom-left and `f` on the baseline; every consumer above
 		// this file works in top-left points, so the flip happens once, here.
 		const y = page.height - f - fontSize;
+		const sourceText = item.glyphText ?? item.str;
+		let text = wordTokenizedRtl && item.dir === "rtl" ? cleanWordTokenizedRtlText(sourceText) : sourceText;
+		if (item.dir === "rtl" && ARABIC_LETTER.test(text))
+			text = text.replace(/(?<!\S)([%٪])(\p{Nd}+(?:[.,٫]\p{Nd}+)?)/gu, "$2$1");
 
 		spans.push({
 			...(item.dir ? { dir: item.dir } : {}),
-			text: item.str,
+			...(pendingSpaceBefore ? { spaceBefore: true } : {}),
+			text,
 			x: e,
 			y,
 			width: item.width,
@@ -61,6 +348,7 @@ function buildSpans(page: RawPage): TextSpan[] {
 			fontSize,
 			streamIndex,
 		});
+		pendingSpaceBefore = false;
 	});
 
 	return spans;
@@ -96,39 +384,47 @@ function modalOf(values: readonly number[]): number | null {
  * their position in the content stream, so the same file yields the same lines however the
  * stream happened to be written. Stream order is measured separately, as inversion.
  */
-function clusterLines(spans: readonly TextSpan[], pageNumber: number, tolerance: number): TextLine[] {
-	const sorted = [...spans].sort((a, b) => a.y - b.y || a.x - b.x || (a.text < b.text ? -1 : a.text > b.text ? 1 : 0));
+function clusterLines(
+	spans: readonly TextSpan[],
+	pageNumber: number,
+	tolerance: number,
+	semantic: boolean,
+): TextLine[] {
+	const baseline = (span: TextSpan) => (semantic ? span.y + span.height : span.y);
+	const sorted = [...spans].sort(
+		(a, b) => baseline(a) - baseline(b) || a.x - b.x || (a.text < b.text ? -1 : a.text > b.text ? 1 : 0),
+	);
 
 	const groups: TextSpan[][] = [];
 	let current: TextSpan[] = [];
 	let anchor = Number.NaN;
 
 	for (const span of sorted) {
-		if (current.length === 0 || Math.abs(span.y - anchor) <= tolerance) {
-			if (current.length === 0) anchor = span.y;
+		if (current.length === 0 || Math.abs(baseline(span) - anchor) <= tolerance) {
+			if (current.length === 0) anchor = baseline(span);
 			current.push(span);
 			continue;
 		}
 
 		groups.push(current);
 		current = [span];
-		anchor = span.y;
+		anchor = baseline(span);
 	}
 
 	if (current.length > 0) groups.push(current);
 
-	return groups.map((group) => toLine(group, pageNumber));
+	return groups.map((group) => toLine(group, pageNumber, semantic));
 }
 
 export function isRtlText(spans: readonly TextSpan[]): boolean {
-	// Numeric/contact islands do not establish a paragraph base. With competing lexical scripts,
-	// geometry alone cannot establish that base: preserve the existing LTR field order. Such mixed
-	// layouts still require qualification; document language is not paragraph direction.
+	// Numeric/contact islands do not establish a paragraph base. When Arabic/Hebrew letters are at
+	// least as numerous as Latin letters (e.g. an Arabic line mentioning "BandAI" or "React"), treat
+	// the line as RTL; otherwise preserve LTR order.
 	const lexical = spans.map((span) => span.text.replace(/\S+@\S+|(?:https?:\/\/|www\.)\S+/gu, "")).join(" ");
-	return (
-		/[\p{Script=Arabic}\p{Script=Hebrew}]/u.test(lexical.replace(/[^\p{L}]/gu, "")) &&
-		!/\p{Script=Latin}/u.test(lexical)
-	);
+	const rtlCount = (lexical.match(/[\p{Script=Arabic}\p{Script=Hebrew}]/gu) ?? []).length;
+	if (rtlCount === 0) return false;
+	const latinCount = (lexical.match(/\p{Script=Latin}/gu) ?? []).length;
+	return latinCount === 0 || rtlCount >= latinCount;
 }
 
 /** Logical runs inferred from reader direction and geometry; LTR islands stay intact. */
@@ -147,17 +443,29 @@ export function orderTextSpans(spans: readonly TextSpan[], direction?: "ltr" | "
 	);
 }
 
-function toLine(group: readonly TextSpan[], pageNumber: number): TextLine {
-	const ordered = [...group].sort((a, b) => a.x - b.x || (a.text < b.text ? -1 : a.text > b.text ? 1 : 0));
+export function toLine(group: readonly TextSpan[], pageNumber: number, semantic = false): TextLine {
+	const ordered = [...group].sort(
+		(a, b) => a.x - b.x || (semantic ? a.streamIndex - b.streamIndex : a.text < b.text ? -1 : a.text > b.text ? 1 : 0),
+	);
 
 	let text = "";
 	let previous: TextSpan | null = null;
 
-	for (const span of orderTextSpans(ordered)) {
+	for (const span of semantic ? [] : orderTextSpans(ordered)) {
 		if (previous) {
 			const gap = Math.max(span.x - (previous.x + previous.width), previous.x - (span.x + span.width));
 			const threshold = SPACE_GAP_RATIO * Math.max(previous.fontSize, span.fontSize, 1);
-			const needsSpace = gap > threshold && !/\s$/.test(text) && !/^\s/.test(span.text);
+			const reversedRtlWordPair =
+				previous.dir === "rtl" &&
+				span.dir === "rtl" &&
+				span.streamIndex < previous.streamIndex &&
+				previous.text.length >= 2 &&
+				span.text.length >= 2;
+			const needsSpace =
+				(gap > threshold || reversedRtlWordPair) &&
+				!/\s$/.test(text) &&
+				!/^\s/.test(span.text) &&
+				!/^[،؛؟.,:!?]/.test(span.text);
 			if (needsSpace) text += " ";
 		}
 
@@ -384,9 +692,9 @@ function percentile(values: readonly number[], fraction: number): number {
 	return sorted[index] ?? 0;
 }
 
-function buildPage(page: RawPage, tolerance: number): PageGeometry {
+export function buildPage(page: RawPage, tolerance: number, semantic = false): PageGeometry {
 	const spans = buildSpans(page);
-	const lines = clusterLines(spans, page.pageNumber, tolerance);
+	const lines = clusterLines(spans, page.pageNumber, tolerance, semantic);
 
 	const margins =
 		spans.length === 0
@@ -445,7 +753,10 @@ export function buildExtractedDocument(raw: RawExtraction): ExtractedDocument {
 			: language === "en"
 				? "ltr"
 				: undefined;
-	const pages = raw.pages.map((page) => buildPage(page, tolerance));
+	const pages = raw.pages.map((page) => {
+		const geometry = buildPage(page, tolerance, page.structure !== undefined);
+		return page.structure === undefined ? geometry : layoutPdfPage(page, geometry, direction, raw.metadata.producer);
+	});
 	const lines = pages.flatMap((page) => page.lines);
 
 	const fullText = pages.map((page) => page.lines.map((line) => line.text).join("\n")).join("\n\n");

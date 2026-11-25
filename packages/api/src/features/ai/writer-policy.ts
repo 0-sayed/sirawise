@@ -1,6 +1,7 @@
 import type { ApprovedRoute, ReasoningEffort } from "./route-policy";
 import type { OperationRequest } from "@reactive-resume/schema/ai-operation";
 import { z } from "zod";
+import { extendedReviewTiming, extendedTranslationDeadlineMs } from "./route-policy";
 import defaults from "./writer-config.json";
 
 const selectionSchema = z.strictObject({
@@ -58,11 +59,26 @@ export function resolveWriterRoute(
 		(approved.model.startsWith("openai/") && approved.downstreamProvider !== "azure")
 	)
 		throw new Error("AI_WRITER_ROUTE_UNAPPROVED");
+	const measuredReview = kind === "review.translation" || kind === "review.job-evidence";
 	// Task allowances can only narrow the approved writer output ceiling.
 	return {
 		...route,
+		callTimeoutMs:
+			kind === "review.translation" ? (route.translationCallTimeoutMs ?? route.callTimeoutMs) : route.callTimeoutMs,
+		...(route.extendJobAndTranslationTiming && (measuredReview || kind === "review.tailoring")
+			? extendedReviewTiming
+			: {}),
+		...(route.extendJobAndTranslationTiming && kind === "review.translation"
+			? { deadlineMs: extendedTranslationDeadlineMs }
+			: {}),
 		...(route.verifier
-			? { verifier: { ...route.verifier, maxOutputTokens: route.verifier.maxOutputTokens ?? route.maxOutputTokens } }
+			? {
+					verifier: {
+						...route.verifier,
+						maxOutputTokens: route.verifier.maxOutputTokens ?? route.maxOutputTokens,
+						boundByTogetherPricing: measuredReview && route.verifier.boundByTogetherPricing === true,
+					},
+				}
 			: {}),
 		maxOutputTokens: Math.min(route.maxOutputTokens, selection.maxOutputTokens ?? route.maxOutputTokens),
 		model: approved.model,

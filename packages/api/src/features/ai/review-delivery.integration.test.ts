@@ -1,13 +1,41 @@
 import { beforeAll, describe, expect, it } from "vite-plus/test";
-import { splitReviewClaims } from "@reactive-resume/schema/resume/ai-review";
+import { splitReviewClaims, withheldReviewItemsSchema } from "@reactive-resume/schema/resume/ai-review";
 import { defaultResumeData } from "@reactive-resume/schema/resume/default";
-import { runAiOperations } from "./operation-worker";
-import { operationService } from "./operations";
-import { reviewHandlers } from "./review-handlers";
-import { prepareResumeReview } from "./review-sources";
+import { getProcessingNotices, processingConsentService } from "./consent";
+import { executeLease, runAiOperations } from "./operation-worker";
+import { claimNextOperation, mergeWithheldItems, operationService } from "./operations";
+import { extractionCandidateHandler, reviewHandlers } from "./review-handlers";
+import { createImportReviewSource, prepareResumeReview } from "./review-sources";
 import { withAiRuntime } from "./route-policy";
 import { aiTestDatabase } from "./testing/database";
 import { syntheticReviewRuntime as syntheticRuntime } from "./testing/runtime";
+
+it("merges withholding by ID before applying the public list limit", () => {
+	const items = Array.from({ length: 56 }, (_, i) => ({ id: `field-${i}`, reason: "AI_SOURCE_BINDING" }));
+	const repeated = { count: 1, rules: ["AI_UNSUPPORTED_CLAIM"], items: [{ id: "field-0" }] };
+	const legacy = { count: 3, rules: ["AI_VERIFICATION_CLAIM_SUPPORT"] };
+	expect(mergeWithheldItems(repeated, repeated)).toEqual(repeated);
+	const merged = mergeWithheldItems(
+		{ count: items.length, rules: ["AI_SOURCE_BINDING"], items },
+		repeated,
+		legacy,
+		legacy,
+	);
+	expect(merged).toEqual({
+		count: 59,
+		rules: ["AI_SOURCE_BINDING", "AI_UNSUPPORTED_CLAIM", "AI_VERIFICATION_CLAIM_SUPPORT"],
+		items: items.slice(0, 50),
+	});
+});
+
+it("reports a rejected question using its full valid claim ID", () => {
+	const report = {
+		count: 1,
+		rules: ["AI_VERIFICATION_CLAIM_SUPPORT"],
+		items: [{ id: `question:${"q".repeat(200)}` }],
+	};
+	expect(withheldReviewItemsSchema.parse(mergeWithheldItems(report))).toEqual(report);
+});
 
 describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("review delivery", () => {
 	const database = aiTestDatabase();
@@ -32,8 +60,8 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("review delivery", 
 				const claims = JSON.parse(verification.text) as { claimId: string; evidenceIds: string[] }[];
 				return Response.json({
 					id: "verification",
-					model: "synthetic/model",
-					provider: "Test",
+					model: body.model,
+					provider: body.provider.only[0],
 					choices: [
 						{
 							index: 0,
@@ -68,8 +96,8 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("review delivery", 
 			return new Response(
 				JSON.stringify({
 					id: "synthetic",
-					model: "synthetic/model",
-					provider: "Test",
+					model: body.model,
+					provider: body.provider.only[0],
 					choices: [
 						{
 							index: 0,
@@ -150,6 +178,177 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("review delivery", 
 			}),
 		);
 	};
+	it.each(["mixed", "all-invalid", "fabricated-question"] as const)(
+		"delivers only verified extraction fields in the %s case",
+		async (mode) => {
+			const verifierInputs: string[][] = [];
+			const shutdown = new AbortController();
+			const verifier = extractionCandidateHandler.verifier;
+			const buildInput = verifier?.buildInputInContext;
+			if (!verifier || !buildInput) throw new Error("Missing extraction verifier");
+			let pauseBeforeDispatch = mode === "mixed";
+			let writerCalls = 0;
+			const extraction = {
+				...runtime,
+				handlers: {
+					...reviewHandlers,
+					"review.extraction": {
+						...extractionCandidateHandler,
+						verifier: {
+							...verifier,
+							buildInputInContext: async (...args: Parameters<typeof buildInput>) => {
+								const payload = await buildInput(...args);
+								if (pauseBeforeDispatch) {
+									pauseBeforeDispatch = false;
+									shutdown.abort();
+								}
+								return payload;
+							},
+						},
+					},
+				},
+				fetch: async (_url: unknown, init?: RequestInit) => {
+					const body = JSON.parse(String(init?.body));
+					const { messages } = body;
+					const { selections } = JSON.parse(messages.at(-1).content);
+					const evidenceIds = [
+						selections.find((selection: { kind: string }) => selection.kind === "unconfirmed_source").id,
+					];
+					const claims = selections.find((selection: { id: string }) => selection.id === "verification-claims");
+					const candidate = {
+						id: "field-valid",
+						section: "experience",
+						entityId: "entry",
+						field: "description",
+						value: "Built secure services",
+						confirmation: "needs_review",
+						evidenceIds,
+						rawDateText: null,
+					};
+					const writer = {
+						candidates: [
+							...(mode === "mixed" ? [candidate] : []),
+							{ ...candidate, id: "field-invalid", field: "company", value: "Invented Employer" },
+						],
+						questions:
+							mode === "all-invalid"
+								? []
+								: [
+										{
+											id: "source-question",
+											passageId: null,
+											evidenceIds,
+											prompt: mode === "mixed" ? "Which employer can you confirm?" : "How many people did you manage?",
+										},
+									],
+					};
+					const verdicts: { claimId: string; evidenceIds: string[] }[] = claims ? JSON.parse(claims.text) : [];
+					if (claims) {
+						verifierInputs.push(verdicts.map(({ claimId }) => claimId));
+						const task = JSON.parse(
+							selections.find((selection: { id: string }) => selection.id === "verification-task").text,
+						);
+						expect(task.retentionApplicable).toBe(mode === "mixed");
+					} else writerCalls++;
+					const output = claims
+						? {
+								schemaVersion: 3,
+								responseAssessment: { status: "appropriate", reason: "Synthetic response." },
+								factRetention:
+									mode === "mixed"
+										? { status: "retained", evidenceIds, reason: "Field facts retained.", failedClaimIds: [] }
+										: { status: "not_applicable", evidenceIds: [], reason: "Only a question.", failedClaimIds: [] },
+								verdicts: verdicts.map(({ claimId, evidenceIds }) => ({
+									claimId,
+									evidenceIds,
+									verdict: mode === "mixed" ? "supported" : "unsupported",
+									reason: "Synthetic verdict.",
+								})),
+							}
+						: writer;
+					return Response.json({
+						id: "extraction",
+						model: body.model,
+						provider: body.provider.only[0],
+						choices: [
+							{ index: 0, message: { role: "assistant", content: JSON.stringify(output) }, finish_reason: "stop" },
+						],
+						usage: { prompt_tokens: 5, completion_tokens: 5, total_tokens: 10, cost: 0.00001 },
+					});
+				},
+			};
+			const work = <T>(fn: () => T) => database.run(() => withAiRuntime(extraction, fn));
+			const route = { routeId: "synthetic", routeRevision: "1", configRevision: "1" };
+			await work(async () => {
+				const [notice] = await getProcessingNotices("bob", { purpose: "review.extraction", locale: "en-US" });
+				if (!notice) throw new Error("Missing synthetic processing notice");
+				const { content: _content, alreadyGranted: _alreadyGranted, ...acceptance } = notice;
+				await processingConsentService.grant("bob", acceptance);
+			});
+			const { source } = await work(() =>
+				createImportReviewSource("bob", {
+					flowId: mode,
+					section: "experience",
+					text: "Built secure services",
+					contactValues: [],
+					partial: false,
+				}),
+			);
+			const operation = await work(() =>
+				operationService.start("bob", {
+					kind: "review.extraction",
+					requestKey: mode,
+					route,
+					consentVersion: "1",
+					parameters: { sourceId: source.id },
+					sources: [source],
+				}),
+			);
+			if (mode === "mixed") {
+				const lease = await work(() => claimNextOperation("bob"));
+				if (!lease) throw new Error("Missing initial extraction lease");
+				await work(() => executeLease(lease, shutdown.signal));
+				const admin = database.admin();
+				const listPasses = () =>
+					admin.query(
+						"SELECT id, lease_token, finished_at, output FROM ai_operation_attempt WHERE operation_id=$1 AND step_id='verify'",
+						[operation.id],
+					);
+				const { rows: before } = await listPasses();
+				expect(before).toEqual([
+					expect.objectContaining({
+						lease_token: lease.token,
+						finished_at: null,
+						output: expect.objectContaining({ _verifyCalls: [] }),
+					}),
+				]);
+				await admin.query("UPDATE ai_operation SET lease_until=now()-interval '1 minute' WHERE id=$1", [operation.id]);
+				const reclaimed = await work(() => claimNextOperation("bob"));
+				if (!reclaimed) throw new Error("Missing reclaimed extraction lease");
+				await work(() => executeLease(reclaimed));
+				expect((await listPasses()).rows).toEqual([
+					expect.objectContaining({ id: before[0].id, lease_token: lease.token, finished_at: expect.any(Date) }),
+				]);
+				expect(writerCalls).toBe(1);
+				expect(verifierInputs).toEqual([["field-valid", "question:source-question"]]);
+				expect(await work(() => operationService.getResult("bob", operation.id))).toMatchObject({
+					kind: "extraction",
+					candidates: [{ id: "field-valid" }],
+					questions: [{ id: "source-question" }],
+					withheld: { count: 1, items: [{ id: "field-invalid" }] },
+				});
+			} else {
+				await work(() => runAiOperations());
+				expect(verifierInputs.flat()).toEqual(
+					mode === "all-invalid" ? [] : ["question:source-question", "question:source-question"],
+				);
+				expect(await work(() => operationService.get("bob", operation.id))).toMatchObject({
+					state: "failed",
+					resultId: null,
+				});
+			}
+		},
+	);
 	it("publishes a validated pending review once without changing the CV", async () => {
 		const operation = await start("valid", "Mention Ada Lovelace in London");
 		await run(() => runAiOperations());
@@ -204,13 +403,20 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("review delivery", 
 			const attempts = (
 				await database
 					.admin()
-					.query("SELECT step_id FROM ai_operation_attempt WHERE operation_id=$1 ORDER BY ordinal", [operation.id])
+					.query("SELECT step_id,output FROM ai_operation_attempt WHERE operation_id=$1 ORDER BY ordinal", [
+						operation.id,
+					])
 			).rows;
 			expect(attempts.map((a) => a.step_id)).toEqual(
 				["unsupported", "contradicted", "lost"].includes(mode)
 					? ["generate", "verify", "regenerate", "verify"]
 					: ["generate", "verify"],
 			);
+			if (["down", "missing"].includes(mode))
+				expect(attempts[1]?.output._verifyCalls.map((call: { outcome: string }) => call.outcome)).toEqual([
+					"transient",
+					"transient",
+				]);
 			expect(
 				(
 					await database

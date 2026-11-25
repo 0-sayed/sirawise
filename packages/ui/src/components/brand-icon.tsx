@@ -141,7 +141,7 @@ export function BrandIcon({
 					data-slot="brand-name"
 					lang={locale}
 					className="type-section"
-					style={{ fontFamily: '"Noto Sans", sans-serif' }}
+					style={{ fontFamily: "var(--font-ui)", fontWeight: "var(--font-weight-bold)" }}
 				>
 					{getProductName(locale)}
 				</span>

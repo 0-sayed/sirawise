@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { beforeAll, expect, it, vi } from "vite-plus/test";
 import { i18n } from "@lingui/core";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
@@ -102,31 +103,40 @@ it("removes the complete mailto URL, including its query", () => {
 });
 
 it("clears multiple emails after the approved fix in a newly rendered PDF", async () => {
-	const data = structuredClone(defaultResumeData);
-	data.basics.name = "Jane Doe";
-	data.basics.email = "jane@example.test";
-	data.basics.customFields = [
-		{ id: "email", icon: "envelope", text: "jane@other.test", link: "mailto:jane@other.test" },
-	];
-	data.metadata.layout.pages = [{ fullWidth: true, main: [], sidebar: [] }];
-	const status = async (resume: typeof data) => {
-		const file = await createResumePdfFile({ data: resume, filename: "resume.pdf" });
-		const task = getDocument({ data: new Uint8Array(await file.arrayBuffer()), fontExtraProperties: true });
-		try {
-			const pdf = (await task.promise) as unknown as PdfDocumentLike;
-			const raw = await harvestPdfDocument(pdf, {
-				file: { name: file.name, sizeBytes: file.size, magicBytesOk: true },
-			});
-			return analyzePdfResume(raw).checks.find((check) => check.code === "MULTIPLE_EMAILS")?.status;
-		} finally {
-			await task.destroy();
-		}
-	};
-	const choice = primaryEmailChoice(data);
-	if (!choice) throw new Error("Expected personal email choices");
-	const preview = prepareFix(identity, data, () => {}, [choice]);
-	expect(await status(data)).toBe("fail");
-	expect(await status(preview.after)).toBe("pass");
+	// Use the shipped Latin fixture for the PDF engine's unused punctuation fallback.
+	const font = await readFile("public/fonts/ibm-plex-serif-400.ttf");
+	const remoteFont = vi.spyOn(globalThis, "fetch").mockImplementation(async () => new Response(new Uint8Array(font)));
+	try {
+		const data = structuredClone(defaultResumeData);
+		data.metadata.typography.body.fontFamily = "Times-Roman";
+		data.metadata.typography.heading.fontFamily = "Times-Roman";
+		data.basics.name = "Jane Doe";
+		data.basics.email = "jane@example.test";
+		data.basics.customFields = [
+			{ id: "email", icon: "envelope", text: "jane@other.test", link: "mailto:jane@other.test" },
+		];
+		data.metadata.layout.pages = [{ fullWidth: true, main: [], sidebar: [] }];
+		const status = async (resume: typeof data) => {
+			const file = await createResumePdfFile({ data: resume, filename: "resume.pdf" });
+			const task = getDocument({ data: new Uint8Array(await file.arrayBuffer()), fontExtraProperties: true });
+			try {
+				const pdf = (await task.promise) as unknown as PdfDocumentLike;
+				const raw = await harvestPdfDocument(pdf, {
+					file: { name: file.name, sizeBytes: file.size, magicBytesOk: true },
+				});
+				return analyzePdfResume(raw).checks.find((check) => check.code === "MULTIPLE_EMAILS")?.status;
+			} finally {
+				await task.destroy();
+			}
+		};
+		const choice = primaryEmailChoice(data);
+		if (!choice) throw new Error("Expected personal email choices");
+		const preview = prepareFix(identity, data, () => {}, [choice]);
+		expect(await status(data)).toBe("fail");
+		expect(await status(preview.after)).toBe("pass");
+	} finally {
+		remoteFont.mockRestore();
+	}
 }, 30_000);
 
 it("refuses no-op fixes and erased headings even without choice metadata", () => {

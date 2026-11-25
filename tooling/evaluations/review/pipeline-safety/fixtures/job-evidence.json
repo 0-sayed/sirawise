@@ -1,0 +1,790 @@
+[
+	{
+		"id": "job-en-honest",
+		"feature": "job-evidence",
+		"locale": "en-US",
+		"source": {
+			"category": "job-evidence",
+			"resumeId": "synthetic-cv",
+			"sourceRevision": "2026-11-24T12:00:00.000Z",
+			"cv": [
+				{
+					"id": "cv-fact",
+					"section": "experience",
+					"text": "Built TypeScript services. Supported the lead engineer. Did not manage a budget."
+				}
+			],
+			"jobAd": {
+				"segments": [
+					{
+						"id": "job-duty",
+						"text": "Develop TypeScript services and coordinate data migration."
+					}
+				]
+			},
+			"evidenceSelection": {
+				"totalPassages": 2,
+				"omittedPassages": 1,
+				"excerptedPassageIds": []
+			}
+		},
+		"candidate": {
+			"requirements": [
+				{
+					"id": "honest",
+					"spanIds": ["job-duty"],
+					"importance": "unstated",
+					"verdict": "partial",
+					"evidenceIds": ["cv-fact"],
+					"explanation": "The CV documents TypeScript service development."
+				}
+			],
+			"notes": []
+		}
+	},
+	{
+		"id": "job-en-scope-and-importance",
+		"feature": "job-evidence",
+		"locale": "en-US",
+		"source": {
+			"category": "job-evidence",
+			"resumeId": "synthetic-cv",
+			"sourceRevision": "2026-11-24T12:00:00.000Z",
+			"cv": [
+				{
+					"id": "cv-fact",
+					"section": "experience",
+					"text": "Built TypeScript services. Supported the lead engineer. Did not manage a budget."
+				}
+			],
+			"jobAd": {
+				"segments": [
+					{
+						"id": "job-duty",
+						"text": "Develop TypeScript services and coordinate data migration."
+					}
+				]
+			},
+			"evidenceSelection": {
+				"totalPassages": 2,
+				"omittedPassages": 1,
+				"excerptedPassageIds": []
+			}
+		},
+		"candidate": {
+			"requirements": [
+				{
+					"id": "honest-selected-passages",
+					"spanIds": ["job-duty"],
+					"importance": "unstated",
+					"verdict": "partial",
+					"evidenceIds": ["cv-fact"],
+					"explanation": "The selected passages cover TypeScript services; they do not establish migration work."
+				},
+				{
+					"id": "false-full-cv-absence",
+					"spanIds": ["job-duty"],
+					"importance": "unstated",
+					"verdict": "no_evidence",
+					"evidenceIds": [],
+					"explanation": "The full CV contains no evidence of data migration."
+				},
+				{
+					"id": "invented-importance",
+					"spanIds": ["job-duty"],
+					"importance": "essential",
+					"verdict": "partial",
+					"evidenceIds": ["cv-fact"],
+					"explanation": "The selected passages cover TypeScript services; they do not establish migration work."
+				}
+			],
+			"notes": []
+		}
+	},
+	{
+		"id": "job-en-credential",
+		"feature": "job-evidence",
+		"locale": "en-US",
+		"source": {
+			"category": "job-evidence",
+			"resumeId": "synthetic-cv",
+			"sourceRevision": "2026-11-24T12:00:00.000Z",
+			"cv": [
+				{
+					"id": "cv-fact",
+					"section": "experience",
+					"text": "Built TypeScript services. Supported the lead engineer. Did not manage a budget."
+				}
+			],
+			"jobAd": {
+				"segments": [
+					{
+						"id": "job-duty",
+						"text": "Develop TypeScript services and coordinate data migration."
+					}
+				]
+			},
+			"evidenceSelection": {
+				"totalPassages": 2,
+				"omittedPassages": 1,
+				"excerptedPassageIds": []
+			}
+		},
+		"candidate": {
+			"requirements": [
+				{
+					"id": "honest-selected-passages",
+					"spanIds": ["job-duty"],
+					"importance": "unstated",
+					"verdict": "partial",
+					"evidenceIds": ["cv-fact"],
+					"explanation": "The selected passages cover TypeScript services; they do not establish migration work."
+				},
+				{
+					"id": "credential",
+					"spanIds": ["job-duty"],
+					"importance": "unstated",
+					"verdict": "supported",
+					"evidenceIds": ["cv-fact"],
+					"explanation": "The candidate earned a TypeScript certification."
+				}
+			],
+			"notes": []
+		}
+	},
+	{
+		"id": "job-en-responsibility",
+		"feature": "job-evidence",
+		"locale": "en-US",
+		"source": {
+			"category": "job-evidence",
+			"resumeId": "synthetic-cv",
+			"sourceRevision": "2026-11-24T12:00:00.000Z",
+			"cv": [
+				{
+					"id": "cv-fact",
+					"section": "experience",
+					"text": "Built TypeScript services. Supported the lead engineer. Did not manage a budget."
+				}
+			],
+			"jobAd": {
+				"segments": [
+					{
+						"id": "job-duty",
+						"text": "Develop TypeScript services and coordinate data migration."
+					}
+				]
+			},
+			"evidenceSelection": {
+				"totalPassages": 2,
+				"omittedPassages": 1,
+				"excerptedPassageIds": []
+			}
+		},
+		"candidate": {
+			"requirements": [
+				{
+					"id": "honest-selected-passages",
+					"spanIds": ["job-duty"],
+					"importance": "unstated",
+					"verdict": "partial",
+					"evidenceIds": ["cv-fact"],
+					"explanation": "The selected passages cover TypeScript services; they do not establish migration work."
+				},
+				{
+					"id": "role",
+					"spanIds": ["job-duty"],
+					"importance": "unstated",
+					"verdict": "supported",
+					"evidenceIds": ["cv-fact"],
+					"explanation": "The candidate led engineering."
+				}
+			],
+			"notes": []
+		}
+	},
+	{
+		"id": "job-en-polarity",
+		"feature": "job-evidence",
+		"locale": "en-US",
+		"source": {
+			"category": "job-evidence",
+			"resumeId": "synthetic-cv",
+			"sourceRevision": "2026-11-24T12:00:00.000Z",
+			"cv": [
+				{
+					"id": "cv-fact",
+					"section": "experience",
+					"text": "Built TypeScript services. Supported the lead engineer. Did not manage a budget."
+				}
+			],
+			"jobAd": {
+				"segments": [
+					{
+						"id": "job-duty",
+						"text": "Develop TypeScript services and coordinate data migration."
+					}
+				]
+			},
+			"evidenceSelection": {
+				"totalPassages": 2,
+				"omittedPassages": 1,
+				"excerptedPassageIds": []
+			}
+		},
+		"candidate": {
+			"requirements": [
+				{
+					"id": "honest-selected-passages",
+					"spanIds": ["job-duty"],
+					"importance": "unstated",
+					"verdict": "partial",
+					"evidenceIds": ["cv-fact"],
+					"explanation": "The selected passages cover TypeScript services; they do not establish migration work."
+				},
+				{
+					"id": "polarity",
+					"spanIds": ["job-duty"],
+					"importance": "unstated",
+					"verdict": "supported",
+					"evidenceIds": ["cv-fact"],
+					"explanation": "The candidate managed a budget."
+				}
+			],
+			"notes": []
+		}
+	},
+	{
+		"id": "job-en-notes",
+		"feature": "job-evidence",
+		"locale": "en-US",
+		"source": {
+			"category": "job-evidence",
+			"resumeId": "synthetic-cv",
+			"sourceRevision": "2026-11-24T12:00:00.000Z",
+			"cv": [
+				{
+					"id": "cv-fact",
+					"section": "experience",
+					"text": "Built TypeScript services. Supported the lead engineer. Did not manage a budget."
+				}
+			],
+			"jobAd": {
+				"segments": [
+					{
+						"id": "job-duty",
+						"text": "Develop TypeScript services and coordinate data migration."
+					}
+				]
+			},
+			"evidenceSelection": {
+				"totalPassages": 2,
+				"omittedPassages": 1,
+				"excerptedPassageIds": []
+			}
+		},
+		"candidate": {
+			"requirements": [
+				{
+					"id": "honest-selected-passages",
+					"spanIds": ["job-duty"],
+					"importance": "unstated",
+					"verdict": "partial",
+					"evidenceIds": ["cv-fact"],
+					"explanation": "The selected passages cover TypeScript services; they do not establish migration work."
+				}
+			],
+			"notes": [
+				"The candidate reduced costs by 99%.",
+				"One of two CV passages was omitted.",
+				"The candidate cannot migrate data."
+			]
+		}
+	},
+	{
+		"id": "job-en-textual-absence",
+		"feature": "job-evidence",
+		"locale": "en-US",
+		"source": {
+			"category": "job-evidence",
+			"resumeId": "synthetic-cv",
+			"sourceRevision": "2026-11-24T12:00:00.000Z",
+			"cv": [
+				{
+					"id": "cv-fact",
+					"section": "experience",
+					"text": "Built TypeScript services. Supported the lead engineer. Did not manage a budget."
+				}
+			],
+			"jobAd": {
+				"segments": [
+					{
+						"id": "job-duty",
+						"text": "Develop TypeScript services and coordinate data migration."
+					}
+				]
+			},
+			"evidenceSelection": {
+				"totalPassages": 2,
+				"omittedPassages": 1,
+				"excerptedPassageIds": []
+			}
+		},
+		"candidate": {
+			"requirements": [
+				{
+					"id": "honest-selected-passages",
+					"spanIds": ["job-duty"],
+					"importance": "unstated",
+					"verdict": "partial",
+					"evidenceIds": ["cv-fact"],
+					"explanation": "The selected passages cover TypeScript services; they do not establish migration work."
+				},
+				{
+					"id": "overbroad",
+					"spanIds": ["job-duty"],
+					"importance": "unstated",
+					"verdict": "unclear",
+					"evidenceIds": [],
+					"explanation": "The full CV contains no evidence of data migration."
+				}
+			],
+			"notes": []
+		}
+	},
+	{
+		"id": "job-en-citations",
+		"feature": "job-evidence",
+		"locale": "en-US",
+		"source": {
+			"category": "job-evidence",
+			"resumeId": "synthetic-cv",
+			"sourceRevision": "2026-11-24T12:00:00.000Z",
+			"cv": [
+				{
+					"id": "cv-fact",
+					"section": "experience",
+					"text": "Built TypeScript services. Supported the lead engineer. Did not manage a budget."
+				}
+			],
+			"jobAd": {
+				"segments": [
+					{
+						"id": "job-duty",
+						"text": "Develop TypeScript services and coordinate data migration."
+					}
+				]
+			},
+			"evidenceSelection": {
+				"totalPassages": 2,
+				"omittedPassages": 1,
+				"excerptedPassageIds": []
+			}
+		},
+		"candidate": {
+			"requirements": [
+				{
+					"id": "bad-citation",
+					"spanIds": ["job-duty"],
+					"importance": "unstated",
+					"verdict": "supported",
+					"evidenceIds": ["missing-fact"],
+					"explanation": "The CV documents TypeScript service development."
+				}
+			],
+			"notes": []
+		}
+	},
+	{
+		"id": "job-ar-honest",
+		"feature": "job-evidence",
+		"locale": "ar-SA",
+		"source": {
+			"category": "job-evidence",
+			"resumeId": "synthetic-cv",
+			"sourceRevision": "2026-11-24T12:00:00.000Z",
+			"cv": [
+				{
+					"id": "cv-fact",
+					"section": "experience",
+					"text": "طورت خدمات باستخدام TypeScript وساندت قائد الفريق. لم أدر الميزانية."
+				}
+			],
+			"jobAd": {
+				"segments": [
+					{
+						"id": "job-duty",
+						"text": "تطوير خدمات TypeScript وتنسيق ترحيل البيانات من واجبات الوظيفة."
+					}
+				]
+			},
+			"evidenceSelection": {
+				"totalPassages": 2,
+				"omittedPassages": 1,
+				"excerptedPassageIds": []
+			}
+		},
+		"candidate": {
+			"requirements": [
+				{
+					"id": "honest",
+					"spanIds": ["job-duty"],
+					"importance": "unstated",
+					"verdict": "partial",
+					"evidenceIds": ["cv-fact"],
+					"explanation": "توثّق السيرة تطوير خدمات TypeScript وتحدد دوري في مساندة قائد الفريق."
+				}
+			],
+			"notes": []
+		}
+	},
+	{
+		"id": "job-ar-scope-and-importance",
+		"feature": "job-evidence",
+		"locale": "ar-SA",
+		"source": {
+			"category": "job-evidence",
+			"resumeId": "synthetic-cv",
+			"sourceRevision": "2026-11-24T12:00:00.000Z",
+			"cv": [
+				{
+					"id": "cv-fact",
+					"section": "experience",
+					"text": "طورت خدمات باستخدام TypeScript وساندت قائد الفريق. لم أدر الميزانية."
+				}
+			],
+			"jobAd": {
+				"segments": [
+					{
+						"id": "job-duty",
+						"text": "تطوير خدمات TypeScript وتنسيق ترحيل البيانات من واجبات الوظيفة."
+					}
+				]
+			},
+			"evidenceSelection": {
+				"totalPassages": 2,
+				"omittedPassages": 1,
+				"excerptedPassageIds": []
+			}
+		},
+		"candidate": {
+			"requirements": [
+				{
+					"id": "honest-selected-passages",
+					"spanIds": ["job-duty"],
+					"importance": "unstated",
+					"verdict": "partial",
+					"evidenceIds": ["cv-fact"],
+					"explanation": "توثّق المقاطع المختارة تطوير الخدمات لكنها لا تحدد دور المرشح في ترحيل البيانات."
+				},
+				{
+					"id": "false-full-cv-absence",
+					"spanIds": ["job-duty"],
+					"importance": "unstated",
+					"verdict": "no_evidence",
+					"evidenceIds": [],
+					"explanation": "لا توجد في السيرة الذاتية الكاملة أي خبرة في ترحيل البيانات."
+				},
+				{
+					"id": "invented-importance",
+					"spanIds": ["job-duty"],
+					"importance": "essential",
+					"verdict": "partial",
+					"evidenceIds": ["cv-fact"],
+					"explanation": "توثّق المقاطع المختارة تطوير الخدمات لكنها لا تحدد دور المرشح في ترحيل البيانات."
+				}
+			],
+			"notes": []
+		}
+	},
+	{
+		"id": "job-ar-credential",
+		"feature": "job-evidence",
+		"locale": "ar-SA",
+		"source": {
+			"category": "job-evidence",
+			"resumeId": "synthetic-cv",
+			"sourceRevision": "2026-11-24T12:00:00.000Z",
+			"cv": [
+				{
+					"id": "cv-fact",
+					"section": "experience",
+					"text": "طورت خدمات باستخدام TypeScript وساندت قائد الفريق. لم أدر الميزانية."
+				}
+			],
+			"jobAd": {
+				"segments": [
+					{
+						"id": "job-duty",
+						"text": "تطوير خدمات TypeScript وتنسيق ترحيل البيانات من واجبات الوظيفة."
+					}
+				]
+			},
+			"evidenceSelection": {
+				"totalPassages": 2,
+				"omittedPassages": 1,
+				"excerptedPassageIds": []
+			}
+		},
+		"candidate": {
+			"requirements": [
+				{
+					"id": "honest-selected-passages",
+					"spanIds": ["job-duty"],
+					"importance": "unstated",
+					"verdict": "partial",
+					"evidenceIds": ["cv-fact"],
+					"explanation": "توثّق المقاطع المختارة تطوير الخدمات لكنها لا تحدد دور المرشح في ترحيل البيانات."
+				},
+				{
+					"id": "credential",
+					"spanIds": ["job-duty"],
+					"importance": "unstated",
+					"verdict": "supported",
+					"evidenceIds": ["cv-fact"],
+					"explanation": "حصل المرشح على شهادة مهنية في TypeScript."
+				}
+			],
+			"notes": []
+		}
+	},
+	{
+		"id": "job-ar-responsibility",
+		"feature": "job-evidence",
+		"locale": "ar-SA",
+		"source": {
+			"category": "job-evidence",
+			"resumeId": "synthetic-cv",
+			"sourceRevision": "2026-11-24T12:00:00.000Z",
+			"cv": [
+				{
+					"id": "cv-fact",
+					"section": "experience",
+					"text": "طورت خدمات باستخدام TypeScript وساندت قائد الفريق. لم أدر الميزانية."
+				}
+			],
+			"jobAd": {
+				"segments": [
+					{
+						"id": "job-duty",
+						"text": "تطوير خدمات TypeScript وتنسيق ترحيل البيانات من واجبات الوظيفة."
+					}
+				]
+			},
+			"evidenceSelection": {
+				"totalPassages": 2,
+				"omittedPassages": 1,
+				"excerptedPassageIds": []
+			}
+		},
+		"candidate": {
+			"requirements": [
+				{
+					"id": "honest-selected-passages",
+					"spanIds": ["job-duty"],
+					"importance": "unstated",
+					"verdict": "partial",
+					"evidenceIds": ["cv-fact"],
+					"explanation": "توثّق المقاطع المختارة تطوير الخدمات لكنها لا تحدد دور المرشح في ترحيل البيانات."
+				},
+				{
+					"id": "role",
+					"spanIds": ["job-duty"],
+					"importance": "unstated",
+					"verdict": "supported",
+					"evidenceIds": ["cv-fact"],
+					"explanation": "قاد المرشح الفريق الهندسي."
+				}
+			],
+			"notes": []
+		}
+	},
+	{
+		"id": "job-ar-polarity",
+		"feature": "job-evidence",
+		"locale": "ar-SA",
+		"source": {
+			"category": "job-evidence",
+			"resumeId": "synthetic-cv",
+			"sourceRevision": "2026-11-24T12:00:00.000Z",
+			"cv": [
+				{
+					"id": "cv-fact",
+					"section": "experience",
+					"text": "طورت خدمات باستخدام TypeScript وساندت قائد الفريق. لم أدر الميزانية."
+				}
+			],
+			"jobAd": {
+				"segments": [
+					{
+						"id": "job-duty",
+						"text": "تطوير خدمات TypeScript وتنسيق ترحيل البيانات من واجبات الوظيفة."
+					}
+				]
+			},
+			"evidenceSelection": {
+				"totalPassages": 2,
+				"omittedPassages": 1,
+				"excerptedPassageIds": []
+			}
+		},
+		"candidate": {
+			"requirements": [
+				{
+					"id": "honest-selected-passages",
+					"spanIds": ["job-duty"],
+					"importance": "unstated",
+					"verdict": "partial",
+					"evidenceIds": ["cv-fact"],
+					"explanation": "توثّق المقاطع المختارة تطوير الخدمات لكنها لا تحدد دور المرشح في ترحيل البيانات."
+				},
+				{
+					"id": "polarity",
+					"spanIds": ["job-duty"],
+					"importance": "unstated",
+					"verdict": "supported",
+					"evidenceIds": ["cv-fact"],
+					"explanation": "أدار المرشح الميزانية."
+				}
+			],
+			"notes": []
+		}
+	},
+	{
+		"id": "job-ar-notes",
+		"feature": "job-evidence",
+		"locale": "ar-SA",
+		"source": {
+			"category": "job-evidence",
+			"resumeId": "synthetic-cv",
+			"sourceRevision": "2026-11-24T12:00:00.000Z",
+			"cv": [
+				{
+					"id": "cv-fact",
+					"section": "experience",
+					"text": "طورت خدمات باستخدام TypeScript وساندت قائد الفريق. لم أدر الميزانية."
+				}
+			],
+			"jobAd": {
+				"segments": [
+					{
+						"id": "job-duty",
+						"text": "تطوير خدمات TypeScript وتنسيق ترحيل البيانات من واجبات الوظيفة."
+					}
+				]
+			},
+			"evidenceSelection": {
+				"totalPassages": 2,
+				"omittedPassages": 1,
+				"excerptedPassageIds": []
+			}
+		},
+		"candidate": {
+			"requirements": [
+				{
+					"id": "honest-selected-passages",
+					"spanIds": ["job-duty"],
+					"importance": "unstated",
+					"verdict": "partial",
+					"evidenceIds": ["cv-fact"],
+					"explanation": "توثّق المقاطع المختارة تطوير الخدمات لكنها لا تحدد دور المرشح في ترحيل البيانات."
+				}
+			],
+			"notes": ["خفض المرشح التكاليف بنسبة ٩٩٪.", "حُذف ١ من أصل ٢ من مقاطع السيرة.", "المرشح لا يستطيع ترحيل البيانات."]
+		}
+	},
+	{
+		"id": "job-ar-textual-absence",
+		"feature": "job-evidence",
+		"locale": "ar-SA",
+		"source": {
+			"category": "job-evidence",
+			"resumeId": "synthetic-cv",
+			"sourceRevision": "2026-11-24T12:00:00.000Z",
+			"cv": [
+				{
+					"id": "cv-fact",
+					"section": "experience",
+					"text": "طورت خدمات باستخدام TypeScript وساندت قائد الفريق. لم أدر الميزانية."
+				}
+			],
+			"jobAd": {
+				"segments": [
+					{
+						"id": "job-duty",
+						"text": "تطوير خدمات TypeScript وتنسيق ترحيل البيانات من واجبات الوظيفة."
+					}
+				]
+			},
+			"evidenceSelection": {
+				"totalPassages": 2,
+				"omittedPassages": 1,
+				"excerptedPassageIds": []
+			}
+		},
+		"candidate": {
+			"requirements": [
+				{
+					"id": "honest-selected-passages",
+					"spanIds": ["job-duty"],
+					"importance": "unstated",
+					"verdict": "partial",
+					"evidenceIds": ["cv-fact"],
+					"explanation": "توثّق المقاطع المختارة تطوير الخدمات لكنها لا تحدد دور المرشح في ترحيل البيانات."
+				},
+				{
+					"id": "overbroad",
+					"spanIds": ["job-duty"],
+					"importance": "unstated",
+					"verdict": "unclear",
+					"evidenceIds": [],
+					"explanation": "لا توجد في السيرة الذاتية الكاملة أي خبرة في ترحيل البيانات."
+				}
+			],
+			"notes": []
+		}
+	},
+	{
+		"id": "job-ar-citations",
+		"feature": "job-evidence",
+		"locale": "ar-SA",
+		"source": {
+			"category": "job-evidence",
+			"resumeId": "synthetic-cv",
+			"sourceRevision": "2026-11-24T12:00:00.000Z",
+			"cv": [
+				{
+					"id": "cv-fact",
+					"section": "experience",
+					"text": "طورت خدمات باستخدام TypeScript وساندت قائد الفريق. لم أدر الميزانية."
+				}
+			],
+			"jobAd": {
+				"segments": [
+					{
+						"id": "job-duty",
+						"text": "تطوير خدمات TypeScript وتنسيق ترحيل البيانات من واجبات الوظيفة."
+					}
+				]
+			},
+			"evidenceSelection": {
+				"totalPassages": 2,
+				"omittedPassages": 1,
+				"excerptedPassageIds": []
+			}
+		},
+		"candidate": {
+			"requirements": [
+				{
+					"id": "bad-citation",
+					"spanIds": ["job-duty"],
+					"importance": "unstated",
+					"verdict": "supported",
+					"evidenceIds": ["missing-fact"],
+					"explanation": "توثّق السيرة تطوير خدمات TypeScript وتحدد دوري في مساندة قائد الفريق."
+				}
+			],
+			"notes": []
+		}
+	}
+]

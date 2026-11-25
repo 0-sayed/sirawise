@@ -9,7 +9,7 @@ import { AuthErrorSummary } from "../components/auth-error-summary";
 import { AuthHeading } from "../components/auth-heading";
 import { SocialAuth } from "../components/social-auth";
 import { useAuthCopy } from "../copy.generated";
-import { authErrorMessage } from "../errors";
+import { authErrorField, validAuthEmail, authErrorMessage } from "../errors";
 import { verificationCallback } from "../redirect";
 import { PasswordInput } from "@/components/input/password-input";
 import { useUiLocale } from "@/features/locale/provider";
@@ -21,11 +21,25 @@ export function RegisterPage({ disableEmailAuth }: { disableEmailAuth: boolean }
 	const { callbackURL, reauthenticate } = useSearch({ from: "/auth" });
 	const navigate = useNavigate();
 	const [value, setValue] = useState({ name: "", username: "", email: "", password: "" });
+	const [errorField, setErrorField] = useState<string | null>(null);
 	const [pending, setPending] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	async function submit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 		setError(null);
+		setErrorField(null);
+		const code = !validAuthEmail(value.email)
+			? "INVALID_EMAIL"
+			: !/^[a-z0-9._-]{3,64}$/.test(value.username)
+				? "USERNAME_IS_INVALID"
+				: value.password.length < 8 || value.password.length > 64
+					? "PASSWORD_TOO_SHORT"
+					: null;
+		if (code) {
+			setError(authErrorMessage(code));
+			setErrorField(authErrorField(code));
+			return;
+		}
 		if (
 			!value.name.trim() ||
 			value.password.length < 8 ||
@@ -39,6 +53,7 @@ export function RegisterPage({ disableEmailAuth }: { disableEmailAuth: boolean }
 		try {
 			const result = await authClient.signUp.email({
 				...value,
+				email: value.email.trim(),
 				name: value.name.trim(),
 				displayUsername: value.username,
 				uiLocale: locale,
@@ -46,6 +61,7 @@ export function RegisterPage({ disableEmailAuth }: { disableEmailAuth: boolean }
 			});
 			if (result.error) {
 				setError(authErrorMessage(result.error.code));
+				setErrorField(authErrorField(result.error.code));
 				return;
 			}
 			await navigate({ to: "/auth/verify-email", search: { email: value.email, callbackURL }, replace: true });
@@ -61,7 +77,7 @@ export function RegisterPage({ disableEmailAuth }: { disableEmailAuth: boolean }
 				<AuthHeading>{copy("auth.signUp.title")}</AuthHeading>
 				<p className="type-body text-ink-2">{copy("auth.signUp.subtitle")}</p>
 			</div>
-			<AuthErrorSummary message={error} field="register-email" />
+			<AuthErrorSummary message={error} field={errorField ? `register-${errorField}` : undefined} />
 			{!disableEmailAuth && (
 				<form className="grid gap-(--space-18) lg:gap-5" onSubmit={submit}>
 					<label htmlFor="register-name" className="grid gap-1.5 type-label">
@@ -84,6 +100,8 @@ export function RegisterPage({ disableEmailAuth }: { disableEmailAuth: boolean }
 							size="lg"
 							className="font-normal"
 							id="register-username"
+							aria-invalid={errorField === "username" || undefined}
+							aria-errormessage={errorField === "username" ? "register-username-error" : undefined}
 							name="username"
 							dir="ltr"
 							autoComplete="username"
@@ -101,6 +119,8 @@ export function RegisterPage({ disableEmailAuth }: { disableEmailAuth: boolean }
 							size="lg"
 							className="font-normal"
 							id="register-email"
+							aria-invalid={errorField === "email" || undefined}
+							aria-errormessage={errorField === "email" ? "register-email-error" : undefined}
 							name="email"
 							dir="ltr"
 							type="email"
@@ -115,6 +135,8 @@ export function RegisterPage({ disableEmailAuth }: { disableEmailAuth: boolean }
 						<PasswordInput
 							embedded
 							id="register-password"
+							aria-invalid={errorField === "password" || undefined}
+							aria-errormessage={errorField === "password" ? "register-password-error" : undefined}
 							aria-labelledby="register-password-label"
 							aria-describedby="register-password-hint"
 							name="password"

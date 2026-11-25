@@ -12,6 +12,16 @@ import { qualifyCase } from "./qualify";
 import { qualificationPolicy, qualificationSuite } from "./suite";
 import { verifiedPoppler } from "./toolchain";
 import pins from "./versions.json";
+
+// The built-in suites use the same Noto Sans v42 faces as the frozen strict v1 run.
+const notoSansSource = "https://fonts.gstatic.com/s/notosans/v42/o-0mIpQlx3QUlC5A4PNB6Ryti20_6n1iPHjcz6L1SoM-jCpoiy";
+const qualificationFonts = new Map([
+	[`${notoSansSource}D9A99d41P6zHtY.ttf`, "400"],
+	[`${notoSansSource}DPA99d41P6zHtY.ttf`, "500"],
+	[`${notoSansSource}AjBN9d41P6zHtY.ttf`, "600"],
+	[`${notoSansSource}AaBN9d41P6zHtY.ttf`, "700"],
+]);
+
 export async function runQualification() {
 	const suite = qualificationSuite(process.env);
 	const policy = qualificationPolicy(process.env);
@@ -86,7 +96,12 @@ export async function runQualification() {
 	await writeFile(join(directory, "environment.json"), JSON.stringify(environment, null, 2));
 	const fonts = new Map<string, { source: string; sha256: string; bytes: number }>();
 	configureFontReader(async (source) => {
-		const bytes = await readServerFont(source);
+		const weight = qualificationFonts.get(source);
+		if (!weight && !authoredSuite && !source.startsWith("/fonts/"))
+			throw new Error(`Unbundled font in a built-in qualification suite: ${source}`);
+		const bytes = weight
+			? await readFile(new URL(`./fonts/noto-sans-v42/${weight}.ttf`, import.meta.url))
+			: await readServerFont(source);
 		fonts.set(source, { source, sha256: createHash("sha256").update(bytes).digest("hex"), bytes: bytes.length });
 		return bytes;
 	});
@@ -102,7 +117,14 @@ export async function runQualification() {
 		}
 	}
 	configureFontReader(downloadFont);
-	await writeFile(join(directory, "fonts.json"), JSON.stringify([...fonts.values()], null, 2));
+	await writeFile(
+		join(directory, "fonts.json"),
+		JSON.stringify(
+			[...fonts.values()].sort((a, b) => a.source.localeCompare(b.source, "en")),
+			null,
+			2,
+		),
+	);
 	await writeFile(
 		join(directory, "summary.json"),
 		JSON.stringify(
@@ -127,7 +149,7 @@ export async function runQualification() {
 					"Draft synthetic gold; no native human Arabic review",
 					"Held-out draft cases are not blind or accepted; remaining variants are not 50 independent reviewed scenarios",
 					"Browser bytes require independent qualification",
-					"Downloaded font hashes recorded; embedding license provenance and full OS/font dependency pinning still pending",
+					"Font hashes recorded; full OS/font dependency pinning still pending for authored suites",
 					"No approved performance thresholds or release template/font matrix",
 				],
 				results,

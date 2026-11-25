@@ -4,7 +4,7 @@ import { afterEach, expect, it, vi } from "vite-plus/test";
 import { i18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
 import { LanguageVersions } from "./language-versions";
-const state = vi.hoisted(() => ({ accepted: false, stale: false, failed: false }));
+const state = vi.hoisted(() => ({ accepted: false, stale: false, failed: false, hasLanguage: true }));
 vi.mock("@/libs/orpc/client", () => {
 	const options = (kind: string) => ({ queryOptions: ({ input }: { input: unknown }) => ({ kind, input }) });
 	return {
@@ -18,16 +18,27 @@ vi.mock("@tanstack/react-query", () => ({
 		if (kind === "list")
 			return {
 				data: [
-					{ resumeId: "base", name: "Original document", variantKind: "base", documentLocale: "ar-SA" },
 					{
-						resumeId: "copy",
-						name: "Language document",
-						variantKind: "language",
-						sourceResumeId: "base",
-						documentLocale: state.accepted ? "en-US" : "ar-SA",
-						targetLocale: "en-US",
-						operationId: null,
+						resumeId: "base",
+						name: "Original document",
+						variantKind: "base",
+						documentLocale: "ar-SA",
+						updatedAt: "2026-11-21T00:00:00.000Z",
 					},
+					...(state.hasLanguage
+						? [
+								{
+									resumeId: "copy",
+									name: "Language document",
+									variantKind: "language",
+									sourceResumeId: "base",
+									documentLocale: state.accepted ? "en-US" : "ar-SA",
+									targetLocale: "en-US",
+									updatedAt: "2026-11-21T00:00:00.000Z",
+									operationId: null,
+								},
+							]
+						: []),
 				],
 				error: state.failed ? new Error("offline") : null,
 				refetch: vi.fn(),
@@ -39,6 +50,7 @@ vi.mock("@tanstack/react-query", () => ({
 			};
 		return {
 			data: {
+				updatedAt: new Date("2026-11-21T00:00:00.000Z"),
 				data: { basics: { headline: "Saved source headline" }, summary: { content: "<p>Saved source text</p>" } },
 			},
 			refetch: vi.fn(),
@@ -49,7 +61,7 @@ vi.mock("@tanstack/react-router", () => ({
 	Link: ({ children }: { children: React.ReactNode }) => <a href="/source">{children}</a>,
 }));
 vi.mock("../editor/proposals/review-operation", () => ({
-	ReviewLaunch: () => null,
+	ReviewLaunch: ({ children }: { children: React.ReactNode }) => <button type="button">{children}</button>,
 	ReviewOperationPanel: () => null,
 	ReviewNotice: ({ children }: { children: React.ReactNode }) => <div role="alert">{children}</div>,
 }));
@@ -67,6 +79,7 @@ afterEach(() => {
 	state.accepted = false;
 	state.stale = false;
 	state.failed = false;
+	state.hasLanguage = true;
 });
 function show(locale = "en-US") {
 	i18n.loadAndActivate({ locale, messages: {} });
@@ -80,20 +93,29 @@ it.each(["en-US", "ar-SA"])("preserves actual pending source language and saved 
 	show(locale);
 	expect(screen.getByText("Awaiting your confirmation")).toBeDefined();
 	expect(screen.queryByText("Reviewed translation saved")).toBeNull();
-	expect(screen.getAllByText(/ar-SA/)).toHaveLength(2);
+	expect(screen.getAllByText(/ar-SA/)).toHaveLength(1);
+	expect(screen.getAllByText(/en-US/)).toHaveLength(1);
 	expect(screen.getAllByText("Saved source text")).toHaveLength(2);
 });
-it("shows acknowledged translation and independent source-change recovery", () => {
+it("shows one-click Translate to English action when no language copy exists yet", () => {
+	state.hasLanguage = false;
+	show();
+	expect(screen.getByRole("button", { name: "Translate to English" })).toBeDefined();
+});
+it("shows acknowledged translation with Open action and independent source-change recovery", () => {
 	state.accepted = true;
 	state.stale = true;
 	show();
 	expect(screen.getByText("Reviewed translation saved")).toBeDefined();
+	expect(screen.getByRole("link", { name: "Open" })).toBeDefined();
 	expect(screen.getByText(/en-US/)).toBeDefined();
 	expect(screen.getByRole("alert").textContent).toContain("source changed or is unavailable");
+	const previews = screen.getAllByText("Saved source text").map((node) => node.parentElement?.getAttribute("dir"));
+	expect(previews).toEqual(["rtl", "ltr"]);
 });
 it("keeps a failed family request distinct from a successful empty result", () => {
 	state.failed = true;
 	show();
 	expect(screen.getByRole("alert").textContent).toContain("Could not load language versions");
-	expect(screen.queryByRole("button", { name: "Create language copy" })).toBeNull();
+	expect(screen.queryByRole("button", { name: "Translate to English" })).toBeNull();
 });

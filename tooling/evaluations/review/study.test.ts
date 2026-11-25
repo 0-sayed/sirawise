@@ -45,7 +45,7 @@ it("records separate production prompt/schema versions and hashes for the manife
 	const first = caseVersions(cases)[0];
 	expect(first).toMatchObject({
 		caseId: cases[0]?.id,
-		promptVersion: expect.stringMatching(/t006-(?:extraction|wording)-v5/u),
+		promptVersion: "t006-wording-v7-passages",
 		schemaVersion: "t006-review-v3",
 	});
 	expect(first?.promptHash).toHaveLength(64);

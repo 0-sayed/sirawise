@@ -12,7 +12,7 @@ import { getTaskContract } from "./contracts";
 import { loadTaskFixtures } from "./contracts/fixtures";
 import { jobEvidenceSchema } from "./contracts/job-evidence/contract";
 import { tasksVerifierSchema } from "./contracts/verifier/schema";
-import { tasksVerifier } from "./contracts/verifier/verifier";
+import { auditArchivedCanary, tasksVerifier } from "./contracts/verifier/verifier";
 import { dispatchLimits, ProviderDispatch } from "./dispatch";
 import {
 	REJECTION_JUDGMENTS,
@@ -180,7 +180,11 @@ const planHash = (plan: ReturnType<typeof planJudgeCanaries>) =>
 		probes: plan.map((p) => ({ ...p, model: [p.model.model, p.model.provider, p.model.reasoning] })),
 	});
 /** Semantic calibration and wire validity are independent; neither can waive the other. */
-export function scoreJudgeCanary(probe: ReturnType<typeof planJudgeCanaries>[number], result?: CanaryResult) {
+export function scoreJudgeCanary(
+	probe: ReturnType<typeof planJudgeCanaries>[number],
+	result?: CanaryResult,
+	protocol: "current" | "archived-full-response" = "current",
+) {
 	const contract = getTaskContract(probe.c.category);
 	const guard = contract.score(probe.c, contract.outputSchema.parse(probe.output), null);
 	const guardRejected = !guard.safetyDeterministic.pass;
@@ -207,7 +211,8 @@ export function scoreJudgeCanary(probe: ReturnType<typeof planJudgeCanaries>[num
 	const parsed = tasksVerifierSchema.safeParse(result.verdict);
 	if (!parsed.success) return empty("INVALID_VERIFIER_OUTPUT");
 	const verdict = parsed.data;
-	const fault = tasksVerifier.auditFault(probe.c, probe.output, verdict);
+	const audit = protocol === "archived-full-response" ? auditArchivedCanary : tasksVerifier.auditFault;
+	const fault = audit(probe.c, probe.output, verdict);
 	const gold = contract.outputSchema.parse(probe.c.gold) as Record<string, unknown>;
 	const claims = contract.claims(probe.c, probe.output);
 	const goldClaims = contract.claims(probe.c, gold);

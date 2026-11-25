@@ -2,6 +2,143 @@
 import { msg } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 const messages = {
+	"language.terms.keepAllNames": msg({ message: "Keep all names as they are", context: "language.terms.keepAllNames" }),
+	"language.terms.allConfirmed": msg({ message: "All names are confirmed.", context: "language.terms.allConfirmed" }),
+	"language.terms.showConfirmed": msg({
+		message: "{count, plural, one {Show # confirmed name} other {Show # confirmed names}}",
+		context: "language.terms.showConfirmed",
+	}),
+	"language.terms.occurrences": msg({
+		message: "{count, plural, one {# occurrence} other {# occurrences}}",
+		context: "language.terms.occurrences",
+	}),
+	"language.translation.progress": msg({
+		message: "{accepted} of {total} accepted",
+		context: "language.translation.progress",
+	}),
+	"language.translation.acceptSection": msg({
+		message: "Accept section",
+		context: "language.translation.acceptSection",
+	}),
+	"language.translation.acceptAllDisabledNames": msg({
+		message: "Confirm all names before accepting all segments.",
+		context: "language.translation.acceptAllDisabledNames",
+	}),
+	"language.translation.otherSection": msg({ message: "Other sections", context: "language.translation.otherSection" }),
+	"language.translation.undoLastAction": msg({
+		message: "Undo last action",
+		context: "language.translation.undoLastAction",
+	}),
+	"language.translation.undoAllDetail": msg({
+		message: "{count, plural, one {Accepted all · # part} other {Accepted all · # parts}}",
+		context: "language.translation.undoAllDetail",
+	}),
+	"language.translation.undoSectionDetail": msg({
+		message: "{count, plural, one {Accepted section {section} · # part} other {Accepted section {section} · # parts}}",
+		context: "language.translation.undoSectionDetail",
+	}),
+	"language.translation.undoSegmentDetail": msg({
+		message: "Reviewed 1 part in {section}",
+		context: "language.translation.undoSegmentDetail",
+	}),
+	"language.translation.unresolvedNotice": msg({
+		message:
+			"Some translated segments still contain an unresolved placeholder. Edit the marked segments before approving.",
+		context: "language.translation.unresolvedNotice",
+	}),
+	"language.translation.needsAttention": msg({ message: "Needs edit", context: "language.translation.needsAttention" }),
+	"language.translation.errorUnresolved": msg({
+		message:
+			"Could not approve because a protected placeholder could not be restored. Edit the marked segment in {section}, then try again.",
+		context: "language.translation.errorUnresolved",
+	}),
+	"language.translation.errorUnresolvedGeneric": msg({
+		message:
+			"Could not approve because a protected placeholder could not be restored. Reload the review and edit any marked segment.",
+		context: "language.translation.errorUnresolvedGeneric",
+	}),
+	"language.translation.errorIncomplete": msg({
+		message: "Could not approve yet. Confirm all names and accept all segments before approving.",
+		context: "language.translation.errorIncomplete",
+	}),
+	"language.translation.errorStructureChanged": msg({
+		message:
+			"Could not approve because the CV structure changed since this review started. Request a new translation review.",
+		context: "language.translation.errorStructureChanged",
+	}),
+	"language.translation.translateToEnglish": msg({
+		message: "Translate to English",
+		context: "language.translation.translateToEnglish",
+	}),
+	"language.translation.translateToArabic": msg({
+		message: "Translate to Arabic",
+		context: "language.translation.translateToArabic",
+	}),
+	"language.translation.ready": msg({ message: "Translation ready", context: "language.translation.ready" }),
+	"language.translation.compareWithOriginal": msg({
+		message: "Compare with original",
+		context: "language.translation.compareWithOriginal",
+	}),
+	"language.translation.hideComparison": msg({
+		message: "Hide comparison",
+		context: "language.translation.hideComparison",
+	}),
+	"language.translation.needsAttentionNotice": msg({
+		message: "Resolve the items below to finish and save your language copy automatically.",
+		context: "language.translation.needsAttentionNotice",
+	}),
+	"language.translation.openCopy": msg({ message: "Open", context: "language.translation.openCopy" }),
+	"review.withheldItems": msg({
+		message:
+			"{count, plural, one {# item was withheld because it could not be verified.} other {# items were withheld because they could not be verified.}}",
+		context: "review.withheldItems",
+	}),
+	"review.withheldReason.importance": msg({
+		message: "Importance level was not stated explicitly in the job ad.",
+		context: "review.withheldReason.importance",
+	}),
+	"review.withheldReason.absence": msg({
+		message: "Could not be confirmed as absent from your CV.",
+		context: "review.withheldReason.absence",
+	}),
+	"review.withheldReason.default": msg({
+		message: "Could not be verified against your CV.",
+		context: "review.withheldReason.default",
+	}),
+	"review.withheldReason.incomplete": msg({
+		message: "The review did not return a complete decision for this item.",
+		context: "review.withheldReason.incomplete",
+	}),
+	"review.withheldReason.unsupported": msg({
+		message: "The checked evidence did not support this finding.",
+		context: "review.withheldReason.unsupported",
+	}),
+	"review.withheldRequirement": msg({ message: "Job requirement {number}", context: "review.withheldRequirement" }),
+	"review.withheldNote": msg({ message: "Review note {number}", context: "review.withheldNote" }),
+	"review.withheldFinding": msg({ message: "Unverified finding", context: "review.withheldFinding" }),
+	"review.import.aiUncertain": msg({ message: "Review this suggested field", context: "review.import.aiUncertain" }),
+	"review.importRetainedField": msg({
+		message: "Original field kept. Review the suggestion before confirming.",
+		context: "review.importRetainedField",
+	}),
+	"review.import.confirmBeforeCreate": msg({
+		message: "Confirm the imported sections before creating the CV.",
+		context: "review.import.confirmBeforeCreate",
+	}),
+	"review.translation.notTranslated": msg({ message: "Not translated", context: "review.translation.notTranslated" }),
+	"review.translation.retryThisPart": msg({ message: "Retry this part", context: "review.translation.retryThisPart" }),
+	"review.withheldReason.translation": msg({
+		message: "Could not be verified as an accurate translation.",
+		context: "review.withheldReason.translation",
+	}),
+	"review.withheldReason.extraction": msg({
+		message: "The assistant did not verify this field against the selected text. The field was not added.",
+		context: "review.withheldReason.extraction",
+	}),
+	"review.summary.factsRequired": msg({
+		message: "Select at least one fact to review your summary.",
+		context: "review.summary.factsRequired",
+	}),
 	"language.document.arabic": msg({ message: "Arabic CV", context: "language.document.arabic" }),
 	"language.switch.english": msg({ message: "EN", context: "language.switch.english" }),
 	"language.switch.arabic": msg({ message: "Arabic", context: "language.switch.arabic" }),
@@ -31,6 +168,8 @@ const messages = {
 	"language.document.arabicLabel": msg({ message: "Arabic", context: "language.document.arabicLabel" }),
 	"jobs.evidence.status.found": msg({ message: "Evidence found", context: "jobs.evidence.status.found" }),
 	"jobs.evidence.showInCv": msg({ message: "Show in CV", context: "jobs.evidence.showInCv" }),
+	"jobs.coverage.occurrences": msg({ message: "Occurrences: {total}", context: "jobs.coverage.occurrences" }),
+	"jobs.coverage.excluded": msg({ message: "Show additional phrases ({total})", context: "jobs.coverage.excluded" }),
 	"jobs.evidence.status.partial": msg({ message: "Partial evidence", context: "jobs.evidence.status.partial" }),
 	"jobs.evidence.clarify": msg({ message: "Clarify", context: "jobs.evidence.clarify" }),
 	"jobs.evidence.status.absent": msg({ message: "No evidence found", context: "jobs.evidence.status.absent" }),

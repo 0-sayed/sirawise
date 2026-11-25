@@ -1,0 +1,197 @@
+{
+	"absence": [],
+	"quality": {
+		"reason": "Translation quality was not requested.",
+		"status": "unclear",
+		"assessment": "translation_language_quality"
+	},
+	"coverage": {
+		"reason": "All response assertions were independently checked against the supplied CV evidence.",
+		"status": "complete"
+	},
+	"premises": [],
+	"verdicts": [
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sbg:sbg-1",
+			"verdict": "supported",
+			"evidenceIds": ["sbg"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sbh:sbh-1",
+			"verdict": "supported",
+			"evidenceIds": ["sbh"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sbi:sbi-1",
+			"verdict": "supported",
+			"evidenceIds": ["sbi"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sbj:sbj-1",
+			"verdict": "supported",
+			"evidenceIds": ["sbj"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sbk:sbk-1",
+			"verdict": "supported",
+			"evidenceIds": ["sbk"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sbl:sbl-1",
+			"verdict": "supported",
+			"evidenceIds": ["sbl"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sbm:sbm-1",
+			"verdict": "supported",
+			"evidenceIds": ["sbm"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sbn:sbn-1",
+			"verdict": "supported",
+			"evidenceIds": ["sbn"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sbo:sbo-1",
+			"verdict": "supported",
+			"evidenceIds": ["sbo"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sbp:sbp-1",
+			"verdict": "supported",
+			"evidenceIds": ["sbp"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sbq:sbq-1",
+			"verdict": "supported",
+			"evidenceIds": ["sbq"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sbr:sbr-1",
+			"verdict": "supported",
+			"evidenceIds": ["sbr"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sbs:sbs-1",
+			"verdict": "supported",
+			"evidenceIds": ["sbs"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sbt:sbt-1",
+			"verdict": "supported",
+			"evidenceIds": ["sbt"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sbu:sbu-1",
+			"verdict": "supported",
+			"evidenceIds": ["sbu"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sbv:sbv-1",
+			"verdict": "supported",
+			"evidenceIds": ["sbv"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sbw:sbw-1",
+			"verdict": "supported",
+			"evidenceIds": ["sbw"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sbx:sbx-1",
+			"verdict": "supported",
+			"evidenceIds": ["sbx"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sby:sby-1",
+			"verdict": "supported",
+			"evidenceIds": ["sby"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sbz:sbz-1",
+			"verdict": "supported",
+			"evidenceIds": ["sbz"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sc0:sc0-1",
+			"verdict": "supported",
+			"evidenceIds": ["sc0"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sc1:sc1-1",
+			"verdict": "supported",
+			"evidenceIds": ["sc1"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sc2:sc2-1",
+			"verdict": "supported",
+			"evidenceIds": ["sc2"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sc3:sc3-1",
+			"verdict": "supported",
+			"evidenceIds": ["sc3"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sc4:sc4-1",
+			"verdict": "supported",
+			"evidenceIds": ["sc4"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sc5:sc5-1",
+			"verdict": "supported",
+			"evidenceIds": ["sc5"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sc6:sc6-1",
+			"verdict": "supported",
+			"evidenceIds": ["sc6"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sc7:sc7-1",
+			"verdict": "supported",
+			"evidenceIds": ["sc7"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sc8:sc8-1",
+			"verdict": "supported",
+			"evidenceIds": ["sc8"]
+		},
+		{
+			"reason": "Accurate translation of the source segment.",
+			"claimId": "segment:sc9:sc9-1",
+			"verdict": "supported",
+			"evidenceIds": ["sc9"]
+		}
+	],
+	"retention": null,
+	"schemaVersion": 1
+}

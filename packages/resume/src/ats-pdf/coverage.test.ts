@@ -71,3 +71,15 @@ it("does not call invalid or mismatched page identities complete", () => {
 	).toBe("partial");
 	expect(summarizePdfCoverage({ ...raw, pages: [{ ...rawFirst, pageNumber: 2 }] }, []).status).toBe("partial");
 });
+
+it("counts a readable page with uncertain order as partial, even without another complete page", () => {
+	const raw = healthyResume();
+	const coverage = {
+		pages: [
+			{ pageNumber: 1, text: "partial" as const, annotations: "complete" as const, operators: "complete" as const },
+		],
+		reasons: ["page-1-text-order-ambiguous"],
+	};
+	expect(summarizePdfCoverage({ ...raw, coverage }, []).status).toBe("partial");
+	expect(summarizePdfCoverage({ ...raw, pages: [], coverage }, []).status).toBe("failed");
+});

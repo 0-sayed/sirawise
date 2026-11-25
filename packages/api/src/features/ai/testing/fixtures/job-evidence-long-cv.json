@@ -1,0 +1,721 @@
+{
+	"snapshot": {
+		"category": "job-evidence",
+		"resumeId": "01a1fd68-c171-7428-aa26-c004d5e2a4c3",
+		"sourceRevision": "2026-11-21T09:21:03.484+00:00",
+		"cv": [
+			{
+				"id": "cv-31:4c3f3d87a6a3578a",
+				"section": "summary",
+				"text": "Saudi operations director with twenty years of experience from 2006 to 2026 in data analysis, service development and multidisciplinary leadership. Progressed from operations coordination to improvement programs, training and risk management. I focus on clear ownership, measurable outcomes, decision records and knowledge transfer across teams."
+			},
+			{
+				"id": "cv-48:f0fb9ba7e4828270",
+				"section": "projects",
+				"text": "Key achievements: Metrics dashboard and documented handover.   Analyzed team needs, defined responsibilities and acceptance criteria within a clear annual operating plan.  Coordinated monthly reviews with 8 teams and recorded decisions, risks and follow-up actions in a shared register.  Designed weekly quality reports and reduced preparation time by 15% using operational data.  Documented exception cases and recovery procedures, then trained new colleagues to review data before handover.  Presented traceable results with clear measurement limits and a quarterly review to update the plan and improve the service."
+			},
+			{
+				"id": "cv-51:d7838b4b060ce275",
+				"section": "volunteer",
+				"text": "Key achievements: Volunteer reporting training.   Analyzed team needs, defined responsibilities and acceptance criteria within a clear annual operating plan.  Coordinated monthly reviews with 8 teams and recorded decisions, risks and follow-up actions in a shared register.  Designed weekly quality reports and reduced preparation time by 15% using operational data.  Documented exception cases and recovery procedures, then trained new colleagues to review data before handover.  Presented traceable results with clear measurement limits and a quarterly review to update the plan and improve the service."
+			},
+			{
+				"id": "cv-53:4ccbce21fe98ec6e",
+				"section": "experience",
+				"text": "Key achievements: Team lead.   Analyzed team needs, defined responsibilities and acceptance criteria within a clear annual operating plan.  Coordinated monthly reviews with 11 teams and recorded decisions, risks and follow-up actions in a shared register.  Designed weekly quality reports and reduced preparation time by 18% using operational data.  Documented exception cases and recovery procedures, then trained new colleagues to review data before handover.  Presented traceable results with clear measurement limits and a quarterly review to update the plan and improve the service."
+			},
+			{
+				"id": "cv-53:b8c8d63d2354c582",
+				"section": "experience",
+				"text": "Key achievements: Product operations director.   Analyzed team needs, defined responsibilities and acceptance criteria within a clear annual operating plan.  Coordinated monthly reviews with 15 teams and recorded decisions, risks and follow-up actions in a shared register.  Designed weekly quality reports and reduced preparation time by 22% using operational data.  Documented exception cases and recovery procedures, then trained new colleagues to review data before handover.  Presented traceable results with clear measurement limits and a quarterly review to update the plan and improve the service."
+			}
+		],
+		"jobAd": {
+			"segments": [
+				{
+					"id": "job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4",
+					"text": "Wadi Product Studio seeks a Product operations director to lead operational improvement and service measurement. Responsibilities include weekly reporting, performance indicators, handover coordination, training and exception review. The role requires at least ten years of experience, clear communication, requirements analysis and change management. The team is based in Riyadh and collaborates with colleagues in Jeddah and Dammam. Prepare evidence of team leadership, faster reporting and data quality improvement, plus a practical plan for the first ninety days."
+				}
+			]
+		},
+		"evidenceSelection": {
+			"totalPassages": 210,
+			"omittedPassages": 187,
+			"excerptedPassageIds": []
+		}
+	},
+	"outputs": [
+		{
+			"notes": ["The comparison uses the supplied CV passages; 187 passages were omitted from the evidence selection."],
+			"requirements": [
+				{
+					"id": "req-01",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-31:4c3f3d87a6a3578a", "cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV describes leadership in improvement programs and service development, alongside quality reporting, measurable results and quarterly service reviews."
+				},
+				{
+					"id": "req-02",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes a metrics dashboard and weekly quality reports using operational data."
+				},
+				{
+					"id": "req-03",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "partial",
+					"importance": "unstated",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes documented handover procedures and training colleagues to review data before handover, but does not explicitly describe coordinating handovers."
+				},
+				{
+					"id": "req-04",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes training new colleagues to review data before handover."
+				},
+				{
+					"id": "req-05",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "partial",
+					"importance": "unstated",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes documenting exception cases and recovery procedures, but does not explicitly describe reviewing exceptions."
+				},
+				{
+					"id": "req-06",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "essential",
+					"evidenceIds": ["cv-31:4c3f3d87a6a3578a"],
+					"explanation": "The CV states twenty years of experience from 2006 to 2026."
+				},
+				{
+					"id": "req-07",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "essential",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes presenting traceable results with clear measurement limits and documenting decisions and follow-up actions."
+				},
+				{
+					"id": "req-08",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "essential",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes analyzing team needs and defining responsibilities and acceptance criteria."
+				},
+				{
+					"id": "req-09",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "partial",
+					"importance": "essential",
+					"evidenceIds": ["cv-31:4c3f3d87a6a3578a", "cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes improvement programs, training and quarterly plan updates, but does not explicitly describe managing organizational change."
+				},
+				{
+					"id": "req-10",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-31:4c3f3d87a6a3578a", "cv-53:4ccbce21fe98ec6e"],
+					"explanation": "The CV describes multidisciplinary leadership and a team lead role."
+				},
+				{
+					"id": "req-11",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV states that weekly quality report preparation time was reduced by 15% using operational data."
+				},
+				{
+					"id": "req-12",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "partial",
+					"importance": "unstated",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes training colleagues to review data before handover, but does not establish a resulting improvement in data quality."
+				},
+				{
+					"id": "req-13",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "unclear",
+					"importance": "unstated",
+					"evidenceIds": [],
+					"explanation": "A practical first-ninety-days plan is not shown in the supplied CV passages; omitted passages were not available for review."
+				}
+			]
+		},
+		{
+			"notes": ["The comparison used the supplied CV passages; 187 passages were omitted from the evidence selection."],
+			"requirements": [
+				{
+					"id": "req-01",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-31:4c3f3d87a6a3578a", "cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV describes multidisciplinary leadership and improvement programs. As product operations director, the candidate coordinated reviews across teams and updated an operating plan to improve service."
+				},
+				{
+					"id": "req-02",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes a metrics dashboard, weekly quality reports and traceable results with measurement limits and quarterly service reviews."
+				},
+				{
+					"id": "req-03",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes designing weekly quality reports using operational data."
+				},
+				{
+					"id": "req-04",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes a metrics dashboard and quality reporting using operational data."
+				},
+				{
+					"id": "req-05",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes a documented handover, coordination of team reviews and training colleagues to review data before handover."
+				},
+				{
+					"id": "req-06",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-51:d7838b4b060ce275"],
+					"explanation": "The CV describes volunteer reporting training and training new colleagues to review data before handover."
+				},
+				{
+					"id": "req-07",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "partial",
+					"importance": "unstated",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes documenting exception cases and recovery procedures, but does not explicitly describe reviewing exceptions."
+				},
+				{
+					"id": "req-08",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "essential",
+					"evidenceIds": ["cv-31:4c3f3d87a6a3578a"],
+					"explanation": "The CV states twenty years of experience from 2006 to 2026."
+				},
+				{
+					"id": "req-09",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "essential",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes coordinating team reviews, recording decisions and presenting traceable results with clear measurement limits."
+				},
+				{
+					"id": "req-10",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "partial",
+					"importance": "essential",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes analyzing team needs and defining responsibilities and acceptance criteria; it does not explicitly describe a requirements analysis process."
+				},
+				{
+					"id": "req-11",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "partial",
+					"importance": "essential",
+					"evidenceIds": ["cv-31:4c3f3d87a6a3578a", "cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes improvement programs, training and quarterly plan updates, but does not explicitly describe managing change."
+				},
+				{
+					"id": "req-12",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-31:4c3f3d87a6a3578a", "cv-53:4ccbce21fe98ec6e"],
+					"explanation": "The CV describes multidisciplinary leadership and identifies a team lead achievement involving coordination of monthly reviews across teams."
+				},
+				{
+					"id": "req-13",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV states that weekly quality report preparation time was reduced by 15% using operational data."
+				},
+				{
+					"id": "req-14",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "partial",
+					"importance": "unstated",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes training colleagues to review data before handover and designing quality reports; it does not establish a data quality improvement outcome."
+				},
+				{
+					"id": "req-15",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "unclear",
+					"importance": "unstated",
+					"evidenceIds": [],
+					"explanation": "The supplied passages do not include a practical plan for the first ninety days; omitted CV passages were not checked."
+				}
+			]
+		},
+		{
+			"notes": [
+				"The evidence selection omitted 187 of 210 CV passages, so the comparison is limited to the supplied passages."
+			],
+			"requirements": [
+				{
+					"id": "req-operational-improvement",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-31:4c3f3d87a6a3578a", "cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV describes multidisciplinary leadership and improvement programs, as well as a quarterly review to improve the service."
+				},
+				{
+					"id": "req-service-measurement",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes a metrics dashboard, weekly quality reports and traceable results with measurement limits."
+				},
+				{
+					"id": "req-weekly-reporting",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV states that the candidate designed weekly quality reports using operational data."
+				},
+				{
+					"id": "req-performance-indicators",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes a metrics dashboard and traceable results with clear measurement limits."
+				},
+				{
+					"id": "req-handover-coordination",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes a documented handover, coordination of team reviews and training colleagues to review data before handover."
+				},
+				{
+					"id": "req-training",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-51:d7838b4b060ce275"],
+					"explanation": "The CV describes volunteer reporting training and training new colleagues to review data before handover."
+				},
+				{
+					"id": "req-exception-review",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "partial",
+					"importance": "unstated",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV describes documenting exception cases and recovery procedures, but does not explicitly describe reviewing exceptions."
+				},
+				{
+					"id": "req-experience-ten-years",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "essential",
+					"evidenceIds": ["cv-31:4c3f3d87a6a3578a"],
+					"explanation": "The CV states twenty years of experience from 2006 to 2026 in data analysis, service development and multidisciplinary leadership."
+				},
+				{
+					"id": "req-clear-communication",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "essential",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV describes presenting traceable results, recording decisions and training colleagues."
+				},
+				{
+					"id": "req-requirements-analysis",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "essential",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV states that the candidate analyzed team needs and defined responsibilities and acceptance criteria."
+				},
+				{
+					"id": "req-change-management",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "partial",
+					"importance": "essential",
+					"evidenceIds": ["cv-31:4c3f3d87a6a3578a", "cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV describes improvement programs, training and quarterly plan reviews, but does not explicitly describe managing organizational change."
+				},
+				{
+					"id": "req-team-leadership",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-31:4c3f3d87a6a3578a", "cv-53:4ccbce21fe98ec6e"],
+					"explanation": "The CV describes multidisciplinary leadership and a team lead achievement coordinating monthly reviews."
+				},
+				{
+					"id": "req-faster-reporting",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV states that weekly quality report preparation time was reduced by 22% using operational data."
+				},
+				{
+					"id": "req-data-quality-improvement",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "partial",
+					"importance": "unstated",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV describes training colleagues to review data before handover, but does not explicitly establish an improvement in data quality."
+				},
+				{
+					"id": "req-ninety-day-plan",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "unclear",
+					"importance": "unstated",
+					"evidenceIds": [],
+					"explanation": "The supplied CV passages do not show a practical plan for the first ninety days; omitted passages may contain relevant evidence."
+				}
+			]
+		},
+		{
+			"notes": ["The comparison used the supplied CV passages. The evidence selection reports 187 omitted passages."],
+			"requirements": [
+				{
+					"id": "req-01",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-31:4c3f3d87a6a3578a", "cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV describes leadership in improvement programs and service development, alongside an operating plan and quarterly service reviews."
+				},
+				{
+					"id": "req-02",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes a metrics dashboard, weekly quality reports and traceable results with measurement limits."
+				},
+				{
+					"id": "req-03",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes a documented handover, defined responsibilities and training colleagues to review data before handover."
+				},
+				{
+					"id": "req-04",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-51:d7838b4b060ce275"],
+					"explanation": "The CV describes volunteer reporting training and training new colleagues to review data before handover."
+				},
+				{
+					"id": "req-05",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "partial",
+					"importance": "unstated",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes documenting exception cases and recovery procedures, but does not establish exception review."
+				},
+				{
+					"id": "req-06",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "essential",
+					"evidenceIds": ["cv-31:4c3f3d87a6a3578a"],
+					"explanation": "The CV states twenty years of experience from 2006 to 2026."
+				},
+				{
+					"id": "req-07",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "essential",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes coordinating team reviews, training colleagues and presenting traceable results with clear measurement limits."
+				},
+				{
+					"id": "req-08",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "essential",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV describes analyzing team needs and defining responsibilities and acceptance criteria."
+				},
+				{
+					"id": "req-09",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "partial",
+					"importance": "essential",
+					"evidenceIds": ["cv-31:4c3f3d87a6a3578a", "cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV describes improvement programs, training and quarterly reviews to update a plan, but does not explicitly describe change management."
+				},
+				{
+					"id": "req-10",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-31:4c3f3d87a6a3578a", "cv-53:4ccbce21fe98ec6e"],
+					"explanation": "The CV states multidisciplinary leadership experience and describes a team lead role."
+				},
+				{
+					"id": "req-11",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV states that weekly quality report preparation time was reduced by 22% using operational data."
+				},
+				{
+					"id": "req-12",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "partial",
+					"importance": "unstated",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes training colleagues to review data and designing quality reports, but does not establish an improvement in data quality."
+				},
+				{
+					"id": "req-13",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "unclear",
+					"importance": "unstated",
+					"evidenceIds": [],
+					"explanation": "A practical plan for the first ninety days is not shown in the supplied CV passages; omitted passages may contain relevant evidence."
+				}
+			]
+		},
+		{
+			"notes": ["The comparison uses the supplied CV passages; 187 passages were omitted from the evidence selection."],
+			"requirements": [
+				{
+					"id": "req-01",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-31:4c3f3d87a6a3578a", "cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV describes multidisciplinary leadership and improvement programs, alongside operational reviews and service improvement."
+				},
+				{
+					"id": "req-02",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes a metrics dashboard, weekly quality reports and traceable results with measurement limits."
+				},
+				{
+					"id": "req-03",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV describes documented recovery procedures and training new colleagues to review data before handover."
+				},
+				{
+					"id": "req-04",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV describes documenting exception cases and recovery procedures, and reviewing data before handover."
+				},
+				{
+					"id": "req-05",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "essential",
+					"evidenceIds": ["cv-31:4c3f3d87a6a3578a"],
+					"explanation": "The CV states twenty years of experience from 2006 to 2026 in data analysis, service development and multidisciplinary leadership."
+				},
+				{
+					"id": "req-06",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "essential",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV describes presenting traceable results, recording decisions and training colleagues."
+				},
+				{
+					"id": "req-07",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "essential",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV describes analysing team needs and defining responsibilities and acceptance criteria."
+				},
+				{
+					"id": "req-08",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "partial",
+					"importance": "essential",
+					"evidenceIds": ["cv-31:4c3f3d87a6a3578a", "cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV describes improvement programs, training and updates to an operating plan, but does not specify change management responsibilities in the supplied passages."
+				},
+				{
+					"id": "req-09",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-31:4c3f3d87a6a3578a", "cv-53:4ccbce21fe98ec6e"],
+					"explanation": "The CV states multidisciplinary leadership experience and describes achievements as a team lead."
+				},
+				{
+					"id": "req-10",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV states that weekly quality report preparation time was reduced by 22% using operational data."
+				},
+				{
+					"id": "req-11",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "partial",
+					"importance": "unstated",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV describes weekly quality reports and training colleagues to review data, but the supplied passages do not establish an improvement in data quality."
+				},
+				{
+					"id": "req-12",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "unclear",
+					"importance": "unstated",
+					"evidenceIds": [],
+					"explanation": "A practical first-ninety-days plan is not shown in the supplied CV passages; omitted passages may contain relevant evidence."
+				}
+			]
+		},
+		{
+			"notes": ["The comparison uses the supplied CV passages; 187 passages were omitted from the evidence selection."],
+			"requirements": [
+				{
+					"id": "req-01",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-31:4c3f3d87a6a3578a", "cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV describes multidisciplinary leadership, improvement programs and operational reporting with quarterly service reviews."
+				},
+				{
+					"id": "req-02",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV describes designing weekly quality reports using operational data."
+				},
+				{
+					"id": "req-03",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "partial",
+					"importance": "unstated",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes a metrics dashboard, quality reports and traceable results with measurement limits. It does not specify performance indicators in the supplied passages."
+				},
+				{
+					"id": "req-04",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "partial",
+					"importance": "unstated",
+					"evidenceIds": ["cv-48:f0fb9ba7e4828270"],
+					"explanation": "The CV describes a documented handover and training colleagues to review data before handover; it does not explicitly describe coordinating the handover."
+				},
+				{
+					"id": "req-05",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "unstated",
+					"evidenceIds": ["cv-51:d7838b4b060ce275"],
+					"explanation": "The CV describes volunteer reporting training and training new colleagues to review data."
+				},
+				{
+					"id": "req-06",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "partial",
+					"importance": "unstated",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV describes documenting exception cases and recovery procedures, but does not explicitly describe reviewing exceptions."
+				},
+				{
+					"id": "req-07",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "essential",
+					"evidenceIds": ["cv-31:4c3f3d87a6a3578a"],
+					"explanation": "The CV states twenty years of experience from 2006 to 2026."
+				},
+				{
+					"id": "req-08",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "essential",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV describes presenting traceable results with measurement limits and documenting decisions and procedures."
+				},
+				{
+					"id": "req-09",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "supported",
+					"importance": "essential",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV describes analyzing team needs and defining responsibilities and acceptance criteria."
+				},
+				{
+					"id": "req-10",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "partial",
+					"importance": "essential",
+					"evidenceIds": ["cv-31:4c3f3d87a6a3578a", "cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV describes improvement programs, training and quarterly plan updates, but does not explicitly describe change management."
+				},
+				{
+					"id": "req-11",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "partial",
+					"importance": "unstated",
+					"evidenceIds": ["cv-31:4c3f3d87a6a3578a", "cv-53:b8c8d63d2354c582"],
+					"explanation": "The CV describes multidisciplinary leadership and reduced report preparation time. It also describes data review training, but does not establish a data quality improvement."
+				},
+				{
+					"id": "req-12",
+					"spanIds": ["job:01a1fd68-c11d-730b-b5c2-18b51707baea:01a1fd68-c11e-7159-8037-073ba8ed37d4"],
+					"verdict": "unclear",
+					"importance": "unstated",
+					"evidenceIds": [],
+					"explanation": "A practical first-ninety-days plan is not shown in the supplied CV passages; omitted passages were not checked."
+				}
+			]
+		}
+	]
+}

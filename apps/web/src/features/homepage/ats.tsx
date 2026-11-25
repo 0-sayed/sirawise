@@ -55,7 +55,7 @@ export function AtsShowcase() {
 							{copy("landing.ats.panel")}
 						</p>
 						<bdi dir="ltr" className="truncate type-metadata whitespace-nowrap text-ink-3">
-							abdullah-cv.pdf
+							abdulelah-cv.pdf
 						</bdi>
 					</div>
 					<ul className="divide-y divide-line">

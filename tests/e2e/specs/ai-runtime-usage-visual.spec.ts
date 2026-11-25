@@ -1,3 +1,4 @@
+import { copyMessage } from "../fixtures/copy";
 import { createSampleResumeFromDashboard } from "../fixtures/resume";
 import { openReview } from "../fixtures/reviewable-ai";
 import { mockRpcReads } from "../fixtures/rpc-failure";
@@ -49,19 +50,18 @@ for (const locale of ["en-US", "ar-SA"] as const)
 				await page.reload();
 				await openReview(page, width, "ai");
 				const text =
-					state === "exhausted"
+					state === "unavailable"
 						? ar
-							? "استخدمت جميع عمليات المساعد المتاحة. مسودتك محفوظة. راجع رصيدك في إعدادات الحساب."
-							: "You used all available assistant operations. Your draft is kept. Review your allowance in account settings."
-						: state === "busy"
-							? ar
-								? "هناك عملية جارية بالفعل. كتابتك محفوظة."
-								: "An operation is already in progress. Your writing is kept."
-							: ar
-								? "الذكاء الاصطناعي غير متاح في هذه البيئة."
-								: "AI is not available in this environment.";
+							? "الذكاء الاصطناعي غير متاح في هذه البيئة."
+							: "AI is not available in this environment."
+						: copyMessage(state === "exhausted" ? "allowance.ai.title" : "allowance.concurrent.title", locale);
 				await expect(page.getByText(text, { exact: true })).toBeVisible();
-				await expect(page.getByRole("button", { name: /^(Review wording|مراجعة الصياغة)$/u })).toHaveCount(0);
+				const start = page.getByRole("button", { name: /^(Review wording|مراجعة الصياغة)$/u });
+				if (state === "unavailable") await expect(start).toHaveCount(0);
+				else {
+					await expect(start).toBeDisabled();
+					await expect(page.getByRole("alert").filter({ hasText: text })).toBeVisible();
+				}
 				await page.getByText(text, { exact: true }).scrollIntoViewIfNeeded();
 				await expect(page.getByRole("button", { name: /View plans|عرض الخطط/u })).toHaveCount(0);
 				await settleScreen(page);
@@ -78,9 +78,7 @@ for (const locale of ["en-US", "ar-SA"] as const)
 			await settleScreen(page);
 			await page.screenshot({ path: testInfo.outputPath("start-import.png") });
 			await dialog.getByRole("button", { name: ar ? /^الكتابة من الصفر/ : /^Write from scratch/ }).click();
-			await expect(dialog).toContainText(
-				ar ? "وصلت إلى الحد المسموح للسير الأصلية" : "You have reached the limit for base CVs",
-			);
+			await expect(dialog.getByRole("alert")).toContainText(copyMessage("allowance.base.title", locale));
 			await expect(english).toBeChecked();
 			await settleScreen(page);
 			await page.screenshot({ path: testInfo.outputPath("base-limit.png") });

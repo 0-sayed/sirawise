@@ -6,9 +6,10 @@ import { operationService } from "../ai/operations";
 import { withAiRuntime } from "../ai/route-policy";
 import { aiTestDatabase } from "../ai/testing/database";
 import { syntheticReviewRuntime } from "../ai/testing/runtime";
-import { saveJobTarget, selectResumeJob } from "../career/job-targets";
+import { saveAndSelectResumeJob, selectResumeJob } from "../career/job-targets";
 import { withPersonalToolsPolicy } from "../personal-tools/availability";
 import { resumeService } from "../resume/service";
+import { createVariant } from "../resume/variants";
 import { prepareLetterReview, decideLetterReview, getLetterReview } from "./review";
 import { letterReviewHandler } from "./review-handler";
 import { coverLetterService } from "./service";
@@ -52,7 +53,8 @@ const runtime = {
 		if (task && rejectionsRemaining > 0) rejectionsRemaining--;
 		return Response.json({
 			id: "synthetic-letter",
-			provider: "Test",
+			model: body.model,
+			provider: body.provider.only[0],
 			choices: [{ index: 0, message: { role: "assistant", content: JSON.stringify(output) }, finish_reason: "stop" }],
 			usage: { prompt_tokens: 5, completion_tokens: 5, total_tokens: 10, cost: 0.00001 },
 		});
@@ -79,21 +81,35 @@ beforeAll(async () => {
 	data.basics.name = "Private Name";
 	data.basics.email = "private@example.test";
 	data.basics.phone = "+966501234567";
-	const cv = await run(() =>
-		resumeService.create({ userId: "alice", name: "Synthetic CV", tags: [], data, locale: "en-US" }),
+	const base = await run(() =>
+		resumeService.create({ userId: "alice", name: "Synthetic source CV", tags: [], data, locale: "ar-SA" }),
 	);
+	const baseRevision = (
+		await database.admin().query("SELECT updated_at FROM resume WHERE id=$1", [base])
+	).rows[0].updated_at.toISOString();
+	const copy = await run(() =>
+		createVariant("alice", {
+			sourceResumeId: base,
+			expectedUpdatedAt: baseRevision,
+			requestKey: "letter-language-copy",
+			variantKind: "language",
+			targetLocale: "en-US",
+		}),
+	);
+	const cv = copy.resumeId;
+	data.metadata.page.locale = "en-US";
+	await letterWork(() => resumeService.update({ userId: "alice", id: cv, data }));
 	const revision = (
 		await database.admin().query("SELECT updated_at FROM resume WHERE id=$1", [cv])
 	).rows[0].updated_at.toISOString();
-	const job = await run(() =>
-		saveJobTarget("alice", { role: "Engineer", employer: "", text: "React required. SAP preferred." }),
-	);
 	const selection = await run(() =>
-		selectResumeJob("alice", {
+		saveAndSelectResumeJob("alice", {
 			resumeId: cv,
 			expectedUpdatedAt: revision,
-			jobId: job.jobId,
-			jobRevision: job.revision,
+			expectedSelectionRevision: null,
+			role: "Engineer",
+			employer: "",
+			text: "React required. SAP preferred.",
 		}),
 	);
 	letter = await letterWork(() =>
@@ -105,8 +121,8 @@ beforeAll(async () => {
 			expectedLetterRevision: letter.revision,
 			resumeId: cv,
 			expectedUpdatedAt: revision,
-			jobId: job.jobId,
-			jobRevision: job.revision,
+			jobId: selection.jobId,
+			jobRevision: selection.jobRevision,
 			expectedSelectionRevision: selection.revision,
 			documentLocale: "en-US",
 			length: "normal",
@@ -139,6 +155,10 @@ async function proposal(key: string) {
 }
 
 it("delivers a proposal without changing the letter and rejects without saving generated text", async () => {
+	expect(
+		(await database.admin().query("SELECT variant_kind,data FROM resume WHERE id=$1", [parameters.parameters.resumeId]))
+			.rows[0],
+	).toMatchObject({ variant_kind: "language", data: { metadata: { page: { locale: "en-US" } } } });
 	const operation = await proposal("rejected");
 	expect((await letterWork(() => coverLetterService.getById({ userId: "alice", id: letter.id }))).content).toBe(
 		letter.content,
@@ -277,7 +297,7 @@ it("rejects a mismatched document locale and foreign source references before in
 				documentLocale: "ar-SA",
 			}),
 		),
-	).rejects.toMatchObject({ code: "CONFLICT" });
+	).rejects.toMatchObject({ code: "CONFLICT", data: { reason: "LETTER_REVIEW_STALE" } });
 	await expect(run(() => prepareLetterReview("bob", parameters.parameters))).rejects.toMatchObject({
 		code: "NOT_FOUND",
 	});

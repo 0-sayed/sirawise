@@ -33,6 +33,7 @@ const nativeFixture = {
 			height: 842,
 			rotation: 0,
 			operators: null,
+			structure: [],
 			items: lines.map((str, index) => ({
 				str,
 				width: 400,

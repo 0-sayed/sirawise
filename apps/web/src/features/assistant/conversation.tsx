@@ -127,15 +127,21 @@ export function Conversation(props: ConversationProps) {
 		const controller = new AbortController();
 		const recover = async () => {
 			try {
-				await withPollingDeadline(controller.signal, 120_000, async (signal) => {
-					let outcome;
+				const beganAt = Date.now();
+				const readStatus = (signal: AbortSignal) =>
+					withPollingDeadline(signal, 120_000, (requestSignal) =>
+						client.agent.messages.operationStatus({ threadId }, { signal: requestSignal }),
+					);
+				let outcome = await readStatus(controller.signal);
+				const recoveryWindow = outcome.operation.state === "queued" ? 600_000 : 120_000;
+				await withPollingDeadline(controller.signal, recoveryWindow - (Date.now() - beganAt), async (signal) => {
 					do {
-						outcome = await client.agent.messages.operationStatus({ threadId }, { signal });
 						signal.throwIfAborted();
 						setOperation(outcome.operation);
 						setResumeFailed(false);
 						if (!["queued", "running", "cancel_requested"].includes(outcome.operation.state)) break;
 						await new Promise<void>((resolve) => setTimeout(resolve, 1000));
+						outcome = await readStatus(signal);
 					} while (!signal.aborted);
 					signal.throwIfAborted();
 					if (outcome.operation.resultId) {
@@ -329,11 +335,34 @@ export function Conversation(props: ConversationProps) {
 					/>
 				))}
 
-				{status === "submitted" && (
+				{status === "submitted" && operation?.state !== "queued" && (
 					<p className={cn("flex items-center gap-2 text-sm text-ink-3", ENTER_CLASS)}>
 						<Spinner decorative className="size-3.5" />
 						<Trans>Thinking…</Trans>
 					</p>
+				)}
+				{operation?.state === "queued" && stopState === "idle" && (
+					<Alert variant="info">
+						<Icon name="spinner" className="animate-spin motion-reduce:animate-none" />
+						<AlertTitle>{copy("review.progress.queued")}</AlertTitle>
+						{operation.queuePosition !== undefined && (
+							<AlertDescription>
+								{copy("review.progress.queuePosition", { position: operation.queuePosition })}
+							</AlertDescription>
+						)}
+						<AlertActions>
+							<Button variant="secondary" disabled={readOnly} onClick={() => void stopReply()}>
+								<Trans>Cancel</Trans>
+							</Button>
+						</AlertActions>
+					</Alert>
+				)}
+				{operation?.failureCode === "AI_QUEUE_EXPIRED" && (
+					<Alert variant="warn">
+						<Icon name="warning-circle" />
+						<AlertTitle>{copy("review.progress.queueExpired")}</AlertTitle>
+						<AlertDescription>{copy("review.progress.queueNoCharge")}</AlertDescription>
+					</Alert>
 				)}
 
 				{stopState === "requested" && (

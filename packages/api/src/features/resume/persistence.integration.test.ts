@@ -39,6 +39,141 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("CV persistence", (
 		versions: (await migration.query("SELECT id,data,kind FROM resume_version WHERE resume_id=$1 ORDER BY id", [id]))
 			.rows,
 	});
+	it("replaces a base CV at its limit while preserving its history and identity", async () => {
+		const { confirmImport } = await import("./import-review");
+		const { careerMasterService } = await import("../career/master");
+		await migration.query("DELETE FROM resume WHERE user_id='alice'");
+		const existing = await fixture();
+		const current = await owned(() => service.getById({ id: existing.id, userId: "alice" }));
+		const master = await owned(() => careerMasterService.read("alice"));
+		const input = {
+			flowId: randomUUID(),
+			name: "Reviewed CV",
+			data: data("Reviewed"),
+			expectedProfileRevision: master.profileRevision,
+			acceptedFacts: [],
+			destination: {
+				kind: "replace" as const,
+				resumeId: existing.id,
+				expectedUpdatedAt: current.updatedAt.toISOString(),
+			},
+		};
+		await expect(owned(() => confirmImport("alice", input))).resolves.toMatchObject({ resumeId: existing.id });
+		await expect(owned(() => confirmImport("alice", input))).resolves.toMatchObject({ resumeId: existing.id });
+		expect((await migration.query("SELECT id,data FROM resume WHERE user_id='alice'")).rows).toEqual([
+			expect.objectContaining({ id: existing.id, data: data("Reviewed") }),
+		]);
+		const versions = (await state(existing.id)).versions;
+		expect(versions).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({ data: data("Historical") }),
+				expect.objectContaining({ data: data("Original") }),
+				expect.objectContaining({ data: data("Reviewed"), kind: "import" }),
+			]),
+		);
+	});
+	it("rejects stale replacement without changing the CV or history", async () => {
+		const { confirmImport } = await import("./import-review");
+		const { careerMasterService } = await import("../career/master");
+		const existing = await fixture();
+		const master = await owned(() => careerMasterService.read("alice"));
+		const before = await state(existing.id);
+		await expect(
+			owned(() =>
+				confirmImport("alice", {
+					flowId: randomUUID(),
+					name: "Stale",
+					data: data("Stale"),
+					expectedProfileRevision: master.profileRevision,
+					acceptedFacts: [],
+					destination: { kind: "replace", resumeId: existing.id, expectedUpdatedAt: new Date(0).toISOString() },
+				}),
+			),
+		).rejects.toMatchObject({ code: "RESUME_VERSION_CONFLICT" });
+		expect(await state(existing.id)).toEqual(before);
+	});
+	it.each(["foreign", "locked", "trashed", "variant"] as const)(
+		"cannot replace a %s CV through import confirmation",
+		async (kind) => {
+			const { confirmImport } = await import("./import-review");
+			const { careerMasterService } = await import("../career/master");
+			const existing = await fixture();
+			const current = await owned(() => service.getById({ id: existing.id, userId: "alice" }));
+			if (kind === "locked") await migration.query("UPDATE resume SET is_locked=true WHERE id=$1", [existing.id]);
+			if (kind === "trashed") await migration.query("UPDATE resume SET trashed_at=now() WHERE id=$1", [existing.id]);
+			if (kind === "variant") {
+				const root = await fixture();
+				await migration.query("UPDATE resume SET variant_kind='language',base_resume_id=$2 WHERE id=$1", [
+					existing.id,
+					root.id,
+				]);
+			}
+			const userId = kind === "foreign" ? "bob" : "alice";
+			const asUser = <T>(work: () => T) => withDatabasePool(runtime, () => withDatabaseOwner(userId, work));
+			const master = await asUser(() => careerMasterService.read(userId));
+			const before = await state(existing.id);
+			await expect(
+				asUser(() =>
+					confirmImport(userId, {
+						flowId: randomUUID(),
+						name: "Rejected",
+						data: data("Rejected"),
+						expectedProfileRevision: master.profileRevision,
+						acceptedFacts: [],
+						destination: { kind: "replace", resumeId: existing.id, expectedUpdatedAt: current.updatedAt.toISOString() },
+					}),
+				),
+			).rejects.toMatchObject({ code: kind === "locked" ? "RESUME_LOCKED" : "NOT_FOUND" });
+			expect(await state(existing.id)).toEqual(before);
+		},
+	);
+	it("saves only confirmed facts at the limit without creating a CV or copying unconfirmed contact data", async () => {
+		const { confirmImport } = await import("./import-review");
+		const { careerMasterService } = await import("../career/master");
+		const { buildCareerFactCandidates } = await import("@reactive-resume/import/career-facts");
+		const master = await owned(() => careerMasterService.read("alice"));
+		const imported = data("Unconfirmed contact");
+		imported.basics.email = "unconfirmed@example.test";
+		const entityId = randomUUID();
+		imported.sections.skills.items = [
+			{
+				id: entityId,
+				name: "Confirmed skill",
+				proficiency: "",
+				hidden: false,
+				level: 0,
+				icon: "",
+				iconColor: "",
+				keywords: [],
+			},
+		];
+		const [fact] = buildCareerFactCandidates(imported, { kind: "manual", id: "", quote: "" });
+		if (!fact) throw new Error("Missing synthetic candidate");
+		const before = (await migration.query("SELECT id,data FROM resume WHERE user_id='alice' ORDER BY id")).rows;
+		const profile = (await migration.query("SELECT data FROM career_profile WHERE user_id='alice'")).rows[0];
+		const input = {
+			flowId: randomUUID(),
+			name: "Facts only",
+			data: imported,
+			expectedProfileRevision: master.profileRevision,
+			acceptedFacts: [{ fact, decision: { kind: "new" as const } }],
+			destination: { kind: "career" as const },
+		};
+		const result = await owned(() => confirmImport("alice", input));
+		expect(result.resumeId).toBeNull();
+		await expect(owned(() => confirmImport("alice", input))).resolves.toEqual(result);
+		expect((await migration.query("SELECT id,data FROM resume WHERE user_id='alice' ORDER BY id")).rows).toEqual(
+			before,
+		);
+		expect((await migration.query("SELECT data FROM career_profile WHERE user_id='alice'")).rows[0]).toEqual(profile);
+		const saved = await owned(() => careerMasterService.read("alice"));
+		expect(saved.facts.filter((entry) => entry.structured?.entityId === entityId)).toEqual([
+			expect.objectContaining({
+				confirmation: "confirmed",
+				structured: expect.objectContaining({ value: "Confirmed skill" }),
+			}),
+		]);
+	});
 	beforeAll(async () => {
 		const url = new URL(process.env.COVER_LETTER_TEST_DATABASE_URL!);
 		if (!["localhost", "127.0.0.1", "[::1]"].includes(url.hostname) || url.searchParams.has("host"))
@@ -191,6 +326,61 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("CV persistence", (
 		await expect(owned(() => confirmImport("alice", { ...input, name: "Changed" }))).rejects.toMatchObject({
 			code: "CONFLICT",
 		});
+	});
+	it("saves all reviewed PDF candidates and fills contact and summary for a new account through confirmImport", async () => {
+		const { confirmImport } = await import("./import-review");
+		const { careerMasterService } = await import("../career/master");
+		const { buildCareerFactCandidates } = await import("@reactive-resume/import/career-facts");
+		const { parseResumeText } = await import("@reactive-resume/import/plain-text");
+		const ownerId = `import-${randomUUID()}`;
+		await migration.query(
+			`INSERT INTO "user" (id,name,email,username,display_username,email_verified) VALUES ($1,'Importer',$2,$1,$1,true)`,
+			[ownerId, `${ownerId}@example.test`],
+		);
+		const asOwner = <T>(work: () => T) => withDatabasePool(runtime, () => withDatabaseOwner(ownerId, work));
+		const imported = parseResumeText(
+			"Sara Example\nsara@example.test\n+966 50 123 4567\nRiyadh, Saudi Arabia\nSUMMARY\nEngineer with confirmed delivery experience.\nEXPERIENCE\nExample Labs | Engineer | 2020 - 2024\nBuilt reliable services.\nEDUCATION\nExample University | Bachelor of Science | 2016 - 2020\nSKILLS\nTypeScript\nLANGUAGES\nEnglish\nCERTIFICATIONS\nCloud Certificate",
+		);
+		const candidates = buildCareerFactCandidates(imported, { kind: "manual", id: "pdf-review", quote: "" });
+		expect(new Set(candidates.map((fact) => fact.section)).size).toBe(5);
+		expect(imported.basics.name).toBe("Sara Example");
+		expect(imported.basics.email).toBe("sara@example.test");
+		expect(imported.basics.phone).not.toBe("");
+		expect(imported.basics.location).toBe("Riyadh, Saudi Arabia");
+		expect(imported.summary.content).not.toBe("");
+		const master = await asOwner(() => careerMasterService.read(ownerId));
+		expect(master.facts).toEqual([]);
+		const input = {
+			flowId: randomUUID(),
+			name: "Reviewed PDF",
+			data: imported,
+			expectedProfileRevision: master.profileRevision,
+			acceptedFacts: candidates.map((fact) => ({ fact, decision: { kind: "new" as const } })),
+		};
+		const result = await asOwner(() => confirmImport(ownerId, input));
+		const after = await asOwner(() => careerMasterService.read(ownerId));
+		expect(after.facts).toHaveLength(candidates.length);
+		expect(after.facts.every((fact) => fact.confirmation === "confirmed")).toBe(true);
+		for (const candidate of candidates)
+			expect(after.facts).toContainEqual(
+				expect.objectContaining({
+					structured: { ...candidate, source: expect.objectContaining({ kind: "resume", id: result.resumeId }) },
+				}),
+			);
+		expect(after.contact).toEqual({
+			name: imported.basics.name,
+			email: imported.basics.email,
+			phone: imported.basics.phone,
+			location: imported.basics.location,
+		});
+		expect(after.summary).toBe("Engineer with confirmed delivery experience.");
+		expect(after.links).toHaveLength(candidates.length);
+		if (!result.resumeId) throw new Error("Expected a created CV");
+		const resumeId = result.resumeId;
+		const saved = await asOwner(() => service.getById({ id: resumeId, userId: ownerId }));
+		expect(saved.data).toEqual(imported);
+		expect(await asOwner(() => confirmImport(ownerId, input))).toEqual(result);
+		expect((await asOwner(() => careerMasterService.read(ownerId))).facts).toHaveLength(candidates.length);
 	});
 	it("fills missing profile details when the import saves career facts", async () => {
 		const { confirmImport } = await import("./import-review");

@@ -25,6 +25,7 @@ import { detectImportKind, readResumeFile } from "./read-file";
 import { createReviewState, saveReviewDraft } from "./review-draft";
 import { useDialogStore } from "@/dialogs/store";
 import { MAX_UPLOAD_BYTES } from "@/features/ats-checker/extract-client";
+import { BaseCvLimitNotice } from "@/features/documents/base-cv-limit";
 import { isBaseCvLimit } from "@/features/documents/creation-error";
 import { prepareFirstCvCelebration } from "@/features/documents/first-cv-celebration";
 import { useNewDocumentsStore } from "@/features/documents/new-documents";
@@ -42,6 +43,7 @@ export function StartCvDialog({ data: initial }: StartCvDialogProps) {
 	const maxMb = String(MAX_UPLOAD_BYTES / 1_000_000);
 	const maxPages = String(HARVEST_DEFAULTS.maxPages);
 	const [error, setError] = useState<string | null>(null);
+	const [baseCvLimit, setBaseCvLimit] = useState<unknown>(null);
 	const [failedAction, setFailedAction] = useState<"read" | "create">("read");
 	const input = useRef<HTMLInputElement>(null);
 	const attempt = useRef<AbortController | null>(null);
@@ -91,11 +93,11 @@ export function StartCvDialog({ data: initial }: StartCvDialogProps) {
 		} catch (error) {
 			if (!controller.signal.aborted) {
 				setFailedAction("create");
-				setError(
-					isBaseCvLimit(error)
-						? t`You have reached the limit for base CVs. Your existing documents remain available to edit and download.`
-						: getOrpcErrorMessage(error, { fallback: t`Couldn't create the document.` }),
-				);
+				if (isBaseCvLimit(error)) {
+					setBaseCvLimit(error);
+					return;
+				}
+				setError(getOrpcErrorMessage(error, { fallback: t`Couldn't create the document.` }));
 			}
 		} finally {
 			if (!controller.signal.aborted) setBusy(null);
@@ -128,7 +130,6 @@ export function StartCvDialog({ data: initial }: StartCvDialogProps) {
 				},
 			});
 			controller.signal.throwIfAborted();
-			data.metadata.page.locale = locale;
 			const flowId = crypto.randomUUID();
 			await saveReviewDraft({
 				version: 1,
@@ -183,6 +184,16 @@ export function StartCvDialog({ data: initial }: StartCvDialogProps) {
 					</Trans>
 				</DialogDescription>
 			</DialogHeader>
+			{!!baseCvLimit && (
+				<BaseCvLimitNotice
+					error={baseCvLimit}
+					busy={busy !== null}
+					onOpen={(resumeId) => {
+						close();
+						void navigate({ to: "/builder/$resumeId", params: { resumeId }, search: { mode: "write" } });
+					}}
+				/>
+			)}
 			{error && (
 				<Alert variant="error">
 					<Icon name="warning-circle" />

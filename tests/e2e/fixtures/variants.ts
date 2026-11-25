@@ -9,16 +9,24 @@ import { defaultResumeData } from "@reactive-resume/schema/resume/default";
 import { assertSyntheticSession } from "./isolation";
 import { seedReview } from "./reviewable-ai";
 
-export async function seedVariantReview(page: Page, info: TestInfo, officialTerm = false) {
+export async function seedVariantReview(
+	page: Page,
+	info: TestInfo,
+	officialTerm = false,
+	documentLocale: "en-US" | "ar-SA" = "en-US",
+) {
 	const id = await seedReview(page, info);
 	const api = variantClient(page);
 	const current = await api.resume.getById({ id });
 	const data = structuredClone(defaultResumeData);
-	data.basics.name = "Synthetic Person";
-	data.basics.headline = "Engineer";
+	const ar = documentLocale === "ar-SA";
+	data.basics.name = ar ? "شخص تجريبي" : "Synthetic Person";
+	data.basics.headline = ar ? "مهندس" : "Engineer";
 	data.summary.hidden = false;
-	data.summary.content = "<p>Built TypeScript services. Did not manage a budget.</p>";
-	data.metadata.page.locale = "en-US";
+	data.summary.content = ar
+		? "<p>بنيت خدمات باستخدام تايب سكريبت. لم أدر ميزانية.</p>"
+		: "<p>Built TypeScript services. Did not manage a budget.</p>";
+	data.metadata.page.locale = documentLocale;
 	data.metadata.layout.pages = [{ fullWidth: false, main: ["summary"], sidebar: [] }];
 	if (officialTerm) {
 		data.sections.education.hidden = false;
@@ -63,16 +71,27 @@ export function variantClient(page: Page): RouterClient<typeof router> {
 		}),
 	);
 }
+export async function readProcessingNotice(page: Page, purpose: string, locale: "ar-SA" | "en-US" = "en-US") {
+	const response = await page.request.get("/api/openapi/ai/processing-notices", { params: { purpose, locale } });
+	await expect(response).toBeOK();
+	const [notice] = await response.json();
+	expect(notice).toBeDefined();
+	const { content, alreadyGranted, ...acceptance } = notice;
+	return { acceptance, alreadyGranted, content };
+}
+
+export async function acceptProcessingNotice(page: Page, purpose: string) {
+	const { acceptance, alreadyGranted } = await readProcessingNotice(page, purpose);
+	if (!alreadyGranted)
+		await expect(await page.request.post("/api/openapi/ai/processing-consent", { data: acceptance })).toBeOK();
+	return acceptance;
+}
+
 export async function startVariantReview(
 	page: Page,
 	prepared: { kind: string; sources: unknown[]; parameters: Record<string, unknown> },
 ) {
-	const notice = (await (await page.request.get("/api/openapi/ai/processing-notices")).json())[0];
-	await expect(
-		await page.request.post("/api/openapi/ai/processing-consent", {
-			data: { route: notice.route, noticeVersion: notice.noticeVersion, purpose: prepared.kind },
-		}),
-	).toBeOK();
+	const notice = await acceptProcessingNotice(page, prepared.kind);
 	const response = await page.request.post("/api/openapi/ai/operations", {
 		data: {
 			kind: prepared.kind,
@@ -85,29 +104,39 @@ export async function startVariantReview(
 	});
 	await expect(response).toBeOK();
 	const operation = await response.json();
+	const completedState = prepared.kind === "review.translation" ? /^(waiting_review|succeeded)$/u : /^waiting_review$/u;
 	await expect
 		.poll(async () => (await (await page.request.get(`/api/openapi/ai/operations/${operation.id}`)).json()).state, {
 			timeout: 30000,
 		})
-		.toBe("waiting_review");
+		.toMatch(completedState);
 	return operation.id as string;
 }
 
 /** Three independently reviewable passages, all synthetic and intentionally free of personal data. */
-export async function seedTailoringReview(page: Page, info: TestInfo, jobText = "TypeScript services required.") {
-	const sourceId = await seedVariantReview(page, info);
+export async function seedTailoringReview(
+	page: Page,
+	info: TestInfo,
+	jobText = "TypeScript services required.",
+	documentLocale: "en-US" | "ar-SA" = "en-US",
+) {
+	const sourceId = await seedVariantReview(page, info, false, documentLocale);
 	const api = variantClient(page);
 	const source = await api.resume.getById({ id: sourceId });
 	const data = structuredClone(source.data);
 	data.sections.projects.hidden = false;
-	data.sections.projects.items = ["dashboard", "pipeline"].map((id) =>
+	const descriptions =
+		documentLocale === "ar-SA"
+			? { dashboard: "<p>بنيت لوحات تحكم.</p>", pipeline: "<p>بنيت خطوط بيانات.</p>" }
+			: { dashboard: "<p>Built TypeScript dashboards.</p>", pipeline: "<p>Built TypeScript pipelines.</p>" };
+	data.sections.projects.items = Object.entries(descriptions).map(([id, description]) =>
 		projectItemSchema.parse({
 			id,
 			hidden: false,
 			name: `Synthetic ${id}`,
 			period: "",
 			website: { url: "", label: "" },
-			description: id === "dashboard" ? "<p>Built TypeScript dashboards.</p>" : "<p>Built TypeScript pipelines.</p>",
+			description,
 		}),
 	);
 	data.metadata.layout.pages[0]?.main.push("projects");

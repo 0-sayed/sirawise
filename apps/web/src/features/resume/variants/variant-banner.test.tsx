@@ -23,14 +23,24 @@ afterEach(() => {
 	cleanup();
 	sessionStorage.clear();
 });
-function show() {
+function show(className?: string) {
 	i18n.loadAndActivate({ locale: "en-US", messages: {} });
 	return render(
 		<I18nProvider i18n={i18n}>
-			<VariantBanner resumeId="copy" />
+			<VariantBanner resumeId="copy" {...(className ? { className } : {})} />
 		</I18nProvider>,
 	);
 }
+it("accepts the panel inset without losing its card layout", () => {
+	state.kind = "language";
+	show("mx-4 mt-4 w-auto");
+	const banner = screen.getByRole("region", { name: "Copy context" });
+	expect(banner.classList.contains("mx-4")).toBe(true);
+	expect(banner.classList.contains("mt-4")).toBe(true);
+	expect(banner.classList.contains("w-auto")).toBe(true);
+	expect(banner.classList.contains("grid")).toBe(true);
+	expect(banner.classList.contains("p-3")).toBe(true);
+});
 it("labels the stored language and provides deliberate source and review navigation", () => {
 	state.kind = "language";
 	show();

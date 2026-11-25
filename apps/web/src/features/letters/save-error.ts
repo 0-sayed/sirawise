@@ -2,6 +2,7 @@ import { t } from "@lingui/core/macro";
 import { ORPCError } from "@orpc/client";
 import { toast } from "@reactive-resume/ui/components/toast";
 import { useLetterEditorStore } from "./store";
+import { getAllowanceReason } from "@/features/usage/allowance-limit";
 import { getOrpcErrorMessage } from "@/libs/error-message";
 import { client } from "@/libs/orpc/client";
 
@@ -10,7 +11,12 @@ function showRecoveryFailure(error: unknown, title: string, retry: () => void) {
 		type: "error",
 		title,
 		description: getOrpcErrorMessage(error, { fallback: t`Couldn't save that change. Try again.` }),
-		actionProps: { children: t`Try again`, onClick: retry },
+		actionProps: getAllowanceReason(error)
+			? {
+					children: t({ context: "help.page.title", message: "Help and contact" }),
+					onClick: () => window.location.assign("/help"),
+				}
+			: { children: t`Try again`, onClick: retry },
 	});
 }
 

@@ -5,10 +5,11 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Badge } from "@reactive-resume/ui/components/badge";
 import { IconButton } from "@reactive-resume/ui/components/icon-button";
+import { cn } from "@reactive-resume/utils/style";
 import { browserStorage, storageKey } from "@/libs/browser-storage";
 import { orpc } from "@/libs/orpc/client";
 /** A copy's stored identity is independent from the interface language and review status. */
-export function VariantBanner({ resumeId }: { resumeId: string }) {
+export function VariantBanner({ resumeId, className }: { resumeId: string; className?: string }) {
 	const family = useQuery(orpc.resume.variants.list.queryOptions({ input: { resumeId } }));
 	const { data: documents } = useQuery(orpc.documents.list.queryOptions({ input: { trashed: false } }));
 	const key = storageKey("variantContext", resumeId);
@@ -32,7 +33,7 @@ export function VariantBanner({ resumeId }: { resumeId: string }) {
 	if (!current || current.variantKind === "base") return null;
 	const job = documents?.find((document) => document.id === resumeId)?.application;
 	return (
-		<section aria-label={t`Copy context`} className="grid gap-2 rounded-lg border border-line p-3">
+		<section aria-label={t`Copy context`} className={cn("grid gap-2 rounded-lg border border-line p-3", className)}>
 			<div className="flex min-w-0 items-center gap-2">
 				<Badge>{current.variantKind === "language" ? <Trans>Language copy</Trans> : <Trans>Job copy</Trans>}</Badge>
 				<span className="type-metadata text-ink-2">

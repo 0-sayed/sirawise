@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { expect, it } from "vite-plus/test";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 import { pdfImportText } from "@reactive-resume/import/pdf-lines";
-import { parseResumeText } from "@reactive-resume/import/plain-text";
+import { parsePdfResume } from "@reactive-resume/import/plain-text";
 import { analyzePdfResume, harvestPdfDocument } from "@reactive-resume/resume/ats-pdf";
 import { parseResumeData } from "@reactive-resume/schema/resume/data";
 
@@ -28,8 +28,8 @@ for (const gold of cases)
 			const raw = await harvestPdfDocument(await task.promise, {
 				file: { name: `${gold.language}.pdf`, sizeBytes: bytes.length, magicBytesOk: true },
 			});
-			const { lines, locale } = pdfImportText(raw);
-			const data = parseResumeText(lines.join("\n"), locale ? { locale } : {});
+			const { lines, paragraphUnits, locale } = pdfImportText(raw);
+			const data = parsePdfResume(paragraphUnits, locale ? { locale } : {});
 			const report = analyzePdfResume(raw, {
 				locale: data.metadata.page.locale,
 				now: new Date("2024-06-15T00:00:00Z"),

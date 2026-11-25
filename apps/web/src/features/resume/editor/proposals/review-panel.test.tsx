@@ -8,6 +8,7 @@ import { I18nProvider } from "@lingui/react";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { hashReviewTarget } from "@reactive-resume/resume/review-evidence";
 import { splitReviewClaims } from "@reactive-resume/schema/resume/ai-review";
+import { experienceItemSchema } from "@reactive-resume/schema/resume/data";
 import { defaultResumeData } from "@reactive-resume/schema/resume/default";
 type TestDraft = {
 	resume: { id: string; data: ResumeData; isLocked: boolean };
@@ -28,6 +29,8 @@ const mocks = vi.hoisted(() => ({
 	current: null as TestDraft | null,
 	state: "ready",
 	latest: vi.fn(),
+	history: vi.fn(),
+	views: {} as Record<string, ReviewView>,
 	remaining: 5,
 	notices: vi.fn(),
 	grant: vi.fn(),
@@ -51,13 +54,20 @@ vi.mock("@/libs/orpc/client", () => ({
 	client: {
 		ai: {
 			review: { answer: mocks.answer, dismissQuestion: mocks.dismiss },
-			processing: { notices: mocks.notices, grant: mocks.grant },
+			processing: { notices: async () => (await mocks.notices()) ?? [], grant: mocks.grant },
 			operations: { preflight: mocks.preflight, start: mocks.start },
 		},
 	},
 	orpc: {
 		ai: {
 			review: {
+				list: {
+					queryOptions: ({ input }: { input: { resumeId: string } }) => ({
+						queryKey: ["reviews", input.resumeId],
+						queryFn: mocks.history,
+					}),
+					key: () => ["reviews"],
+				},
 				latest: {
 					queryOptions: ({ input }: { input: { resumeId: string } }) => ({
 						queryKey: ["latest", input.resumeId],
@@ -68,6 +78,14 @@ vi.mock("@/libs/orpc/client", () => ({
 					queryOptions: ({ input }: { input: { operationId: string } }) => ({
 						queryKey: ["review", input.operationId],
 						queryFn: mocks.read,
+					}),
+				},
+			},
+			operations: {
+				get: {
+					queryOptions: ({ input }: { input: { id: string } }) => ({
+						queryKey: ["operation", input.id],
+						queryFn: async () => ({ state: "waiting_review", resultId: input.id }),
 					}),
 				},
 			},
@@ -86,7 +104,7 @@ vi.mock("@/libs/orpc/client", () => ({
 	},
 }));
 import { ReviewLaunch } from "./review-operation";
-import { ReviewResultPanel, useResumeReviewSummary } from "./review-panel";
+import { ResumeReviewWorkspace, ReviewResultPanel, useResumeReviewSummary } from "./review-panel";
 function mount(children = <ReviewResultPanel operationId="op" />) {
 	return render(
 		<I18nProvider i18n={i18n}>
@@ -157,9 +175,80 @@ beforeEach(() => {
 		dismissedQuestionIds: [],
 		undoable: [],
 	};
-	mocks.read.mockImplementation(async () => structuredClone(mocks.view));
+	mocks.views = {};
+	mocks.history.mockResolvedValue([{ operationId: "op", targets: [{ target, pendingCount: 1 }] }]);
+	mocks.read.mockImplementation(async ({ queryKey }: { queryKey: string[] }) =>
+		structuredClone(mocks.views[queryKey[1] ?? ""] ?? mocks.view),
+	);
 	mocks.flush.mockResolvedValue(true);
 	mocks.decide.mockRejectedValue(new Error("offline"));
+});
+it("restores pending suggestions per field after switching fields and reopening the workspace", async () => {
+	if (!mocks.current || !mocks.view || mocks.view.result.kind !== "wording") throw new Error("Missing fixture");
+	mocks.current.resume.data.sections.experience.items = [
+		experienceItemSchema.parse({
+			id: "entry",
+			hidden: false,
+			location: "",
+			period: "",
+			company: "Acme",
+			position: "Engineer",
+			description: "<p>Built services.</p>",
+		}),
+	];
+	const target = { sectionId: "experience", itemId: "entry", field: "description" };
+	const other = structuredClone(mocks.view);
+	if (other.result.kind !== "wording") throw new Error("Missing fixture");
+	other.result.proposals = other.result.proposals.map((proposal) => ({
+		...proposal,
+		target,
+		why: "Experience suggestion",
+	}));
+	mocks.views.experience = other;
+	mocks.history.mockResolvedValue([
+		{ operationId: "experience", targets: [{ target, pendingCount: 1 }] },
+		{ operationId: "op", targets: [{ target: { sectionId: "summary", field: "content" }, pendingCount: 1 }] },
+	]);
+	const view = mount(<ResumeReviewWorkspace />);
+	await screen.findByText("Clearer wording");
+	const select = screen.getByRole("combobox", { name: "Text to review" });
+	expect(screen.getByRole("option", { name: /Summary.*Pending suggestions: 1/u })).toBeDefined();
+	expect(screen.getByRole("option", { name: /Engineer.*Pending suggestions: 1/u })).toBeDefined();
+	fireEvent.change(select, { target: { value: JSON.stringify(target) } });
+	await screen.findByText("Experience suggestion");
+	expect(screen.queryByText("Clearer wording")).toBeNull();
+	fireEvent.change(select, { target: { value: JSON.stringify({ sectionId: "summary", field: "content" }) } });
+	await screen.findByText("Clearer wording");
+	fireEvent.click(screen.getByRole("button", { name: "Keep original" }));
+	await waitFor(() =>
+		expect(mocks.decide).toHaveBeenCalledWith(expect.objectContaining({ operationId: "op", decision: "reject" })),
+	);
+	view.unmount();
+	mount(<ResumeReviewWorkspace target={target} />);
+	await screen.findByText("Experience suggestion");
+	expect(screen.getByRole("button", { name: "Accept" })).toBeEnabled();
+	expect(mocks.start).not.toHaveBeenCalled();
+});
+it("keeps older pending reviews accessible when the same field is reviewed again", async () => {
+	if (!mocks.view || mocks.view.result.kind !== "wording") throw new Error("Missing fixture");
+	const older = structuredClone(mocks.view);
+	if (older.result.kind !== "wording") throw new Error("Missing fixture");
+	older.result.proposals = older.result.proposals.map((proposal) => ({ ...proposal, why: "Older pending suggestion" }));
+	mocks.views.older = older;
+	const targets = [{ target: { sectionId: "summary", field: "content" }, pendingCount: 1 }];
+	mocks.history.mockResolvedValue([
+		{ operationId: "op", targets },
+		{ operationId: "older", targets },
+	]);
+	mount(<ResumeReviewWorkspace />);
+	await screen.findByText("Clearer wording");
+	fireEvent.change(screen.getByRole("combobox", { name: "Saved reviews" }), { target: { value: "older" } });
+	await screen.findByText("Older pending suggestion");
+	fireEvent.click(screen.getByRole("button", { name: "Accept" }));
+	await waitFor(() =>
+		expect(mocks.decide).toHaveBeenCalledWith(expect.objectContaining({ operationId: "older", decision: "accept" })),
+	);
+	expect(mocks.start).not.toHaveBeenCalled();
 });
 it.each([
 	["not_enabled", "The assistant is not enabled yet"],
@@ -299,22 +388,27 @@ it("requires cancellation after a request issue and prepares a new selection for
 	mocks.notices.mockResolvedValue([
 		{
 			route: { routeId: "synthetic", routeRevision: "1", configRevision: "1" },
-			purposes: ["review.extraction"],
+			purpose: "review.extraction",
+			locale: "en-US",
+			content: "Synthetic processing notice",
+			alreadyGranted: false,
+			noticeSha256: "a".repeat(64),
 			noticeVersion: "1",
 		},
 	]);
 	mocks.grant.mockResolvedValue({});
 	mocks.preflight.mockResolvedValue({ available: true });
-	mocks.start.mockRejectedValue(new Error("offline"));
+	mocks.start.mockRejectedValue(new Error("AI_INVALID_REQUEST"));
 	mount(
 		<ReviewLaunch kind="review.extraction" prepare={prepare} onStarted={vi.fn()}>
 			Review selection
 		</ReviewLaunch>,
 	);
 	fireEvent.click(await screen.findByRole("button", { name: "Review selection" }));
+	await screen.findByText("Synthetic processing notice");
 	fireEvent.click(screen.getByRole("button", { name: "Start review" }));
 	await screen.findByText(
-		"This request needs changes before it can start. Cancel and review the selected text. Your draft is kept.",
+		"The review selection is incomplete or invalid. Cancel and select the text or facts again, then start a new review.",
 	);
 	const first = mocks.start.mock.calls[0]?.[0];
 	expect(screen.queryByRole("button", { name: "Retry" })).not.toBeInTheDocument();
@@ -324,6 +418,7 @@ it("requires cancellation after a request issue and prepares a new selection for
 	fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
 	selection = "second";
 	fireEvent.click(screen.getByRole("button", { name: "Review selection" }));
+	await screen.findByText("Synthetic processing notice");
 	fireEvent.click(screen.getByRole("button", { name: "Start review" }));
 	await waitFor(() => expect(mocks.start).toHaveBeenCalledTimes(2));
 	expect(prepare).toHaveBeenCalledTimes(2);
@@ -366,7 +461,7 @@ function SummaryProjection() {
 			<output>
 				{summary.state}:{summary.pendingCount ?? "unknown"}
 			</output>
-			<button onClick={() => void client.invalidateQueries({ queryKey: ["review", "op"] })}>Refresh summary</button>
+			<button onClick={() => void client.invalidateQueries({ queryKey: ["reviews", "cv"] })}>Refresh summary</button>
 		</>
 	);
 }
@@ -383,24 +478,37 @@ it("keeps the AI-off summary read-only and does not fetch a review", async () =>
 it("counts actual pending statuses and updates after an acknowledged refetch", async () => {
 	mount(<SummaryProjection />);
 	expect(await screen.findByText("available:1")).toBeDefined();
-	if (mocks.view) mocks.view.statuses.p = "accepted";
+	mocks.history.mockResolvedValue([
+		{ operationId: "op", targets: [{ target: { sectionId: "summary", field: "content" }, pendingCount: 0 }] },
+	]);
 	fireEvent.click(screen.getByRole("button", { name: "Refresh summary" }));
 	expect(await screen.findByText("available:0")).toBeDefined();
 	expect(mocks.start).not.toHaveBeenCalled();
 });
-it("keeps unknown and foreign-document counts hidden", async () => {
-	mocks.latest.mockImplementation(() => new Promise(() => {}));
+it("keeps counts unknown while history is loading or unavailable", async () => {
+	mocks.history.mockImplementation(() => new Promise(() => {}));
 	const view = mount(<SummaryProjection />);
 	expect(await screen.findByText("available:unknown")).toBeDefined();
 	view.unmount();
-	mocks.latest.mockResolvedValue("op");
-	if (mocks.current) mocks.current.resume.id = "other-cv";
+	mocks.history.mockRejectedValue(new Error("offline"));
 	mount(<SummaryProjection />);
-	await waitFor(() => expect(mocks.read).toHaveBeenCalled());
-	expect(screen.getByText("available:unknown")).toBeDefined();
+	await waitFor(() => expect(mocks.history).toHaveBeenCalled());
+	expect(await screen.findByText("available:unknown")).toBeDefined();
 });
-it("reports zero only after the latest query confirms no saved review", async () => {
-	mocks.latest.mockResolvedValue(null);
+it("counts pending proposals across all saved fields", async () => {
+	mocks.history.mockResolvedValue([
+		{ operationId: "op", targets: [{ target: { sectionId: "summary", field: "content" }, pendingCount: 1 }] },
+		{
+			operationId: "experience",
+			targets: [{ target: { sectionId: "experience", itemId: "entry", field: "description" }, pendingCount: 2 }],
+		},
+	]);
+	mount(<SummaryProjection />);
+	expect(await screen.findByText("available:3")).toBeDefined();
+	expect(mocks.read).not.toHaveBeenCalled();
+});
+it("reports zero only after history confirms no saved review", async () => {
+	mocks.history.mockResolvedValue([]);
 	mount(<SummaryProjection />);
 	expect(await screen.findByText("available:0")).toBeDefined();
 	expect(mocks.read).not.toHaveBeenCalled();

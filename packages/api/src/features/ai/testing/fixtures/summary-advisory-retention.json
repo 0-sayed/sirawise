@@ -1,0 +1,95 @@
+{
+	"snapshot": {
+		"category": "summary",
+		"resumeId": "01a1fd68-c171-7428-aa26-c004d5e2a4c3",
+		"sourceRevision": "2026-11-21T09:21:03.484+00:00",
+		"cv": [
+			{
+				"id": "cv-31:4c3f3d87a6a3578a",
+				"section": "summary",
+				"text": "Saudi operations director with twenty years of experience from 2006 to 2026 in data analysis, service development and multidisciplinary leadership. Progressed from operations coordination to improvement programs, training and risk management. I focus on clear ownership, measurable outcomes, decision records and knowledge transfer across teams."
+			},
+			{
+				"id": "cv-53:9f72d97a6a8e9c81",
+				"section": "experience",
+				"text": "Key achievements: Operations coordinator.   Analyzed team needs, defined responsibilities and acceptance criteria within a clear annual operating plan.  Coordinated monthly reviews with 8 teams and recorded decisions, risks and follow-up actions in a shared register.  Designed weekly quality reports and reduced preparation time by 15% using operational data.  Documented exception cases and recovery procedures, then trained new colleagues to review data before handover.  Presented traceable results with clear measurement limits and a quarterly review to update the plan and improve the service."
+			},
+			{
+				"id": "cv-53:9f72d97a6a8e9c81",
+				"section": "experience",
+				"text": "Key achievements: Operations coordinator. Analyzed team needs, defined responsibilities and acceptance criteria within a clear annual operating plan. Coordinated monthly reviews with 8 teams and recorded decisions, risks and follow-up actions in a shared register. Designed weekly quality reports and reduced preparation time by 15% using operational data. Documented exception cases and recovery procedures, then trained new colleagues to review data before handover. Presented traceable results with clear measurement limits and a quarterly review to update the plan and improve the service."
+			}
+		],
+		"jobAd": null,
+		"evidenceSelection": {
+			"totalPassages": 210,
+			"omittedPassages": 187,
+			"excerptedPassageIds": []
+		}
+	},
+	"output": {
+		"notes": [],
+		"summary": {
+			"text": "Saudi operations director with twenty years of experience in data analysis, service development and multidisciplinary leadership. Progressed from operations coordination to improvement programs, training and risk management. Designed weekly quality reports and reduced preparation time by 15% using operational data.",
+			"claims": [
+				{
+					"id": "claim-1",
+					"kind": "fact",
+					"text": "Saudi operations director with twenty years of experience in data analysis, service development and multidisciplinary leadership.",
+					"evidenceIds": ["cv-31:4c3f3d87a6a3578a"]
+				},
+				{
+					"id": "claim-2",
+					"kind": "fact",
+					"text": "Progressed from operations coordination to improvement programs, training and risk management.",
+					"evidenceIds": ["cv-31:4c3f3d87a6a3578a"]
+				},
+				{
+					"id": "claim-3",
+					"kind": "fact",
+					"text": "Designed weekly quality reports and reduced preparation time by 15% using operational data.",
+					"evidenceIds": ["cv-53:9f72d97a6a8e9c81"]
+				}
+			]
+		},
+		"questions": []
+	},
+	"verdict": {
+		"absence": [],
+		"quality": {
+			"reason": "Translation quality was not assessable because this is a summary factual-verification task, not a translation task.",
+			"status": "unclear"
+		},
+		"coverage": {
+			"reason": "All supplied summary claims were independently checked against confirmed CV evidence, and no absent claims were supplied.",
+			"status": "complete"
+		},
+		"premises": [],
+		"verdicts": [
+			{
+				"reason": "Confirmed CV evidence directly states the candidate is a Saudi operations director with twenty years of experience in data analysis, service development and multidisciplinary leadership.",
+				"claimId": "summary:claim-1",
+				"verdict": "supported",
+				"evidenceIds": ["cv-31:4c3f3d87a6a3578a"]
+			},
+			{
+				"reason": "Confirmed CV evidence directly states progression from operations coordination to improvement programs, training and risk management.",
+				"claimId": "summary:claim-2",
+				"verdict": "supported",
+				"evidenceIds": ["cv-31:4c3f3d87a6a3578a"]
+			},
+			{
+				"reason": "Confirmed CV evidence directly states the design of weekly quality reports and a 15% reduction in preparation time using operational data.",
+				"claimId": "summary:claim-3",
+				"verdict": "supported",
+				"evidenceIds": ["cv-53:9f72d97a6a8e9c81"]
+			}
+		],
+		"retention": {
+			"reason": "The response summary preserves the selected factual claims without contradiction.",
+			"status": "retained",
+			"evidenceIds": ["cv-31:4c3f3d87a6a3578a", "cv-53:9f72d97a6a8e9c81"]
+		},
+		"schemaVersion": 1
+	}
+}

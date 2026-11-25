@@ -110,7 +110,7 @@ export function analyzePdfResume(raw: RawExtraction, options: AnalyzePdfOptions 
 
 	return {
 		version: 1,
-		analysis: summarizePdfCoverage(raw, checks),
+		analysis: summarizePdfCoverage(raw, checks, doc),
 		score: breakdown.score,
 		cappedBy: breakdown.cappedBy,
 		categories: breakdown.categories,
@@ -146,14 +146,18 @@ export type {
 	JdMatchReport,
 	JdTermMatch,
 	PdfAtsReport,
+	PdfBox,
 	PdfCategory,
 	PdfCategoryScore,
 	PdfCheckResult,
 	PdfEvidence,
 	PdfFinding,
 	PdfFindingParams,
+	PdfLogicalLine,
+	PdfLineOrder,
 	PdfSeverity,
 	PdfSkipReason,
+	PdfTextRun,
 	RawExtraction,
 	RawPage,
 	RawTextItem,
@@ -163,9 +167,16 @@ export type {
 export type { PdfRuleCode };
 export { buildResumeSemantics } from "./analyze/semantics";
 export { PDF_ATS_RULE_CODES } from "./catalog";
-export { buildExtractedDocument, orderTextSpans, isRtlText } from "./extract";
-export { HARVEST_DEFAULTS, harvestPdfDocument } from "./harvest";
-export { summarizePdfCoverage } from "./coverage";
+export {
+	buildExtractedDocument,
+	orderTextSpans,
+	isRtlText,
+	isPdfSpanScriptBoundary,
+	isReversedPdfRtlWordPair,
+} from "./extract";
+export { assemblePdfLines } from "./line-layout";
+export { HARVEST_DEFAULTS, PDF_IMPORT_OPERATOR_BUDGET_MS, harvestPdfDocument } from "./harvest";
+export { summarizePdfCoverage, pdfTextCoverage } from "./coverage";
 export { surfaceFormsOf } from "./jd/aliases";
 export { matchJobDescription } from "./jd/match";
 export { PDF_OPS } from "./pdf-ops";

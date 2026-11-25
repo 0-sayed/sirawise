@@ -13,8 +13,17 @@ type TextTransform = readonly [number, number, number, number, number, number];
 
 export type RawTextItem = {
 	dir?: "ltr" | "rtl" | "ttb";
-	/** The string exactly as the reader produced it (normalization disabled). */
+	/** The string exactly as the reader produced it. */
 	str: string;
+	/** UTF-16 offsets in the page's concatenated reader strings. End is exclusive. */
+	rawStart?: number;
+	rawEnd?: number;
+	markedContentId?: string;
+	fontMetrics?: { ascent: number; descent: number };
+	geometryUncertain?: boolean;
+	/** Text recovered from embedded glyph Unicode when the reader drops a letter with a format mark. */
+	glyphText?: string;
+	glyphRecoveryUncertain?: boolean;
 	transform: TextTransform;
 	width: number;
 	height: number;
@@ -104,15 +113,44 @@ export type RawPage = {
 	height: number;
 	rotation: number;
 	items: readonly RawTextItem[];
+	structure?: readonly PdfStructureBlock[];
 	operators: PageOperatorSummary | null;
 };
+
+export type PdfStructureBlock = { role: string; contentIds: readonly string[] };
 
 // ---------------------------------------------------------------------------
 // Layer 2 — ExtractedDocument: geometry derived purely from the raw extraction.
 // Coordinates are normalized to a top-left origin, in points.
 // ---------------------------------------------------------------------------
 
-type BoundingBox = { x: number; y: number; width: number; height: number };
+export type PdfBox = { x: number; y: number; width: number; height: number };
+type BoundingBox = PdfBox;
+
+export type PdfTextRun = {
+	id: string;
+	text: string;
+	direction: "ltr" | "rtl";
+	box: PdfBox;
+	logicalOrderKnown: boolean;
+	endOfLine: boolean;
+};
+
+export type PdfLineOrder = { text: string; runOrder: number[]; recovery: "exact" | "ambiguous" };
+
+export type PdfLogicalLine = {
+	id: string;
+	text: string;
+	words: readonly string[];
+	box: PdfBox;
+	blockId: string | null;
+	role: "heading" | "list-item" | "paragraph" | "line" | "table";
+	direction: "ltr" | "rtl";
+	recovery: PdfLineOrder["recovery"];
+	fontRef?: string;
+	producer?: string;
+	column?: number;
+};
 
 export type TextSpan = BoundingBox & {
 	dir?: "ltr" | "rtl" | "ttb";
@@ -121,6 +159,9 @@ export type TextSpan = BoundingBox & {
 	fontSize: number;
 	/** Index of the source item in the page's stream order. */
 	streamIndex: number;
+	/** True when an explicit whitespace PDF item immediately preceded or followed this span in stream order. */
+	spaceBefore?: boolean;
+	spaceAfter?: boolean;
 };
 
 export type TextLine = BoundingBox & {
@@ -133,6 +174,7 @@ export type TextLine = BoundingBox & {
 	fontRef: string | null;
 	/** Mean stream index of the line's spans — used to score reading-order inversion. */
 	meanStreamIndex: number;
+	logical?: PdfLogicalLine;
 };
 
 export type ColumnGutter = {
@@ -417,7 +459,7 @@ export type PdfAtsReport = {
 type CoverageState = "complete" | "skipped" | "failed";
 export type PageCoverage = {
 	pageNumber: number;
-	text: CoverageState;
+	text: CoverageState | "partial";
 	annotations: CoverageState;
 	operators: CoverageState;
 };

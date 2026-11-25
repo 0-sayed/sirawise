@@ -171,3 +171,10 @@ it.each([
 	);
 	expect(screen.getByRole("link", { name })).toHaveAccessibleName(name);
 });
+
+it.each(["ar-SA", "en-US"] as const)("uses UI typography and the bold token for %s", (locale) => {
+	const { container } = render(<BrandIcon locale={locale} />);
+	const name = container.querySelector('[data-slot="brand-name"]');
+	expect(name).toHaveAttribute("style", expect.stringContaining("font-family: var(--font-ui)"));
+	expect(name).toHaveAttribute("style", expect.stringContaining("font-weight: var(--font-weight-bold)"));
+});

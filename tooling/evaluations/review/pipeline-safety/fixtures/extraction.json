@@ -1,0 +1,522 @@
+[
+	{
+		"id": "extraction-en-honest",
+		"feature": "extraction",
+		"locale": "en-US",
+		"source": {
+			"flowId": "extraction-en-honest",
+			"section": "experience",
+			"text": "Company: Cedar Labs\nPosition: Developer",
+			"partial": false,
+			"contactValues": []
+		},
+		"candidate": {
+			"candidates": [
+				{
+					"id": "field-valid",
+					"section": "experience",
+					"entityId": "synthetic-entry",
+					"field": "company",
+					"value": "Cedar Labs",
+					"rawDateText": null,
+					"evidenceIds": ["selected"],
+					"confirmation": "needs_review"
+				},
+				{
+					"id": "position",
+					"section": "experience",
+					"entityId": "synthetic-entry",
+					"field": "position",
+					"value": "Developer",
+					"rawDateText": null,
+					"evidenceIds": ["selected"],
+					"confirmation": "needs_review"
+				}
+			],
+			"questions": []
+		}
+	},
+	{
+		"id": "extraction-en-mixed",
+		"feature": "extraction",
+		"locale": "en-US",
+		"source": {
+			"flowId": "extraction-en-mixed",
+			"section": "experience",
+			"text": "Company: Cedar Labs\nPosition: Developer",
+			"partial": false,
+			"contactValues": []
+		},
+		"candidate": {
+			"candidates": [
+				{
+					"id": "field-valid",
+					"section": "experience",
+					"entityId": "synthetic-entry",
+					"field": "company",
+					"value": "Cedar Labs",
+					"rawDateText": null,
+					"evidenceIds": ["selected"],
+					"confirmation": "needs_review"
+				},
+				{
+					"id": "field-invalid",
+					"section": "experience",
+					"entityId": "synthetic-entry",
+					"field": "position",
+					"value": "Invented Employer",
+					"rawDateText": null,
+					"evidenceIds": ["selected"],
+					"confirmation": "needs_review"
+				}
+			],
+			"questions": [
+				{
+					"id": "source-question",
+					"passageId": null,
+					"prompt": "What were the dates?",
+					"evidenceIds": ["selected"]
+				}
+			]
+		}
+	},
+	{
+		"id": "extraction-en-symbols",
+		"feature": "extraction",
+		"locale": "en-US",
+		"source": {
+			"flowId": "extraction-en-symbols",
+			"section": "experience",
+			"text": "C++",
+			"partial": false,
+			"contactValues": []
+		},
+		"candidate": {
+			"candidates": [
+				{
+					"id": "wrong-symbol",
+					"section": "experience",
+					"entityId": "synthetic-entry",
+					"field": "description",
+					"value": "C",
+					"rawDateText": null,
+					"evidenceIds": ["selected"],
+					"confirmation": "needs_review"
+				}
+			],
+			"questions": []
+		}
+	},
+	{
+		"id": "extraction-en-signs",
+		"feature": "extraction",
+		"locale": "en-US",
+		"source": {
+			"flowId": "extraction-en-signs",
+			"section": "experience",
+			"text": "Reduced latency by -12.5%.",
+			"partial": false,
+			"contactValues": []
+		},
+		"candidate": {
+			"candidates": [
+				{
+					"id": "wrong-sign",
+					"section": "experience",
+					"entityId": "synthetic-entry",
+					"field": "description",
+					"value": "Reduced latency by 12.5%.",
+					"rawDateText": null,
+					"evidenceIds": ["selected"],
+					"confirmation": "needs_review"
+				}
+			],
+			"questions": []
+		}
+	},
+	{
+		"id": "extraction-en-dates",
+		"feature": "extraction",
+		"locale": "en-US",
+		"source": {
+			"flowId": "extraction-en-dates",
+			"section": "experience",
+			"text": "Dates: Jan 2020 - Mar 2022",
+			"partial": false,
+			"contactValues": []
+		},
+		"candidate": {
+			"candidates": [
+				{
+					"id": "field-valid",
+					"section": "experience",
+					"entityId": "synthetic-entry",
+					"field": "dates",
+					"value": {
+						"start": "2020-01",
+						"end": "2022-03",
+						"present": false
+					},
+					"rawDateText": "Jan 2020 - Mar 2022",
+					"evidenceIds": ["selected"],
+					"confirmation": "needs_review"
+				}
+			],
+			"questions": []
+		}
+	},
+	{
+		"id": "extraction-en-question",
+		"feature": "extraction",
+		"locale": "en-US",
+		"source": {
+			"flowId": "extraction-en-question",
+			"section": "experience",
+			"text": "Company: Cedar Labs\nPosition: Developer\nDid not supervise staff.",
+			"partial": false,
+			"contactValues": []
+		},
+		"candidate": {
+			"candidates": [
+				{
+					"id": "field-valid",
+					"section": "experience",
+					"entityId": "synthetic-entry",
+					"field": "company",
+					"value": "Cedar Labs",
+					"rawDateText": null,
+					"evidenceIds": ["selected"],
+					"confirmation": "needs_review"
+				}
+			],
+			"questions": [
+				{
+					"id": "source-question",
+					"passageId": null,
+					"prompt": "How many staff did you supervise?",
+					"evidenceIds": ["selected"]
+				}
+			]
+		}
+	},
+	{
+		"id": "extraction-en-field-binding",
+		"feature": "extraction",
+		"locale": "en-US",
+		"source": {
+			"flowId": "extraction-en-field-binding",
+			"section": "experience",
+			"text": "Company: Cedar Labs\nPosition: Developer",
+			"partial": false,
+			"contactValues": []
+		},
+		"candidate": {
+			"candidates": [
+				{
+					"id": "wrong-field",
+					"section": "experience",
+					"entityId": "synthetic-entry",
+					"field": "company",
+					"value": "Developer",
+					"rawDateText": null,
+					"evidenceIds": ["selected"],
+					"confirmation": "needs_review"
+				}
+			],
+			"questions": []
+		}
+	},
+	{
+		"id": "wording-en-retention",
+		"feature": "wording",
+		"locale": "en-US",
+		"source": {
+			"section": "summary",
+			"text": "Maintained inspection logs. Did not supervise staff.",
+			"target": {
+				"sectionId": "summary",
+				"field": "content"
+			}
+		},
+		"candidate": {
+			"proposals": [
+				{
+					"id": "wording",
+					"passageId": "selected",
+					"text": "Kept inspection logs.",
+					"reason": "More concise.",
+					"evidenceIds": ["selected"],
+					"claims": [
+						{
+							"id": "claim-1",
+							"text": "Kept inspection logs.",
+							"evidenceIds": ["selected"]
+						}
+					]
+				}
+			],
+			"notes": [],
+			"questions": []
+		}
+	},
+	{
+		"id": "extraction-ar-honest",
+		"feature": "extraction",
+		"locale": "ar-SA",
+		"source": {
+			"flowId": "extraction-ar-honest",
+			"section": "experience",
+			"text": "Company: مختبر الأرز\nPosition: مطوّر",
+			"partial": false,
+			"contactValues": []
+		},
+		"candidate": {
+			"candidates": [
+				{
+					"id": "field-valid",
+					"section": "experience",
+					"entityId": "synthetic-entry",
+					"field": "company",
+					"value": "مختبر الأرز",
+					"rawDateText": null,
+					"evidenceIds": ["selected"],
+					"confirmation": "needs_review"
+				},
+				{
+					"id": "position",
+					"section": "experience",
+					"entityId": "synthetic-entry",
+					"field": "position",
+					"value": "مطوّر",
+					"rawDateText": null,
+					"evidenceIds": ["selected"],
+					"confirmation": "needs_review"
+				}
+			],
+			"questions": []
+		}
+	},
+	{
+		"id": "extraction-ar-mixed",
+		"feature": "extraction",
+		"locale": "ar-SA",
+		"source": {
+			"flowId": "extraction-ar-mixed",
+			"section": "experience",
+			"text": "Company: مختبر الأرز\nPosition: مطوّر",
+			"partial": false,
+			"contactValues": []
+		},
+		"candidate": {
+			"candidates": [
+				{
+					"id": "field-valid",
+					"section": "experience",
+					"entityId": "synthetic-entry",
+					"field": "company",
+					"value": "مختبر الأرز",
+					"rawDateText": null,
+					"evidenceIds": ["selected"],
+					"confirmation": "needs_review"
+				},
+				{
+					"id": "field-invalid",
+					"section": "experience",
+					"entityId": "synthetic-entry",
+					"field": "position",
+					"value": "Invented Employer",
+					"rawDateText": null,
+					"evidenceIds": ["selected"],
+					"confirmation": "needs_review"
+				}
+			],
+			"questions": [
+				{
+					"id": "source-question",
+					"passageId": null,
+					"prompt": "ما فترة العمل؟",
+					"evidenceIds": ["selected"]
+				}
+			]
+		}
+	},
+	{
+		"id": "extraction-ar-symbols",
+		"feature": "extraction",
+		"locale": "ar-SA",
+		"source": {
+			"flowId": "extraction-ar-symbols",
+			"section": "experience",
+			"text": "C++",
+			"partial": false,
+			"contactValues": []
+		},
+		"candidate": {
+			"candidates": [
+				{
+					"id": "wrong-symbol",
+					"section": "experience",
+					"entityId": "synthetic-entry",
+					"field": "description",
+					"value": "C",
+					"rawDateText": null,
+					"evidenceIds": ["selected"],
+					"confirmation": "needs_review"
+				}
+			],
+			"questions": []
+		}
+	},
+	{
+		"id": "extraction-ar-signs",
+		"feature": "extraction",
+		"locale": "ar-SA",
+		"source": {
+			"flowId": "extraction-ar-signs",
+			"section": "experience",
+			"text": "انخفض زمن الاستجابة بنسبة -١٢.٥٪.",
+			"partial": false,
+			"contactValues": []
+		},
+		"candidate": {
+			"candidates": [
+				{
+					"id": "wrong-sign",
+					"section": "experience",
+					"entityId": "synthetic-entry",
+					"field": "description",
+					"value": "انخفض زمن الاستجابة بنسبة ١٢.٥٪.",
+					"rawDateText": null,
+					"evidenceIds": ["selected"],
+					"confirmation": "needs_review"
+				}
+			],
+			"questions": []
+		}
+	},
+	{
+		"id": "extraction-ar-dates",
+		"feature": "extraction",
+		"locale": "ar-SA",
+		"source": {
+			"flowId": "extraction-ar-dates",
+			"section": "experience",
+			"text": "Dates: يناير ٢٠٢٠ - مارس ٢٠٢٢",
+			"partial": false,
+			"contactValues": []
+		},
+		"candidate": {
+			"candidates": [
+				{
+					"id": "field-valid",
+					"section": "experience",
+					"entityId": "synthetic-entry",
+					"field": "dates",
+					"value": {
+						"start": "2020-01",
+						"end": "2022-03",
+						"present": false
+					},
+					"rawDateText": "يناير ٢٠٢٠ - مارس ٢٠٢٢",
+					"evidenceIds": ["selected"],
+					"confirmation": "needs_review"
+				}
+			],
+			"questions": []
+		}
+	},
+	{
+		"id": "extraction-ar-question",
+		"feature": "extraction",
+		"locale": "ar-SA",
+		"source": {
+			"flowId": "extraction-ar-question",
+			"section": "experience",
+			"text": "Company: مختبر الأرز\nPosition: مطوّر\nلم أشرف على موظفين.",
+			"partial": false,
+			"contactValues": []
+		},
+		"candidate": {
+			"candidates": [
+				{
+					"id": "field-valid",
+					"section": "experience",
+					"entityId": "synthetic-entry",
+					"field": "company",
+					"value": "مختبر الأرز",
+					"rawDateText": null,
+					"evidenceIds": ["selected"],
+					"confirmation": "needs_review"
+				}
+			],
+			"questions": [
+				{
+					"id": "source-question",
+					"passageId": null,
+					"prompt": "كم عدد الموظفين الذين أشرفت عليهم؟",
+					"evidenceIds": ["selected"]
+				}
+			]
+		}
+	},
+	{
+		"id": "extraction-ar-field-binding",
+		"feature": "extraction",
+		"locale": "ar-SA",
+		"source": {
+			"flowId": "extraction-ar-field-binding",
+			"section": "experience",
+			"text": "Company: مختبر الأرز\nPosition: مطوّر",
+			"partial": false,
+			"contactValues": []
+		},
+		"candidate": {
+			"candidates": [
+				{
+					"id": "wrong-field",
+					"section": "experience",
+					"entityId": "synthetic-entry",
+					"field": "company",
+					"value": "مطوّر",
+					"rawDateText": null,
+					"evidenceIds": ["selected"],
+					"confirmation": "needs_review"
+				}
+			],
+			"questions": []
+		}
+	},
+	{
+		"id": "wording-ar-retention",
+		"feature": "wording",
+		"locale": "ar-SA",
+		"source": {
+			"section": "summary",
+			"text": "حافظت على سجلات الفحص. لم أشرف على موظفين.",
+			"target": {
+				"sectionId": "summary",
+				"field": "content"
+			}
+		},
+		"candidate": {
+			"proposals": [
+				{
+					"id": "wording",
+					"passageId": "selected",
+					"text": "احتفظت بسجلات الفحص.",
+					"reason": "صياغة موجزة.",
+					"evidenceIds": ["selected"],
+					"claims": [
+						{
+							"id": "claim-1",
+							"text": "احتفظت بسجلات الفحص.",
+							"evidenceIds": ["selected"]
+						}
+					]
+				}
+			],
+			"notes": [],
+			"questions": []
+		}
+	}
+]

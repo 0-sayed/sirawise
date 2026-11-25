@@ -1,10 +1,7 @@
-import { Trans } from "@lingui/react/macro";
 import { Badge } from "@reactive-resume/ui/components/badge";
+import { useAssistantCopy } from "@/features/assistant/copy.generated";
 
 export function FeatureBetaBadge() {
-	return (
-		<Badge variant="neutral">
-			<Trans context="feature.status.beta">Beta</Trans>
-		</Badge>
-	);
+	const copy = useAssistantCopy();
+	return <Badge variant="neutral">{copy("review.beta")}</Badge>;
 }

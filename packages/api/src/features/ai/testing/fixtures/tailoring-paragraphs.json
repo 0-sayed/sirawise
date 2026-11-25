@@ -1,0 +1,111 @@
+{
+	"html": "<p>Key achievements: Product operations director.</p><ul><li>Analyzed team needs, defined responsibilities and acceptance criteria within a clear annual operating plan.</li><li>Coordinated monthly reviews with 15 teams and recorded decisions, risks and follow-up actions in a shared register.</li><li>Designed weekly quality reports and reduced preparation time by 22% using operational data.</li><li>Documented exception cases and recovery procedures, then trained new colleagues to review data before handover.</li><li>Presented traceable results with clear measurement limits and a quarterly review to update the plan and improve the service.</li></ul>",
+	"patches": [
+		{
+			"id": "patch-experience-7",
+			"why": "Prioritize the existing reporting, exception and handover details and improve spacing.",
+			"after": "Key achievements: Product operations director. Designed weekly quality reports and reduced preparation time by 22% using operational data. Documented exception cases and recovery procedures, then trained new colleagues to review data before handover. Coordinated monthly reviews with 15 teams and recorded decisions, risks and follow-up actions in a shared register. Analyzed team needs, defined responsibilities and acceptance criteria within a clear annual operating plan. Presented traceable results with clear measurement limits and a quarterly review to update the plan and improve the service.",
+			"before": "Key achievements: Product operations director.Analyzed team needs, defined responsibilities and acceptance criteria within a clear annual operating plan.Coordinated monthly reviews with 15 teams and recorded decisions, risks and follow-up actions in a shared register.Designed weekly quality reports and reduced preparation time by 22% using operational data.Documented exception cases and recovery procedures, then trained new colleagues to review data before handover.Presented traceable results with clear measurement limits and a quarterly review to update the plan and improve the service.",
+			"claims": [
+				{
+					"id": "experience-7-claim-1",
+					"kind": "fact",
+					"text": "Key achievements: Product operations director.",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"]
+				},
+				{
+					"id": "experience-7-claim-2",
+					"kind": "fact",
+					"text": "Designed weekly quality reports and reduced preparation time by 22% using operational data.",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"]
+				},
+				{
+					"id": "experience-7-claim-3",
+					"kind": "fact",
+					"text": "Documented exception cases and recovery procedures, then trained new colleagues to review data before handover.",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"]
+				},
+				{
+					"id": "experience-7-claim-4",
+					"kind": "fact",
+					"text": "Coordinated monthly reviews with 15 teams and recorded decisions, risks and follow-up actions in a shared register.",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"]
+				},
+				{
+					"id": "experience-7-claim-5",
+					"kind": "fact",
+					"text": "Analyzed team needs, defined responsibilities and acceptance criteria within a clear annual operating plan.",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"]
+				},
+				{
+					"id": "experience-7-claim-6",
+					"kind": "fact",
+					"text": "Presented traceable results with clear measurement limits and a quarterly review to update the plan and improve the service.",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"]
+				}
+			],
+			"target": {
+				"field": "description",
+				"itemId": "demo-experience-7",
+				"roleId": null,
+				"resumeId": "01a1fd68-c171-7428-aa26-c004d5e2a4c3",
+				"sectionId": "experience",
+				"baseRevision": "2026-11-21T09:21:03.484Z"
+			},
+			"evidenceIds": ["cv-53:b8c8d63d2354c582"]
+		},
+		{
+			"id": "patch-experience-7",
+			"why": "Highlights reporting, exception documentation and handover training while preserving the existing achievements.",
+			"after": "Key achievements: Product operations director. Designed weekly quality reports and reduced preparation time by 22% using operational data. Documented exception cases and recovery procedures, then trained new colleagues to review data before handover. Coordinated monthly reviews with 15 teams and recorded decisions, risks and follow-up actions in a shared register. Analyzed team needs, defined responsibilities and acceptance criteria within a clear annual operating plan. Presented traceable results with clear measurement limits and a quarterly review to update the plan and improve the service.",
+			"before": "Key achievements: Product operations director.Analyzed team needs, defined responsibilities and acceptance criteria within a clear annual operating plan.Coordinated monthly reviews with 15 teams and recorded decisions, risks and follow-up actions in a shared register.Designed weekly quality reports and reduced preparation time by 22% using operational data.Documented exception cases and recovery procedures, then trained new colleagues to review data before handover.Presented traceable results with clear measurement limits and a quarterly review to update the plan and improve the service.",
+			"claims": [
+				{
+					"id": "experience-7-claim-1",
+					"kind": "fact",
+					"text": "Key achievements: Product operations director.",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"]
+				},
+				{
+					"id": "experience-7-claim-2",
+					"kind": "fact",
+					"text": "Designed weekly quality reports and reduced preparation time by 22% using operational data.",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"]
+				},
+				{
+					"id": "experience-7-claim-3",
+					"kind": "fact",
+					"text": "Documented exception cases and recovery procedures, then trained new colleagues to review data before handover.",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"]
+				},
+				{
+					"id": "experience-7-claim-4",
+					"kind": "fact",
+					"text": "Coordinated monthly reviews with 15 teams and recorded decisions, risks and follow-up actions in a shared register.",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"]
+				},
+				{
+					"id": "experience-7-claim-5",
+					"kind": "fact",
+					"text": "Analyzed team needs, defined responsibilities and acceptance criteria within a clear annual operating plan.",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"]
+				},
+				{
+					"id": "experience-7-claim-6",
+					"kind": "fact",
+					"text": "Presented traceable results with clear measurement limits and a quarterly review to update the plan and improve the service.",
+					"evidenceIds": ["cv-53:b8c8d63d2354c582"]
+				}
+			],
+			"target": {
+				"field": "description",
+				"itemId": "demo-experience-7",
+				"roleId": null,
+				"resumeId": "01a1fd68-c171-7428-aa26-c004d5e2a4c3",
+				"sectionId": "experience",
+				"baseRevision": "2026-11-21T09:21:03.484Z"
+			},
+			"evidenceIds": ["cv-53:b8c8d63d2354c582"]
+		}
+	]
+}

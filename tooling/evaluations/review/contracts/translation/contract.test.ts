@@ -314,7 +314,7 @@ it("scores validated MQM major/minor target spans as advisory, with unknown qual
 it("keeps the historical glossary in owner-review envelopes without authorizing global production aliases", () => {
 	const bytes = readFileSync(new URL("./glossary.json", import.meta.url));
 	expect(translationGlossaryHash).toBe(createHash("sha256").update(bytes).digest("hex"));
-	expect(translationContract.promptVersion).toBe("translation-v4-full-response-verification");
+	expect(translationContract.promptVersion).toBe("translation-v5-quota-batches");
 	expect(JSON.stringify(prepareCase(task).payload)).not.toContain(translationGlossaryHash);
 	expect(JSON.parse(required(prepareCase(task).payload.selections[0]).text).translationAliases).toBeUndefined();
 	const items = taskReviewItems(

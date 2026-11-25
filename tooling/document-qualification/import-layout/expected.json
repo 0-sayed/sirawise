@@ -1,0 +1,114 @@
+{
+	"app-arabic": {
+		"summary": ["مهندس برمجيات يعمل على خدمات آمنة.", "يحافظ على ترتيب البيانات."],
+		"fields": [
+			["شركة الأفق", "مهندس برمجيات"],
+			["شركة النور", "مطور تطبيقات"]
+		],
+		"name": "نواف السهلي",
+		"status": "complete"
+	},
+	"app-english": {
+		"summary": [
+			"Built AI-assisted tools for release reviews. The same team improved export speed by 22% and kept C++ support.",
+			"Kept results at -5 when the input was unchanged."
+		],
+		"summaryBullets": ["Measured latency in three services.", "Kept C++ support."],
+		"experienceDescription": [
+			"Developed release tools for independent audits and documented how each team reviewed production changes before publishing a new release to customers.",
+			"Maintained the release notes."
+		],
+		"fields": [
+			["Horizon Systems", "Software Engineer"],
+			["Northstar Labs", "Release Engineer"]
+		],
+		"name": "Ada Example",
+		"status": "complete"
+	},
+	"app-mixed": {
+		"summary": ["عملت في BandAI بصفة مهندسة.", "تحسن الأداء 22% مع دعم C++."],
+		"fields": [
+			["BandAI", "مهندسة برمجيات"],
+			["شركة النور", "Software Engineer"]
+		],
+		"name": "ليلى الحربي",
+		"duplicates": ["TypeScript", "TypeScript"],
+		"status": "complete"
+	},
+	"office-mixed": {
+		"summary": ["Built secure services with a 22% improvement.", "عملت في BandAI بصفة مهندسة."],
+		"fields": [
+			["BandAI", "Software Engineer"],
+			["Horizon Systems", "Release Engineer"]
+		],
+		"name": "Mariam Example",
+		"status": "complete"
+	},
+	"chromium-ar": {
+		"summary": [],
+		"fields": [["شركة الأفق", "مهندس برمجيات"]],
+		"name": "أحمد العتيبي",
+		"lines": [
+			"أحمد العتيبي",
+			"synthetic@example.test",
+			"+966 50 123 4567",
+			"الخبرة العملية",
+			"شركة الأفق | مهندس برمجيات",
+			"2020 - 2022",
+			"• Built secure services",
+			"التعليم",
+			"جامعة الملك سعود | Computer Science",
+			"2016 - 2020",
+			"المهارات",
+			"TypeScript"
+		],
+		"status": "complete"
+	},
+	"chromium-en": {
+		"summary": [],
+		"fields": [["Horizon Systems", "Software Engineer"]],
+		"name": "Ada Lovelace",
+		"lines": [
+			"Ada Lovelace",
+			"synthetic@example.test",
+			"+966 50 123 4567",
+			"Work Experience",
+			"Horizon Systems | Software Engineer",
+			"2020 - 2022",
+			"• Built secure services",
+			"Education",
+			"Example University | Computer Science",
+			"2016 - 2020",
+			"Skills",
+			"TypeScript"
+		],
+		"status": "complete"
+	},
+	"chromium-mixed": {
+		"summary": [],
+		"fields": [["شركة النور", "Software Engineer"]],
+		"name": "ليلى الحربي",
+		"lines": [
+			"ليلى الحربي",
+			"synthetic@example.test",
+			"+966 50 123 4567",
+			"الخبرة العملية",
+			"شركة النور | Software Engineer",
+			"2020 - 2022",
+			"• Built secure services",
+			"Education",
+			"جامعة جدة | Computer Science",
+			"2016 - 2020",
+			"المهارات",
+			"TypeScript"
+		],
+		"status": "complete"
+	},
+	"ambiguous": {
+		"summary": [],
+		"fields": [],
+		"name": "Retained rotated text",
+		"lines": ["Retained rotated text"],
+		"status": "partial"
+	}
+}

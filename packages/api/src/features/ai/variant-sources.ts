@@ -11,11 +11,15 @@ import {
 	careerFact,
 	resumeJobSelection,
 	resumeVariantSource,
+	aiReviewDecision,
+	aiTranslationBatch,
 } from "@reactive-resume/db/schema";
 import { buildJobPassages } from "@reactive-resume/resume/ats";
 import { blockText, readTarget } from "@reactive-resume/resume/proposals";
 import {
 	buildTranslationInventory,
+	protectTranslationPlaceholders,
+	translationBlockOnlyDivergence,
 	translationPlaceholders,
 	translationStructureMatches,
 } from "@reactive-resume/resume/translation";
@@ -23,9 +27,72 @@ import { letterGenerationInputSchema } from "@reactive-resume/schema/cover-lette
 import { reviewTargetSchema } from "@reactive-resume/schema/resume/ai-review";
 import { readJobRevision } from "../career/job-targets";
 import { lockDocumentOwner } from "../documents/ownership";
-import { buildModelPayload, resumeContactValues } from "./payload";
+import { isUneditedAiLanguageCopy } from "../resume/variants";
+import { buildModelPayload, minimizeModelText, resumeContactValues } from "./payload";
 import { lockReviewProfile } from "./review-sources";
-import { variantOperationContracts } from "./variant-contracts";
+import { getAiRuntime } from "./route-policy";
+import {
+	planTranslationBatches,
+	persistTranslationPlan,
+	restoreTranslationPlan,
+	recoverTranslationPlan,
+} from "./translation-batches";
+import { prepareTranslationFacts } from "./translation-invariants";
+import { selectVariantEvidence, variantOperationContracts } from "./variant-contracts";
+import { resolveWriterRoute } from "./writer-policy";
+
+export async function loadTranslationPlan(
+	tx: OwnerTransaction,
+	ownerId: string,
+	request: Pick<OperationRequest, "parameters">,
+	full: VariantSnapshot,
+	budget: { maxInputCodePoints: number; maxOutputTokens: number },
+) {
+	const batch = variantOperationContracts["review.translation"].parameters.parse(request.parameters).translationBatch;
+	const [session] = batch
+		? await tx
+				.select()
+				.from(aiTranslationBatch)
+				.where(and(eq(aiTranslationBatch.userId, ownerId), eq(aiTranslationBatch.rootOperationId, batch.rootId)))
+		: [];
+	let plan = session?.plan ? restoreTranslationPlan(full, session.plan) : planTranslationBatches(full, budget);
+	if (!session?.plan && batch && plan.fingerprint !== batch.planHash) {
+		if (batch.planVersion) conflict();
+		plan = recoverTranslationPlan(full, budget, batch.planHash) ?? conflict();
+	}
+	if (
+		batch &&
+		(batch.total !== plan.batches.length || batch.planHash !== plan.fingerprint || batch.planVersion !== plan.version)
+	)
+		conflict();
+	if (session && !session.plan)
+		await tx
+			.update(aiTranslationBatch)
+			.set({ plan: persistTranslationPlan(plan) })
+			.where(
+				and(eq(aiTranslationBatch.userId, ownerId), eq(aiTranslationBatch.rootOperationId, session.rootOperationId)),
+			);
+	return plan;
+}
+
+export function buildJobAdSegments(jobId: string, revision: string, text: string): Array<{ id: string; text: string }> {
+	const lines = text
+		.split(/\r?\n/u)
+		.map((line) => line.trim())
+		.filter(Boolean);
+	if (lines.length > 1) {
+		return lines.map((line, index) => ({ id: `job:${jobId}:${revision}:${index}`, text: line }));
+	}
+	const single = lines[0] ?? text.trim();
+	const sentences = single
+		.split(/(?<=[.!?؟])\s+/u)
+		.map((sentence) => sentence.trim())
+		.filter(Boolean);
+	if (sentences.length > 1) {
+		return sentences.map((sentence, index) => ({ id: `job:${jobId}:${revision}:${index}`, text: sentence }));
+	}
+	return [{ id: `job:${jobId}:${revision}`, text }];
+}
 
 function conflict(): never {
 	throw new ORPCError("CONFLICT", { data: { reason: "AI_SOURCE_CHANGED" } });
@@ -33,7 +100,8 @@ function conflict(): never {
 async function loadSourceSnapshot(
 	tx: OwnerTransaction,
 	ownerId: string,
-	request: Pick<OperationRequest, "kind" | "parameters" | "sources">,
+	request: Pick<OperationRequest, "kind" | "parameters" | "sources"> & Partial<Pick<OperationRequest, "route">>,
+	options?: { fullTranslation?: boolean; compactTranslation?: boolean },
 ): Promise<VariantSnapshot> {
 	const kind = request.kind as VariantOperationKind;
 	if (!Object.hasOwn(variantOperationContracts, kind)) throw new ORPCError("BAD_REQUEST");
@@ -48,12 +116,41 @@ async function loadSourceSnapshot(
 		.for("share");
 	if (!cv) throw new ORPCError("NOT_FOUND");
 	if (cv.isLocked) throw new ORPCError("RESUME_LOCKED", { status: 403 });
-	if (cv.updatedAt.toISOString() !== parameters.expectedUpdatedAt) conflict();
-	const expected: SourceRevision[] = [{ kind: "resume", id: cv.id, revision: cv.updatedAt.toISOString() }];
+	let copyRevisionMatchesPartialAutoApply = false;
+	if (cv.updatedAt.toISOString() !== parameters.expectedUpdatedAt) {
+		const rootId =
+			kind === "review.translation"
+				? (variantOperationContracts["review.translation"].parameters.parse(request.parameters).translationBatch
+						?.rootId ?? null)
+				: null;
+		if (rootId) {
+			const [autoApplied] = await tx
+				.select({ id: aiReviewDecision.id })
+				.from(aiReviewDecision)
+				.where(
+					and(
+						eq(aiReviewDecision.userId, ownerId),
+						eq(aiReviewDecision.operationId, rootId),
+						eq(aiReviewDecision.afterRevision, cv.updatedAt.toISOString()),
+					),
+				)
+				.limit(1);
+			if (autoApplied) copyRevisionMatchesPartialAutoApply = true;
+		}
+		if (!copyRevisionMatchesPartialAutoApply) conflict();
+	}
+	const expected: SourceRevision[] = [
+		{
+			kind: "resume",
+			id: cv.id,
+			revision: copyRevisionMatchesPartialAutoApply ? parameters.expectedUpdatedAt : cv.updatedAt.toISOString(),
+		},
+	];
 	const passages = buildJobPassages(cv.data);
 	const contactValues = resumeContactValues(cv.data);
 	const clean = (text: string) => {
 		const named = cv.data.basics.name ? text.replaceAll(cv.data.basics.name, "[NAME_1]") : text;
+		if (kind === "review.translation") return minimizeModelText(named, contactValues);
 		return (
 			buildModelPayload({
 				selections: [{ id: "selected", kind: "confirmed_content", section: "summary", text: named }],
@@ -65,7 +162,7 @@ async function loadSourceSnapshot(
 		category: contract.category,
 		resumeId: cv.id,
 		sourceRevision: parameters.expectedUpdatedAt,
-		cv: passages.map((passage) => ({ id: passage.id, section: passage.target.sectionId, text: clean(passage.text) })),
+		cv: passages.map((passage) => ({ id: passage.id, section: passage.target.sectionId, text: passage.text })),
 		jobAd: null,
 	};
 	const [provenance] = await tx
@@ -74,18 +171,20 @@ async function loadSourceSnapshot(
 		.where(and(eq(resumeVariantSource.userId, ownerId), eq(resumeVariantSource.resumeId, cv.id)));
 	let translationSource: typeof resume.$inferSelect | undefined;
 	if (kind === "review.tailoring" || kind === "review.translation") {
-		if (!provenance?.sourceResumeId || cv.variantKind !== (kind === "review.translation" ? "language" : "job"))
-			conflict();
+		const sourceResumeId = provenance?.sourceResumeId ?? (kind === "review.tailoring" ? cv.baseResumeId : null);
+		if (!sourceResumeId || cv.variantKind !== (kind === "review.translation" ? "language" : "job")) conflict();
 		const [source] = await tx
 			.select()
 			.from(resume)
-			.where(and(eq(resume.userId, ownerId), eq(resume.id, provenance.sourceResumeId), isNull(resume.trashedAt)))
+			.where(and(eq(resume.userId, ownerId), eq(resume.id, sourceResumeId), isNull(resume.trashedAt)))
 			.for("share");
 		if (!source) throw new ORPCError("NOT_FOUND");
 		const expectedSource =
 			kind === "review.translation"
 				? variantOperationContracts[kind].parameters.parse(request.parameters).expectedSourceRevision
-				: (provenance.acceptedSourceRevision ?? provenance.sourceRevision);
+				: provenance
+					? (provenance.acceptedSourceRevision ?? provenance.sourceRevision)
+					: source.updatedAt.toISOString();
 		if (source.isLocked || source.updatedAt.toISOString() !== expectedSource) conflict();
 		expected.push({ kind: "resume", id: source.id, revision: source.updatedAt.toISOString() });
 		if (kind === "review.translation") translationSource = source;
@@ -118,8 +217,7 @@ async function loadSourceSnapshot(
 			conflict();
 		const job = await readJobRevision(tx, ownerId, jobParameters.jobId, jobParameters.jobRevision);
 		expected.push({ kind: "job", id: job.jobId, revision: job.revision });
-		// One exact span avoids truncating or silently dropping any part of a pasted advert.
-		snapshot.jobAd = { segments: [{ id: `job:${job.jobId}:${job.revision}`, text: clean(job.text) }] };
+		snapshot.jobAd = { segments: buildJobAdSegments(job.jobId, job.revision, job.text) };
 	}
 	if (kind === "review.summary") {
 		const summaryParameters = variantOperationContracts[kind].parameters.parse(request.parameters);
@@ -136,7 +234,7 @@ async function loadSourceSnapshot(
 					...passage.target,
 					itemId: passage.target.itemId ?? null,
 					roleId: passage.target.roleId ?? null,
-					text: clean(blockText(readTarget(cv.data, passage.target) ?? "")),
+					text: blockText(readTarget(cv.data, passage.target) ?? ""),
 					evidenceIds: [passage.id],
 				})),
 			order: Object.entries(cv.data.sections).map(([sectionId, section]) => ({
@@ -152,23 +250,38 @@ async function loadSourceSnapshot(
 			provenance.targetLocale === translationSource.data.metadata.page.locale
 		)
 			conflict();
-		if (!translationStructureMatches(translationSource.data, cv.data))
+		if (
+			!translationStructureMatches(translationSource.data, cv.data) &&
+			!(
+				translationBlockOnlyDivergence(translationSource.data, cv.data) &&
+				(await isUneditedAiLanguageCopy(tx, ownerId, cv))
+			)
+		)
 			throw new ORPCError("CONFLICT", { data: { reason: "TRANSLATION_STRUCTURE_CHANGED" } });
 		const inventory = buildTranslationInventory(translationSource.data);
 		if (inventory.blocking.length)
-			throw new ORPCError("PRECONDITION_FAILED", { data: { reason: "TRANSLATION_PARTIAL_COVERAGE" } });
-		const placeholders = translationPlaceholders(translationSource.data);
-		snapshot.cv = inventory.segments.map((segment) => {
-			const protectedText = placeholders.reduce(
-				(text, entry) => text.replaceAll(entry.value, entry.token),
-				segment.text,
-			);
-			return { id: segment.id, section: segment.target.sectionId, text: clean(protectedText) };
-		});
+			throw new ORPCError("PRECONDITION_FAILED", {
+				data: { reason: "TRANSLATION_PARTIAL_COVERAGE", sections: inventory.blockingSections },
+			});
 		snapshot.direction = provenance.targetLocale === "en-US" ? "ar-en" : "en-ar";
+		const batch = variantOperationContracts[kind].parameters.parse(request.parameters).translationBatch;
+		if (batch?.planVersion || options?.compactTranslation) {
+			if (batch && !batch.planVersion) conflict();
+			const prepared = prepareTranslationFacts(translationSource.data, inventory.segments);
+			snapshot.translationProtection = {
+				...prepared,
+				binding: { direction: snapshot.direction, sourceRevision: snapshot.sourceRevision },
+			};
+			snapshot.cv = [...prepared.maskedSegments];
+		} else {
+			const placeholders = translationPlaceholders(translationSource.data);
+			snapshot.cv = inventory.segments.map((segment) => ({
+				id: segment.id,
+				section: segment.target.sectionId,
+				text: protectTranslationPlaceholders(segment.text, placeholders),
+			}));
+		}
 	}
-	if (snapshot.cv.length > 49 || snapshot.cv.some((fact) => fact.text.length > 4000))
-		throw new ORPCError("PRECONDITION_FAILED", { data: { reason: "AI_INPUT_LIMIT" } });
 	if (
 		request.sources.length !== expected.length ||
 		expected.some(
@@ -179,7 +292,57 @@ async function loadSourceSnapshot(
 		)
 	)
 		conflict();
-	return snapshot;
+	const routes = getAiRuntime().routes.filter(
+		(route) =>
+			!request.route ||
+			(route.routeId === request.route.routeId &&
+				route.routeRevision === request.route.routeRevision &&
+				route.configRevision === request.route.configRevision),
+	);
+	const limit = Math.min(32000, ...routes.map((route) => route.maxInputCodePoints));
+	try {
+		if (kind === "review.translation") {
+			const full = snapshot.translationProtection
+				? snapshot
+				: { ...snapshot, cv: snapshot.cv.map((fact) => ({ ...fact, text: clean(fact.text) })) };
+			if (options?.fullTranslation) return full;
+			const budget = {
+				maxInputCodePoints: limit,
+				maxOutputTokens: Math.min(
+					4096,
+					...routes.map((route) => resolveWriterRoute(route, request, getAiRuntime().writerConfig).maxOutputTokens),
+				),
+			};
+			const plan = await loadTranslationPlan(tx, ownerId, request, full, budget);
+			const batch = variantOperationContracts[kind].parameters.parse(request.parameters).translationBatch;
+			const part = plan.batches[batch?.index ?? 0];
+			if (!part) conflict();
+			return { ...part, translationBatchCount: plan.batches.length, translationPlanHash: plan.fingerprint };
+		}
+		const selected = selectVariantEvidence(snapshot, limit);
+		return selectVariantEvidence(
+			{
+				...selected,
+				cv: selected.cv.map((fact) => ({ ...fact, text: clean(fact.text) })),
+				jobAd: selected.jobAd
+					? { segments: selected.jobAd.segments.map((segment) => ({ ...segment, text: clean(segment.text) })) }
+					: null,
+				...(selected.variant
+					? {
+							variant: {
+								...selected.variant,
+								fields: selected.variant.fields.map((field) => ({ ...field, text: clean(field.text) })),
+							},
+						}
+					: {}),
+			},
+			limit,
+		);
+	} catch (error) {
+		if (error instanceof Error && error.message === "AI_INPUT_LIMIT")
+			throw new ORPCError("PRECONDITION_FAILED", { data: { reason: "AI_INPUT_LIMIT" } });
+		throw error;
+	}
 }
 
 export const loadVariantSnapshot = loadSourceSnapshot;
@@ -222,20 +385,43 @@ export function prepareVariantReview(ownerId: string, input: { kind: VariantOper
 				.select()
 				.from(resumeVariantSource)
 				.where(and(eq(resumeVariantSource.userId, ownerId), eq(resumeVariantSource.resumeId, parameters.resumeId)));
-			if (!provenance?.sourceResumeId) throw new ORPCError("NOT_FOUND");
-			const sourceRevision =
-				kind === "review.translation"
-					? variantOperationContracts[kind].parameters.parse(raw).expectedSourceRevision
-					: (provenance.acceptedSourceRevision ?? provenance.sourceRevision);
-			sources.push({ kind: "resume", id: provenance.sourceResumeId, revision: sourceRevision });
+			if (provenance?.sourceResumeId) {
+				const sourceRevision =
+					kind === "review.translation"
+						? variantOperationContracts[kind].parameters.parse(raw).expectedSourceRevision
+						: (provenance.acceptedSourceRevision ?? provenance.sourceRevision);
+				sources.push({ kind: "resume", id: provenance.sourceResumeId, revision: sourceRevision });
+			} else if (kind === "review.tailoring") {
+				const [cv] = await tx
+					.select({ baseResumeId: resume.baseResumeId, variantKind: resume.variantKind })
+					.from(resume)
+					.where(and(eq(resume.userId, ownerId), eq(resume.id, parameters.resumeId), isNull(resume.trashedAt)));
+				if (!cv?.baseResumeId || cv.variantKind !== "job") throw new ORPCError("NOT_FOUND");
+				const [base] = await tx
+					.select({ id: resume.id, updatedAt: resume.updatedAt, isLocked: resume.isLocked })
+					.from(resume)
+					.where(and(eq(resume.userId, ownerId), eq(resume.id, cv.baseResumeId), isNull(resume.trashedAt)));
+				if (!base) throw new ORPCError("NOT_FOUND");
+				sources.push({ kind: "resume", id: base.id, revision: base.updatedAt.toISOString() });
+			} else {
+				throw new ORPCError("NOT_FOUND");
+			}
 		}
-		const snapshot = await loadVariantSnapshot(tx, ownerId, { kind, parameters, sources });
+		const translationHandler = kind === "review.translation" ? getAiRuntime().handlers[kind] : undefined;
+		const snapshot = await loadVariantSnapshot(
+			tx,
+			ownerId,
+			{ kind, parameters, sources },
+			{
+				compactTranslation: Boolean(translationHandler?.translationPlanVersion),
+			},
+		);
 		return {
 			kind,
 			parameters,
 			sources,
 			evidenceIds: snapshot.cv.map((fact) => fact.id),
-			contractVersion: variantOperationContracts[kind].schemaVersion,
+			contractVersion: translationHandler?.schemaVersion ?? variantOperationContracts[kind].schemaVersion,
 		};
 	});
 }

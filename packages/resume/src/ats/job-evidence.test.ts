@@ -123,3 +123,39 @@ it("cites Greek uppercase terms using whole-word lowercase normalization", () =>
 	expect(report.terms[0]?.jobSpans).toEqual([{ id: "job-0-0", start: 0, end: 4, quote: "ΟΔΟΣ" }]);
 	expect(report.terms[0]?.cvSpans).toContainEqual(expect.objectContaining({ start: 3, end: 7, quote: "ΟΔΟΣ" }));
 });
+
+it("keeps meaningful job terms and drops generic wording from selected and excluded lists", () => {
+	const report = analyzeJobTerms({
+		identity,
+		jobText:
+			"take, help, existing, code, growing, launch, decisions, technical, technology, complex, React, Kubernetes, financial services, cloud security",
+		passages: [passage("React cloud security")],
+	});
+	const terms = [...report.terms.map((t) => t.term), ...report.excludedTerms];
+	for (const word of [
+		"take",
+		"help",
+		"existing",
+		"code",
+		"growing",
+		"launch",
+		"decisions",
+		"technical",
+		"technology",
+		"complex",
+	])
+		expect(terms).not.toContain(word);
+	expect(terms).toContain("react");
+	expect(terms).toContain("kubernetes");
+	expect(terms).toContain("financial services");
+	expect(report.matchedCount).toBe(report.terms.filter((t) => t.matched).length);
+});
+
+it("excludes Arabic function words and phrases made from them from literal coverage", () => {
+	const report = analyzeJobTerms({
+		identity,
+		jobText: "على، في، إلى، مع، الذي، من أجل، وقد، بالإضافة إلى، Kubernetes",
+		passages: [passage("على في إلى مع الذي من أجل وقد بالإضافة إلى")],
+	});
+	expect(report.terms.map(({ term, matched }) => [term, matched])).toEqual([["kubernetes", false]]);
+});

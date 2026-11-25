@@ -653,10 +653,11 @@ export const useResumeStore = create<ResumeStore>()(
 			}
 			let result: string | Resume;
 			try {
-				result =
-					choice === "save-copy"
-						? (await orpc.resume.confirmImport.call(runtime.conflictCopy as ImportReviewInput, { signal })).resumeId
-						: ((await orpc.resume.getById.call({ id: resume.id }, { signal })) as Resume);
+				if (choice === "save-copy") {
+					const saved = await orpc.resume.confirmImport.call(runtime.conflictCopy as ImportReviewInput, { signal });
+					if (!saved.resumeId) throw new Error("CV copy confirmation did not return a CV");
+					result = saved.resumeId;
+				} else result = (await orpc.resume.getById.call({ id: resume.id }, { signal })) as Resume;
 			} catch (error) {
 				// This code guarantees rollback. Unknown outcomes retain their identical retry payload.
 				if (error instanceof ORPCError && error.code === "IMPORT_REVIEW_CONFLICT") runtime.conflictCopy = undefined;

@@ -4,6 +4,19 @@ import { resolveReviewVerifierRoute } from "@reactive-resume/api/features/ai/ver
 import { resolveWriterRoute } from "@reactive-resume/api/features/ai/writer-policy";
 import { realAiConfig } from "./real-ai-config";
 
+it.each(["translation", "job-evidence", "extraction", "tailoring"])(
+	"keeps completion headroom and reserves the cost for local %s verification",
+	(kind) => {
+		const { route } = realAiConfig({ OPENROUTER_API_KEY: "fake", LOCAL_REAL_AI_PIPELINES: "candidates" });
+		const writer = resolveWriterRoute(route, { kind: `review.${kind}`, parameters: {} });
+		const verifier = resolveReviewVerifierRoute(writer);
+		expect(verifier.maxOutputTokens).toBe(16384);
+		expect(completionTokenLimit(verifier)).toBe(20480);
+		expect(verifier.maxCallCostMicros).toBe(100000);
+		expect(writer.maxCallCostMicros + verifier.maxCallCostMicros).toBeLessThanOrEqual(writer.requestCapMicros);
+	},
+);
+
 it("refuses production and missing keys", () => {
 	expect(() => realAiConfig({ NODE_ENV: "production", OPENROUTER_API_KEY: "fake" })).toThrow("DEV_ONLY");
 	expect(() => realAiConfig({})).toThrow("OPENROUTER_API_KEY_REQUIRED");
@@ -18,7 +31,10 @@ it("pins the provisional writer and verifier bundle with bounded budgets", () =>
 		reasoningEffort: "low",
 		maxRepairs: 0,
 		maxCalls: 2,
-		dayCapMicros: 3000000,
+		transientRetries: 1,
+		callTimeoutMs: 60000,
+		configRevision: "personal-career-writers-2026-11-21-provisional-v3",
+		dayCapMicros: 15000000,
 	});
 	expect(config.route.verifier?.policy).toEqual({
 		model: "deepseek/deepseek-v4.1-flash-1017",
@@ -28,6 +44,7 @@ it("pins the provisional writer and verifier bundle with bounded budgets", () =>
 	expect(config.allowance).toEqual({ ownerId: "local-owner", limit: 50 });
 	expect(realAiConfig({ OPENROUTER_API_KEY: "fake" }).allowance).toBeUndefined();
 });
+
 it("only permits explicitly enabled loopback stub URLs", () => {
 	for (const url of ["https://example.com/api/v1", "http://127.0.0.1:3099/api/v1"]) {
 		expect(() => realAiConfig({ OPENROUTER_API_KEY: "fake", OPENROUTER_BASE_URL: url })).toThrow("LOCAL_STUB_ONLY");
@@ -79,9 +96,9 @@ it("approves the existing result-question mode on Terra medium separately", () =
 
 it.each([
 	["summary", "openai/gpt-6.1-terra", "medium", 768, 1536],
-	["job-evidence", "openai/gpt-6.1-terra", "medium", 512, 1024],
-	["tailoring", "openai/gpt-6.1-terra", "medium", 512, 1024],
-	["translation", "openai/gpt-6-luna", "low", 768, 960],
+	["job-evidence", "openai/gpt-6.1-terra", "medium", 4096, 8192],
+	["tailoring", "openai/gpt-6.1-terra", "medium", 4096, 8192],
+	["translation", "openai/gpt-6-luna", "low", 4096, 5120],
 	["cover-letter", "openai/gpt-6.1-terra", "medium", 1536, 3072],
 	["interview-prep", "openai/gpt-6.1-terra", "medium", 1536, 3072],
 ])(

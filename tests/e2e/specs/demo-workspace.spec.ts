@@ -51,17 +51,16 @@ test("the fictional demo survives reruns and interface language changes", async 
 	expect(master.facts.filter((fact) => fact.structured?.section === "experience").length).toBeGreaterThanOrEqual(15);
 	expect(master.facts.filter((fact) => fact.structured?.section === "skills").length).toBeGreaterThanOrEqual(8);
 	const documents = await Promise.all(resumes.map((resume) => api.resume.getById({ id: resume.id })));
-	const exemplars = [
-		documents.find((row) => row.data.metadata.page.locale === "ar-SA"),
-		documents.find((row) => row.data.metadata.page.locale === "en-US" && !row.applicationId),
-		documents.find(
+	const exemplars = demoFixture.resumes.map((fixture) => {
+		const matches = documents.filter(
 			(row) =>
-				row.data.basics.headline === demoFixture.resumes[2].basics.headline &&
-				row.applicationId &&
-				!row.name.includes(" — "),
-		),
-	];
-	expect(exemplars.every(Boolean)).toBe(true);
+				row.name === "السيرة الأساسية" &&
+				row.data.metadata.page.locale === fixture.metadata.page.locale &&
+				row.data.basics.headline === fixture.basics.headline,
+		);
+		expect(matches).toHaveLength(1);
+		return matches[0];
+	});
 	const summaries = await api.documents.list({ trashed: false });
 	expect(summaries.filter((row) => row.type === "resume")).toHaveLength(15);
 	expect(applications.filter((row) => row.status !== "saved" && row.resumeId)).toHaveLength(16);

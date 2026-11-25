@@ -3,6 +3,7 @@ import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate, useParams } from "@tanstack/react-router";
+import { useState } from "react";
 import z from "zod";
 import { Button } from "@reactive-resume/ui/components/button";
 import {
@@ -20,6 +21,8 @@ import { toast } from "@reactive-resume/ui/components/toast";
 import { generateRandomName } from "@reactive-resume/utils/string";
 import { useDialogStore } from "../store";
 import { ChipInput } from "@/components/input/chip-input";
+import { BaseCvLimitNotice } from "@/features/documents/base-cv-limit";
+import { isBaseCvLimit } from "@/features/documents/creation-error";
 import { usePatchResume } from "@/features/resume/builder/draft";
 import { useFormBlocker } from "@/hooks/use-form-blocker";
 import { getResumeErrorMessage } from "@/libs/error-message";
@@ -120,6 +123,7 @@ export function UpdateResumeDialog({ data }: DialogProps<"resume.update">) {
 export function DuplicateResumeDialog({ data }: DialogProps<"resume.duplicate">) {
 	const navigate = useNavigate();
 	const closeDialog = useDialogStore((state) => state.closeDialog);
+	const [baseCvLimit, setBaseCvLimit] = useState<unknown>(null);
 
 	const { mutate: duplicateResume, isPending } = useMutation(orpc.resume.duplicate.mutationOptions());
 
@@ -141,6 +145,7 @@ export function DuplicateResumeDialog({ data }: DialogProps<"resume.duplicate">)
 					void navigate({ to: "/builder/$resumeId", params: { resumeId: id } });
 				},
 				onError: (error) => {
+					if (isBaseCvLimit(error)) setBaseCvLimit(error);
 					toast.add({ type: "error", description: getResumeErrorMessage(error), id: toastId });
 				},
 			});
@@ -170,12 +175,22 @@ export function DuplicateResumeDialog({ data }: DialogProps<"resume.duplicate">)
 				}}
 			>
 				<ResumeForm form={form} />
+				{!!baseCvLimit && (
+					<BaseCvLimitNotice
+						error={baseCvLimit}
+						busy={isPending}
+						onOpen={(resumeId) => {
+							closeDialog();
+							void navigate({ to: "/builder/$resumeId", params: { resumeId } });
+						}}
+					/>
+				)}
 
 				<DialogFooter>
 					<Button variant="secondary" disabled={isPending} onClick={() => void requestClose()}>
 						<Trans>Cancel</Trans>
 					</Button>
-					<Button type="submit" disabled={isPending}>
+					<Button type="submit" disabled={isPending || !!baseCvLimit}>
 						<Trans>Duplicate</Trans>
 					</Button>
 				</DialogFooter>

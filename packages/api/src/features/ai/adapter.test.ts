@@ -1,11 +1,139 @@
+import { once } from "node:events";
+import { createServer } from "node:http";
+import net from "node:net";
 import { expect, it, vi } from "vite-plus/test";
 import { zodSchema } from "ai";
 import { z } from "zod";
 import { masterFields } from "@reactive-resume/schema/career-master";
-import { executeApprovedStep } from "./adapter";
+import {
+	AI_CONNECT_ATTEMPT_TIMEOUT_MS,
+	AiTransportError,
+	ensureAiTransportConnectBudget,
+	executeApprovedStep,
+	failedBeforeDispatch,
+	translationWriterCallBound,
+	verificationCallBound,
+	type ApprovedStepInput,
+} from "./adapter";
+import { buildModelPayload } from "./payload";
 import { reviewHandlers } from "./review-handlers";
+import { boundQuestionEvidence } from "./review-sources";
 import { withAiRuntime } from "./route-policy";
 import { syntheticRoute, syntheticRuntime } from "./testing/runtime";
+
+it("enforces the priced verifier's journaled bound before sending the exact structured request", async () => {
+	const route = {
+		...syntheticRoute,
+		model: "deepseek/deepseek-v4.1-flash-1017",
+		downstreamProvider: "together",
+		boundByTogetherPricing: true,
+		maxCallCostMicros: 100_000,
+		maxOutputTokens: 16_384,
+		reasoningEffort: "low" as const,
+	};
+	const input: ApprovedStepInput = {
+		route,
+		operationId: "operation",
+		attemptId: "attempt",
+		stepId: "verify",
+		payload: { selections: [{ section: "summary", text: "خبرة في تطوير البرمجيات" }] },
+		outputSchema: z.strictObject({ text: z.string() }),
+		signal: new AbortController().signal,
+	};
+	const bound = await verificationCallBound(route, input);
+	expect(bound).toBeGreaterThan(24_576);
+	expect(bound).toBeLessThan(45_000);
+	if (!syntheticRuntime.fetch) throw new Error("Missing synthetic transport");
+	const fetch = vi.fn(syntheticRuntime.fetch);
+	await withAiRuntime({ ...syntheticRuntime, fetch }, async () => {
+		const result = await executeApprovedStep({ ...input, verificationBoundMicros: bound });
+		expect(result.outcome).toBe("valid");
+		expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toMatchObject({
+			max_tokens: 20_480,
+			provider: {
+				only: ["together"],
+				max_price: { prompt: 0.3, completion: 1.2, request: 0 },
+				allow_fallbacks: false,
+				require_parameters: true,
+				data_collection: "deny",
+				zdr: true,
+			},
+		});
+		const blocked = await executeApprovedStep({
+			...input,
+			verificationBoundMicros: bound,
+			payload: { selections: [{ section: "summary", text: "界".repeat(2000) }] },
+		});
+		expect(blocked).toMatchObject({ outcome: "unsupported", costMicros: 0 });
+		expect(fetch).toHaveBeenCalledTimes(1);
+	});
+});
+
+it("rejects a paid writer request whose enforced token pricing exceeds 100000 micros before dispatch", async () => {
+	const fetch = vi.fn(syntheticRuntime.fetch);
+	const route = {
+		...syntheticRoute,
+		model: "openai/gpt-6.1-terra",
+		downstreamProvider: "azure",
+		evidenceVersion: "paid-route-fixture",
+		maxCallCostMicros: 100_000,
+		maxOutputTokens: 16_384,
+		reasoningEffort: "high" as const,
+	};
+	const result = await withAiRuntime({ ...syntheticRuntime, fetch }, () =>
+		executeApprovedStep({
+			route,
+			operationId: "operation",
+			attemptId: "attempt",
+			stepId: "generate",
+			payload: { selections: [{ section: "summary", text: "Confirmed work." }] },
+			outputSchema: z.strictObject({ text: z.string() }),
+			signal: new AbortController().signal,
+		}),
+	);
+	expect(result).toMatchObject({ outcome: "unsupported", costMicros: 0 });
+	expect(fetch).not.toHaveBeenCalled();
+});
+
+it("dispatches a writer at the 100000-micro bound and blocks one extra byte", async () => {
+	const fetch = vi.fn(syntheticRuntime.fetch);
+	const input: ApprovedStepInput = {
+		route: {
+			...syntheticRoute,
+			model: "openai/gpt-6.1-terra",
+			downstreamProvider: "azure",
+			evidenceVersion: "paid-route-fixture",
+			maxCallCostMicros: 100_000,
+			maxOutputTokens: 12_000,
+			reasoningEffort: "none",
+		},
+		operationId: "operation",
+		attemptId: "attempt",
+		stepId: "generate",
+		payload: { selections: [{ section: "summary", text: "" }] },
+		outputSchema: z.strictObject({ text: z.string() }),
+		signal: new AbortController().signal,
+	};
+	await withAiRuntime({ ...syntheticRuntime, fetch }, async () => {
+		await executeApprovedStep(input);
+		const wire = JSON.parse(String(fetch.mock.calls[0]?.[1]?.body));
+		expect(wire.provider).toMatchObject({ only: ["azure"], require_parameters: true, allow_fallbacks: false });
+		expect(wire.provider).not.toHaveProperty("max_price");
+		expect(wire).not.toHaveProperty("prompt_cache_options");
+		const promptBytes = Buffer.byteLength(
+			JSON.stringify([wire.messages[0].content, wire.messages[1].content, wire.response_format.json_schema.schema]),
+		);
+		const limit = Math.floor((100_000 - wire.max_tokens * 6) / 1.2) - 4096 - promptBytes;
+		const withText = (length: number): ApprovedStepInput => ({
+			...input,
+			payload: { selections: [{ section: "summary", text: "a".repeat(length) }] },
+		});
+		await executeApprovedStep(withText(limit));
+		expect(fetch).toHaveBeenCalledTimes(2);
+		expect(await executeApprovedStep(withText(limit + 1))).toMatchObject({ outcome: "unsupported", costMicros: 0 });
+		expect(fetch).toHaveBeenCalledTimes(2);
+	});
+});
 
 it("supplies the exact extraction field contract and executable claim-boundary examples to writers", () => {
 	const extraction = reviewHandlers["review.extraction"].systemPrompt ?? "";
@@ -106,6 +234,8 @@ it("serializes one structured request with no fallback, bounded tokens and no SD
 		outcome: "valid",
 		output: { text: "Useful result" },
 		responseId: "response-1",
+		observedModel: "synthetic/model",
+		observedProvider: "Test",
 		costMicros: 10,
 	});
 	expect(request).toMatchObject({
@@ -129,7 +259,13 @@ it.each([
 				JSON.stringify({
 					id: "response",
 					choices: [{ index: 0, message: { role: "assistant", content }, finish_reason: finish }],
-					usage: { prompt_tokens: 4, completion_tokens: 3, total_tokens: 7, cost: 0.00001 },
+					usage: {
+						prompt_tokens: 4,
+						completion_tokens: 3,
+						completion_tokens_details: { reasoning_tokens: 2 },
+						total_tokens: 7,
+						cost: 0.00001,
+					},
 				}),
 				{ headers: { "content-type": "application/json" } },
 			),
@@ -145,7 +281,7 @@ it.each([
 			signal: new AbortController().signal,
 		}),
 	);
-	expect(result).toMatchObject({ outcome, output: null, costMicros: 10 });
+	expect(result).toMatchObject({ outcome, output: null, costMicros: 10, outputTokens: 3, reasoningTokens: 2 });
 	expect(fetch).toHaveBeenCalledTimes(1);
 });
 
@@ -175,6 +311,145 @@ it("holds ambiguous billing without retrying a dispatched request after owner ca
 	const result = await pending;
 	clearTimeout(timer);
 	expect(result).toMatchObject({ outcome: "transient", output: null, costMicros: null });
+	expect(fetch).toHaveBeenCalledTimes(1);
+});
+
+it("identifies a provider call timeout without retrying its unknown expense", async () => {
+	let calls = 0;
+	const result = await withAiRuntime(
+		{
+			...syntheticRuntime,
+			fetch: (_url: unknown, init?: RequestInit) =>
+				new Promise<Response>((_resolve, reject) => {
+					calls++;
+					const signal = init?.signal;
+					if (!signal) throw new Error("Missing abort signal");
+					if (signal.aborted) reject(signal.reason);
+					else signal.addEventListener("abort", () => reject(signal.reason), { once: true });
+				}),
+		},
+		() =>
+			executeApprovedStep({
+				route: { ...syntheticRoute, callTimeoutMs: 5 },
+				operationId: "timeout",
+				attemptId: "attempt",
+				stepId: "generate",
+				payload: { selections: [{ section: "skills", text: "TypeScript" }] },
+				outputSchema: z.strictObject({ text: z.string() }),
+				signal: new AbortController().signal,
+			}),
+	);
+	expect(result).toMatchObject({
+		output: null,
+		inputTokens: null,
+		outputTokens: null,
+		costMicros: null,
+		failure: { timedOut: true, abortCause: "call_timeout" },
+	});
+	expect(calls).toBe(1);
+});
+
+it.each(["cancelled", "operation_deadline"] as const)(
+	"distinguishes %s from a verifier call timeout",
+	async (cause) => {
+		const controller = new AbortController();
+		const result = await withAiRuntime(
+			{
+				...syntheticRuntime,
+				fetch: async (_url, init) => {
+					controller.abort(new Error(cause === "cancelled" ? "AI_CANCELLED" : "AI_DEADLINE"));
+					init?.signal?.throwIfAborted();
+					throw new Error("Expected abort");
+				},
+			},
+			() =>
+				executeApprovedStep(
+					{
+						route: syntheticRoute,
+						operationId: "aborted",
+						attemptId: "attempt",
+						stepId: "verify",
+						payload: { selections: [] },
+						outputSchema: z.strictObject({ text: z.string() }),
+						signal: controller.signal,
+					},
+					{ retry: false },
+				),
+		);
+		expect(result).toMatchObject({ costMicros: null, output: null, failure: { abortCause: cause } });
+		expect(result.failure?.timedOut).toBeUndefined();
+	},
+);
+
+it("keeps a measured transport cost when the operation is cancelled", async () => {
+	const controller = new AbortController();
+	const result = await withAiRuntime(
+		{
+			...syntheticRuntime,
+			fetch: async () => {
+				controller.abort();
+				throw new AiTransportError(controller.signal.reason, {
+					httpStatus: null,
+					bytesReceived: false,
+					generationId: null,
+					costMicros: 700,
+				});
+			},
+		},
+		() =>
+			executeApprovedStep(
+				{
+					route: syntheticRoute,
+					operationId: "cancelled",
+					attemptId: "measured",
+					stepId: "verify",
+					payload: { selections: [] },
+					outputSchema: z.strictObject({ text: z.string() }),
+					signal: controller.signal,
+				},
+				{ retry: false },
+			),
+	);
+	expect(result).toMatchObject({ costMicros: 700, output: null, failure: { abortCause: "cancelled" } });
+});
+
+it.each([
+	{ model: "other/model", provider: "Test" },
+	{ model: "synthetic/model", provider: "Other" },
+	{ model: "synthetic/model" },
+	{ provider: "Test" },
+])("rejects a usable verifier response without the exact observed identity (%j)", async (identity) => {
+	const fetch = vi.fn(async () =>
+		Response.json({
+			...identity,
+			id: "synthetic-verifier",
+			choices: [{ index: 0, message: { role: "assistant", content: '{"text":"checked"}' }, finish_reason: "stop" }],
+			usage: { prompt_tokens: 4, completion_tokens: 3, total_tokens: 7, cost: 0.00001 },
+		}),
+	);
+	const result = await withAiRuntime({ ...syntheticRuntime, fetch }, () =>
+		executeApprovedStep(
+			{
+				route: syntheticRoute,
+				operationId: "identity",
+				attemptId: "attempt",
+				stepId: "verify",
+				payload: { selections: [] },
+				outputSchema: z.strictObject({ text: z.string() }),
+				signal: new AbortController().signal,
+			},
+			{ retry: false },
+		),
+	);
+	expect(result).toMatchObject({
+		outcome: "invalid",
+		output: null,
+		costMicros: 10,
+		responseId: "synthetic-verifier",
+		observedModel: identity.model ?? null,
+		observedProvider: identity.provider ?? null,
+		failure: { code: "AI_VERIFIER_IDENTITY_MISMATCH" },
+	});
 	expect(fetch).toHaveBeenCalledTimes(1);
 });
 
@@ -456,6 +731,114 @@ it("limits concurrent calls to two per model and releases slots", async () => {
 	expect(active).toBe(0);
 });
 
+it("checks revoked consent after the verifier slot opens and records zero cost", async () => {
+	const started = Promise.withResolvers<void>();
+	const release = Promise.withResolvers<void>();
+	const fetch = vi.fn(async () => {
+		started.resolve();
+		await release.promise;
+		return Response.json({ error: { code: 400, message: "unsupported" } }, { status: 400 });
+	});
+	const input = {
+		route: syntheticRoute,
+		operationId: "op",
+		attemptId: "attempt",
+		stepId: "verify",
+		payload: { selections: [{ section: "skills" as const, text: "TypeScript" }] },
+		outputSchema: z.strictObject({ text: z.string() }),
+		signal: new AbortController().signal,
+	};
+	let consent = true;
+	const withDispatch = vi.fn(async (send: () => Promise<void>) => {
+		if (!consent) throw new Error("AI_CONSENT_REQUIRED");
+		await send();
+	});
+	await withAiRuntime({ ...syntheticRuntime, fetch }, async () => {
+		const occupying = executeApprovedStep(input, { concurrencyLimit: 1 });
+		await started.promise;
+		const queued = executeApprovedStep({ ...input, attemptId: "queued", withDispatch }, { concurrencyLimit: 1 });
+		expect(withDispatch).not.toHaveBeenCalled();
+		consent = false;
+		release.resolve();
+		expect(await queued).toMatchObject({
+			costMicros: 0,
+			output: null,
+			failure: { requestSent: false, message: "AI_CONSENT_REQUIRED" },
+		});
+		await occupying;
+	});
+	expect(fetch).toHaveBeenCalledTimes(1);
+	expect(withDispatch).toHaveBeenCalledTimes(1);
+});
+
+it("releases the dispatch fence when native fetch writes the request, before the response", async () => {
+	const enteringFetch = Promise.withResolvers<void>();
+	const connect = Promise.withResolvers<void>();
+	const received = Promise.withResolvers<void>();
+	const reply = Promise.withResolvers<void>();
+	const server = createServer(async (request, response) => {
+		request.resume();
+		await once(request, "end");
+		received.resolve();
+		await reply.promise;
+		response.writeHead(400).end();
+	});
+	server.listen(0, "127.0.0.1");
+	await once(server, "listening");
+	const address = server.address();
+	if (!address || typeof address === "string") throw new Error("Missing synthetic provider address");
+
+	const nativeFetch = globalThis.fetch;
+	const mock = vi.spyOn(globalThis, "fetch").mockImplementation(async (_url, init) => {
+		enteringFetch.resolve();
+		await connect.promise;
+		return nativeFetch(`http://127.0.0.1:${address.port}`, init);
+	});
+	const { fetch: _transport, ...nativeRuntime } = syntheticRuntime;
+	const fenceReleased = Promise.withResolvers<void>();
+	const step = withAiRuntime(nativeRuntime, () =>
+		executeApprovedStep({
+			route: {
+				...syntheticRoute,
+				model: "openai/gpt-6-luna",
+				downstreamProvider: "azure",
+				maxCallCostMicros: 100_000,
+			},
+			operationId: "native-fetch",
+			attemptId: "send",
+			stepId: "generate",
+			payload: { selections: [{ section: "skills", text: "TypeScript" }] },
+			outputSchema: z.strictObject({ text: z.string() }),
+			signal: new AbortController().signal,
+			withDispatch: async (send) => {
+				await send();
+				fenceReleased.resolve();
+			},
+		}),
+	);
+	try {
+		await enteringFetch.promise;
+		const early = vi.fn();
+		void fenceReleased.promise.then(early);
+		await new Promise<void>((resolve) => setImmediate(resolve));
+		expect(early).not.toHaveBeenCalled();
+		connect.resolve();
+		await received.promise;
+		await fenceReleased.promise;
+		reply.resolve();
+		expect(await step).toMatchObject({ costMicros: 0, failure: { httpStatus: 400 } });
+	} finally {
+		connect.resolve();
+		reply.resolve();
+		mock.mockRestore();
+		server.closeAllConnections();
+		await new Promise<void>((resolve) => {
+			server.close(() => resolve());
+		});
+		await step;
+	}
+});
+
 it.each([1, 4, 8])("uses an explicitly passed retry-sequence cap of %s", async (concurrencyLimit) => {
 	const input = {
 		route: syntheticRoute,
@@ -616,9 +999,322 @@ it("holds unknown cost without retry after a dispatched connection loss", async 
 			});
 		});
 		await vi.runAllTimersAsync();
-		expect(await pending).toMatchObject({ output: null, costMicros: null });
+		expect(await pending).toMatchObject({
+			output: null,
+			costMicros: null,
+			failure: {
+				errorClass: "TypeError",
+				message: "fetch failed",
+				httpStatus: null,
+				bytesReceived: false,
+				requestSent: true,
+				causes: [{ errorClass: "Error", code: "ECONNRESET", message: "socket closed after request write" }],
+			},
+		});
 		expect(sends).toBe(1);
 	} finally {
 		vi.useRealTimers();
 	}
+});
+
+it("redacts secrets in transport failure detail while preserving cause codes", async () => {
+	const result = await replayTransport(async () => {
+		throw new TypeError(`fetch failed for ${syntheticRoute.apiKey}`, {
+			cause: Object.assign(new Error("read ECONNRESET Bearer sk-or-v1-secret123"), { code: "UND_ERR_SOCKET" }),
+		});
+	});
+	expect(result.failure).toMatchObject({
+		errorClass: "TypeError",
+		httpStatus: null,
+		requestSent: true,
+		causes: [{ errorClass: "Error", code: "UND_ERR_SOCKET" }],
+	});
+	const serialized = JSON.stringify(result.failure);
+	expect(serialized).not.toContain(syntheticRoute.apiKey);
+	expect(serialized).not.toContain("sk-or-v1-secret123");
+});
+
+it("raises Node happy-eyeballs autoSelectFamilyAttemptTimeout to a realistic connect budget", () => {
+	const previous = net.getDefaultAutoSelectFamilyAttemptTimeout();
+	try {
+		net.setDefaultAutoSelectFamilyAttemptTimeout(250);
+		ensureAiTransportConnectBudget();
+		expect(AI_CONNECT_ATTEMPT_TIMEOUT_MS).toBeGreaterThanOrEqual(2500);
+		expect(net.getDefaultAutoSelectFamilyAttemptTimeout()).toBeGreaterThanOrEqual(AI_CONNECT_ATTEMPT_TIMEOUT_MS);
+	} finally {
+		net.setDefaultAutoSelectFamilyAttemptTimeout(previous);
+	}
+});
+
+it("treats pure connect-phase failures and pure connect AggregateErrors as unsent with zero cost", async () => {
+	const connectAggregate = new TypeError("fetch failed", {
+		cause: new AggregateError(
+			[
+				Object.assign(new Error("connect ETIMEDOUT 104.18.3.115:443"), { code: "ETIMEDOUT", syscall: "connect" }),
+				Object.assign(new Error("connect ETIMEDOUT 104.18.2.115:443"), { code: "ETIMEDOUT", syscall: "connect" }),
+				Object.assign(new Error("connect ENETUNREACH 2606:4700::1:443"), { code: "ENETUNREACH", syscall: "connect" }),
+			],
+			"",
+		),
+	});
+	expect(failedBeforeDispatch(connectAggregate)).toBe(true);
+	expect(
+		failedBeforeDispatch(
+			new TypeError("fetch failed", {
+				cause: Object.assign(new Error("connect EHOSTUNREACH 10.0.0.1:443"), { code: "EHOSTUNREACH" }),
+			}),
+		),
+	).toBe(true);
+
+	const result = await withAiRuntime(
+		{
+			routes: [syntheticRoute],
+			handlers: {},
+			workerAvailable: true,
+			fetch: async () => {
+				throw connectAggregate;
+			},
+		},
+		() =>
+			executeApprovedStep(
+				{
+					route: syntheticRoute,
+					operationId: "op",
+					attemptId: "attempt",
+					stepId: "generate",
+					payload: { selections: [{ section: "skills", text: "TypeScript" }] },
+					outputSchema: z.strictObject({ text: z.string() }),
+					signal: new AbortController().signal,
+				},
+				{ retry: false },
+			),
+	);
+	expect(result).toMatchObject({
+		outcome: "transient",
+		costMicros: 0,
+		failure: {
+			errorClass: "TypeError",
+			httpStatus: null,
+			bytesReceived: false,
+			requestSent: false,
+		},
+	});
+});
+
+it("keeps conservative unknown cost for post-connect read ETIMEDOUT or mixed AggregateErrors", async () => {
+	const mixedAggregate = new TypeError("fetch failed", {
+		cause: new AggregateError(
+			[
+				Object.assign(new Error("connect ETIMEDOUT 104.18.3.115:443"), { code: "ETIMEDOUT", syscall: "connect" }),
+				Object.assign(new Error("socket hang up"), { code: "ECONNRESET" }),
+			],
+			"",
+		),
+	});
+	expect(failedBeforeDispatch(mixedAggregate)).toBe(false);
+
+	const readTimeout = new TypeError("fetch failed", {
+		cause: Object.assign(new Error("read ETIMEDOUT"), { code: "ETIMEDOUT", syscall: "read" }),
+	});
+	expect(failedBeforeDispatch(readTimeout)).toBe(false);
+
+	const result = await withAiRuntime(
+		{
+			routes: [syntheticRoute],
+			handlers: {},
+			workerAvailable: true,
+			fetch: async () => {
+				throw mixedAggregate;
+			},
+		},
+		() =>
+			executeApprovedStep(
+				{
+					route: syntheticRoute,
+					operationId: "op",
+					attemptId: "attempt",
+					stepId: "generate",
+					payload: { selections: [{ section: "skills", text: "TypeScript" }] },
+					outputSchema: z.strictObject({ text: z.string() }),
+					signal: new AbortController().signal,
+				},
+				{ retry: false },
+			),
+	);
+	expect(result).toMatchObject({
+		outcome: "transient",
+		costMicros: null,
+		failure: {
+			httpStatus: null,
+			requestSent: true,
+		},
+	});
+});
+
+it("reserves an enforceable writer bound for a small, price-pinned translation request", async () => {
+	const input: ApprovedStepInput = {
+		route: {
+			...syntheticRoute,
+			model: "openai/gpt-6-luna",
+			downstreamProvider: "azure",
+			evidenceVersion: "paid-route-fixture",
+			maxCallCostMicros: 100_000,
+			maxOutputTokens: 4096,
+		},
+		operationId: "translation",
+		attemptId: "attempt",
+		stepId: "generate",
+		payload: { selections: [{ section: "summary", text: "Confirmed work." }] },
+		outputSchema: z.strictObject({ text: z.string() }),
+		signal: new AbortController().signal,
+	};
+	const fetch = vi.fn(syntheticRuntime.fetch);
+	await withAiRuntime({ ...syntheticRuntime, fetch }, async () => {
+		const bound = await translationWriterCallBound(input.route, input);
+		expect(bound).toBeGreaterThan(0);
+		expect(bound).toBeLessThan(10_000);
+		expect(await executeApprovedStep({ ...input, verificationBoundMicros: bound })).toMatchObject({ outcome: "valid" });
+		expect(
+			await executeApprovedStep({
+				...input,
+				verificationBoundMicros: bound,
+				payload: { selections: [{ section: "summary", text: "界".repeat(10_000) }] },
+			}),
+		).toMatchObject({ outcome: "unsupported", costMicros: 0 });
+		expect(fetch).toHaveBeenCalledTimes(1);
+	});
+});
+
+it("gives a waiting operation the next provider slot ahead of a running translation's queued batches", async () => {
+	const release = [Promise.withResolvers<void>(), Promise.withResolvers<void>()];
+	const transport = syntheticRuntime.fetch;
+	if (!transport) throw new Error("Missing synthetic transport");
+	const fetch = vi.fn<typeof globalThis.fetch>();
+	fetch.mockImplementation(async (url, init) => {
+		const index = fetch.mock.calls.length - 1;
+		if (index < 2) await release[index]?.promise;
+		return transport(url, init);
+	});
+	const dispatched: string[] = [];
+	await withAiRuntime(
+		{
+			...syntheticRuntime,
+			fetch: (url, init) => {
+				dispatched.push(JSON.parse(JSON.parse(String(init?.body)).messages.at(-1).content).selections[0].text);
+				return fetch(url, init);
+			},
+		},
+		async () => {
+			const send = (id: string, group: string) =>
+				executeApprovedStep(
+					{
+						route: syntheticRoute,
+						operationId: id,
+						attemptId: id,
+						stepId: "generate",
+						payload: { selections: [{ section: "summary", text: id }] },
+						outputSchema: z.strictObject({ text: z.string() }),
+						signal: new AbortController().signal,
+					},
+					{ retry: false, concurrencyLimit: 2, operationGroupId: group },
+				);
+			const first = send("part-1", "translation");
+			const second = send("part-2", "translation");
+			await vi.waitFor(() => expect(dispatched).toEqual(["part-1", "part-2"]));
+			const third = send("part-3", "translation");
+			const other = send("independent", "independent");
+			try {
+				release[0]?.resolve();
+				await vi.waitFor(() => expect(dispatched).toHaveLength(4));
+				expect(dispatched.slice(2)).toEqual(["independent", "part-3"]);
+			} finally {
+				release[1]?.resolve();
+				await Promise.all([first, second, third, other]);
+			}
+		},
+	);
+});
+
+it("dispatches large Arabic question selections inside the original Terra cost cap", async () => {
+	const fetch = vi.fn(syntheticRuntime.fetch);
+	const { output: outputSchema, systemPrompt } = reviewHandlers["review.wording"];
+	if (!systemPrompt) throw new Error("Missing wording system prompt");
+	const route = {
+		...syntheticRoute,
+		model: "openai/gpt-6.1-terra",
+		downstreamProvider: "azure",
+		evidenceVersion: "paid-route-fixture",
+		maxCallCostMicros: 100_000,
+		maxOutputTokens: 4096,
+		reasoningEffort: "medium" as const,
+	};
+	const evidence = Array.from({ length: 20 }, (_, index) => ({
+		id: `cv-${index}`,
+		confirmation: "confirmed" as const,
+		quote: "راجعت تقارير الأداء التشغيلي وحللت أسباب التأخير في معالجة طلبات العملاء. ".repeat(18).trim(),
+	}));
+	const selected = boundQuestionEvidence(evidence);
+	expect(selected.length).toBeGreaterThan(0);
+	expect(selected).toEqual(evidence.slice(0, selected.length));
+	const payload = buildModelPayload({
+		selections: selected.map(({ id, quote }) => ({ id, kind: "confirmed_content", section: "summary", text: quote })),
+		contactValues: [],
+	});
+	await withAiRuntime({ ...syntheticRuntime, fetch }, () =>
+		executeApprovedStep({
+			route,
+			operationId: "operation",
+			attemptId: "attempt",
+			stepId: "generate",
+			payload,
+			outputSchema,
+			systemPrompt,
+			signal: new AbortController().signal,
+		}),
+	);
+	expect(fetch).toHaveBeenCalledTimes(1);
+});
+
+it("shares released translation slots with job verification under the eight-call ceiling", async () => {
+	const transport = syntheticRuntime.fetch;
+	if (!transport) throw new Error("Missing synthetic transport");
+	const gates = Array.from({ length: 10 }, () => Promise.withResolvers<void>());
+	const dispatched: string[] = [];
+	await withAiRuntime(
+		{
+			...syntheticRuntime,
+			fetch: async (url, init) => {
+				const index = dispatched.length;
+				dispatched.push(JSON.parse(JSON.parse(String(init?.body)).messages.at(-1).content).selections[0].text);
+				await gates[index]?.promise;
+				return transport(url, init);
+			},
+		},
+		async () => {
+			const send = (id: string, group: string, concurrencyLimit: number) =>
+				executeApprovedStep(
+					{
+						route: syntheticRoute,
+						operationId: id,
+						attemptId: id,
+						stepId: "generate",
+						payload: { selections: [{ section: "summary", text: id }] },
+						outputSchema: z.strictObject({ text: z.string() }),
+						signal: new AbortController().signal,
+					},
+					{ retry: false, operationGroupId: group, concurrencyLimit },
+				);
+			const translation = Array.from({ length: 9 }, (_, index) => send("translation-" + index, "translation", 8));
+			const job = send("job", "job", 5);
+			try {
+				await vi.waitFor(() => expect(dispatched).toHaveLength(8));
+				gates[0]?.resolve();
+				await vi.waitFor(() => expect(dispatched.at(8)).toBe("job"));
+				expect(dispatched).toHaveLength(9);
+			} finally {
+				for (const gate of gates) gate.resolve();
+				await Promise.all([...translation, job]);
+			}
+		},
+	);
 });

@@ -16,10 +16,12 @@ import {
 	serialize,
 } from "@formepdf/react";
 import { cloneElement, createElement, isValidElement } from "react";
+import { isStandardPdfFontFamily } from "@reactive-resume/fonts";
 import { isRTL } from "@reactive-resume/utils/locale";
 import { normalizeNumericDigits, removeArabicDiacritics } from "@reactive-resume/utils/string";
 import { NODE_CONTENT_PREFIX, NODE_SOURCE_PREFIX, RESUME_NODE_PROP } from "../page-map";
 import { freeTextDateRuns } from "./free-text-dates";
+import { HIJRI_DASH_RUN } from "./hijri-text-layer";
 import { HOST } from "./primitives";
 import { flattenAlpha, flattenStyle, toFormeStyle, toPoints, WHITE } from "./style";
 
@@ -46,6 +48,9 @@ const LIST_SOURCE = "rr-list";
 
 type Context = {
 	rtlDocument: boolean;
+	arabicText: { present: boolean };
+	arabicCoverage: ReadonlyMap<string, boolean>;
+	fontFamily?: string | undefined;
 	fontSize: number;
 	pageWidth: number;
 	pageHeight: number;
@@ -151,7 +156,15 @@ const childContext = (context: Context, parent: ParentStyle, inText = context.in
 	rowParent: parent.style.flexDirection === "row" || parent.style.flexDirection === "row-reverse",
 	inText,
 	direction: parent.style.direction ?? context.direction,
+	fontFamily: parent.style.fontFamily ?? context.fontFamily,
 });
+
+function arabicFontStack(stack: string, coverage: ReadonlyMap<string, boolean>): string {
+	const [primary, ...fallbacks] = stack.split(", ");
+	if (!primary || (coverage.get(primary) !== false && !isStandardPdfFontFamily(primary))) return stack;
+	const arabic = fallbacks.find((family) => coverage.get(family));
+	return arabic ? [arabic, primary, ...fallbacks.filter((family) => family !== arabic)].join(", ") : stack;
+}
 
 const NO_EDGES: Edges = { top: 0, right: 0, bottom: 0, left: 0 };
 
@@ -493,13 +506,22 @@ function convertChildren(children: HostNode[], context: Context): ReactNode[] {
 
 const inlineText = (node: HostNode): string => ("text" in node ? node.text : node.children.map(inlineText).join(""));
 
+const directionMarks = /[\u061c\u200e\u200f]/gu;
+const percentage = /(?<![\p{L}\p{N}])\d+(?:[.,٫]\d+)?[%٪](?![\p{L}\p{N}])/gu;
+
 function convertNode(node: HostNode, parentContext: Context, key: number): ReactNode {
 	// D31/D33: normalize every display run, never saved content or link destinations.
 	if ("text" in node) {
-		const text = removeArabicDiacritics(normalizeNumericDigits(node.text));
+		// Forme can map a zero-width direction mark to a visible letter's glyph in the PDF text layer.
+		const source = node.text.replace(directionMarks, "");
+		const isolatePercentages = (text: string) =>
+			parentContext.rtlDocument && parentContext.direction !== "ltr"
+				? text.replace(percentage, (value) => `\u2066${value}\u2069`)
+				: text;
+		const text = removeArabicDiacritics(normalizeNumericDigits(source));
 		if (parentContext.inLink) return text;
-		const runs = freeTextDateRuns(node.text, parentContext.dateParagraph);
-		if (!runs.some((run) => run.numeric)) return text;
+		const runs = freeTextDateRuns(source, parentContext.dateParagraph);
+		if (!runs.some((run) => run.numeric)) return isolatePercentages(text);
 		if (
 			(!parentContext.rtlDocument || parentContext.direction === "ltr") &&
 			!runs.some((run) => run.numeric && run.text.includes("-"))
@@ -513,15 +535,18 @@ function convertNode(node: HostNode, parentContext: Context, key: number): React
 					? createElement(FormeText, { key: index, style: { direction: "ltr" } }, run.text)
 					: removeArabicDiacritics(run.text),
 			);
-		// One isolate around the compact range; labelled endpoints retain their existing runs.
+		// Keep the dash between the endpoints in the glyph stream PDF.js reads.
+		// The writer adds separate extraction text for Poppler.
 		return removeArabicDiacritics(
 			runs
 				.map((run) =>
 					run.numeric
 						? `\u2066${run.text}\u2069`
-						: /^(?:من | (?:إلى|حتى|هـ))$/u.test(run.text)
-							? run.text.replaceAll(" ", "\u00a0")
-							: run.text,
+						: run.text === " هـ - "
+							? HIJRI_DASH_RUN
+							: /^(?:من | (?:إلى|حتى|هـ))$/u.test(run.text)
+								? run.text.replaceAll(" ", "\u00a0")
+								: isolatePercentages(run.text),
 				)
 				.join(""),
 		);
@@ -532,7 +557,8 @@ function convertNode(node: HostNode, parentContext: Context, key: number): React
 	// a plain box breaks across pages) can be found by what it contains.
 	let context = typeof ownKey === "string" && ownKey.length > 0 ? { ...parentContext, nodeKey: ownKey } : parentContext;
 	if (node.type === HOST.link) context = { ...context, inLink: true };
-	if (node.type === HOST.text && !context.inText) context = { ...context, dateParagraph: inlineText(node) };
+	if (node.type === HOST.text && !context.inText)
+		context = { ...context, dateParagraph: inlineText(node).replace(directionMarks, "") };
 	if (props["data-resume-list-item"])
 		context = { ...context, listItem: { index: context.lists.count++, role: LIST_ROLE.item } };
 	else if (context.listItem && (props["data-resume-list-marker"] || props["data-resume-list-content"]))
@@ -609,7 +635,17 @@ function convertNode(node: HostNode, parentContext: Context, key: number): React
 			const { style } = converted;
 			// Arabic pair kerning can exceed readers' word-space thresholds (IBM Plex Bold: 0.12 em).
 			// Keep contextual shaping, ligatures and mark positioning, but omit optional pair kerning.
-			if (/\p{Script=Arabic}/u.test(inlineText(node))) style.fontFeatureSettings = '"kern" 0';
+			if (/\p{Script=Arabic}/u.test(inlineText(node))) {
+				context.arabicText.present = true;
+				style.fontFeatureSettings = '"kern" 0';
+				const stack = style.fontFamily ?? (!context.inText ? context.fontFamily : undefined);
+				if (stack) {
+					// Use the Arabic face for spaces and digits too. Per-glyph fallback splits RTL
+					// text at every neutral character, so PDF readers reorder each piece separately.
+					const fontFamily = arabicFontStack(stack, context.arabicCoverage);
+					if (fontFamily !== stack) style.fontFamily = fontFamily;
+				}
+			}
 			if (context.fittedFontSize !== undefined)
 				style.fontSize = Math.min(Number(style.fontSize ?? context.fittedFontSize), context.fittedFontSize);
 			const fitIndex = props["data-export-no-wrap"] && !context.inText ? context.noWrap.count++ : undefined;
@@ -1049,13 +1085,14 @@ const PAGE_LAYOUT_KEYS = new Set([
 	"gridTemplateRows",
 ]);
 
-export type ConvertedDocument = { document: FormeDocument; warnings: string[] };
+export type ConvertedDocument = { document: FormeDocument; warnings: string[]; hasArabicText: boolean };
 
 /**
  * Host tree → Forme document JSON. Tagged blocks get a source location Forme carries into its layout info, which
  * is how the page map finds them.
  */
 export type ConvertOptions = {
+	arabicCoverage?: ReadonlyMap<string, boolean>;
 	noWrapFontSizes?: ReadonlyMap<number, number>;
 	images?: ReadonlyMap<string, LoadedImage>;
 	/**
@@ -1082,6 +1119,7 @@ export type ConvertOptions = {
 export function toFormeDocument(
 	tree: HostNode[],
 	{
+		arabicCoverage = new Map(),
 		images = new Map(),
 		keepNestedRowsWhole = false,
 		breakBeforeListItems = new Set(),
@@ -1098,6 +1136,8 @@ export function toFormeDocument(
 
 	const context: Context = {
 		rtlDocument: typeof root.props.language === "string" && isRTL(root.props.language),
+		arabicText: { present: false },
+		arabicCoverage,
 		fontSize: 12,
 		pageWidth: DEFAULT_PAGE.width,
 		pageHeight: DEFAULT_PAGE.height,
@@ -1150,7 +1190,11 @@ export function toFormeDocument(
 	const previous = scope.__formeSourceMap;
 	scope.__formeSourceMap = context.sourceMap;
 	try {
-		return { document: serialize(element), warnings: [...context.warnings] };
+		return {
+			document: serialize(element),
+			warnings: [...context.warnings],
+			hasArabicText: context.arabicText.present,
+		};
 	} finally {
 		if (previous) scope.__formeSourceMap = previous;
 		else delete scope.__formeSourceMap;

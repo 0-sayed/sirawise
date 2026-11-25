@@ -2,6 +2,7 @@ import type { ReviewSourceSnapshot } from "./review-sources";
 import type { ReviewResult } from "@reactive-resume/schema/resume/ai-review";
 import { describe, expect, it } from "vite-plus/test";
 import { splitReviewClaims } from "@reactive-resume/schema/resume/ai-review";
+import { isContentRejection } from "./content-retry";
 import { validateReviewResult } from "./review-validation";
 
 const source = { kind: "resume", id: "cv", revision: "v1" } as const;
@@ -37,7 +38,7 @@ const wording = (text: string): Extract<ReviewResult, { kind: "wording" }> => ({
 			location: "Summary",
 			before: `<p>${evidence.quote}</p>`,
 			after: `<p>${text}</p>`,
-			why: "Clearer",
+			why: /\p{Script=Arabic}/u.test(text) ? "صياغة أوضح" : "Clearer",
 			status: "pending",
 			source: "improve",
 			base: source,
@@ -75,6 +76,64 @@ describe("semantic delivery boundary", () => {
 				.kind,
 		).toBe("wording");
 		expect(validateReviewResult(snapshot, { ...wording("unused"), proposals: [] })).toMatchObject({ proposals: [] });
+	});
+	it("accepts a clarification in either language of a mixed-language passage", () => {
+		const mixedEvidence = {
+			...evidence,
+			quote: "Prepared shipment records and updated the dispatch schedule. وفي المساء راجعت عناوين الشحنات.",
+		};
+		const mixedSnapshot = { ...snapshot, evidence: [mixedEvidence] };
+		for (const prompt of ["What kind of shipments did you prepare?", "ما نوع الشحنات التي جهزتها؟"]) {
+			const result = {
+				...wording("unused"),
+				evidence: [mixedEvidence],
+				proposals: [],
+				questions: [{ id: "q1", target, prompt, evidenceIds: ["e1"] }],
+			};
+			expect(validateReviewResult(mixedSnapshot, result).questions).toEqual(result.questions);
+		}
+	});
+	it("rejects English no-change notes or reasons for Arabic CV wording reviews as retryable AI_WRONG_LANGUAGE", () => {
+		const arabicEvidence = {
+			...evidence,
+			quote: "مدير عمليات منتجات بخبرة 6 سنوات في تطوير الخدمات الرقمية وتحسين إجراءات التشغيل باستخدام React.",
+		};
+		const arabicSnapshot: ReviewSourceSnapshot = { ...snapshot, evidence: [arabicEvidence] };
+		const englishNote: Extract<ReviewResult, { kind: "wording" }> = {
+			schemaVersion: 2,
+			kind: "wording",
+			sourceRevision: source,
+			evidence: [arabicEvidence],
+			proposals: [],
+			questions: [],
+			notes: ["The summary is clear and uses consistent past-tense wording; no changes are needed."],
+		};
+		expect(() => validateReviewResult(arabicSnapshot, englishNote)).toThrow("AI_WRONG_LANGUAGE");
+		expect(isContentRejection(new Error("AI_WRONG_LANGUAGE"))).toBe(true);
+
+		const arabicNote: Extract<ReviewResult, { kind: "wording" }> = {
+			...englishNote,
+			notes: ["الملخص واضح ومتسق الصياغة ولا يحتاج إلى تعديل حالياً."],
+		};
+		expect(validateReviewResult(arabicSnapshot, arabicNote).kind).toBe("wording");
+
+		const englishQuestion: Extract<ReviewResult, { kind: "wording" }> = {
+			...englishNote,
+			notes: [],
+			questions: [{ id: "q1", target, prompt: "Can you quantify the operational improvement?", evidenceIds: ["e1"] }],
+		};
+		expect(() => validateReviewResult(arabicSnapshot, englishQuestion)).toThrow("AI_WRONG_LANGUAGE");
+		const englishReason = wording(arabicEvidence.quote);
+		englishReason.evidence = [arabicEvidence];
+		englishReason.proposals = englishReason.proposals.map((proposal) => ({
+			...proposal,
+			before: `<p>${arabicEvidence.quote}</p>`,
+			why: "The summary is clear.",
+		}));
+		expect(() => validateReviewResult(arabicSnapshot, englishReason)).toThrow("AI_WRONG_LANGUAGE");
+		expect(() =>
+			validateReviewResult(snapshot, { ...wording("unused"), proposals: [], notes: arabicNote.notes }),
+		).toThrow("AI_WRONG_LANGUAGE");
 	});
 	it.each([
 		"Built services with a 30% result.",

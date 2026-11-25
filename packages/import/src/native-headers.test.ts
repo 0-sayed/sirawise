@@ -105,18 +105,22 @@ describe("native experience headers (synthetic)", () => {
 		},
 	);
 
-	it("keeps an ambiguous header for review rather than inventing a role", () => {
+	it("keeps the exact text of an ambiguous dated title flagged for review", () => {
 		const issues: unknown[] = [];
 		const data = parseResumeText("EXPERIENCE\nExample Labs | Unclear field | 2024 – 2025\n• Built a service.", {
 			onUncertain: (issue) => issues.push(issue),
 		});
-		expect(data.sections.experience.items[0]?.position).toBe("");
-		expect(issues).toContainEqual({
-			field: "position",
-			source: "Unclear field",
-			section: "experience",
-			entryIndex: 0,
-		});
+		expect(data.sections.experience.items).toMatchObject([
+			{ company: "Example Labs", position: "Unclear field", description: "<p>Built a service.</p>" },
+		]);
+		expect(issues).toEqual([
+			{
+				field: "position",
+				source: "Unclear field",
+				section: "experience",
+				entryIndex: 0,
+			},
+		]);
 	});
 });
 

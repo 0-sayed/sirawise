@@ -14,6 +14,14 @@ import { isRenderedSection, walkSections } from "./walk";
 export const JOB_NORMALIZATION_VERSION = "matching-v2";
 export const JOB_RUBRIC_VERSION = "literal-v1";
 const TERM_LIMIT = 35;
+const GENERIC_JOB_WORDS = new Set(
+	`take help existing code growing launch decision decisions technical technology complex
+work working works team teams role job jobs candidate candidates company companies business good great strong excellent effective efficiently ability able responsible responsibilities responsibility required requirements require experience experienced knowledge understanding proven demonstrate demonstrated environment environments opportunity opportunities looking seeking join provide support ensure including include using use used new develop development deliver delivery manage management lead leading driven focus focused passionate passion skill skills communication collaborative collaboration collaborate people person professional highly preferred minimum must need needs want relevant across within various related through achieve contributing contribute maintain drive build building successful success solution solutions process processes tasks daily activities additional value
+عمل العمل يعمل فريق الفريق وظيفة الوظيفة وظائف شركة الشركة شركات مطلوب المطلوبة متطلبات خبرة الخبرة مهارات المهارات القدرة قدرة قادر يساعد مساعدة دعم تطوير تنفيذ مسؤول مسؤوليات مسؤولية جيد جيدة ممتاز ممتازة قوي قوية تقني تقنية تقنيه التقنيه التقنية تكنولوجيا معقد معقدة قرارات قرار نمو إطلاق الحالي الحالية الموجودة استخدام يستخدم جديد جديدة يعملون المرشح المتقدم فرصة فرص بيئة البيئة تتضمن تشمل ضمان تحقيق تقديم الادارة الاداره الادارية`.split(
+		/\s+/u,
+	),
+);
+const meaningfulJobTerm = (term: string) => term.split(/\s+/u).some((word) => !GENERIC_JOB_WORDS.has(word));
 const plain = (value: string) => decodeHtmlEntities(value.replace(/<[^>]*>/gu, " ")).trim();
 
 export function analyzeJobTerms(raw: JobTermAnalysisInput): JobTermReport {
@@ -25,14 +33,14 @@ export function analyzeJobTerms(raw: JobTermAnalysisInput): JobTermReport {
 		throw new Error("JOB_POLICY_CHANGED");
 	const resumeText = input.passages.map((passage) => passage.text).join("\n");
 	const options = { jobDescription: input.jobText, resumeText };
-	const report = matchJobDescription(options);
 	const all = matchJobDescription({ ...options, maxTerms: Number.MAX_SAFE_INTEGER });
+	const meaningful = all.terms.filter((term) => meaningfulJobTerm(term.term));
 	const jobWindows = matchingWindows(input.jobText, MAX_NGRAM_LENGTH);
 	const cvWindows = input.passages.map((passage) => ({
 		passage,
 		windows: matchingWindows(passage.text, MAX_NGRAM_LENGTH),
 	}));
-	const terms = report.terms.map((term, index) => {
+	const terms = meaningful.slice(0, TERM_LIMIT).map((term, index) => {
 		const forms = new Set(surfaceFormsOf(term.term));
 		const stem = term.term.split(" ").map(stemFreeText).join(" ");
 		const matches = (value: string) => forms.has(value) || value.split(" ").map(stemFreeText).join(" ") === stem;
@@ -57,15 +65,15 @@ export function analyzeJobTerms(raw: JobTermAnalysisInput): JobTermReport {
 			cvSpans,
 		};
 	});
-	const excludedTerms = all.terms
+	const excludedTerms = meaningful
 		.filter((term) => !terms.some((selected) => selected.term === term.term))
 		.map((term) => term.term);
 	return {
 		identity: input.identity,
 		state: !input.jobText.trim() ? "not-checked" : !terms.length ? "not-checkable" : "complete",
 		denominator: terms.length,
-		matchedCount: report.matchedCount,
-		unmatchedCount: terms.length - report.matchedCount,
+		matchedCount: terms.filter((term) => term.matched).length,
+		unmatchedCount: terms.filter((term) => !term.matched).length,
 		terms,
 		selection: { limit: TERM_LIMIT, truncated: excludedTerms.length > 0 },
 		excludedTerms,

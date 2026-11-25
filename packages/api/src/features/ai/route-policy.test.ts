@@ -8,6 +8,7 @@ import {
 	getOperationHandler,
 	resolveApprovedRoute,
 	withAiRuntime,
+	withMeasuredReviewExecution,
 	completionTokenLimit,
 } from "./route-policy";
 import { syntheticRoute } from "./testing/runtime";
@@ -55,6 +56,85 @@ const request = (kind = "review.wording"): OperationRequest => ({
 	route: { routeId: "synthetic", routeRevision: "1", configRevision: "1" },
 	consentVersion: "1",
 	parameters: {},
+});
+
+it("uses the approved translation timeout for both calls without expanding its other bounds", async () => {
+	const approved = { ...route, translationCallTimeoutMs: 60000, maxCalls: 2, maxRepairs: 0 };
+	const selected = await withAiRuntime({ ...runtime, routes: [approved] }, () =>
+		resolveApprovedRoute("owner", request("review.translation")),
+	);
+	expect(selected).toMatchObject({
+		callTimeoutMs: 60000,
+		deadlineMs: 120000,
+		maxCalls: 2,
+		maxRepairs: 0,
+		requestCapMicros: approved.requestCapMicros,
+		maxCallCostMicros: approved.maxCallCostMicros,
+		dayCapMicros: approved.dayCapMicros,
+	});
+	expect(resolveReviewVerifierRoute(selected).callTimeoutMs).toBe(60000);
+});
+
+it("admits the measured translation deadline and forwards it to the verifier without raising spend limits", async () => {
+	const approved = withMeasuredReviewExecution(route);
+	const selected = await withAiRuntime({ ...runtime, routes: [approved] }, () =>
+		resolveApprovedRoute("owner", request("review.translation")),
+	);
+	expect(selected).toMatchObject({
+		callTimeoutMs: 90_000,
+		deadlineMs: 300_000,
+		requestCapMicros: route.requestCapMicros,
+		maxCallCostMicros: route.maxCallCostMicros,
+		dayCapMicros: route.dayCapMicros,
+	});
+	expect(resolveReviewVerifierRoute(selected)).toMatchObject({ callTimeoutMs: 90_000, deadlineMs: 300_000 });
+});
+
+it.each(["review.translation", "review.tailoring"])(
+	"rejects an unapproved 300-second deadline for %s",
+	async (kind) => {
+		await expect(
+			withAiRuntime({ ...runtime, routes: [{ ...route, deadlineMs: 300_000 }] }, () =>
+				resolveApprovedRoute("owner", request(kind)),
+			),
+		).rejects.toMatchObject({ data: { reason: "AI_NOT_ENABLED" } });
+	},
+);
+
+it.each([
+	"review.wording",
+	"review.extraction",
+	"review.job-evidence",
+	"review.tailoring",
+	"review.summary",
+	"review.cover-letter",
+	"review.interview-prep",
+])("keeps %s writer and verifier timeouts at 30 seconds with a translation approval", async (kind) => {
+	const approved = { ...route, translationCallTimeoutMs: 60000 };
+	const selected = await withAiRuntime({ ...runtime, routes: [approved] }, () =>
+		resolveApprovedRoute("owner", request(kind)),
+	);
+	expect(selected.callTimeoutMs).toBe(30000);
+	expect(resolveReviewVerifierRoute(selected).callTimeoutMs).toBe(30000);
+});
+
+it.each([0, -1, 60001, 1.5, Number.NaN])(
+	"rejects an invalid translation timeout: %s",
+	async (translationCallTimeoutMs) => {
+		await expect(
+			withAiRuntime({ ...runtime, routes: [{ ...route, translationCallTimeoutMs }] }, () =>
+				resolveApprovedRoute("owner", request("review.translation")),
+			),
+		).rejects.toMatchObject({ data: { reason: "AI_NOT_ENABLED" } });
+	},
+);
+
+it.each(["review.translation", "review.wording"])("rejects an excessive shared timeout for %s", async (kind) => {
+	await expect(
+		withAiRuntime({ ...runtime, routes: [{ ...route, callTimeoutMs: 60001 }] }, () =>
+			resolveApprovedRoute("owner", request(kind)),
+		),
+	).rejects.toMatchObject({ data: { reason: "AI_NOT_ENABLED" } });
 });
 
 it("keeps real processing disabled regardless of environment credentials or request flags", () => {
@@ -218,3 +298,32 @@ it.each([{ evidenceVersion: "" }, { maxCallCostMicros: 0 }, { downstreamProvider
 		).rejects.toMatchObject({ data: { reason: "AI_NOT_ENABLED" } });
 	},
 );
+
+it.each([-1, 2, 1.5, Number.NaN])(
+	"rejects an invalid translation transient retry allowance: %s",
+	async (translationTransientRetries) => {
+		await expect(
+			withAiRuntime({ ...runtime, routes: [{ ...route, translationTransientRetries }] }, () =>
+				resolveApprovedRoute("owner", request("review.translation")),
+			),
+		).rejects.toMatchObject({ data: { reason: "AI_NOT_ENABLED" } });
+	},
+);
+
+it.each([
+	"review.wording",
+	"review.extraction",
+	"review.job-evidence",
+	"review.tailoring",
+	"review.summary",
+	"review.cover-letter",
+	"review.interview-prep",
+	"review.translation",
+])("uses the bounded shared long-CV timeout for %s", async (kind) => {
+	const selected = await withAiRuntime({ ...runtime, routes: [{ ...route, callTimeoutMs: 60000 }] }, () =>
+		resolveApprovedRoute("owner", request(kind)),
+	);
+	expect(selected.callTimeoutMs).toBe(60000);
+	expect(resolveReviewVerifierRoute(selected).callTimeoutMs).toBe(60000);
+	expect(selected.requestCapMicros).toBe(route.requestCapMicros);
+});

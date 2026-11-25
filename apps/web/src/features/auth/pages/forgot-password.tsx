@@ -6,7 +6,7 @@ import { Input } from "@reactive-resume/ui/components/input";
 import { AuthErrorSummary } from "../components/auth-error-summary";
 import { AuthHeading } from "../components/auth-heading";
 import { useAuthCopy } from "../copy.generated";
-import { authErrorMessage } from "../errors";
+import { validAuthEmail, authErrorMessage } from "../errors";
 import { authClient } from "@/libs/auth/client";
 
 export function ForgotPasswordPage() {
@@ -17,9 +17,13 @@ export function ForgotPasswordPage() {
 	const [error, setError] = useState<string | null>(null);
 	async function requestReset() {
 		setError(null);
+		if (!validAuthEmail(email)) {
+			setError(authErrorMessage("INVALID_EMAIL"));
+			return;
+		}
 		setPending(true);
 		try {
-			const result = await authClient.requestPasswordReset({ email, redirectTo: "/auth/reset-password" });
+			const result = await authClient.requestPasswordReset({ email: email.trim(), redirectTo: "/auth/reset-password" });
 			if (result.error) {
 				setError(authErrorMessage(result.error.code));
 				return;
@@ -52,6 +56,8 @@ export function ForgotPasswordPage() {
 							size="lg"
 							className="font-normal"
 							id="reset-email"
+							aria-invalid={!!error || undefined}
+							aria-errormessage={error ? "reset-email-error" : undefined}
 							type="email"
 							name="email"
 							dir="ltr"

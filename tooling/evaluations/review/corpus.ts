@@ -141,6 +141,8 @@ export function goldOutput(c: BenchmarkCase): Record<string, unknown> {
 			],
 			questions,
 		};
+	const arabic = (c.input.match(/\p{Script=Arabic}/gu) ?? []).length;
+	const latin = (c.input.match(/\p{Script=Latin}/gu) ?? []).length;
 	return {
 		proposals: c.requiresQuestion
 			? []
@@ -149,7 +151,7 @@ export function goldOutput(c: BenchmarkCase): Record<string, unknown> {
 						id: "p",
 						passageId: "selected",
 						text: c.safeText,
-						reason: c.language === "en" ? "Preserves supplied facts." : "صياغة تحافظ على الحقائق.",
+						reason: latin > arabic ? "Preserves supplied facts." : "صياغة تحافظ على الحقائق.",
 						evidenceIds: ["selected"],
 						claims: splitReviewClaims(c.safeText, ["selected"]),
 					},

@@ -47,8 +47,17 @@ beforeEach(() => {
 	queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
 	api.providers.mockRejectedValue(new Error("Provider lookup offline"));
 	api.importResume.mockResolvedValue("imported-resume");
+	const lines = ["Alex Morgan", "alex@example.test", "Product Manager", "Experience", "Customer research"];
 	api.extractPdfText.mockResolvedValue({
-		lines: ["Alex Morgan", "alex@example.test", "Product Manager", "Experience", "Customer research"],
+		lines,
+		paragraphUnits: lines.map((text, index) => ({
+			text,
+			role: text === "Experience" ? "heading" : "line",
+			recovery: "exact",
+			sourceLineIds: [`1:${index}`],
+		})),
+		partial: false,
+		pages: [{ page: 1, text: lines.join("\n") }],
 	});
 });
 afterEach(() => {

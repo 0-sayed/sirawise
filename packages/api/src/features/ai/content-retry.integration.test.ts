@@ -6,6 +6,7 @@ import { operationService } from "./operations";
 import { withAiRuntime } from "./route-policy";
 import { aiTestDatabase } from "./testing/database";
 import { syntheticRuntime } from "./testing/runtime";
+import { VerificationGateError } from "./verification-failure";
 
 describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("content rejection retry and usage", () => {
 	const database = aiTestDatabase();
@@ -57,14 +58,15 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("content rejection 
 					: "Safe draft";
 			return Response.json({
 				id: `synthetic-content-${fetch.mock.calls.length}`,
-				model: "synthetic/model",
-				provider: "Test",
+				model: body.model,
+				provider: body.provider.only[0],
 				choices: [{ message: { role: "assistant", content: JSON.stringify({ text }) }, finish_reason: "stop" }],
 				usage: { prompt_tokens: 4, completion_tokens: 3, total_tokens: 7, cost: 0.00001 },
 			});
 		});
 		const runtime: AiRuntime = {
 			...syntheticRuntime,
+			localOwnerAllowance: { ownerId: "alice", limit: 100 },
 			fetch,
 			handlers: {
 				review: {
@@ -162,6 +164,84 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("content rejection 
 				await runAiOperations();
 				expect(await operationService.get("alice", operation.id)).toMatchObject({ state: "failed" });
 				expect(fetch).toHaveBeenCalledTimes(1);
+			}),
+		);
+	});
+
+	it.each(["AI_VERIFICATION_CLAIM_IDS", "AI_VERIFICATION_ABSENCE_IDS", "AI_VERIFICATION_PREMISE_IDS"] as const)(
+		"retries an incomplete checker once without regenerating: %s",
+		async (rule) => {
+			for (const always of [false, true]) {
+				const { runtime, fetch } = contentRuntime("none");
+				let checks = 0;
+				const verifier = runtime.handlers.review?.verifier;
+				if (!verifier) throw new Error("Missing synthetic verifier");
+				verifier.validate = () => {
+					if (++checks === 1 || always) throw new VerificationGateError(rule, "AI_VERIFICATION_INCOMPLETE");
+				};
+				await database.run(() =>
+					withAiRuntime(runtime, async () => {
+						const operation = await operationService.start("alice", request("alice", `incomplete-${rule}-${always}`));
+						await runAiOperations();
+						expect(
+							await operationService.get("alice", operation.id),
+							JSON.stringify(
+								await database
+									.admin()
+									.query("SELECT failure_code,failure_detail FROM ai_operation WHERE id=$1", [operation.id])
+									.then((r) => r.rows),
+							),
+						).toMatchObject(
+							always ? { state: "failed", failureCode: "AI_VERIFICATION_INCOMPLETE" } : { state: "waiting_review" },
+						);
+						const attempts = (
+							await database
+								.admin()
+								.query("SELECT step_id, output FROM ai_operation_attempt WHERE operation_id=$1 ORDER BY ordinal", [
+									operation.id,
+								])
+						).rows;
+						expect(attempts.map((a) => a.step_id)).toEqual(["generate", "verify"]);
+						expect(attempts[1]?.output._verifyCalls.map((call: { outcome: string }) => call.outcome)).toEqual([
+							"transient",
+							always ? "transient" : "valid",
+						]);
+						expect(fetch).toHaveBeenCalledTimes(3);
+					}),
+				);
+			}
+		},
+	);
+
+	it("recovers an incomplete checker retry without another writer call", async () => {
+		const { runtime, fetch } = contentRuntime("none");
+		await database.run(() =>
+			withAiRuntime(runtime, async () => {
+				const operation = await operationService.start("alice", request("alice", "recover-incomplete"));
+				for (const [i, step] of ["generate", "verify"].entries())
+					await database
+						.admin()
+						.query(
+							"INSERT INTO ai_operation_attempt(id,user_id,operation_id,ordinal,step_id,outcome,output,cost_micros,finished_at) VALUES ($1,'alice',$2,$3,$4,$5,$6,10,now())",
+							[
+								`${operation.id}-${i}`,
+								operation.id,
+								i + 1,
+								step,
+								i ? "transient" : "valid",
+								JSON.stringify(
+									i
+										? { text: "Incomplete checker", _verificationFailureRule: "AI_VERIFICATION_CLAIM_IDS" }
+										: { text: "Safe draft" },
+								),
+							],
+						);
+				await runAiOperations();
+				expect(await operationService.get("alice", operation.id)).toMatchObject({ state: "waiting_review" });
+				expect(fetch).toHaveBeenCalledTimes(1);
+				expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body)).messages[0].content).toBe(
+					"Synthetic content verifier",
+				);
 			}),
 		);
 	});

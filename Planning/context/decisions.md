@@ -280,3 +280,45 @@ The 2026-11-16 decision above remains history. Current names are Sirawise / SIRA
 Preserve current icon geometry and asset bytes, including the embedded favicon title. Defer replacement S/س artwork under this owner-approved T016 exception. Add one guarded, verified local demo account with invented data and fixed documented credentials. No external AI, paid calls or mail delivery is authorized.
 
 T012 owns the later sirawise.co redirect, DNS, certificates, deployment and sender activation. Repository/package names, internal/database identifiers, attribution, historical sources and saved user content stay unchanged. A01–A16 and release gates remain unchanged.
+
+### Full-CV translation batches, 2026-11-21
+
+Owner amendment, 2026-11-21: one translation costs exactly one AI use, charged when the operation starts, regardless of its number of parts. This replaces the earlier per-part charging decision. Any CV length can use parts within the approved per-call budget. The owner approved up to six concurrent parts, with immediate slot refill. Target about 1200 writer output tokens per part and at most 12000 verifier input code points. Translation writer and verifier calls use a 60000 ms timeout. Each part retains its 120000 ms deadline and existing cost caps. The owner approved one automatic retry per translation writer or verifier step after a transient failure with known cost. Retries use backoff and the original deadline and money reservation. Unknown billing outcomes require an explicit retry. Translation quality has a required assessment identifier in the structured verifier output. Unclear quality cannot block complete factual verification when deterministic checks also pass. Unsupported or contradicted claims still fail. Each part retains its platform money budget and verifier checks. Retrying parts adds no user charge. Failure or cancellation retains the single start charge. Admin and unlimited allowances remain unchanged. Show one total user charge and Arabic/English part progress. Retain completed parts, retry only the failed part, and apply nothing until every part passes and the user confirms one combined review.
+
+### One-step ("plug and play") translation into a separate language copy, 2026-11-21
+
+Owner amendment, 2026-11-21: supersedes the manual per-part translation confirmation requirement above. Because translation never edits the original CV—it creates or updates an independent language copy, and every part is already checked by the AI verifier and deterministic hard-facts/placeholder guards—one click ("Translate to English" / "Translate to Arabic") on "Copies and languages" is the user's explicit approval. Degrees, fields of study, and job titles translate normally; only true proper names (organizations, schools, issuers, awarders, publishers, networks, and official certificate titles) are kept as official terms, and by default they stay as written (auto-confirmed without blocking) so the server applies the translation automatically through `applyReviewedTranslation` and presents the finished copy with "Open" as the primary action. The user is stopped only for real problems (parts that failed verification after retry or unresolvable privacy placeholders), and the copy auto-applies once those are resolved. The per-part grouped review and proper-name edits remain available afterwards in the optional secondary "Compare with original" view. Explicit per-change approval remains required for every AI feature that edits an existing CV (tailoring, wording, summary, etc.).
+
+### Single automatic retry on pre-response transient transport failures, 2026-11-22
+
+Owner decision, 2026-11-22: when an AI provider call fails with a transient transport error before any response (`outcome: "transient"`, no `responseId`, no usage/cost, no HTTP status, not timed out), the worker automatically retries that call once. The owner accepts the platform risk of paying the provider twice for one answer, while the user is never charged twice (both `ai_operation_attempt` rows reconcile against the operation's existing money reservation and single user-facing operation credit). This single retry grants at most `+1` call allowance on top of `route.maxCalls` per operation, still enforces `callTimeoutMs`, `deadlineMs` (skipped when `< 1000 ms` remain), and reservation bounds, and falls back to `AI_OUTCOME_UNKNOWN` if the retry fails. Errors with an HTTP status, usage, or `responseId` remain unchanged.
+
+### Per-item verification withholding across reviewable AI features, 2026-11-24
+
+Owner decision, 2026-11-24: when the independent verifier rejects part of an AI result, do not fail the whole result when verified items exist. Apply or offer every verified item and clearly show the withheld items with a plain localized reason and a retry action, without ever applying or showing unverified AI content as fact or weakening fabrication checks:
+
+- **One-click translation:** when a part is rejected, first let the existing `regenerate` step retry it automatically once within `maxCalls` and the deadline. If any segment or part is still rejected, complete the translation and apply all verified parts, leave each rejected segment unchanged in the copy (its previous text), mark it as "Not translated" (`تُرك دون ترجمة`) with a plain reason, and offer "Retry this part" at no extra user AI charge.
+- **PDF import AI help (`review.extraction`):** offer every verified extracted field and withhold only rejected candidates with their field label and a plain reason.
+- **Wording (`review.wording`), summary (`review.summary`), and cover letter (`review.cover-letter`):** withhold only rejected independent proposals when multiple suggestions exist; keep indivisible single-text results (summary, cover letter) failing as a whole.
+  Global failures (invalid schema, wrong language, incomplete coverage, or zero verified items remaining) still fail the whole operation. Billing is unchanged: one AI use per operation.
+
+### Account and target AI concurrency, 2026-11-24
+
+Owner decision, 2026-11-24 (item 95): allow up to three simultaneous AI operations per account, including administrators and unlimited accounts. Allow only one active operation per target CV, letter, or import source. Different targets can run together within the account limit. Use the target document ID, independent of its revision or request key. Shared source CVs or job context do not merge separate letter or copy targets.
+
+Count a translation and all its parts as one account operation. Internal parts retain the existing six-part limit and platform money limits. Enforce both admission rules atomically under the database account lock before inserting or reserving an operation. Queued, running, and cancellation-requested work holds capacity. Completion, failure, and completed cancellation release capacity. Delivered results awaiting review do not hold capacity.
+
+Selections from the same import flow share one lock, even if the user stages each selection separately.
+
+Use distinct Arabic and English notices for each denial. Account notices retain the "{reserved} of {limit}" count. The target notice names the CV, letter, or import under review and tells the user that the draft stays saved. Preserve all credit, platform reservation, settlement, release, and translation start-charge rules. This decision grants no processing or release approval.
+
+### AI reliability review, owner decision 2026-11-24, recorded 2026-11-25
+
+1. Count split verification as one logical step. Record every physical dispatch and its cost. Expire an unclaimed queue entry separately from the execution deadline.
+2. Use compact factual verification for the translation candidate. Check complete coverage and protected facts. Keep prior text for withheld segments and allow a scoped retry.
+3. Use compact verdict batches for the job evidence candidate. Keep hard guards and require independent semantic verification. Scope absence to the selected evidence.
+4. Use layout-aware PDF recovery and retain source lines when joining paragraphs. Keep the reader active for Forme, Chromium browser print, and LibreOffice. Word and Google Docs coverage is pending.
+5. Bind extraction fields to selected evidence and withhold failed fields. Keep semantic proof for each delivered field and the retention requirement for wording changes.
+6. Support one explicitly consented backup route after qualification. Keep the binding empty until the exact endpoint and its processor pass A11 and D16.
+
+An ordinary operation settles one AI use on success and releases its reservation on failure. Translation retains one admission charge across retries, failure, and cancellation. Starting translation approves changes only to the separate language copy. Existing CV edits and imported fields retain their explicit approval. All release gates remain in force.

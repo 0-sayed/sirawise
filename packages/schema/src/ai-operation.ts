@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { allowanceBalanceSchema } from "./ai-usage";
 
 const identifier = z.string().min(1).max(200);
 export const operationStateSchema = z.enum([
@@ -38,6 +39,24 @@ export const operationViewSchema = z
 		state: operationStateSchema,
 		resultId: identifier.nullable(),
 		failureCode: identifier.nullable(),
+		progress: z
+			.strictObject({
+				step: z.enum(["queued", "drafting", "checking", "cancelling"]),
+				startedAt: z.iso.datetime(),
+				part: z.number().int().positive().optional(),
+				total: z.number().int().positive().optional(),
+				completedParts: z.number().int().nonnegative().optional(),
+				failedParts: z.number().int().nonnegative().optional(),
+				failedPartDetails: z
+					.array(z.object({ part: z.number().int().positive(), failureCode: z.string().nullable() }))
+					.optional(),
+				activeParts: z.number().int().nonnegative().optional(),
+				pendingRetryParts: z.number().int().nonnegative().optional(),
+			})
+			.optional(),
+		retryable: z.boolean().optional(),
+		charged: z.boolean().optional(),
+		queuePosition: z.number().int().positive().optional(),
 	})
 	.refine(
 		(v) => !["waiting_review", "succeeded"].includes(v.state) || v.resultId !== null,
@@ -45,7 +64,9 @@ export const operationViewSchema = z
 	);
 export type OperationView = z.infer<typeof operationViewSchema>;
 export const operationPreflightSchema = z.strictObject({
-	operationCost: z.literal(1),
+	allowance: allowanceBalanceSchema.optional(),
+	operationCost: z.number().int().positive(),
+	translationParts: z.number().int().positive().optional(),
 	available: z.boolean(),
 	reason: identifier.nullable(),
 	requestFingerprint: identifier,

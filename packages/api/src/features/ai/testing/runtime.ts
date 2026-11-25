@@ -42,13 +42,14 @@ export const syntheticRuntime: AiRuntime = {
 			resultState: "waiting_review",
 		},
 	},
-	fetch: () =>
-		Promise.resolve(
+	fetch: (_url, init) => {
+		const body = init?.body ? JSON.parse(String(init.body)) : null;
+		return Promise.resolve(
 			new Response(
 				JSON.stringify({
 					id: "synthetic-response",
-					model: "synthetic/model",
-					provider: "Test",
+					model: body?.model ?? syntheticRoute.model,
+					provider: body?.provider.only[0] ?? syntheticRoute.downstreamProvider,
 					choices: [
 						{ index: 0, message: { role: "assistant", content: '{"text":"Synthetic review"}' }, finish_reason: "stop" },
 					],
@@ -56,7 +57,8 @@ export const syntheticRuntime: AiRuntime = {
 				}),
 				{ headers: { "content-type": "application/json" } },
 			),
-		),
+		);
+	},
 };
 
 /** T006 fixture approvals are explicit; changing writer-config.json cannot authorize another writer. */

@@ -1,7 +1,14 @@
-import { seedReview } from "../fixtures/reviewable-ai";
+import { captureReviewDirection, expectReviewTextDirection, seedReview } from "../fixtures/reviewable-ai";
 import { settleScreen } from "../fixtures/screen";
 import { expect, test } from "../fixtures/test";
-import { seedTailoringReview, launchTailoringReview, variantClient } from "../fixtures/variants";
+import { translationAlignmentSentences } from "../fixtures/variant-transport";
+import {
+	launchTailoringReview,
+	seedTailoringReview,
+	seedVariantReview,
+	startVariantReview,
+	variantClient,
+} from "../fixtures/variants";
 for (const locale of ["ar-SA", "en-US"] as const)
 	for (const width of [1440, 390])
 		test(`job and language surfaces ${locale} ${width}`, async ({ authPage: page }, info) => {
@@ -22,10 +29,64 @@ for (const locale of ["ar-SA", "en-US"] as const)
 			}
 		});
 
+for (const locale of ["ar-SA", "en-US"] as const)
+	for (const width of [1440, 390])
+		test(`translation comparison keeps both text directions in ${locale} at ${width}`, async ({
+			authPage: page,
+		}, info) => {
+			test.setTimeout(60_000);
+			const ar = locale === "ar-SA";
+			const documentLocale = ar ? "en-US" : "ar-SA";
+			const original = translationAlignmentSentences[documentLocale];
+			const translated = translationAlignmentSentences[locale];
+			await page.setViewportSize({ width, height: 900 });
+			const id = await seedVariantReview(page, info, false, documentLocale);
+			const api = variantClient(page);
+			const current = await api.resume.getById({ id });
+			current.data.basics.headline = "";
+			current.data.summary.content = `<p>${original}</p>`;
+			const source = await api.resume.update({
+				id,
+				data: current.data,
+				expectedUpdatedAt: current.updatedAt.toISOString(),
+			});
+			const copy = await api.resume.variants.create({
+				sourceResumeId: id,
+				expectedUpdatedAt: source.updatedAt.toISOString(),
+				variantKind: "language",
+				targetLocale: locale,
+				requestKey: crypto.randomUUID(),
+			});
+			const prepared = await api.ai.variantReview.prepare({
+				kind: "review.translation",
+				resumeId: copy.resumeId,
+				expectedUpdatedAt: copy.updatedAt,
+				expectedSourceRevision: source.updatedAt.toISOString(),
+			});
+			await startVariantReview(page, prepared);
+			await expect(
+				await page.request.post("/api/auth/update-user", {
+					data: { uiLocale: locale },
+					headers: { origin: String(info.project.use.baseURL) },
+				}),
+			).toBeOK();
+			await page.goto(`/dashboard/resumes/${id}/languages`);
+			await page.getByRole("button", { name: /^(Compare with original|مقارنة بالأصل)$/u }).click();
+			await page.getByRole("button", { name: /^(Summary|الملخّص)\s/u }).click();
+			const before = page.locator("blockquote").and(page.getByText(original, { exact: true }));
+			const after = page.locator('p[dir="auto"]').and(page.getByText(translated, { exact: true }));
+			await expectReviewTextDirection(before, ar ? "ltr" : "rtl");
+			await expectReviewTextDirection(after, ar ? "rtl" : "ltr");
+			await before.scrollIntoViewIfNeeded();
+			await captureReviewDirection(page, info, "translation");
+		});
+
 for (const locale of ["en-US", "ar-SA"] as const)
 	for (const width of [1440, 390])
 		test(`tailoring decisions and failed-review notice ${locale} ${width}`, async ({ authPage: page }, info) => {
-			const { copyId, sourceId, original } = await seedTailoringReview(page, info);
+			test.setTimeout(60000);
+			const ar = locale === "ar-SA";
+			const { copyId, sourceId, original } = await seedTailoringReview(page, info, undefined, ar ? "en-US" : "ar-SA");
 			const api = variantClient(page);
 			await page.setViewportSize({ width, height: 900 });
 			await expect(
@@ -37,6 +98,10 @@ for (const locale of ["en-US", "ar-SA"] as const)
 			await launchTailoringReview(page, copyId);
 			const proposals = page.locator("[data-proposal-index]");
 			await expect(proposals).toHaveCount(3, { timeout: 30000 });
+			const passages = proposals.first().locator('.review-wording > [dir="auto"]');
+			await expect(passages).toHaveCount(3);
+			for (const passage of await passages.all()) await expectReviewTextDirection(passage, ar ? "ltr" : "rtl");
+			await proposals.first().scrollIntoViewIfNeeded();
 			await settleScreen(page);
 			await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar-SA" ? "rtl" : "ltr");
 			expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -47,13 +112,18 @@ for (const locale of ["en-US", "ar-SA"] as const)
 				),
 			).toBe(true);
 			await page.screenshot({ path: info.outputPath("tailoring-proposals.png"), fullPage: true });
+			await captureReviewDirection(page, info, "tailoring");
 			await proposals
 				.first()
 				.getByRole("button", { name: /^(Accept|قبول)$/u })
 				.click();
 			await expect
 				.poll(async () => (await api.resume.getById({ id: copyId })).data.summary.content)
-				.toBe("<p>Developed TypeScript services. Did not manage a budget.</p>");
+				.toBe(
+					ar
+						? "<p>Developed TypeScript services. Did not manage a budget.</p>"
+						: "<p>طورت خدمات باستخدام تايب سكريبت. لم أدر ميزانية.</p>",
+				);
 			await page.reload();
 			await expect(proposals).toHaveCount(3);
 			await expect(proposals.first().getByRole("button", { name: /^(Accept|قبول)$/u })).toHaveCount(0);
@@ -73,11 +143,16 @@ for (const locale of ["en-US", "ar-SA"] as const)
 				expectedSelectionRevision: selected.revision,
 			});
 			await launchTailoringReview(page, copyId);
-			const notice = page.locator('[data-slot="alert"]').filter({ hasText: /No review was delivered|لم تُسلّم مراجعة/u });
+			const failureDescription = ar
+				? "لم تُكمل خدمة الذكاء الاصطناعي هذه المراجعة. مسودتك محفوظة. قد تنجح إعادة المحاولة بعد عطل مؤقت في الخدمة."
+				: "The AI service did not finish this review. Your draft is kept. Retry can help after a temporary service failure.";
+			const notice = page.locator('[data-slot="alert"]').filter({
+				has: page.getByText(failureDescription, { exact: true }),
+			});
 			await expect(notice).toBeVisible({ timeout: 30000 });
 			await expect(notice.locator('[data-slot="icon"]')).toBeVisible();
 			await expect(notice.locator('[data-slot="alert-title"]')).not.toBeEmpty();
-			await expect(notice.locator('[data-slot="alert-description"]')).not.toBeEmpty();
+			await expect(notice.locator('[data-slot="alert-description"]')).toHaveText(failureDescription);
 			await expect(notice.getByRole("button", { name: /^(Retry|إعادة المحاولة)$/u })).toBeEnabled();
 			await settleScreen(page);
 			expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

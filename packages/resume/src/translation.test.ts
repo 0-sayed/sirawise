@@ -1,8 +1,206 @@
+import assert from "node:assert/strict";
 import { expect, it } from "vite-plus/test";
+import { customSectionSchema, sectionTypeSchema } from "@reactive-resume/schema/resume/data";
 import { defaultResumeData } from "@reactive-resume/schema/resume/default";
-import { buildTranslationInventory, translationStructureMatches, writeTranslationTarget } from "./translation";
+import {
+	alignRichTextStructure,
+	buildTranslationInventory,
+	protectTranslationPlaceholders,
+	translationBlockOnlyDivergence,
+	translationStructureMatches,
+	writeTranslationTarget,
+} from "./translation";
 
-it("inventories visible prose and headings, keeps contacts/dates hidden content local, and blocks unsupported custom prose", () => {
+it("preserves existing tokens beside whole-term legacy replacements", () => {
+	const text = "Cedar Labs and [NAME_1] used Cedar Labstore and [LOCAL_9].";
+	expect(protectTranslationPlaceholders(text, [{ token: "[LOCAL_1]", value: "Cedar Labs" }])).toBe(
+		"[LOCAL_1] and [NAME_1] used Cedar Labstore and [LOCAL_9].",
+	);
+});
+
+it.each(sectionTypeSchema.options)(
+	"covers rendered prose for custom %s without sending contacts or extra properties",
+	(type) => {
+		const data = structuredClone(defaultResumeData);
+		const values = Object.fromEntries(
+			[
+				"company",
+				"position",
+				"description",
+				"school",
+				"degree",
+				"area",
+				"grade",
+				"location",
+				"period",
+				"name",
+				"proficiency",
+				"language",
+				"fluency",
+				"title",
+				"awarder",
+				"date",
+				"issuer",
+				"publisher",
+				"organization",
+				"network",
+				"username",
+				"phone",
+				"recipient",
+				"content",
+			].map((field) => [field, field === "description" || field === "content" ? `<p>${field}</p>` : field]),
+		);
+		data.customSections = [
+			customSectionSchema.parse({
+				id: "custom",
+				type,
+				title: "Heading",
+				hidden: false,
+				items: [
+					{
+						...values,
+						id: "item",
+						hidden: false,
+						icon: "code",
+						website: { url: "https://private.example.test", label: "" },
+						keywords: ["keyword"],
+						ignored: "Do not send",
+					},
+				],
+			}),
+		];
+		data.metadata.layout.pages = [{ fullWidth: true, main: ["custom"], sidebar: [] }];
+		const inventory = buildTranslationInventory(data);
+		expect(inventory.blocking).toEqual([]);
+		expect(inventory.segments[0]?.text).toBe("Heading");
+		expect(inventory.segments.length).toBeGreaterThan(1);
+		expect(JSON.stringify(inventory.segments)).not.toMatch(
+			/private.example|Do not send|"source":"(?:location|period|date|username|phone|recipient|grade)"/u,
+		);
+		for (const segment of inventory.segments)
+			writeTranslationTarget(data, segment.target, `Translated ${segment.text}`);
+		expect(data.customSections[0]?.title).toBe("Translated Heading");
+		for (const segment of inventory.segments.slice(1)) {
+			const item = data.customSections[0]?.items[0];
+			expect(item?.[segment.target.field]).toEqual(
+				segment.target.field === "keywords"
+					? ["Translated keyword"]
+					: segment.target.field === "description" || segment.target.field === "content"
+						? `<p>Translated ${segment.text}</p>`
+						: `Translated ${segment.text}`,
+			);
+		}
+	},
+);
+
+it("only blocks named sections whose renderer type is unsupported", () => {
+	const data = structuredClone(defaultResumeData);
+	data.customSections = [
+		customSectionSchema.parse({
+			id: "legacy",
+			type: "summary",
+			title: "Legacy content",
+			hidden: false,
+			items: [{ id: "body", hidden: false, content: "<p>Legacy prose</p>" }],
+		}),
+	];
+	const section = data.customSections[0];
+	assert(section);
+	section.type = "legacy-renderer" as never;
+	data.metadata.layout.pages = [{ fullWidth: true, main: ["legacy"], sidebar: [] }];
+	expect(buildTranslationInventory(data)).toMatchObject({ blocking: ["legacy"], blockingSections: ["Legacy content"] });
+	section.hidden = true;
+	expect(buildTranslationInventory(data).blocking).toEqual([]);
+});
+
+it("translates custom headings, rich text and keywords by stable section and item IDs", () => {
+	const data = structuredClone(defaultResumeData);
+	data.customSections = [
+		customSectionSchema.parse({
+			id: "notes",
+			type: "summary",
+			title: "ملاحظات",
+			hidden: false,
+			items: [{ id: "note", hidden: false, content: "<p>واحد</p><ul><li>اثنان</li></ul>" }],
+		}),
+		customSectionSchema.parse({
+			id: "tools",
+			type: "skills",
+			title: "أدوات",
+			hidden: false,
+			items: [{ id: "tool", hidden: false, icon: "code", name: "برمجة", proficiency: "متقدم", keywords: ["اختبار"] }],
+		}),
+	];
+	data.metadata.layout.pages = [{ fullWidth: true, main: ["notes", "tools"], sidebar: [] }];
+	const inventory = buildTranslationInventory(data);
+	expect(inventory.blocking).toEqual([]);
+	expect(inventory.segments.map((segment) => segment.text)).toEqual([
+		"ملاحظات",
+		"واحد",
+		"اثنان",
+		"أدوات",
+		"برمجة",
+		"متقدم",
+		"اختبار",
+	]);
+	for (const segment of inventory.segments) writeTranslationTarget(data, segment.target, `EN ${segment.text}`);
+	expect(data.customSections[0]?.title).toBe("EN ملاحظات");
+	expect(data.customSections[0]?.items[0]?.content).toBe("<p>EN واحد</p><ul><li>EN اثنان</li></ul>");
+	expect(data.customSections[1]?.items[0]?.keywords).toEqual(["EN اختبار"]);
+	const copy = structuredClone(data);
+	expect(translationStructureMatches(data, copy)).toBe(true);
+	const section = copy.customSections[0];
+	assert(section);
+	section.type = "projects";
+	expect(translationStructureMatches(data, copy)).toBe(false);
+});
+
+it("preserves official custom names, hidden content and missing-target guards", () => {
+	const data = structuredClone(defaultResumeData);
+	data.customSections = [
+		customSectionSchema.parse({
+			id: "courses",
+			type: "certifications",
+			title: "دورات",
+			hidden: false,
+			items: [
+				{
+					id: "course",
+					hidden: false,
+					title: "شهادة",
+					issuer: "المعهد",
+					date: "1445",
+					website: { url: "https://example.test", label: "" },
+					description: "<p>دراسة</p>",
+				},
+				{
+					id: "hidden",
+					hidden: true,
+					title: "مخفي",
+					issuer: "خاص",
+					date: "",
+					website: { url: "", label: "", inlineLink: false },
+					description: "",
+				},
+			],
+		}),
+	];
+	data.metadata.layout.pages = [{ fullWidth: true, main: ["courses"], sidebar: [] }];
+	const inventory = buildTranslationInventory(data);
+	expect(inventory.blocking).toEqual([]);
+	expect(inventory.segments.filter((segment) => segment.official).map((segment) => segment.text)).toEqual([
+		"شهادة",
+		"المعهد",
+	]);
+	expect(JSON.stringify(inventory)).not.toMatch(/1445|example.test|مخفي|خاص/u);
+	const segment = inventory.segments.find((segment) => segment.text === "دراسة");
+	const section = data.customSections[0];
+	assert(segment && section);
+	section.items = [];
+	expect(() => writeTranslationTarget(data, segment.target, "Study")).toThrow("TRANSLATION_TARGET_CHANGED");
+});
+
+it("inventories visible prose and headings while keeping contacts, dates and hidden content local", () => {
 	const data = structuredClone(defaultResumeData);
 	data.basics.headline = "مهندس";
 	data.basics.email = "private@example.test";
@@ -55,4 +253,43 @@ it("detects source/copy translation structure changes while permitting independe
 	expect(translationStructureMatches(source, copy)).toBe(false);
 	copy.summary.content = "<p>One</p><p>Two</p><p>Added</p>";
 	expect(translationStructureMatches(source, copy)).toBe(false);
+});
+
+it("detects rich-text block-only divergence and safely realigns rich-text skeletons without touching sections or local contacts", () => {
+	const source = structuredClone(defaultResumeData);
+	source.basics.email = "source@example.test";
+	source.summary.hidden = false;
+	source.summary.content = "<p>Updated single paragraph summary</p>";
+	source.metadata.layout.pages = [{ fullWidth: false, main: ["summary"], sidebar: [] }];
+
+	const copy = structuredClone(source);
+	copy.basics.email = "copy-local@example.test";
+	copy.metadata.page.locale = "ar-SA";
+	copy.summary.content = "<p>فقرة قديمة أولى</p><p>فقرة قديمة ثانية</p>";
+
+	expect(translationStructureMatches(source, copy)).toBe(false);
+	expect(translationBlockOnlyDivergence(source, copy)).toBe(true);
+
+	const aligned = alignRichTextStructure(source, copy);
+	expect(translationStructureMatches(source, aligned)).toBe(true);
+	expect(aligned.basics.email).toBe("copy-local@example.test");
+	expect(aligned.metadata.page.locale).toBe("ar-SA");
+
+	// Section/item additions or removals are NOT block-only divergence
+	const withExtraItem = structuredClone(copy);
+	withExtraItem.sections.education.hidden = false;
+	withExtraItem.sections.education.items.push({
+		id: "extra-edu",
+		hidden: false,
+		school: "School",
+		degree: "BS",
+		area: "CS",
+		grade: "",
+		location: "",
+		period: "",
+		website: { url: "", label: "", inlineLink: false },
+		description: "",
+	});
+	withExtraItem.metadata.layout.pages = [{ fullWidth: false, main: ["summary", "education"], sidebar: [] }];
+	expect(translationBlockOnlyDivergence(source, withExtraItem)).toBe(false);
 });

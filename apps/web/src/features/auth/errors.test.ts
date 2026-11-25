@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 import { i18n } from "@lingui/core";
-import { accountErrorMessage, authErrorMessage } from "./errors";
+import { accountErrorMessage, authErrorMessage, authErrorField, validAuthEmail } from "./errors";
 import { authSearchSchema } from "./redirect";
 import { getUiLocaleMessages } from "@/libs/locale";
 
@@ -70,3 +70,13 @@ for (const locale of ["ar-SA", "en-US"] as const) {
 		);
 	});
 }
+
+it("matches the server email format and assigns only known errors to fields", () => {
+	expect(validAuthEmail("a@a.a")).toBe(false);
+	expect(validAuthEmail("a@example.com")).toBe(true);
+	expect(authErrorField("INVALID_EMAIL")).toBe("email");
+	expect(authErrorField("USERNAME_IS_INVALID")).toBe("username");
+	expect(authErrorField("PASSWORD_TOO_SHORT")).toBe("password");
+	expect(authErrorField("TOO_MANY_REQUESTS")).toBeNull();
+	expect(authErrorField("database failure")).toBeNull();
+});

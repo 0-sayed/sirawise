@@ -13,8 +13,10 @@ export default defineConfig({
 		index === 1 && server
 			? {
 					...server,
-					cwd: process.cwd(),
-					command: "pnpm --filter server test:review-runtime",
+					// Playwright must own the process group so it can stop the test server.
+					cwd: resolve(process.cwd(), "apps/server"),
+					command: "node --import tsx ../../tests/e2e/reviewable-ai-runtime-server.ts",
+					env: { ...server.env, TSX_TSCONFIG_PATH: "../../tsconfig.json" },
 				}
 			: { ...server, cwd: process.cwd() },
 	),

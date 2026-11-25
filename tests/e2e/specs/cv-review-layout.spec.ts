@@ -15,17 +15,24 @@ for (const locale of ["en-US", "ar-SA"] as const)
 				await expect(panel).toBeVisible();
 				expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 				const tabs = panel.getByRole("tablist").first();
-				await expect(tabs.getByRole("tab").nth(0)).toContainText(locale === "ar-SA" ? "فحص ATS" : "ATS check");
-				await expect(tabs.getByRole("tab").nth(1)).toContainText(locale === "ar-SA" ? "فحص البيانات" : "Data check");
+				await expect(tabs.getByRole("tab").nth(0)).toContainText(
+					locale === "ar-SA" ? "قابلية القراءة الآلية (ATS)" : "Machine readability (ATS)",
+				);
+				await expect(tabs.getByRole("tab").nth(1)).toContainText(
+					locale === "ar-SA" ? "اكتمال المعلومات" : "Information completeness",
+				);
 				const bounds = await tabs.boundingBox();
 				if (!bounds) throw new Error("Review tabs have no bounds");
+				const widths: number[] = [];
 				for (const trigger of await tabs.getByRole("tab").all()) {
 					const box = await trigger.boundingBox();
 					if (!box) throw new Error("Review tab has no bounds");
+					widths.push(box.width);
 					expect(box.y).toBeCloseTo(bounds.y, 0);
 					expect(box.x).toBeGreaterThanOrEqual(bounds.x - 1);
 					expect(box.x + box.width).toBeLessThanOrEqual(bounds.x + bounds.width + 1);
 				}
+				expect(Math.max(...widths) - Math.min(...widths)).toBeLessThan(1);
 				expect(await tabs.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true);
 				for (const trigger of await tabs.getByRole("tab").all()) {
 					expect(await trigger.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true);

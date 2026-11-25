@@ -58,11 +58,6 @@ msgstr ""
 msgid "(no header)"
 msgstr "(କ head ଣସି ହେଡର୍ ନାହିଁ)"
 
-#. placeholder {0}: data.datedReplies
-#: src/features/applications/components/insights-view.tsx
-#~ msgid "{0, plural, one {{dated} dated reply} other {{dated} dated replies}}"
-#~ msgstr ""
-
 #. placeholder {0}: data.answers.length
 #: src/features/career/workspace/saved.tsx
 msgid "{0, plural, one {# answer} other {# answers}}"
@@ -184,11 +179,6 @@ msgstr "{0, plural, one {#ଟି ସେଭ୍ ହୋଇଥିବା ଆଇଟମ
 msgid "{0, plural, one {Your selected font can't display {list}. It shows as “?”. In Design, choose a font that has it.} other {Your selected font can't display {list}. They show as “?”. In Design, choose a font that has them.}}"
 msgstr "{0, plural, one {ଆପଣ ଚୟନ କରିଥିବା ଫଣ୍ଟ {list} ଦେଖାଇପାରିବ ନାହିଁ। ଏହା “?” ଭାବେ ଦେଖାଯାଏ। ଡିଜାଇନ୍ ଟ୍ୟାବରେ, ଏହା ଥିବା ଏକ ଫଣ୍ଟ ବାଛନ୍ତୁ।} other {ଆପଣ ଚୟନ କରିଥିବା ଫଣ୍ଟ {list} ଦେଖାଇପାରିବ ନାହିଁ। ଏଗୁଡ଼ିକ “?” ଭାବେ ଦେଖାଯାଏ। ଡିଜାଇନ୍ ଟ୍ୟାବରେ, ଏଗୁଡ଼ିକ ଥିବା ଏକ ଫଣ୍ଟ ବାଛନ୍ତୁ।}}"
 
-#. placeholder {0}: data.datedReplies
-#: src/features/applications/components/insights-view.tsx
-#~ msgid "{0, plural, zero {{dated} ردود مؤرخة} one {{dated} رد مؤرخ} two {ردّان مؤرّخان} few {{dated} ردود مؤرخة} many {{dated} ردًّا مؤرخًا} other {{dated} رد مؤرخ}}"
-#~ msgstr ""
-
 #. placeholder {0}: importable.length
 #: src/features/applications/components/import-applications-sheet.tsx
 msgid "{0, plural, zero {Import # applications} one {Import # application} other {Import # applications}}"
@@ -210,21 +200,6 @@ msgstr "{0} (କପି)"
 #: src/features/applications/components/import-applications-sheet.tsx
 msgid "{0} (required)"
 msgstr ""
-
-#. placeholder {0}: insights.total
-#: src/features/applications/components/insights-view.tsx
-#~ msgid "{0} active applications"
-#~ msgstr "{0}ଟି ସକ୍ରିୟ ଆବେଦନ"
-
-#. placeholder {0}: insights.closed
-#: src/features/applications/components/insights-view.tsx
-#~ msgid "{0} closed"
-#~ msgstr "{0} ବନ୍ଦ |"
-
-#. placeholder {0}: daysLeftInTrash(document.trashedAt)
-#: src/features/documents/document-card.tsx
-#~ msgid "{0} days left"
-#~ msgstr "{0} ଦିନ ବାକି ଅଛି |"
 
 #. placeholder {0}: proposals.length
 #: src/features/assistant/document.ts
@@ -311,14 +286,6 @@ msgstr ""
 msgid "{0} of {1} shown"
 msgstr "{1} ର {0} ଦର୍ଶାଯାଇଛି |"
 
-#. placeholder {0}: outcomes.tailored.replied
-#. placeholder {1}: outcomes.tailored.sent
-#. placeholder {2}: outcomes.base.replied
-#. placeholder {3}: outcomes.base.sent
-#: src/features/applications/components/insights-view.tsx
-#~ msgid "{0} of {1} tailored applications got a reply; {2} of {3} sent with another resume."
-#~ msgstr "{1}ଟି ଅନୁକୂଳିତ ଆବେଦନ ମଧ୍ୟରୁ {0}ଟି ଉତ୍ତର ପାଇଲା; {3}ଟି ମଧ୍ୟରୁ {2}ଟି ଅନ୍ୟ ଏକ ରେଜ୍ୟୁମେ ସହ ପଠାଯାଇଥିଲା।"
-
 #. placeholder {0}: document.posting.company
 #: src/features/assistant/conversation.tsx
 msgid "{0} posting"
@@ -376,16 +343,15 @@ msgstr "{0}, ଆପଣଙ୍କ ସ୍ଥାନଗୁଡ଼ିକ ମଧ୍ୟ�
 msgid "{0}: “<0>{value}</0>” is invalid."
 msgstr ""
 
-#. placeholder {0}: bucket.label
-#. placeholder {1}: bucket.count
-#: src/features/applications/components/insights-view.tsx
-#~ msgid "{0}: {1} applications"
-#~ msgstr ""
-
 #. placeholder {0}: proposals.length
 #: src/features/assistant/conversation.tsx
 msgid "{accepted} of {0} applied"
 msgstr "{0} ର {accepted} ପ୍ରୟୋଗ ହୋଇଛି |"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.progress"
+msgid "{accepted} of {total} accepted"
+msgstr ""
 
 #: src/features/documents/new-document-dialog.tsx
 msgid "{base} (copy)"
@@ -434,8 +400,23 @@ msgctxt "applications.calendar.monthCount"
 msgid "{count, plural, one {# interview this month} other {# interviews this month}}"
 msgstr ""
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.withheldItems"
+msgid "{count, plural, one {# item was withheld because it could not be verified.} other {# items were withheld because they could not be verified.}}"
+msgstr ""
+
 #: src/features/resume/editor/check/review-values.ts
 msgid "{count, plural, one {# item} other {# items}}"
+msgstr ""
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.terms.occurrences"
+msgid "{count, plural, one {# occurrence} other {# occurrences}}"
+msgstr ""
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.translation.failedParts"
+msgid "{count, plural, one {# part failed. Completed parts are kept.} other {# parts failed. Completed parts are kept.}}"
 msgstr ""
 
 #: src/features/resume/variants/copy.generated.ts
@@ -486,6 +467,16 @@ msgctxt "jobs.requirements.missingCount"
 msgid "{count, plural, one {# without evidence} other {# without evidence}}"
 msgstr ""
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.undoAllDetail"
+msgid "{count, plural, one {Accepted all · # part} other {Accepted all · # parts}}"
+msgstr ""
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.undoSectionDetail"
+msgid "{count, plural, one {Accepted section {section} · # part} other {Accepted section {section} · # parts}}"
+msgstr ""
+
 #: src/features/career/workspace/messages.tsx
 msgid "{count, plural, one {Apply # change} other {Apply # changes}}"
 msgstr "{count, plural, one {#ଟି ପରିବର୍ତ୍ତନ ପ୍ରୟୋଗ କରନ୍ତୁ} other {#ଟି ପରିବର୍ତ୍ତନ ପ୍ରୟୋଗ କରନ୍ତୁ}}"
@@ -501,6 +492,11 @@ msgstr ""
 #: src/features/career/copy.generated.ts
 msgctxt "editor.field.usageCount"
 msgid "{count, plural, one {In {countLabel} CV} other {In {countLabel} CVs}}"
+msgstr ""
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.terms.showConfirmed"
+msgid "{count, plural, one {Show # confirmed name} other {Show # confirmed names}}"
 msgstr ""
 
 #: src/features/applications/insights-copy.ts
@@ -641,10 +637,6 @@ msgid "{length}m"
 msgstr "{length} ମିନିଟ୍"
 
 #: src/routes/builder/$resumeId/-components/page-canvas.tsx
-#~ msgid "{lines, plural, one {Runs onto page {next} by about # line} other {Runs onto page {next} by about # lines}}"
-#~ msgstr "{lines, plural, one {ପ୍ରାୟ # ରେଖା ଦ୍ୱାରା {next} ପୃଷ୍ଠାରେ ଚାଲିଥାଏ |} other {ପ୍ରାୟ # ରେଖା ଦ୍ୱାରା {next} ପୃଷ୍ଠାରେ ଚାଲିଥାଏ |}}"
-
-#: src/routes/builder/$resumeId/-components/page-canvas.tsx
 msgid "{lines, plural, one {The last # line spills onto page {pageCount}} other {The last # lines spill onto page {pageCount}}}"
 msgstr ""
 
@@ -663,10 +655,6 @@ msgstr "{minutes, plural, one {ମୋଟ # ମିନିଟ୍} other {ମୋଟ 
 #: src/features/career/workspace/shell.tsx
 msgid "{minutes} min"
 msgstr "{minutes} ମିନିଟ୍"
-
-#: src/features/applications/components/calendar-view.tsx
-#~ msgid "{monthCount} interviews"
-#~ msgstr "{monthCount} ସାକ୍ଷାତକାର |"
 
 #: src/routes/builder/letter/-components/letter-bar.tsx
 msgid "{name} (copy)"
@@ -709,10 +697,6 @@ msgstr ""
 msgid "{pageCount, plural, one {# page} other {# pages}}"
 msgstr "{pageCount, plural, one {# ପୃଷ୍ଠା |} other {# ପୃଷ୍ଠାଗୁଡ଼ିକ |}}"
 
-#: src/routes/builder/letter/-components/write-panel.tsx
-#~ msgid "{pairing} type"
-#~ msgstr "{pairing} ପ୍ରକାର |"
-
 #: src/routes/builder/$resumeId/-components/page-canvas.tsx
 msgid "{pendingOnPage, plural, one {# proposed edit on this page · nothing changes until you accept} other {# proposed edits on this page · nothing changes until you accept}}"
 msgstr "{pendingOnPage, plural, one {# ଏହି ପୃଷ୍ଠାରେ ସମ୍ପାଦନା ପ୍ରସ୍ତାବିତ · ଆପଣ ଗ୍ରହଣ ନକରିବା ପର୍ଯ୍ୟନ୍ତ କିଛି ପରିବର୍ତ୍ତନ ହୁଏ ନାହିଁ |} other {# ଏହି ପୃଷ୍ଠାରେ ପ୍ରସ୍ତାବିତ ସମ୍ପାଦନା · ଆପଣ ଗ୍ରହଣ ନକରିବା ପର୍ଯ୍ୟନ୍ତ କିଛି ପରିବର୍ତ୍ତନ ହୁଏ ନାହିଁ |}}"
@@ -722,14 +706,14 @@ msgctxt "atsGuide.deduction"
 msgid "{points} category points"
 msgstr ""
 
-#: src/features/ats-guide/copy.ts
-#~ msgctxt "atsGuide.deduction"
-#~ msgid "{points} points"
-#~ msgstr ""
-
 #: src/features/resume/editor/write/section-row.tsx
 msgid "{proposed, plural, one {# proposed} other {# proposed}}"
 msgstr "{proposed, plural, one {# ପ୍ରସ୍ତାବିତ |} other {# ପ୍ରସ୍ତାବିତ |}}"
+
+#: src/features/usage/allowance-limit.tsx
+msgctxt "allowance.concurrent.usage"
+msgid "{reserved} of {limit} simultaneous AI operations in progress."
+msgstr ""
 
 #: src/features/resume/import/review.tsx
 msgid "{reviewedCount} of {total} sections reviewed"
@@ -739,9 +723,9 @@ msgstr ""
 msgid "{sections, plural, one {# section} other {# sections}}"
 msgstr "{sections, plural, one {# ବିଭାଗ |} other {# ବିଭାଗଗୁଡିକ |}}"
 
-#: src/features/applications/components/application-detail-page.tsx
-#~ msgid "{since, plural, =0 {since today} one {for # day} other {for # days}}"
-#~ msgstr "{since, plural, =0 {ଆଜିଠାରୁ} one {# ଦିନ ପାଇଁ |} other {# ଦିନ ପାଇଁ |}}"
+#: src/features/resume/import/ai-assistance-panel.tsx
+msgid "{selectionCount} characters selected"
+msgstr ""
 
 #: src/features/resume/editor/design/fit.ts
 msgid "{size} pt"
@@ -801,6 +785,26 @@ msgstr ""
 msgid "{type} · {0} days left"
 msgstr "{type} · {0} ଦିନ ବାକି ଅଛି |"
 
+#: src/features/usage/allowance-limit.tsx
+msgctxt "allowance.ai.usage"
+msgid "{used} of {limit} AI uses used. {reserved} reserved for operations in progress."
+msgstr ""
+
+#: src/features/usage/allowance-limit.tsx
+msgctxt "allowance.base.usage"
+msgid "{used} of {limit} base CVs used."
+msgstr ""
+
+#: src/features/usage/allowance-limit.tsx
+msgctxt "allowance.job.usage"
+msgid "{used} of {limit} job copies used for this base CV. {reserved} being created."
+msgstr ""
+
+#: src/features/usage/allowance-limit.tsx
+msgctxt "allowance.language.usage"
+msgid "{used} of {limit} language copies used for this base CV. {reserved} being created."
+msgstr ""
+
 #: src/features/career/offers.tsx
 msgid "{value} a month"
 msgstr "ମାସକୁ {value}"
@@ -845,10 +849,6 @@ msgctxt "editor.field.moreDocuments"
 msgid "+{count} more"
 msgstr ""
 
-#: src/features/applications/components/calendar-view.tsx
-#~ msgid "+{extra} more"
-#~ msgstr "+ {extra} ଅଧିକ |"
-
 #: src/features/resume/editor/proposals/proposal-list.tsx
 msgid "<0/> accepts and <1/> rejects the focused edit. <2/> and <3/> move between edits."
 msgstr ""
@@ -884,10 +884,6 @@ msgstr "1 ସ୍ତମ୍ଭ, ଇନଲାଇନ |"
 msgctxt "landing.pricing.free.cv"
 msgid "1 CV, with 1 version in another language and 1 copy tailored to a job"
 msgstr ""
-
-#: src/features/applications/components/calendar-view.tsx
-#~ msgid "1 interview"
-#~ msgstr "1 ସାକ୍ଷାତକାର |"
 
 #: src/features/career/copy.generated.ts
 msgctxt "auth.welcome.import.title"
@@ -1206,6 +1202,11 @@ msgstr "ଏକ ସଂକ୍ଷିପ୍ତ ଅନୁସରଣ ସାଧାରଣ
 msgid "A Skills section lists the tools actually used"
 msgstr ""
 
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.launch.sourceUnavailable"
+msgid "A source document or saved job is unavailable. Open the saved source or choose another one, then start a new review."
+msgstr ""
+
 #: src/features/ats-checker/messages.ts
 msgid "A split address may not be recognized as an email."
 msgstr ""
@@ -1275,6 +1276,7 @@ msgid "Accept"
 msgstr ""
 
 #: src/features/resume/editor/proposals/proposal-list.tsx
+#: src/features/resume/variants/translation-review.tsx
 msgid "Accept all"
 msgstr "ସମସ୍ତ ଗ୍ରହଣ କରନ୍ତୁ |"
 
@@ -1284,6 +1286,11 @@ msgstr ""
 
 #: src/features/letters/review.tsx
 msgid "Accept proposal"
+msgstr ""
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.acceptSection"
+msgid "Accept section"
 msgstr ""
 
 #: src/features/assistant/copy.generated.ts
@@ -1457,10 +1464,6 @@ msgstr "ଏକ ଅବସ୍ଥାନ ଯୋଡନ୍ତୁ |"
 #: src/features/applications/components/detail/note-composer.tsx
 msgid "Add a note"
 msgstr "ଏକ ଟିପ୍ପଣୀ ଯୋଡନ୍ତୁ |"
-
-#: src/features/applications/components/detail/activity.tsx
-#~ msgid "Add a note…"
-#~ msgstr "ଏକ ନୋଟ୍ ଯୋଡନ୍ତୁ…"
 
 #: src/features/applications/components/interview-dialog.tsx
 msgid "Add a person"
@@ -1657,10 +1660,6 @@ msgstr "କ୍ଷେତ୍ର ଯୋଡନ୍ତୁ |"
 msgid "Add figures you can support"
 msgstr ""
 
-#: src/features/ats-checker/messages.ts
-#~ msgid "Add figures you can support(translator)"
-#~ msgstr ""
-
 #: src/features/resume/editor/check/review-findings.tsx
 #: src/features/resume/variants/clarification.tsx
 msgid "Add information"
@@ -1746,10 +1745,6 @@ msgstr "ଭୂମିକା ଯୋଡନ୍ତୁ |"
 msgid "Add salary"
 msgstr ""
 
-#: src/features/applications/components/calendar-view.tsx
-#~ msgid "Add screening calls and technical interviews to see them here and on the calendar."
-#~ msgstr "ସ୍କ୍ରିନିଂ କଲ୍ ଓ ବୈଷୟିକ ସାକ୍ଷାତକାର ଯୋଡ଼ନ୍ତୁ, ଯାହାଫଳରେ ସେଗୁଡ଼ିକ ଏଠାରେ ଓ କ୍ୟାଲେଣ୍ଡରରେ ଦେଖାଯିବ।"
-
 #: src/features/resume/editor/write/add-section.tsx
 msgid "Add section"
 msgstr "ବିଭାଗ ଯୋଡନ୍ତୁ |"
@@ -1791,13 +1786,14 @@ msgstr "@ ପରେ ଡୋମେନ୍ ଯୋଡନ୍ତୁ, ଯେପରିକ
 msgid "Add the domain ending, like {domain}.com"
 msgstr "{domain}.com ପରି ଡୋମେନ୍ ଶେଷକୁ ଯୋଡନ୍ତୁ |"
 
-#: src/features/ats-checker/messages.ts
-msgid "Add timeline context if you want"
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.launch.editJob"
+msgid "Add the job description"
 msgstr ""
 
 #: src/features/ats-checker/messages.ts
-#~ msgid "Add timeline context if you want(translator)"
-#~ msgstr ""
+msgid "Add timeline context if you want"
+msgstr ""
 
 #: src/features/applications/components/detail/next-step-card.tsx
 #: src/features/career/workspace/debrief.tsx
@@ -1812,6 +1808,11 @@ msgstr "ପାଇପଲାଇନରେ ଯୋଡନ୍ତୁ |"
 #: src/features/career/workspace/fit.tsx
 msgid "Add to questions"
 msgstr "ପ୍ରଶ୍ନରେ ଯୋଡ଼ନ୍ତୁ"
+
+#: src/features/resume/import/ai-assistance-panel.tsx
+msgctxt "import.help.targetEntry"
+msgid "Add to which entry?"
+msgstr ""
 
 #: src/features/resume/editor/write/outline.tsx
 msgid "Add volunteering"
@@ -1884,10 +1885,6 @@ msgctxt "review.suggestion.undoHint"
 msgid "Added to your CV. You can undo this now or in version history."
 msgstr ""
 
-#: src/features/career/literal-job-evidence.tsx
-msgid "Additional terms were excluded by the ranked limit."
-msgstr ""
-
 #: src/features/resume/share/link-tab.tsx
 msgid "Address"
 msgstr "ଠିକଣା"
@@ -1900,10 +1897,6 @@ msgstr "ସେତେବେଳ ସୁଦ୍ଧା ଉତ୍ତର ନ ପାଇ�
 #: src/routes/builder/$resumeId/-components/design-panel.tsx
 msgid "Advanced"
 msgstr "ଅଗ୍ରୀମ"
-
-#: src/features/resume/editor/check/check-panel.tsx
-#~ msgid "Advice about clarity and missing information. These notes do not predict acceptance."
-#~ msgstr ""
 
 #: src/libs/locale.ts
 msgid "Afrikaans"
@@ -1977,6 +1970,11 @@ msgstr "AI ସବିଶେଷ ତଥ୍ୟ ପୂରଣ କରିପାରିବ
 msgid "AI edit"
 msgstr "AI ସମ୍ପାଦନା |"
 
+#: src/features/usage/allowance-limit.tsx
+msgctxt "allowance.busy.title"
+msgid "AI is busy"
+msgstr ""
+
 #: src/features/assistant/copy.generated.ts
 msgctxt "review.assistant.environmentUnavailable"
 msgid "AI is not available in this environment."
@@ -1987,14 +1985,14 @@ msgctxt "privacy.storage.aiDescription"
 msgid "AI is optional and needs your consent. Only necessary text, without contact details, goes through OpenRouter. OpenAI Luna and Terra use Microsoft Azure. The DeepSeek checker uses Together AI. Requests use zero data retention (ZDR) routing and deny data collection for training. Provider terms govern actual handling."
 msgstr ""
 
-#: src/features/settings/privacy/page.tsx
-#~ msgctxt "workspace.privacy.59442732fa1f"
-#~ msgid "AI is optional and requires explicit approval and processing consent. Available processing routes and their notices are shown before use."
-#~ msgstr ""
-
 #: src/features/assistant/copy.generated.ts
 msgctxt "privacy.ai.overseasNotice"
 msgid "AI is optional. You must consent before first use. We send only necessary CV text without contact details through OpenRouter. OpenRouter sends requests to Microsoft Azure for OpenAI Luna and Terra. It sends requests to Together AI for the DeepSeek checker. Both services process requests outside Saudi Arabia. Requests use zero data retention (ZDR) routing and deny data collection for training. Provider terms govern actual handling."
+msgstr ""
+
+#: src/features/usage/allowance-limit.tsx
+msgctxt "allowance.busy.description"
+msgid "AI is temporarily unavailable."
 msgstr ""
 
 #: src/features/settings/ai/providers.tsx
@@ -2009,6 +2007,11 @@ msgstr "ENCRYPTION_SECRET ସେଟ୍ ନହେବା ପର୍ଯ୍ୟନ୍�
 msgid "AI providers couldn't be loaded. Reload to try again."
 msgstr "AI ପ୍ରଦାନକାରୀ ଲୋଡ୍ ହୋଇପାରିଲା ନାହିଁ | ପୁନର୍ବାର ଚେଷ୍ଟା କରିବାକୁ ପୁନ elo ଲୋଡ୍ କରନ୍ତୁ |"
 
+#: src/features/usage/allowance-limit.tsx
+msgctxt "allowance.provider.title"
+msgid "AI settings changed"
+msgstr ""
+
 #: src/features/ats-guide/copy.ts
 msgctxt "reviewGuide.tabs.aiDescription"
 msgid "AI tools and where to find them. You approve every change."
@@ -2021,6 +2024,11 @@ msgstr ""
 
 #: src/features/resume/editor/check/check-panel.tsx
 msgid "AI unavailable"
+msgstr ""
+
+#: src/features/usage/allowance-limit.tsx
+msgctxt "allowance.ai.title"
+msgid "AI use limit reached"
 msgstr ""
 
 #: src/features/ats-checker/messages.ts
@@ -2079,6 +2087,11 @@ msgstr ""
 
 #: src/features/ats-guide/examples.ts
 msgid "All intended content is present and selectable"
+msgstr ""
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.terms.allConfirmed"
+msgid "All names are confirmed."
 msgstr ""
 
 #: src/features/ats-guide/examples.ts
@@ -2161,16 +2174,17 @@ msgstr ""
 msgid "An ongoing role without an end marker"
 msgstr ""
 
-#: src/features/resume/editor/proposals/review-operation.tsx
-msgid "An operation is already in progress. Your writing is kept."
-msgstr ""
-
 #: src/features/ats-guide/examples.ts
 msgid "An optional factual note, only if useful"
 msgstr ""
 
 #: src/features/ats-guide/examples.ts
 msgid "An unclear date"
+msgstr ""
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.launch.unexpectedError"
+msgid "An unexpected application error prevented this review from starting. Your draft is kept. Reload the page and try again. If it continues, contact support."
 msgstr ""
 
 #: src/components/layout/error-screen.tsx
@@ -2193,6 +2207,11 @@ msgstr "ଏବଂ {0} ଅଧିକ |"
 #: src/features/applications/salary.ts
 msgctxt "applications.salary.period.year"
 msgid "Annually"
+msgstr ""
+
+#: src/features/usage/allowance-limit.tsx
+msgctxt "allowance.concurrent.title"
+msgid "Another AI operation is in progress"
 msgstr ""
 
 #: src/features/assistant/copy.generated.ts
@@ -2253,10 +2272,6 @@ msgstr "ସର୍ବସାଧାରଣ URL ଖୋଲୁଥିବା ଯେକୌ
 #: src/features/resume/share/link-tab.tsx
 msgid "Anyone with the link will be able to view your resume."
 msgstr "ଲିଙ୍କ୍ ଥିବା ଯେକ your ଣସି ବ୍ୟକ୍ତି ଆପଣଙ୍କର ରେଜୁମ୍ ଦେଖିବାରେ ସକ୍ଷମ ହେବେ |"
-
-#: src/features/applications/components/application-notes.tsx
-#~ msgid "Anything to remember about this job"
-#~ msgstr "ଏହି କାର୍ଯ୍ୟ ବିଷୟରେ ମନେ ରଖିବାକୁ କିଛି |"
 
 #: src/features/assistant/provider-setup.tsx
 #: src/features/settings/ai/providers.tsx
@@ -2400,10 +2415,6 @@ msgctxt "editor.navigation.applications"
 msgid "Applications"
 msgstr ""
 
-#: src/features/applications/components/insights-view.tsx
-#~ msgid "Applications over time"
-#~ msgstr "ସମୟ ସହିତ ଆବେଦନଗୁଡ଼ିକ"
-
 #: src/features/applications/insights-copy.ts
 msgctxt "applications.insights.sent"
 msgid "Applications sent"
@@ -2413,10 +2424,6 @@ msgstr ""
 msgctxt "applications.insights.weekly"
 msgid "Applications sent each week"
 msgstr ""
-
-#: src/features/applications/components/insights-view.tsx
-#~ msgid "Applications sent per week (last 8 weeks)"
-#~ msgstr "ପ୍ରତି ସପ୍ତାହରେ ପଠାଯାଇଥିବା ଆବେଦନ (ଗତ 8 ସପ୍ତାହ)"
 
 #: src/features/applications/components/export-applications-sheet.tsx
 msgid "Applications to export"
@@ -2462,10 +2469,6 @@ msgstr ""
 #: src/features/career/shared.tsx
 msgid "Apply"
 msgstr "ଆବେଦନ"
-
-#: src/features/resume/import/ai-assistance-panel.tsx
-msgid "Apply to entry"
-msgstr ""
 
 #: src/features/resume/variants/copy.generated.ts
 msgctxt "language.translation.approvalDisabledHint"
@@ -2567,6 +2570,11 @@ msgstr ""
 #: src/features/applications/components/import-applications-sheet.tsx
 msgid "Archived (closes it)"
 msgstr "ଅଭିଲେଖାଗାର (ଏହାକୁ ବନ୍ଦ କରେ)"
+
+#: src/features/ats-guide/copy.ts
+msgctxt "reviewGuide.tabs.dataDescription"
+msgid "Are dates, details and sections complete and consistent"
+msgstr ""
 
 #: src/hooks/use-form-blocker.tsx
 msgid "Are you sure you want to close this dialog?"
@@ -2693,45 +2701,6 @@ msgctxt "reviewGuide.ai.local"
 msgid "ATS and data checks never use AI"
 msgstr ""
 
-#: src/features/resume/editor/check/review-tabs.ts
-msgid "ATS check"
-msgstr ""
-
-#: src/features/ats-guide/copy.ts
-msgctxt "atsGuide.pdf"
-msgid "ATS check"
-msgstr ""
-
-#: src/features/ats-guide/copy.ts
-msgctxt "atsGuide.blocker"
-msgid "ATS check · Blocker"
-msgstr ""
-
-#: src/features/ats-guide/copy.ts
-msgctxt "atsGuide.tip"
-msgid "ATS check · Tip"
-msgstr ""
-
-#: src/features/ats-guide/copy.ts
-msgctxt "atsGuide.warning"
-msgid "ATS check · Warning"
-msgstr ""
-
-#: src/features/ats-guide/copy.ts
-msgctxt "atsGuide.blockerHelp"
-msgid "ATS check blockers cap the score until the issue is resolved."
-msgstr ""
-
-#: src/features/ats-guide/copy.ts
-msgctxt "atsGuide.tipHelp"
-msgid "ATS check tips do not change the score."
-msgstr ""
-
-#: src/features/ats-guide/copy.ts
-#~ msgctxt "atsGuide.warningHelp"
-#~ msgid "ATS check warnings deduct points from the score."
-#~ msgstr ""
-
 #: src/features/command-palette/pages/navigation.tsx
 msgid "ATS Checker"
 msgstr "ATS ଯାଞ୍ଚକାରୀ"
@@ -2752,10 +2721,6 @@ msgstr "ଏକ କଭର୍ ଅକ୍ଷର ଫାଇଲ୍ (PDF) ସଂଲଗ�
 #: src/features/career/coach-thread.tsx
 msgid "Attach a file"
 msgstr "ଏକ ଫାଇଲ୍ ସଂଲଗ୍ନ କରନ୍ତୁ |"
-
-#: src/features/applications/components/detail/sent-documents.tsx
-#~ msgid "Attach a file instead"
-#~ msgstr "ଏହା ବଦଳରେ ଏକ ଫାଇଲ୍ ସଂଲଗ୍ନ କରନ୍ତୁ |"
 
 #: src/features/applications/components/detail/document-manager.tsx
 msgid "Attach a resume file (PDF)"
@@ -2835,6 +2800,7 @@ msgid "Azerbaijani"
 msgstr "ଆଜେରବାଇଜାନୀ"
 
 #: src/features/documents/new-document-dialog.tsx
+#: src/features/resume/import/assistance-guide.tsx
 msgid "Back"
 msgstr "ପଛକୁ"
 
@@ -2876,10 +2842,6 @@ msgstr ""
 msgctxt "privacy.navigation.home"
 msgid "Back to home"
 msgstr ""
-
-#: src/features/resume/share/history-tab.tsx
-#~ msgid "Back to now"
-#~ msgstr "ବର୍ତ୍ତମାନ ଫେରିଯାନ୍ତୁ |"
 
 #: src/routes/builder/$resumeId/-components/editor-shell.tsx
 msgid "Back to panel"
@@ -2932,6 +2894,11 @@ msgstr ""
 #: src/features/resume/variants/copy.generated.ts
 msgctxt "jobs.baseCv.label"
 msgid "Base CV"
+msgstr ""
+
+#: src/features/usage/allowance-limit.tsx
+msgctxt "allowance.base.title"
+msgid "Base CV limit reached"
 msgstr ""
 
 #: src/features/career/offers.tsx
@@ -3042,17 +3009,9 @@ msgstr ""
 msgid "Body text set to {minimum} pt"
 msgstr "ଶରୀର ପାଠ୍ୟ {minimum} pt ରେ ସେଟ୍ ହୋଇଛି |"
 
-#: src/features/resume/editor/check/finding-help.tsx
-#~ msgid "Body text: 10 pt"
-#~ msgstr ""
-
 #: src/features/ats-guide/examples.ts
 msgid "Body text: 7 pt"
 msgstr ""
-
-#: src/features/resume/editor/check/finding-help.tsx
-#~ msgid "Body text: 8 pt"
-#~ msgstr ""
 
 #: src/features/ats-guide/examples.ts
 msgid "Body text: at least 9 pt"
@@ -3239,9 +3198,10 @@ msgstr ""
 msgid "Calendar"
 msgstr "କ୍ୟାଲେଣ୍ଡର"
 
-#: src/features/resume/editor/check/check-panel.tsx
-#~ msgid "Can a hiring system read the text and order in this PDF?"
-#~ msgstr ""
+#: src/features/ats-guide/copy.ts
+msgctxt "reviewGuide.tabs.atsDescription"
+msgid "Can hiring systems read your CV file: text, headings, layout"
+msgstr ""
 
 #: src/features/ats-guide/copy.ts
 msgctxt "atsGuide.map.pdfMeaning"
@@ -3328,6 +3288,11 @@ msgstr ""
 msgid "Cancellation could not be confirmed."
 msgstr ""
 
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.progress.cancelling"
+msgid "Cancelling…"
+msgstr ""
+
 #: src/libs/route-titles.ts
 #: src/routes/dashboard/career/route.tsx
 msgid "Career"
@@ -3397,10 +3362,6 @@ msgstr ""
 msgctxt "account.email.change"
 msgid "Change email address"
 msgstr ""
-
-#: src/routes/builder/letter/-components/write-panel.tsx
-#~ msgid "Change it in Design."
-#~ msgstr "ଏହାକୁ ଡିଜାଇନ୍ରେ ପରିବର୍ତ୍ତନ କରନ୍ତୁ |"
 
 #: src/features/career/job-evidence-page.tsx
 msgid "Change job ad"
@@ -3508,10 +3469,6 @@ msgstr "ଉପଯୁକ୍ତତା ଯାଞ୍ଚ କରନ୍ତୁ"
 msgid "Check for missing PDF content"
 msgstr ""
 
-#: src/features/ats-checker/messages.ts
-#~ msgid "Check for missing PDF content(translator)"
-#~ msgstr ""
-
 #: src/features/public-copy.ts
 msgctxt "landing.steps.download.body"
 msgid "Check its readability, then download."
@@ -3528,10 +3485,6 @@ msgstr "ବ୍ୟବହାର କରିବା ପୂର୍ବରୁ ସଂଖ୍
 #: src/features/applications/components/import-applications-sheet.tsx
 msgid "Check row {number}"
 msgstr ""
-
-#: src/features/resume/editor/check/check-panel.tsx
-#~ msgid "Check summary"
-#~ msgstr ""
 
 #: src/features/ats-checker/messages.ts
 msgid "Check that all expected content is present and selectable."
@@ -3574,10 +3527,6 @@ msgstr ""
 #: src/features/ats-checker/messages.ts
 msgid "Check the year; mark ongoing work as current only if it is."
 msgstr ""
-
-#: src/features/resume/import/review.tsx
-#~ msgid "Check this information"
-#~ msgstr ""
 
 #: src/features/career/workspace/fit.tsx
 msgid "Check this role against your evidence"
@@ -3642,14 +3591,14 @@ msgctxt "auth.verifyEmail.deliveryHint"
 msgid "Check your spam folder or request a new link after a minute."
 msgstr ""
 
-#: src/features/resume/editor/check/check-panel.tsx
-#: src/features/resume/editor/check/check-sections.tsx
-#~ msgid "Checked"
-#~ msgstr ""
-
 #: src/features/career/shared.tsx
 msgid "Checking against Knowledge"
 msgstr "ଜ୍ଞାନ ସହ ଯାଞ୍ଚ କରୁଛି"
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.progress.checking"
+msgid "Checking facts against your CV…"
+msgstr ""
 
 #: src/features/career/shared.tsx
 msgid "Checking your preferences"
@@ -3675,11 +3624,6 @@ msgstr ""
 #: src/features/assistant/assistant-panel.tsx
 msgid "Checks every bullet for action and result"
 msgstr "କାର୍ଯ୍ୟ ଏବଂ ଫଳାଫଳ ପାଇଁ ପ୍ରତ୍ୟେକ ତାଲିକା ପ୍ରବେଶ ଯାଞ୍ଚ କରେ |"
-
-#: src/features/ats-guide/copy.ts
-msgctxt "reviewGuide.tabs.dataDescription"
-msgid "Checks for complete and consistent CV data."
-msgstr ""
 
 #: src/features/career/information/entry-fields.tsx
 msgid "Chinese"
@@ -3710,10 +3654,12 @@ msgstr ""
 msgid "Choose a CSV file or paste a header row and at least one application to continue."
 msgstr ""
 
+#: src/components/input/calendar-date-input.tsx
+#: src/components/input/month-year-input.tsx
 #: src/features/applications/components/application-detail-page.tsx
 #: src/features/applications/components/detail/activity.tsx
 #: src/features/applications/components/detail/next-step-card.tsx
-#: src/features/resume/editor/write/dates-field.tsx
+#: src/features/applications/components/interview-dialog.tsx
 msgid "Choose a date."
 msgstr ""
 
@@ -3743,8 +3689,19 @@ msgstr "ଏହାର ଡିଜାଇନ୍ ସହିତ ମେଳ କରିବ�
 msgid "Choose a resume to copy."
 msgstr ""
 
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.launch.jobRequired"
+msgid "Choose a saved job with a job description before reviewing this letter. Use the job link beside the review button."
+msgstr ""
+
+#: src/features/resume/import/ai-assistance-panel.tsx
+msgctxt "review.import.help.description"
+msgid "Choose a section and highlight the uncertain text before requesting a review."
+msgstr ""
+
 #: src/features/applications/components/add-application-dialog.tsx
 #: src/features/applications/components/interview-dialog.tsx
+#: src/features/career/information/entry-dialog.tsx
 msgid "Choose a valid date."
 msgstr ""
 
@@ -3772,10 +3729,6 @@ msgstr "ଏକ ଚାକିରି ଆବେଦନ ବାଛନ୍ତୁ…"
 #: src/features/ats-guide/copy.ts
 msgctxt "atsGuide.mapHint"
 msgid "Choose an area to see its checks."
-msgstr ""
-
-#: src/features/resume/import/ai-assistance-panel.tsx
-msgid "Choose an entry"
 msgstr ""
 
 #: src/features/career/offers.tsx
@@ -3806,8 +3759,23 @@ msgstr ""
 msgid "Choose one date format and use it for all entries."
 msgstr ""
 
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.launch.cvJobLink"
+msgid "Choose or change the job for this CV"
+msgstr ""
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.launch.chooseJob"
+msgid "Choose or save a job"
+msgstr ""
+
 #: src/features/resume/share/download-tab.tsx
 msgid "Choose the file name you want to send."
+msgstr ""
+
+#: src/features/resume/import/assistance-guide.tsx
+msgctxt "review.import.guide.choose"
+msgid "Choose the section."
 msgstr ""
 
 #: src/features/applications/components/import-applications-sheet.tsx
@@ -3856,10 +3824,6 @@ msgstr "ଫର୍ମାଟିଂ ସଫା କରନ୍ତୁ"
 #: src/features/ats-checker/messages.ts
 msgid "Clear headings help software separate your information."
 msgstr ""
-
-#: src/features/resume/editor/check/check-panel.tsx
-#~ msgid "Clear notes for each area, without an overall score or hiring prediction."
-#~ msgstr ""
 
 #: src/routes/dashboard/applications/index.tsx
 msgid "Clear search"
@@ -3918,7 +3882,6 @@ msgstr "କ୍ଲାଏଣ୍ଟ ID"
 #: src/features/career/schedule-sheet.tsx
 #: src/features/career/workspace/coach-sheet.tsx
 #: src/features/career/workspace/prepare.tsx
-#: src/features/documents/new-document-dialog.tsx
 #: src/features/resume/editor/write/improve.tsx
 #: src/features/resume/stylesheet/editor-extensions.ts
 #: src/routes/builder/$resumeId/-components/share-sheet.tsx
@@ -3946,6 +3909,11 @@ msgstr ""
 #: src/features/ats-guide/copy.ts
 msgctxt "atsGuide.close"
 msgid "Close results"
+msgstr ""
+
+#: src/features/resume/import/ai-assistance-panel.tsx
+msgctxt "review.import.help.collapse"
+msgid "Close text assistance"
 msgstr ""
 
 #: src/features/assistant/assistant-panel.tsx
@@ -4098,6 +4066,11 @@ msgid "Compare with ad"
 msgstr ""
 
 #: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.compareWithOriginal"
+msgid "Compare with original"
+msgstr ""
+
+#: src/features/resume/variants/copy.generated.ts
 msgctxt "jobs.copy.subtitle"
 msgid "Compare your CV with a job ad."
 msgstr ""
@@ -4183,6 +4156,11 @@ msgstr ""
 #: src/dialogs/auth/confirm-account-access.tsx
 msgctxt "workspace.privacy.dd22ddce5063"
 msgid "Confirm account access"
+msgstr ""
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.acceptAllDisabledNames"
+msgid "Confirm all names before accepting all segments."
 msgstr ""
 
 #: src/features/resume/import/review.tsx
@@ -4280,6 +4258,11 @@ msgstr ""
 
 #: src/features/letters/review.tsx
 msgid "Confirmed CV evidence"
+msgstr ""
+
+#: src/features/resume/import/review.tsx
+msgctxt "review.import.factsSaved"
+msgid "Confirmed facts saved to Career information. Your existing CV and import review are kept."
 msgstr ""
 
 #: src/features/assistant/provider-setup.tsx
@@ -4581,10 +4564,6 @@ msgid "Copy it now. For your security, it won't be shown again."
 msgstr "ଏହାକୁ ବର୍ତ୍ତମାନ କପି କରନ୍ତୁ | ଆପଣଙ୍କର ସୁରକ୍ଷା ପାଇଁ, ଏହା ଆଉ ଦେଖାଯିବ ନାହିଁ |"
 
 #: src/features/resume/public/public-resume.tsx
-#~ msgid "Copy link"
-#~ msgstr "ଲିଙ୍କ୍ କପି କରନ୍ତୁ |"
-
-#: src/features/resume/public/public-resume.tsx
 msgctxt "resume.public.copyLink"
 msgid "Copy link"
 msgstr ""
@@ -4660,6 +4639,26 @@ msgstr ""
 msgid "Could not add the note."
 msgstr ""
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.errorUnresolved"
+msgid "Could not approve because a protected placeholder could not be restored. Edit the marked segment in {section}, then try again."
+msgstr ""
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.errorUnresolvedGeneric"
+msgid "Could not approve because a protected placeholder could not be restored. Reload the review and edit any marked segment."
+msgstr ""
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.errorStructureChanged"
+msgid "Could not approve because the CV structure changed since this review started. Request a new translation review."
+msgstr ""
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.errorIncomplete"
+msgid "Could not approve yet. Confirm all names and accept all segments before approving."
+msgstr ""
+
 #: src/features/resume/editor/proposals/review-operation.tsx
 msgid "Could not check assistant availability. Your draft is kept."
 msgstr ""
@@ -4692,10 +4691,6 @@ msgstr ""
 
 #: src/features/letters/save-error.ts
 msgid "Could not create a cover-letter copy"
-msgstr ""
-
-#: src/features/resume/variants/language-versions.tsx
-msgid "Could not create the language copy. Check the included allowance and source."
 msgstr ""
 
 #: src/features/letters/review.tsx
@@ -4763,6 +4758,12 @@ msgstr ""
 
 #: src/routes/builder/$resumeId/-components/page-canvas.tsx
 msgid "Could not load this saved version"
+msgstr ""
+
+#: src/features/documents/base-cv-limit.tsx
+#: src/features/resume/import/review.tsx
+msgctxt "documents.baseCvLimit.loadExisting"
+msgid "Could not load your existing CV. Try again."
 msgstr ""
 
 #: src/features/settings/privacy/export-status.tsx
@@ -4871,10 +4872,6 @@ msgstr ""
 msgid "Could not sort these items; they stayed at the end: {0}."
 msgstr "ଏହି ଆଇଟମଗୁଡିକ ସଜାଡି ପାରିଲା ନାହିଁ; ସେମାନେ ଶେଷରେ ରହିଲେ: {0} |"
 
-#: src/features/resume/editor/proposals/review-operation.tsx
-#~ msgid "Could not start this review. Your draft is kept. Retry this request or cancel."
-#~ msgstr ""
-
 #: src/features/resume/share/history-tab.tsx
 msgid "Could not update version history"
 msgstr ""
@@ -4940,10 +4937,6 @@ msgstr "ଡକ୍ୟୁମେଣ୍ଟ୍ ସୃଷ୍ଟି କରିପାର�
 #: src/features/settings/ai/api-keys.tsx
 msgid "Couldn't create the key. Try again."
 msgstr "ଚାବି ସୃଷ୍ଟି କରିପାରିଲା ନାହିଁ | ପୁନର୍ବାର ଚେଷ୍ଟା କରନ୍ତୁ |"
-
-#: src/features/applications/components/detail/sent-documents.tsx
-#~ msgid "Couldn't create the letter."
-#~ msgstr "ଅକ୍ଷର ସୃଷ୍ଟି କରିପାରିଲା ନାହିଁ |"
 
 #: src/features/assistant/assistant-panel.tsx
 msgid "Couldn't delete it."
@@ -5101,10 +5094,6 @@ msgstr "ପ୍ରଦାନକାରୀଙ୍କୁ ସଞ୍ଚୟ କରିପ�
 msgid "Couldn't save the story."
 msgstr "କାହାଣୀ ସେଭ୍ କରିହେଲା ନାହିଁ।"
 
-#: src/features/applications/components/application-detail-page.tsx
-#~ msgid "Couldn't save the tags."
-#~ msgstr "ଟ୍ୟାଗ୍ ସଞ୍ଚୟ କରିପାରିଲା ନାହିଁ |"
-
 #: src/features/settings/preferences.tsx
 msgid "Couldn't save the timezone."
 msgstr "ସମୟ ଅଞ୍ଚଳ ସେଭ୍ କରିହେଲା ନାହିଁ।"
@@ -5133,11 +5122,6 @@ msgstr "ଆପଣଙ୍କର ପରିବର୍ତ୍ତନଗୁଡିକ ସ�
 #: src/features/career/knowledge/preferences.tsx
 msgid "Couldn't save your preferences."
 msgstr "ଆପଣଙ୍କ ପସନ୍ଦ ସେଭ୍ କରିହେଲା ନାହିଁ।"
-
-#: src/features/applications/components/application-detail-page.tsx
-#: src/features/applications/components/detail/sent-documents.tsx
-#~ msgid "Couldn't save."
-#~ msgstr "ସଞ୍ଚୟ କରିପାରିଲା ନାହିଁ"
 
 #: src/features/settings/account/saved-field.tsx
 msgid "Couldn't save. Try again."
@@ -5197,10 +5181,6 @@ msgctxt "applications.insights.count"
 msgid "Count / population"
 msgstr ""
 
-#: src/features/applications/components/insights-view.tsx
-#~ msgid "Count by source"
-#~ msgstr "ଉତ୍ସ ଦ୍ୱାରା ଗଣନା କର |"
-
 #: src/features/career/workspace/apply.tsx
 msgid "Count characters"
 msgstr "ଅକ୍ଷର ଗଣନ୍ତୁ"
@@ -5212,10 +5192,6 @@ msgstr "ଶବ୍ଦ ଗଣନ୍ତୁ"
 #: src/features/ats-guide/examples.ts
 msgid "Country code followed by the phone number"
 msgstr ""
-
-#: src/features/applications/components/insights-view.tsx
-#~ msgid "Counts every application that reached each stage, including ones now closed."
-#~ msgstr "ବର୍ତ୍ତମାନ ବନ୍ଦ ହୋଇଥିବା ଅନ୍ତର୍ଭୁକ୍ତ କରି ପ୍ରତ୍ୟେକ ପର୍ଯ୍ୟାୟରେ ପହଞ୍ଚିଥିବା ପ୍ରତ୍ୟେକ ଚାକିରି ଆବେଦନକୁ ଗଣନା କରେ |"
 
 #: src/features/resume/editor/check/review-findings.tsx
 msgid "Counts show individual findings, including grouped items."
@@ -5341,16 +5317,17 @@ msgstr ""
 
 #: src/features/resume/import/review.tsx
 msgctxt "review.import.saveAndContinue"
-msgid "Create CV and open editor"
+msgid "Create CV and save career information"
+msgstr ""
+
+#: src/features/resume/import/review.tsx
+msgctxt "review.import.createOnly"
+msgid "Create CV only"
 msgstr ""
 
 #: src/features/settings/ai/api-keys.tsx
 msgid "Create key"
 msgstr "ଚାବି ସୃଷ୍ଟି କରନ୍ତୁ |"
-
-#: src/features/resume/variants/language-versions.tsx
-msgid "Create language copy"
-msgstr ""
 
 #: src/features/resume/variants/copy.generated.ts
 msgctxt "jobs.copy.create"
@@ -5613,16 +5590,6 @@ msgctxt "reviewGuide.tabs.dataShort"
 msgid "Data"
 msgstr ""
 
-#: src/features/resume/editor/check/review-findings.tsx
-#: src/features/resume/editor/check/review-tabs.ts
-msgid "Data check"
-msgstr ""
-
-#: src/features/ats-guide/copy.ts
-msgctxt "atsGuide.editor"
-msgid "Data check"
-msgstr ""
-
 #: src/features/public-copy.ts
 msgctxt "legal.privacy.data.title"
 msgid "Data in your account"
@@ -5659,10 +5626,6 @@ msgstr ""
 #: src/features/resume/editor/check/messages.ts
 msgid "Dates help readers place {entry} in your work history."
 msgstr ""
-
-#: src/features/applications/components/insights-view.tsx
-#~ msgid "days"
-#~ msgstr ""
 
 #: src/features/letters/compose.ts
 msgid "Dear {name},"
@@ -6026,17 +5989,9 @@ msgstr ""
 msgid "Document font changed"
 msgstr ""
 
-#: src/features/resume/editor/check/finding-help.tsx
-#~ msgid "Document language: Arabic"
-#~ msgstr ""
-
 #: src/features/ats-guide/examples.ts
 msgid "Document language: Arabic for Arabic content"
 msgstr ""
-
-#: src/features/resume/editor/check/finding-help.tsx
-#~ msgid "Document language: English"
-#~ msgstr ""
 
 #: src/features/ats-guide/examples.ts
 msgid "Document language: unset"
@@ -6089,6 +6044,7 @@ msgid "Don't send {0}"
 msgstr "{0} ପଠାନ୍ତୁ ନାହିଁ |"
 
 #: src/features/resume/editor/write/rich-text-editor.tsx
+#: src/features/resume/import/assistance-guide.tsx
 #: src/features/settings/ai/api-keys.tsx
 msgid "Done"
 msgstr "ସମାପ୍ତ"
@@ -6272,6 +6228,11 @@ msgstr "ଡ୍ରାଫ୍ଟ ବନ୍ଦ ହେଲା: {0} କ respond ଣସ�
 #: src/routes/builder/letter/-components/write-panel.tsx
 msgid "Drafting stopped. Nothing on the page changed."
 msgstr "ଡ୍ରାଫ୍ଟ ବନ୍ଦ ହୋଇଗଲା | ପୃଷ୍ଠାରେ କିଛି ପରିବର୍ତ୍ତନ ହୋଇନାହିଁ |"
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.progress.drafting"
+msgid "Drafting suggestions…"
+msgstr ""
 
 #: src/routes/builder/letter/-components/write-panel.tsx
 msgid "Drafting…"
@@ -6574,6 +6535,11 @@ msgctxt "language.terms.qualification"
 msgid "Education: {qualification}"
 msgstr ""
 
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.progress.elapsed"
+msgid "Elapsed: {seconds}s"
+msgstr ""
+
 #: src/features/career/information/entry-fields.tsx
 msgid "Elementary"
 msgstr ""
@@ -6675,15 +6641,6 @@ msgstr ""
 msgctxt "language.terms.employer"
 msgid "Employer: {employer}"
 msgstr ""
-
-#: src/features/documents/resume-thumbnail.test.tsx
-#: src/features/documents/resume-thumbnail.tsx
-#~ msgid "Empty CV"
-#~ msgstr ""
-
-#: src/features/documents/resume-thumbnail.tsx
-#~ msgid "Empty letter"
-#~ msgstr ""
 
 #: src/features/documents/trash-page.tsx
 msgctxt "trash.bulk.empty"
@@ -6829,6 +6786,11 @@ msgstr ""
 msgid "Enter a term without markup, up to 4000 characters."
 msgstr ""
 
+#: src/features/auth/errors.ts
+msgctxt "auth.validation.email"
+msgid "Enter a valid email address, such as name@example.com."
+msgstr ""
+
 #: src/features/applications/components/detail/contacts.tsx
 msgid "Enter a valid email address."
 msgstr "ଏକ ବ valid ଧ ଇମେଲ୍ ଠିକଣା ପ୍ରବେଶ କରନ୍ତୁ |"
@@ -6951,7 +6913,6 @@ msgstr ""
 
 #: src/features/career/job-evidence-page.tsx
 #: src/features/resume/editor/proposals/review-panel.tsx
-#: src/features/resume/import/ai-assistance-panel.tsx
 msgid "Evidence"
 msgstr ""
 
@@ -6977,6 +6938,11 @@ msgstr ""
 
 #: src/features/ats-guide/examples.ts
 msgid "example.com"
+msgstr ""
+
+#: src/features/documents/base-cv-limit.tsx
+msgctxt "documents.baseCvLimit.existing"
+msgid "Existing CV"
 msgstr ""
 
 #: src/features/resume/stylesheet/toolbar.tsx
@@ -7088,10 +7054,6 @@ msgid "Export a PDF with selectable text"
 msgstr ""
 
 #: src/features/ats-checker/messages.ts
-#~ msgid "Export a PDF with selectable text(translator)"
-#~ msgstr ""
-
-#: src/features/ats-checker/messages.ts
 msgid "Export again with readable fonts"
 msgstr ""
 
@@ -7122,10 +7084,6 @@ msgstr ""
 #: src/features/resume/import/read-file.ts
 msgid "export opened"
 msgstr "ରପ୍ତାନି ଖୋଲା ହେଲା |"
-
-#: src/features/applications/components/insights-view.tsx
-#~ msgid "Export PNG"
-#~ msgstr "PNG ରପ୍ତାନି କରନ୍ତୁ |"
 
 #: src/features/applications/insights-copy.ts
 msgctxt "applications.insights.export"
@@ -7158,15 +7116,6 @@ msgstr ""
 #: src/routes/dashboard/applications/index.tsx
 msgid "Export to CSV…"
 msgstr "CSV କୁ ରପ୍ତାନି…"
-
-#. placeholder {0}: getPdfFindingMessage(finding.code).title
-#: src/features/resume/editor/check/page-layer.tsx
-#~ msgid "Exported PDF: {0}"
-#~ msgstr "ରପ୍ତାନି ହୋଇଥିବା PDF: {0} |"
-
-#: src/features/applications/components/insights-view.tsx
-#~ msgid "Exported pipeline-flow.png"
-#~ msgstr "ରପ୍ତାନି ହୋଇଥିବା ପାଇପଲାଇନ-ପ୍ରବାହ। png |"
 
 #: src/features/applications/insights-copy.ts
 msgctxt "applications.insights.exported"
@@ -7322,12 +7271,6 @@ msgstr "ଭୂମିକା ଖୋଜନ୍ତୁ"
 msgid "Find weak bullets"
 msgstr "ଦୁର୍ବଳ ତାଲିକା ପ୍ରବିଷ୍ଟଗୁଡିକ ଖୋଜ |"
 
-#. placeholder {0}: marker.number
-#. placeholder {1}: marker.label
-#: src/features/resume/editor/check/page-layer.tsx
-#~ msgid "Finding {0}: {1}"
-#~ msgstr ""
-
 #: src/features/documents/new-document-dialog.tsx
 msgid "Finding sections"
 msgstr "ବିଭାଗ ଖୋଜିବା"
@@ -7376,18 +7319,6 @@ msgstr "ଅନ୍ୟ ଟ୍ୟାବ୍‌ଗୁଡ଼ିକ ସୃଷ୍ଟି 
 #: src/features/resume/editor/chrome.tsx
 msgid "Fit page to width"
 msgstr "ପ୍ରସ୍ଥକୁ ଫିଟ୍ କରନ୍ତୁ |"
-
-#: src/routes/builder/$resumeId/-components/page-canvas.tsx
-#~ msgid "Fit to {authored} pages"
-#~ msgstr "{authored} ପୃଷ୍ଠାଗୁଡ଼ିକୁ ଫିଟ୍ କରନ୍ତୁ |"
-
-#: src/routes/builder/$resumeId/-components/page-canvas.tsx
-#~ msgid "Fit to one page"
-#~ msgstr "ଗୋଟିଏ ପୃଷ୍ଠାରେ ଫିଟ୍ |"
-
-#: src/features/resume/editor/design/fit.ts
-#~ msgid "Fits on {authored} pages: {details}"
-#~ msgstr "{authored} ପୃଷ୍ଠାଗୁଡ଼ିକରେ ଫିଟ୍: {details} |"
 
 #: src/features/resume/editor/design/fit.ts
 msgid "Fits on {fittedPages} pages: {details}"
@@ -7569,6 +7500,11 @@ msgstr "{0} ମିଳିଲା"
 msgid "Found in CV"
 msgstr ""
 
+#: src/features/career/literal-job-evidence.tsx
+msgctxt "jobs.coverage.foundGroup"
+msgid "Found in CV: {count}"
+msgstr ""
+
 #: src/features/applications/components/add-application-dialog.tsx
 msgid "Found the role and company on the page. Review the details before saving."
 msgstr "ପୃଷ୍ଠାରେ ଭୂମିକା ଓ କମ୍ପାନୀ ମିଳିଲା। ସେଭ୍ କରିବା ପୂର୍ବରୁ ବିବରଣୀ ସମୀକ୍ଷା କରନ୍ତୁ।"
@@ -7697,6 +7633,11 @@ msgstr "ଜର୍ମାନ୍"
 msgid "Get a key at <0>{0}</0>. It's stored encrypted and used only for your requests."
 msgstr "<0>{0}</0> ରେ ଏକ ଚାବି ପାଆନ୍ତୁ | ଏହା ଏନକ୍ରିପ୍ଟ ହୋଇଛି ଏବଂ କେବଳ ଆପଣଙ୍କ ଅନୁରୋଧ ପାଇଁ ବ୍ୟବହୃତ |"
 
+#: src/features/resume/import/ai-assistance-panel.tsx
+msgctxt "review.import.help.title"
+msgid "Get AI help with text the import was unsure about"
+msgstr ""
+
 #: src/features/career/workspace/practise.tsx
 msgid "Get feedback"
 msgstr "ମତାମତ ପାଆନ୍ତୁ"
@@ -7704,10 +7645,6 @@ msgstr "ମତାମତ ପାଆନ୍ତୁ"
 #: src/features/career/workspace/practise.tsx
 msgid "Get feedback sends the question, your answer, this posting and your stories to {providerName}."
 msgstr "“ମତାମତ ପାଆନ୍ତୁ” ପ୍ରଶ୍ନ, ଆପଣଙ୍କ ଉତ୍ତର, ଏହି ଚାକିରି ବିଜ୍ଞାପନ ଓ ଆପଣଙ୍କ କାହାଣୀ {providerName}କୁ ପଠାଏ।"
-
-#: src/features/resume/import/ai-assistance-panel.tsx
-msgid "Get help with uncertain text"
-msgstr ""
 
 #: src/features/career/today.tsx
 msgid "Get new roles here every morning"
@@ -7786,10 +7723,6 @@ msgstr ""
 #: src/features/command-palette/pages/navigation.tsx
 msgid "Go to…"
 msgstr "… କୁ ଯାଆନ୍ତୁ"
-
-#: src/features/resume/editor/check/check-panel.tsx
-#~ msgid "Got it"
-#~ msgstr ""
 
 #: src/features/career/information/entry-dialog.tsx
 #: src/features/resume/editor/write/entries.tsx
@@ -7878,10 +7811,6 @@ msgstr "ଶିରୋନାମା"
 msgid "Hear it"
 msgstr "ଶୁଣନ୍ତୁ"
 
-#: src/features/applications/components/insights-view.tsx
-#~ msgid "heard back"
-#~ msgstr "ଶୁଣିଲି"
-
 #: src/features/applications/insights-copy.ts
 msgctxt "applications.insights.reply"
 msgid "Heard back"
@@ -7905,7 +7834,9 @@ msgstr ""
 #: src/features/help/public-shell.tsx
 #: src/features/homepage/footer.tsx
 #: src/features/legal/page.tsx
+#: src/features/letters/save-error.ts
 #: src/features/settings/privacy/deletion-page.tsx
+#: src/features/usage/allowance-limit.tsx
 #: src/libs/route-titles.ts
 #: src/routes/help.tsx
 msgctxt "help.page.title"
@@ -7960,6 +7891,11 @@ msgstr ""
 msgid "Hide {title} from the page"
 msgstr "ପୃଷ୍ଠାରୁ {title} ଲୁଚାନ୍ତୁ |"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.hideComparison"
+msgid "Hide comparison"
+msgstr ""
+
 #: src/features/resume/editor/write/entry-card.tsx
 msgid "Hide from page"
 msgstr "ପୃଷ୍ଠାରୁ ଲୁଚାନ୍ତୁ |"
@@ -8001,6 +7937,16 @@ msgstr "ଫଟୋ ଲୁଚାନ୍ତୁ |"
 #: src/features/resume/editor/write/rich-text-editor.tsx
 msgid "Highlight"
 msgstr "ହାଇଲାଇଟ୍"
+
+#: src/features/resume/import/ai-assistance-panel.tsx
+#: src/features/resume/import/assistance-guide.tsx
+msgid "Highlight the text you want help with"
+msgstr ""
+
+#: src/features/resume/import/assistance-guide.tsx
+msgctxt "review.import.guide.highlight"
+msgid "Highlight the text you want help with."
+msgstr ""
 
 #: src/features/applications/insights-copy.ts
 msgctxt "applications.insights.highest"
@@ -8072,18 +8018,9 @@ msgctxt "landing.faq.rights.question"
 msgid "How do I manage my data?"
 msgstr ""
 
-#: src/features/applications/components/insights-view.tsx
-#~ msgid "How far applications get"
-#~ msgstr "ଚାକିରି ଆବେଦନଗୁଡ଼ିକ କେତେ ଦୂର ଯାଏ"
-
 #: src/features/applications/insights-copy.ts
 msgctxt "applications.insights.funnel"
 msgid "How far applications get"
-msgstr ""
-
-#: src/features/ats-guide/copy.ts
-msgctxt "reviewGuide.tabs.atsDescription"
-msgid "How hiring systems read your PDF."
 msgstr ""
 
 #: src/features/career/offers.tsx
@@ -8208,10 +8145,6 @@ msgstr ""
 msgctxt "privacy.deletion.appleHint"
 msgid "If you used Sign in with Apple, Sirawise may remain listed in your Apple Account. You can remove it there."
 msgstr ""
-
-#: src/features/resume/editor/check/check-panel.tsx
-#~ msgid "Ignore"
-#~ msgstr "ଅଣଦେଖା କରନ୍ତୁ |"
 
 #: src/features/resume/editor/check/actions.ts
 msgid "Ignored issues are back"
@@ -8393,6 +8326,16 @@ msgctxt "atsGuide.editorInfo"
 msgid "Information"
 msgstr ""
 
+#: src/features/resume/editor/check/review-findings.tsx
+#: src/features/resume/editor/check/review-tabs.ts
+msgid "Information completeness"
+msgstr ""
+
+#: src/features/ats-guide/copy.ts
+msgctxt "atsGuide.editor"
+msgid "Information completeness"
+msgstr ""
+
 #: src/features/resume/editor/proposals/review-panel.tsx
 msgid "Information you supplied"
 msgstr ""
@@ -8531,23 +8474,6 @@ msgstr ""
 msgid "issue {0}"
 msgstr "{0} ଇସ୍ୟୁ କରନ୍ତୁ |"
 
-#. placeholder {0}: issue.number
-#: src/features/resume/editor/check/page-layer.tsx
-#~ msgid "Issue {0}"
-#~ msgstr "{0} ଇସ୍ୟୁ କରନ୍ତୁ |"
-
-#. placeholder {0}: issue.number
-#. placeholder {1}: issues.length
-#: src/features/resume/editor/check/page-layer.tsx
-#~ msgid "Issue {0} of {1}"
-#~ msgstr "{1} ର {0} ଇସ୍ୟୁ କରନ୍ତୁ |"
-
-#. placeholder {0}: issue.number
-#. placeholder {1}: issue.title
-#: src/features/resume/editor/check/page-layer.tsx
-#~ msgid "Issue {0}: {1}"
-#~ msgstr "{0} ଇସ୍ୟୁ: {1} |"
-
 #: src/features/resume/editor/check/actions.ts
 msgid "Issue ignored"
 msgstr "ଇସୁ ଅଣଦେଖା |"
@@ -8609,10 +8535,6 @@ msgstr "ଏହାର ସଂଯୋଗ ବନ୍ଦ କିମ୍ବା ହଟା�
 msgid "Its messages and attachments are deleted. Edits you accepted stay in the document."
 msgstr "ଏହାର ବାର୍ତ୍ତା ଏବଂ ସଂଲଗ୍ନଗୁଡିକ ବିଲୋପ ହୋଇଛି | ଆପଣ ଡକ୍ୟୁମେଣ୍ଟରେ ରହିବାକୁ ଗ୍ରହଣ କରିଥିବା ସଂପାଦନା |"
 
-#: src/routes/builder/letter/-components/write-panel.tsx
-#~ msgid "Its own design ({summary})."
-#~ msgstr "ଏହାର ନିଜସ୍ୱ ଡିଜାଇନ୍ ({summary}) |"
-
 #: src/features/settings/ai/providers.tsx
 msgid "Its saved key is deleted. Conversations using it need another provider."
 msgstr "ଏହାର ସେଭ୍ କୀ ଡିଲିଟ୍ ହୋଇଛି | ଏହାକୁ ବ୍ୟବହାର କରି ବାର୍ତ୍ତାଳାପ ଅନ୍ୟ ଏକ ପ୍ରଦାନକାରୀ ଆବଶ୍ୟକ କରେ |"
@@ -8652,15 +8574,16 @@ msgstr ""
 msgid "Job copy"
 msgstr ""
 
+#: src/features/usage/allowance-limit.tsx
+msgctxt "allowance.job.title"
+msgid "Job copy limit reached"
+msgstr ""
+
 #: src/features/applications/components/add-application-dialog.tsx
 #: src/features/applications/components/application-form-sheet.tsx
 #: src/features/applications/components/import-applications-sheet.tsx
 msgid "Job description"
 msgstr "କାର୍ଯ୍ୟ ବର୍ଣ୍ଣନା"
-
-#: src/features/resume/editor/check/check-panel.tsx
-#~ msgid "Job evidence"
-#~ msgstr ""
 
 #: src/features/ats-guide/ai-features.ts
 msgctxt "reviewGuide.ai.evidence.name"
@@ -8678,10 +8601,6 @@ msgstr "ଚାକିରି ପୋଷ୍ଟିଂ ଲିଙ୍କ୍"
 #: src/features/applications/components/add-application-dialog.tsx
 msgid "Job search failed. Try again or paste a posting link."
 msgstr "ଚାକିରି ଖୋଜ ବିଫଳ ହେଲା | ପୁନର୍ବାର ଚେଷ୍ଟା କରନ୍ତୁ କିମ୍ବା ଏକ ଚାକିରି ପୋଷ୍ଟିଂ ଲିଙ୍କ୍ ଲେପନ କରନ୍ତୁ |"
-
-#: src/features/applications/components/insights-view.tsx
-#~ msgid "Job search pipeline"
-#~ msgstr "ଚାକିରି ଖୋଜ ପାଇପଲାଇନ୍"
 
 #: src/features/applications/components/add-application-dialog.tsx
 msgid "Job source"
@@ -8753,6 +8672,11 @@ msgstr ""
 #: src/features/auth/pages/consent.tsx
 msgid "Keep access when you are not using the application."
 msgstr "ଯେତେବେଳେ ଆପଣ ଅନୁପ୍ରୟୋଗ ବ୍ୟବହାର କରୁନାହାଁନ୍ତି ଆକ୍ସେସ୍ ରଖନ୍ତୁ |"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.terms.keepAllNames"
+msgid "Keep all names as they are"
+msgstr ""
 
 #: src/features/resume/editor/check/review-findings.tsx
 msgid "Keep as is"
@@ -8946,6 +8870,11 @@ msgstr ""
 #: src/features/resume/variants/language-versions.tsx
 #: src/features/resume/variants/variant-banner.tsx
 msgid "Language copy"
+msgstr ""
+
+#: src/features/usage/allowance-limit.tsx
+msgctxt "allowance.language.title"
+msgid "Language copy limit reached"
 msgstr ""
 
 #: src/features/career/information/completeness.tsx
@@ -9175,6 +9104,16 @@ msgstr ""
 msgid "Link"
 msgstr "ଲିଙ୍କ୍ |"
 
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.launch.cvRequired"
+msgid "Link a saved CV to this letter before starting the review. Choose a CV in the sender section."
+msgstr ""
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.launch.linkingHint"
+msgid "Link a saved job in the job selector above, or choose a job for the linked CV. A job description is required for AI review."
+msgstr ""
+
 #: src/features/applications/components/application-form-sheet.tsx
 msgid "Link a Sirawise (recommended)"
 msgstr ""
@@ -9187,10 +9126,6 @@ msgstr ""
 #: src/features/resume/editor/write/rich-text-editor.tsx
 msgid "Link address"
 msgstr "ଲିଙ୍କ୍ ଠିକଣା"
-
-#: src/routes/builder/letter/-components/write-panel.tsx
-msgid "Link an application"
-msgstr "ଏକ ଚାକିରି ଆବେଦନକୁ ଲିଙ୍କ୍ କରନ୍ତୁ"
 
 #: src/features/documents/document-actions.tsx
 #: src/features/resume/public/public-resume.tsx
@@ -9231,10 +9166,6 @@ msgstr "ଲିଙ୍କ୍ ବନ୍ଦ ହୋଇଗଲା | ଠିକଣା ର
 #: src/features/resume/editor/check/issues.ts
 msgid "Link updated"
 msgstr "ଲିଙ୍କ୍ ଅପଡେଟ୍ ହୋଇଛି |"
-
-#: src/features/applications/components/detail/sent-documents.tsx
-#~ msgid "Linked · not sent yet"
-#~ msgstr "ଲିଙ୍କ୍ · ଏପର୍ଯ୍ୟନ୍ତ ପଠାଯାଇ ନାହିଁ |"
 
 #: src/features/career/copy.generated.ts
 msgctxt "editor.field.usageTitle"
@@ -9485,6 +9416,40 @@ msgstr "ଆପଣଙ୍କ ପରିଚୟ ପ୍ରମାଣିକରଣ ଆପ
 msgid "Lower the design sheet"
 msgstr "ଡିଜାଇନ୍ ସିଟ୍ କମ୍ କରନ୍ତୁ |"
 
+#: src/features/resume/editor/check/review-tabs.ts
+msgid "Machine readability (ATS)"
+msgstr ""
+
+#: src/features/ats-guide/copy.ts
+msgctxt "atsGuide.pdf"
+msgid "Machine readability (ATS)"
+msgstr ""
+
+#: src/features/ats-guide/copy.ts
+msgctxt "atsGuide.blocker"
+msgid "Machine readability (ATS) · Blocker"
+msgstr ""
+
+#: src/features/ats-guide/copy.ts
+msgctxt "atsGuide.tip"
+msgid "Machine readability (ATS) · Tip"
+msgstr ""
+
+#: src/features/ats-guide/copy.ts
+msgctxt "atsGuide.warning"
+msgid "Machine readability (ATS) · Warning"
+msgstr ""
+
+#: src/features/ats-guide/copy.ts
+msgctxt "atsGuide.blockerHelp"
+msgid "Machine readability (ATS) blockers cap the score until the issue is resolved."
+msgstr ""
+
+#: src/features/ats-guide/copy.ts
+msgctxt "atsGuide.tipHelp"
+msgid "Machine readability (ATS) tips do not change the score."
+msgstr ""
+
 #: src/features/settings/privacy/page.tsx
 msgctxt "privacy.dataExport.format"
 msgid "Machine-readable JSON in a ZIP archive, including your files."
@@ -9512,10 +9477,6 @@ msgid "Make every page upright"
 msgstr ""
 
 #: src/features/ats-checker/messages.ts
-#~ msgid "Make every page upright(translator)"
-#~ msgstr ""
-
-#: src/features/ats-checker/messages.ts
 msgid "Make headings larger or bolder than body text."
 msgstr ""
 
@@ -9539,10 +9500,6 @@ msgstr "ସାର୍ବଜନିକ କରନ୍ତୁ"
 #: src/features/ats-checker/messages.ts
 msgid "Make section headings stand out"
 msgstr ""
-
-#: src/features/ats-checker/messages.ts
-#~ msgid "Make section headings stand out(translator)"
-#~ msgstr ""
 
 #: src/features/ats-checker/messages.ts
 msgid "Make the displayed address and destination match."
@@ -9592,7 +9549,7 @@ msgstr "ଆପଣଙ୍କର ସର୍ଭର ଦ୍ୱାରା ପରିଚା
 msgid "Manual setup key"
 msgstr ""
 
-#: src/features/resume/editor/write/dates-field.tsx
+#: src/components/input/month-year-input.tsx
 msgid "Mar 2022"
 msgstr "ମାର୍ଚ 2022"
 
@@ -9699,10 +9656,6 @@ msgstr "ସିଷ୍ଟମ୍ ଥିମ୍ ସହିତ ମେଳ |"
 msgid "Matches the CV"
 msgstr ""
 
-#: src/routes/builder/letter/-components/write-panel.tsx
-#~ msgid "Matches the resume ({summary})."
-#~ msgstr "ରେଜୁମ୍ ({summary}) ସହିତ ମେଳ ଖାଉଛି |"
-
 #: src/routes/builder/letter/-components/design-panel.tsx
 msgid "Matching the resume"
 msgstr "ରେଜୁମ୍ ସହିତ ମେଳ ଖାଉଛି |"
@@ -9714,10 +9667,6 @@ msgstr "ଆପଣଙ୍କ ତଥ୍ୟ ସହ ମିଳାଉଛି"
 #: src/features/settings/ai/mcp.tsx
 msgid "MCP server"
 msgstr "MCP ସର୍ଭର |"
-
-#: src/features/applications/components/insights-view.tsx
-#~ msgid "median to first reply"
-#~ msgstr "ପ୍ରଥମ ଉତ୍ତର ଦେବାକୁ ମଧ୍ୟମ"
 
 #: src/features/applications/components/interview-dialog.tsx
 msgid "Meeting format"
@@ -10143,6 +10092,11 @@ msgstr ""
 msgid "Needs attention"
 msgstr "ଧ୍ୟାନର ଆବଶ୍ୟକତା |"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.needsAttention"
+msgid "Needs edit"
+msgstr ""
+
 #: src/features/career/today.tsx
 msgid "Needs you"
 msgstr "ଆପଣଙ୍କ ଅପେକ୍ଷାରେ"
@@ -10275,13 +10229,10 @@ msgid "New wording — check it is true"
 msgstr ""
 
 #: src/features/applications/components/import-applications-sheet.tsx
+#: src/features/resume/import/assistance-guide.tsx
 #: src/features/resume/stylesheet/editor-extensions.ts
 msgid "Next"
 msgstr ""
-
-#: src/features/resume/editor/check/page-layer.tsx
-#~ msgid "Next issue"
-#~ msgstr "ପରବର୍ତ୍ତୀ ଇସୁ |"
 
 #: src/features/applications/components/calendar-view.tsx
 msgid "Next month"
@@ -10326,6 +10277,11 @@ msgstr ""
 
 #: src/features/applications/components/detail/activity.tsx
 msgid "No activity yet"
+msgstr ""
+
+#: src/features/usage/allowance-limit.tsx
+msgctxt "allowance.ai.description"
+msgid "No AI uses are available in your current allowance."
 msgstr ""
 
 #: src/routes/builder/letter/-components/write-panel.tsx
@@ -10473,14 +10429,14 @@ msgstr ""
 msgid "No findings match this filter."
 msgstr ""
 
+#: src/features/resume/import/ai-assistance-panel.tsx
+msgid "No heading was found for this section. Highlight the relevant text in the full extraction."
+msgstr ""
+
 #: src/features/career/copy.generated.ts
 msgctxt "editor.career.emptyTitle"
 msgid "No information added yet"
 msgstr ""
-
-#: src/features/applications/components/calendar-view.tsx
-#~ msgid "No interviews"
-#~ msgstr "କ No ଣସି ସାକ୍ଷାତକାର ନାହିଁ |"
 
 #: src/features/public-copy.ts
 msgctxt "landing.review.title"
@@ -10580,17 +10536,14 @@ msgstr "କ No ଣସି ରେଜୁମ୍ ନାହିଁ |"
 msgid "No resumes yet."
 msgstr "ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ରେଜ୍ୟୁମେ ନାହିଁ।"
 
-#: src/features/resume/editor/proposals/review-operation.tsx
-msgid "No review was delivered. No operation was deducted. You can request a new review or keep editing manually."
+#: src/features/resume/editor/proposals/review-failure.tsx
+msgctxt "review.failure.unknown"
+msgid "No review was delivered. Your draft is kept. Retry to review the current draft again, or keep editing manually."
 msgstr ""
 
 #: src/features/resume/share/history-tab.tsx
 msgid "No saved versions yet. An editing session adds one automatically."
 msgstr ""
-
-#: src/features/applications/components/insights-view.tsx
-#~ msgid "No source data yet."
-#~ msgstr "ଏପର୍ଯ୍ୟନ୍ତ କ source ଣସି ଉତ୍ସ ତଥ୍ୟ ନାହିଁ |"
 
 #: src/features/career/knowledge/stories.tsx
 msgid "No stories yet"
@@ -10717,6 +10670,11 @@ msgstr "ମିଳିଲା ନାହିଁ"
 msgid "Not found in CV"
 msgstr ""
 
+#: src/features/career/literal-job-evidence.tsx
+msgctxt "jobs.coverage.missingGroup"
+msgid "Not found in CV: {count}"
+msgstr ""
+
 #: src/features/career/offers.tsx
 msgid "Not in either offer yet"
 msgstr "ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ଅଫରରେ ନାହିଁ"
@@ -10803,10 +10761,6 @@ msgstr "ସୂଚନା"
 msgid "Notes"
 msgstr "ଟିପ୍ପଣୀ"
 
-#: src/features/resume/editor/check/check-panel.tsx
-#~ msgid "Nothing changes without your approval. PDF readability checks the actual file; writing notes are advice. Arabic parsing can vary between hiring systems."
-#~ msgstr ""
-
 #: src/features/assistant/copy.generated.ts
 msgctxt "review.assistant.error.unavailableHint"
 msgid "Nothing in your CV changed. No operation was deducted from your allowance. Keep writing yourself and try again later."
@@ -10879,6 +10833,11 @@ msgstr ""
 #: src/features/career/workspace/debrief.tsx
 msgid "Observation"
 msgstr "ପର୍ଯ୍ୟବେକ୍ଷଣ"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.coverage.occurrences"
+msgid "Occurrences: {total}"
+msgstr ""
 
 #: src/libs/locale.ts
 msgid "Odia"
@@ -10959,10 +10918,6 @@ msgstr "ଅନ୍। ଲିଙ୍କ୍ ଥିବା ଯେକେହି ଦେ�
 msgid "Once a round is scheduled, Prepare builds a timed plan, your opening and the questions to ask."
 msgstr "ଏକ ରାଉଣ୍ଡ ନିର୍ଧାରିତ ହେବା ପରେ, ପ୍ରସ୍ତୁତି ଏକ ସମୟ ନିର୍ଦ୍ଧାରିତ ଯୋଜନା, ଆପଣଙ୍କ ଆରମ୍ଭ ଓ ପଚାରିବାକୁ ଥିବା ପ୍ରଶ୍ନ ପ୍ରସ୍ତୁତ କରେ।"
 
-#: src/features/applications/components/insights-view.tsx
-#~ msgid "Once you've sent a few applications, this shows how far they get and how quickly people reply."
-#~ msgstr "ଥରେ ଆପଣ ଅଳ୍ପ କିଛି ଚାକିରି ଆବେଦନ ପଠାଇଲେ, ଏହା ଦର୍ଶାଏ ଯେ ସେମାନେ କେତେ ଦୂର ପାଆନ୍ତି ଏବଂ ଲୋକମାନେ କେତେ ଶୀଘ୍ର ଉତ୍ତର ଦିଅନ୍ତି |"
-
 #: src/features/auth/copy.generated.ts
 msgctxt "auth.signUp.subtitle"
 msgid "One account for your CVs and copies. No payment card needed to start."
@@ -10997,10 +10952,6 @@ msgstr ""
 #: src/features/applications/components/interview-dialog.tsx
 msgid "Online"
 msgstr ""
-
-#: src/features/ats-checker/messages.ts
-#~ msgid "Only a small part of the page text was recovered."
-#~ msgstr ""
 
 #: src/features/auth/pages/consent.tsx
 msgid "Only allow applications you trust. This application will be able to:"
@@ -11069,6 +11020,11 @@ msgstr "ଅନସାଇଟ୍"
 msgid "Open"
 msgstr "ଖୋଲନ୍ତୁ"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.openCopy"
+msgid "Open"
+msgstr ""
+
 #: src/features/resume/editor/write/section-row.tsx
 msgid "Open {title}"
 msgstr "{title} ଖୋଲନ୍ତୁ |"
@@ -11108,6 +11064,11 @@ msgstr ""
 msgid "Open each point with the action actually performed"
 msgstr ""
 
+#: src/features/documents/base-cv-limit.tsx
+msgctxt "documents.baseCvLimit.openExisting"
+msgid "Open existing CV"
+msgstr ""
+
 #: src/features/resume/stylesheet/toolbar.tsx
 msgid "Open focus mode"
 msgstr "ଫୋକସ୍ ମୋଡ୍ ଖୋଲନ୍ତୁ"
@@ -11124,10 +11085,6 @@ msgstr "ଏଡିଟର୍ ଖୋଲନ୍ତୁ |"
 #: src/features/career/workspace/saved.tsx
 msgid "Open in Offers"
 msgstr "ଅଫର୍‌ରେ ଖୋଲନ୍ତୁ"
-
-#: src/features/homepage/header.tsx
-#~ msgid "Open my workspace"
-#~ msgstr ""
 
 #: src/features/public-copy.ts
 msgctxt "landing.navigation.workspace"
@@ -11147,6 +11104,7 @@ msgctxt "editor.conflict.openSaved"
 msgid "Open saved copy"
 msgstr ""
 
+#: src/features/career/job-evidence-page.tsx
 #: src/features/resume/variants/language-versions.tsx
 msgid "Open saved CV"
 msgstr ""
@@ -11162,6 +11120,21 @@ msgstr ""
 #: src/features/career/workspace/prepare.tsx
 msgid "Open story"
 msgstr "କାହାଣୀ ଖୋଲନ୍ତୁ"
+
+#: src/features/resume/import/ai-assistance-panel.tsx
+msgctxt "review.import.help.expand"
+msgid "Open text assistance"
+msgstr ""
+
+#: src/features/usage/allowance-limit.tsx
+msgctxt "allowance.job.next"
+msgid "Open the existing job copy, or wait for its creation to finish. Your selections are kept."
+msgstr ""
+
+#: src/features/usage/allowance-limit.tsx
+msgctxt "allowance.language.next"
+msgid "Open the existing language copy, or wait for its creation to finish. Your selections are kept."
+msgstr ""
 
 #: src/features/career/today.tsx
 msgid "Open the schedule"
@@ -11180,6 +11153,11 @@ msgstr ""
 #: src/features/career/today.tsx
 msgid "Open workspace"
 msgstr "ୱାର୍କସ୍ପେସ୍ ଖୋଲନ୍ତୁ"
+
+#: src/features/usage/allowance-limit.tsx
+msgctxt "allowance.base.next"
+msgid "Open your existing CV to continue. Your selections are kept."
+msgstr ""
 
 #: src/features/career/workspace/messages.tsx
 msgid "Opens in Career → Offers."
@@ -11306,14 +11284,15 @@ msgstr ""
 msgid "Other documents · {0}"
 msgstr "ଅନ୍ୟାନ୍ୟ ଡକ୍ୟୁମେଣ୍ଟ୍ · {0} |"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.otherSection"
+msgid "Other sections"
+msgstr ""
+
 #: src/features/applications/insights-copy.ts
 msgctxt "applications.insights.other"
 msgid "Other sources"
 msgstr ""
-
-#: src/features/resume/editor/check/check-sections.tsx
-#~ msgid "Out of date"
-#~ msgstr ""
 
 #: src/features/resume/editor/proposals/proposal-list.tsx
 msgid "Out of date: the text has changed since."
@@ -11403,6 +11382,16 @@ msgstr "ଅନୁଚ୍ଛେଦ {n} |"
 
 #: src/features/resume/editor/check/review-findings.tsx
 msgid "Parsed text"
+msgstr ""
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.progress.part"
+msgid "Part {part} of {total}"
+msgstr ""
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.translation.partialFailure"
+msgid "Part {part} of {total} stopped. Verified parts are saved. Retry this part to continue. Nothing is applied until every part passes."
 msgstr ""
 
 #: src/features/resume/variants/copy.generated.ts
@@ -11588,10 +11577,6 @@ msgstr "ଦେୟ ଅବଧି"
 msgid "PDF attachment"
 msgstr ""
 
-#: src/features/resume/share/download-tab.tsx
-#~ msgid "PDF download remains available. Review the findings before sending it."
-#~ msgstr ""
-
 #: src/features/career/copy.generated.ts
 msgctxt "auth.welcome.export.description"
 msgid "PDF now, with a tailored copy for each job whenever you need it."
@@ -11602,8 +11587,16 @@ msgctxt "onboarding.upload.fileType"
 msgid "PDF only"
 msgstr ""
 
+#: src/features/resume/import/ai-assistance-panel.tsx
+msgid "PDF page {firstPage}"
+msgstr ""
+
 #: src/features/resume/import/review.tsx
 msgid "PDF page {page}"
+msgstr ""
+
+#: src/features/resume/import/ai-assistance-panel.tsx
+msgid "PDF pages {firstPage}–{lastPage}"
 msgstr ""
 
 #: src/features/resume/import/source-preview.tsx
@@ -11654,6 +11647,11 @@ msgstr ""
 
 #: src/features/resume/variants/translation-review.tsx
 msgid "Pending"
+msgstr ""
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.wording.pendingCount"
+msgid "Pending suggestions: {count}"
 msgstr ""
 
 #: src/features/settings/privacy/deletion-page.tsx
@@ -11744,10 +11742,6 @@ msgstr "ଆପଣଙ୍କ କାହାଣୀ ବାଛୁଛି"
 #: src/libs/resume/section.tsx
 msgid "Picture"
 msgstr "ଛବି"
-
-#: src/features/applications/components/insights-view.tsx
-#~ msgid "Pipeline flow"
-#~ msgstr "ପାଇପଲାଇନ ପ୍ରବାହ |"
 
 #: src/features/ats-checker/messages.ts
 msgid "Place the role, employer and dates together."
@@ -11980,6 +11974,11 @@ msgstr ""
 msgid "Press <0/> to open"
 msgstr ""
 
+#: src/features/resume/import/assistance-guide.tsx
+msgctxt "review.import.guide.review"
+msgid "Press Review selected text."
+msgstr ""
+
 #: src/features/applications/components/board.tsx
 msgid "Press Space to pick up a card. Use the arrow keys to move it, Space to drop, or Escape to cancel."
 msgstr ""
@@ -12008,10 +12007,6 @@ msgstr ""
 msgid "Preview table"
 msgstr ""
 
-#: src/features/documents/resume-thumbnail.tsx
-#~ msgid "Preview unavailable"
-#~ msgstr ""
-
 #: src/features/resume/share/history-tab.tsx
 msgid "Preview version"
 msgstr ""
@@ -12025,10 +12020,6 @@ msgstr "{0} ପୂର୍ବାବଲୋକନ · ପ୍ରୟୋଗ କରିବ
 #: src/features/resume/stylesheet/editor-extensions.ts
 msgid "Previous"
 msgstr ""
-
-#: src/features/resume/editor/check/page-layer.tsx
-#~ msgid "Previous issue"
-#~ msgstr "ପୂର୍ବ ଇସୁ |"
 
 #: src/features/assistant/conversation.tsx
 msgid "Previous messages, including document details, are also sent."
@@ -12153,10 +12144,6 @@ msgstr "ପ୍ରୋଫାଇଲ୍"
 msgctxt "atsGuide.map.profile"
 msgid "Profile"
 msgstr ""
-
-#: src/features/applications/components/interview-dialog.tsx
-#~ msgid "Profile link (optional)"
-#~ msgstr "ପ୍ରୋଫାଇଲ୍ ଲିଙ୍କ୍ (ଇଚ୍ଛାଧୀନ)"
 
 #. placeholder {0}: index + 1
 #: src/features/applications/components/interview-dialog.tsx
@@ -12302,11 +12289,6 @@ msgstr "ପ୍ରଶ୍ନ ବିକଳ୍ପ"
 #: src/features/career/workspace/apply.tsx
 msgid "Question removed"
 msgstr "ପ୍ରଶ୍ନ ହଟାଗଲା"
-
-#: src/features/public-copy.ts
-#~ msgctxt "landing.navigation.faq"
-#~ msgid "Questions"
-#~ msgstr ""
 
 #: src/features/resume/variants/copy.generated.ts
 msgctxt "jobs.evidence.questionsHint"
@@ -12797,10 +12779,6 @@ msgstr ""
 msgid "Remove white text on white backgrounds"
 msgstr ""
 
-#: src/features/resume/editor/check/review-findings.tsx
-#~ msgid "Removed"
-#~ msgstr ""
-
 #: src/features/career/coach.tsx
 #: src/features/documents/document-actions.tsx
 msgid "Rename"
@@ -12860,21 +12838,24 @@ msgstr ""
 msgid "Replace drawing-based fonts"
 msgstr ""
 
+#: src/features/documents/base-cv-limit.tsx
+#: src/features/resume/import/review.tsx
+msgctxt "review.import.replaceExisting"
+msgid "Replace existing base CV"
+msgstr ""
+
 #: src/features/ats-checker/messages.ts
 msgid "Replace font symbols with plain text"
 msgstr ""
 
 #: src/features/ats-checker/messages.ts
-#~ msgid "Replace font symbols with plain text(translator)"
-#~ msgstr ""
-
-#: src/features/ats-checker/messages.ts
 msgid "Replace page images with real text"
 msgstr ""
 
-#: src/features/ats-checker/messages.ts
-#~ msgid "Replace page images with real text(translator)"
-#~ msgstr ""
+#: src/features/resume/import/review.tsx
+msgctxt "review.import.replaceTitle"
+msgid "Replace this base CV?"
+msgstr ""
 
 #: src/features/resume/stylesheet/editor-extensions.ts
 msgid "Replaced $ matches"
@@ -12970,6 +12951,11 @@ msgstr ""
 msgid "Resolve save conflict"
 msgstr ""
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.needsAttentionNotice"
+msgid "Resolve the items below to finish and save your language copy automatically."
+msgstr ""
+
 #: src/features/resume/share/download-tab.tsx
 msgid "Resolve the save conflict before downloading."
 msgstr ""
@@ -13037,11 +13023,6 @@ msgstr "ପୁନରୁଦ୍ଧାର “{0}”"
 #: src/features/resume/share/format.ts
 msgid "Restored a version"
 msgstr "ଏକ ସଂସ୍କରଣ ପୁନ ored ସ୍ଥାପିତ |"
-
-#. placeholder {0}: formatVersionMoment(version.createdAt, i18n.locale)
-#: src/features/resume/share/history-tab.tsx
-#~ msgid "Restored the version from {0}. Your previous state is saved as “Before restore”."
-#~ msgstr "{0} ରୁ ସଂସ୍କରଣକୁ ପୁନ ored ସ୍ଥାପନ କରନ୍ତୁ | ତୁମର ପୂର୍ବ ଅବସ୍ଥା “ପୁନ restore ସ୍ଥାପନ ପୂର୍ବରୁ” ଭାବରେ ସେଭ୍ ହୋଇଛି |"
 
 #: src/features/resume/share/history-tab.tsx
 msgid "Restored the version from {moment}. Your previous state is saved as “Before restore”."
@@ -13134,6 +13115,7 @@ msgstr "{1} ବ୍ୟବହାର କରି {0} ଉଦ୍ଧାର କରାଯ�
 #: src/features/applications/components/detail/sent-documents.tsx
 #: src/features/applications/components/resume-version-select.tsx
 #: src/features/assistant/conversation.tsx
+#: src/features/career/job-evidence-page.tsx
 #: src/features/career/knowledge/preferences.tsx
 #: src/features/career/shared.tsx
 #: src/features/locale/switch.tsx
@@ -13153,6 +13135,11 @@ msgctxt "applications.insights.retry"
 msgid "Retry"
 msgstr ""
 
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.translation.retryFailedParts"
+msgid "Retry failed parts"
+msgstr ""
+
 #: src/features/applications/components/detail/note-composer.tsx
 msgid "Retry save"
 msgstr "ପୁନର୍ବାର ସେଭ୍ କରନ୍ତୁ |"
@@ -13168,6 +13155,11 @@ msgstr ""
 
 #: src/features/assistant/conversation.tsx
 msgid "Retry stop"
+msgstr ""
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.translation.retryPart"
+msgid "Retry this part"
 msgstr ""
 
 #: src/components/query-list-state.tsx
@@ -13188,6 +13180,11 @@ msgstr ""
 #: src/routes/builder/$resumeId/-components/editor-shell.tsx
 msgid "Review"
 msgstr "ସମୀକ୍ଷା କରନ୍ତୁ |"
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.wording.savedReview"
+msgid "Review {number} · pending suggestions: {count}"
+msgstr ""
 
 #: src/features/letters/review.tsx
 msgid "Review a job-specific letter"
@@ -13247,10 +13244,6 @@ msgstr ""
 msgctxt "landing.pricing.free.review"
 msgid "Review every suggestion before anything changes"
 msgstr ""
-
-#: src/features/resume/editor/check/review-findings.tsx
-#~ msgid "Review extracted text"
-#~ msgstr ""
 
 #: src/features/resume/share/download-tab.tsx
 msgid "Review failed. Open Review to try again. PDF download is free."
@@ -13348,6 +13341,7 @@ msgid "Review sections"
 msgstr ""
 
 #: src/features/resume/import/ai-assistance-panel.tsx
+#: src/features/resume/import/assistance-guide.tsx
 msgid "Review selected text"
 msgstr ""
 
@@ -13366,6 +13360,11 @@ msgstr ""
 #: src/features/public-copy.ts
 msgctxt "landing.steps.review.title"
 msgid "Review the changes"
+msgstr ""
+
+#: src/features/usage/allowance-limit.tsx
+msgctxt "allowance.provider.next"
+msgid "Review the current processing notice before trying again. Your draft is kept."
 msgstr ""
 
 #: src/features/resume/share/download-tab.tsx
@@ -13419,6 +13418,11 @@ msgctxt "language.translation.review"
 msgid "Review translation"
 msgstr ""
 
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.translation.prepare"
+msgid "Review translation parts"
+msgstr ""
+
 #: src/features/ats-guide/ai-features.ts
 msgctxt "reviewGuide.ai.extraction.description"
 msgid "Review uncertain imported text and approve each proposed field."
@@ -13455,6 +13459,11 @@ msgstr ""
 
 #: src/features/resume/editor/recovery-prompt.tsx
 msgid "Review your local changes before restoring them."
+msgstr ""
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.undoSegmentDetail"
+msgid "Reviewed 1 part in {section}"
 msgstr ""
 
 #: src/features/resume/variants/term-dialog.tsx
@@ -13597,10 +13606,6 @@ msgctxt "atsGuide.results"
 msgid "Rules: {area}"
 msgstr ""
 
-#: src/routes/builder/$resumeId/-components/page-canvas.tsx
-#~ msgid "Runs onto page {next}"
-#~ msgstr "{next} ପୃଷ୍ଠାରେ ଚାଲିଥାଏ |"
-
 #: src/features/career/information/entry-fields.tsx
 #: src/libs/locale.ts
 msgid "Russian"
@@ -13690,6 +13695,11 @@ msgstr "ପରିବର୍ତ୍ତନଗୁଡିକ ସଞ୍ଚୟ କରନ�
 msgid "Save Changes"
 msgstr "ପରିବର୍ତ୍ତନଗୁଡିକ ସେଭ୍ କରନ୍ତୁ"
 
+#: src/features/resume/import/review.tsx
+msgctxt "review.import.saveFactsOnly"
+msgid "Save confirmed facts only"
+msgstr ""
+
 #: src/features/resume/editor/save-status.tsx
 msgctxt "editor.save.status.conflict"
 msgid "Save conflict"
@@ -13710,10 +13720,6 @@ msgstr "ପ୍ରଥମେ ସଞ୍ଚୟ କରନ୍ତୁ, ତାପରେ �
 #: src/features/ats-checker/messages.ts
 msgid "Save form answers as page text"
 msgstr ""
-
-#: src/features/ats-checker/messages.ts
-#~ msgid "Save form answers as page text(translator)"
-#~ msgstr ""
 
 #: src/features/career/copy.generated.ts
 msgctxt "editor.experience.save"
@@ -13751,6 +13757,11 @@ msgstr "ସମୟସୂଚୀ ସେଭ୍ କରନ୍ତୁ"
 #: src/features/career/knowledge/stories.tsx
 msgid "Save story"
 msgstr "କାହାଣୀ ସେଭ୍ କରନ୍ତୁ"
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.launch.saveRequired"
+msgid "Save the current draft before starting this review. If saving fails, reload the saved document. Your edits are kept."
+msgstr ""
 
 #: src/features/career/workspace/messages.tsx
 msgid "Save these offer terms to compare"
@@ -13825,6 +13836,16 @@ msgstr ""
 msgid "Saved description"
 msgstr "ସଞ୍ଚୟ ବର୍ଣ୍ଣନା"
 
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.launch.savedJob"
+msgid "Saved job"
+msgstr ""
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.launch.linkedJob"
+msgid "Saved job for this letter: {job}"
+msgstr ""
+
 #: src/features/career/knowledge/preferences.tsx
 msgid "Saved just now"
 msgstr "ଏହିମାତ୍ର ସେଭ୍ ହେଲା"
@@ -13832,6 +13853,11 @@ msgstr "ଏହିମାତ୍ର ସେଭ୍ ହେଲା"
 #: src/features/career/coach-thread.tsx
 msgid "Saved offers"
 msgstr "ସେଭ୍ ହୋଇଥିବା ଅଫର୍"
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.wording.savedReviews"
+msgid "Saved reviews"
+msgstr ""
 
 #: src/features/resume/editor/proposals/review-panel.tsx
 msgid "Saved source"
@@ -13899,10 +13925,6 @@ msgstr ""
 #: src/features/applications/components/interview-dialog.tsx
 msgid "Schedule an interview"
 msgstr "ଏକ ସାକ୍ଷାତକାର ନିର୍ଦ୍ଧାରଣ କରନ୍ତୁ |"
-
-#: src/features/applications/components/calendar-view.tsx
-#~ msgid "Schedule an interview on {date}"
-#~ msgstr "{date} ରେ ଏକ ସାକ୍ଷାତକାର ନିର୍ଦ୍ଧାରଣ କରନ୍ତୁ |"
 
 #: src/features/applications/components/detail/next-step-card.tsx
 msgid "Schedule an interview…"
@@ -14067,6 +14089,7 @@ msgid "Secret copied to clipboard."
 msgstr "ଗୁପ୍ତ ସଙ୍କେତ କ୍ଲିପ୍‌ବୋର୍ଡକୁ କପି ହୋଇଛି।"
 
 #: src/features/resume/import/ai-assistance-panel.tsx
+#: src/features/resume/import/assistance-guide.tsx
 msgid "Section to review"
 msgstr ""
 
@@ -14127,10 +14150,6 @@ msgstr "{1} ରେ {0} ଚୟନ କରନ୍ତୁ |"
 msgid "Select a level"
 msgstr ""
 
-#: src/features/letters/review.tsx
-msgid "Select a saved job in the linked CV first. Only confirmed CV facts support the proposal. Your manual text stays until you accept."
-msgstr ""
-
 #: src/features/documents/documents-page.tsx
 msgid "Select all"
 msgstr "ସବୁ ଚୟନ କରନ୍ତୁ"
@@ -14143,6 +14162,11 @@ msgstr ""
 #: src/features/settings/integrations/components/ai-provider-picker.tsx
 msgid "Select an AI provider"
 msgstr "ଏକ AI ପ୍ରଦାନକାରୀ ଚୟନ କରନ୍ତୁ"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.factsRequired"
+msgid "Select at least one fact to review your summary."
+msgstr ""
 
 #: src/features/resume/variants/summary-review.tsx
 msgid "Select facts for the summary"
@@ -14459,6 +14483,11 @@ msgstr "ଏହାକୁ ଆବେଦନ କରାଯାଇଛି ବୋଲି �
 msgid "Shorten repeated page headers"
 msgstr ""
 
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.launch.inputTooLarge"
+msgid "Shorten the job ad or the longest CV description, then try again. Your CV is unchanged."
+msgstr ""
+
 #: src/routes/builder/letter/-components/write-panel.tsx
 msgid "Shorter"
 msgstr "ଛୋଟ"
@@ -14483,9 +14512,19 @@ msgstr "{0} ଅଧିକ ଦେଖାନ୍ତୁ |"
 msgid "Show {0} read"
 msgstr "ପଢ଼ାଯାଇଥିବା {0}ଟି ଦେଖାନ୍ତୁ"
 
+#: src/features/career/literal-job-evidence.tsx
+msgctxt "jobs.coverage.more"
+msgid "Show {remaining} more terms"
+msgstr ""
+
 #: src/features/resume/editor/write/section-row.tsx
 msgid "Show {title} on the page"
 msgstr "ପୃଷ୍ଠାରେ {title} ଦେଖାନ୍ତୁ |"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.coverage.excluded"
+msgid "Show additional phrases ({total})"
+msgstr ""
 
 #: src/features/resume/editor/check/check-sections.tsx
 msgid "Show again"
@@ -14577,6 +14616,11 @@ msgstr "ଶୀର୍ଷକରେ ଲିଙ୍କ ଦେଖାନ୍ତୁ"
 
 #: src/features/resume/editor/check/review-findings.tsx
 msgid "Show location"
+msgstr ""
+
+#: src/features/resume/import/assistance-guide.tsx
+msgctxt "review.import.guide.show"
+msgid "Show me how"
 msgstr ""
 
 #: src/features/applications/calendar-copy.ts
@@ -14856,6 +14900,7 @@ msgid "Skills placed on the intended page"
 msgstr ""
 
 #: src/features/career/workspace/apply.tsx
+#: src/features/resume/import/assistance-guide.tsx
 #: src/features/resume/variants/clarification.tsx
 msgid "Skip"
 msgstr "ଛାଡ଼ନ୍ତୁ"
@@ -14890,10 +14935,6 @@ msgstr "ସ୍ଲୋଭାକ୍"
 #: src/libs/locale.ts
 msgid "Slovenian"
 msgstr "ସ୍ଲୋଭେନିଆନ୍"
-
-#: src/features/applications/components/insights-view.tsx
-#~ msgid "Small numbers, but worth noticing."
-#~ msgstr "ଛୋଟ ସଂଖ୍ୟା, କିନ୍ତୁ ଧ୍ୟାନ ଦେବା ଯୋଗ୍ୟ |"
 
 #: src/features/applications/insights-copy.ts
 msgctxt "applications.insights.noncausal"
@@ -14943,6 +14984,16 @@ msgstr ""
 
 #: src/features/ats-checker/messages.ts
 msgid "Some symbols have no meaning outside their font."
+msgstr ""
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.unresolvedNotice"
+msgid "Some translated segments still contain an unresolved placeholder. Edit the marked segments before approving."
+msgstr ""
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.launch.batchIncomplete"
+msgid "Some translation parts are unfinished. Open the language review and retry the failed parts before confirming."
 msgstr ""
 
 #: src/components/layout/error-screen.tsx
@@ -14995,6 +15046,11 @@ msgstr "ତାରିଖ ଅନୁଯାୟୀ ସର୍ଟ କରନ୍ତୁ |"
 #: src/features/career/knowledge/facts.tsx
 msgid "Source"
 msgstr "ଉତ୍ସ"
+
+#: src/features/resume/import/ai-assistance-panel.tsx
+msgctxt "import.help.source"
+msgid "Source"
+msgstr ""
 
 #: src/features/assistant/conversation.tsx
 #: src/features/career/coach-thread.tsx
@@ -15192,6 +15248,11 @@ msgstr "ରୁହନ୍ତୁ"
 #: src/features/documents/new-document-dialog.tsx
 msgid "Stay here"
 msgstr "ଏଠାରେ ରୁହ |"
+
+#: src/features/resume/import/assistance-guide.tsx
+msgctxt "review.import.guide.step"
+msgid "Step {current} of {total}"
+msgstr ""
 
 #: src/features/resume/editor/design/fit.ts
 msgid "Still {pages} pages at 9 pt. Hide a section or shorten entries."
@@ -15503,10 +15564,6 @@ msgctxt "jobs.copy.toast.created"
 msgid "Tailored copy created"
 msgstr ""
 
-#: src/features/applications/components/insights-view.tsx
-#~ msgid "Tailored vs. base resume"
-#~ msgstr "ଆଡାପ୍ଟଟେଡ୍ ବନାମ ବେସ୍ ରେଜୁମ୍ |"
-
 #: src/libs/locale.ts
 msgid "Tamil"
 msgstr "ତାମିଲ"
@@ -15741,6 +15798,11 @@ msgctxt "review.launch.providerError"
 msgid "The AI provider is temporarily unavailable. Your draft is kept. Retry later."
 msgstr ""
 
+#: src/features/resume/editor/proposals/review-failure.tsx
+msgctxt "review.failure.provider"
+msgid "The AI service did not finish this review. Your draft is kept. Retry can help after a temporary service failure."
+msgstr ""
+
 #: src/features/applications/components/detail/close-dialog.tsx
 msgid "The application could not be closed."
 msgstr ""
@@ -15767,6 +15829,11 @@ msgstr ""
 msgid "The assistant isn't set up on this server. Whoever runs it needs to set ENCRYPTION_SECRET. Everything else works without it."
 msgstr "ସହାୟକ ଏହି ସର୍ଭରରେ ସେଟ୍ ଅପ୍ ହୋଇନାହିଁ | ଯିଏ ଏହାକୁ ଚଲାଇଥାଏ ENCRYPTION_SECRET ସେଟ୍ କରିବା ଆବଶ୍ୟକ | ଏହା ବିନା ଅନ୍ୟ ସବୁକିଛି କାମ କରେ |"
 
+#: src/features/resume/editor/proposals/review-failure.tsx
+msgctxt "review.failure.timeout"
+msgid "The assistant ran out of time. Your draft is kept. Retry to start a new review."
+msgstr ""
+
 #: src/features/assistant/provider-setup.tsx
 msgid "The assistant uses your own key. Nothing is sent anywhere until you connect one."
 msgstr "ସହାୟକ ତୁମର ଚାବି ବ୍ୟବହାର କରେ | ଯେପର୍ଯ୍ୟନ୍ତ ଆପଣ ଗୋଟିଏ ସଂଯୋଗ ନକରନ୍ତି ସେ ପର୍ଯ୍ୟନ୍ତ କ anywhere ଣସି ଜିନିଷ ପଠାଯାଏ ନାହିଁ |"
@@ -15777,6 +15844,11 @@ msgstr "ବିଲ୍ଟ-ଇନ୍ ରିଡର୍ ସକ୍ରିୟ ରହି�
 
 #: src/features/resume/editor/proposals/review-panel.tsx
 msgid "The change could not be applied locally. Your writing is kept. Reload the saved review and resolve any draft conflict before trying again."
+msgstr ""
+
+#: src/features/resume/editor/proposals/review-failure.tsx
+msgctxt "review.failure.checkerIncomplete"
+msgid "The checker did not answer every item after two attempts. Nothing was applied. Try the review again."
 msgstr ""
 
 #: src/features/career/knowledge/facts.tsx
@@ -15802,6 +15874,11 @@ msgstr "ଆପଣ କହୁଥିବା ତଥ୍ୟ କୋଚ୍ ସେଭ୍ �
 #: src/features/documents/new-document-dialog.tsx
 msgid "The copy is linked to the application, so Check and the assistant use its posting."
 msgstr "କପି ଚାକିରି ଆବେଦନ ସହିତ ଲିଙ୍କ୍ ହୋଇଛି, ତେଣୁ ଚେକ୍ ଏବଂ ଆସିଷ୍ଟାଣ୍ଟ ଏହାର ଚାକିରି ପୋଷ୍ଟିଂ ବ୍ୟବହାର କରନ୍ତି |"
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.launch.sourceChanged"
+msgid "The CV, letter, selected text, or job changed. Cancel this request, reload the saved source, and start a new review. Your draft is kept."
+msgstr ""
 
 #: src/features/assistant/copy.generated.ts
 msgctxt "review.launch.budgetReached"
@@ -15879,6 +15956,16 @@ msgstr ""
 msgid "The greeting follows the name."
 msgstr "ଅଭିବାଦନ ନାମ ଅନୁସରଣ କରେ |"
 
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.launch.sourceExpired"
+msgid "The import review session expired. Import the file again and select the text to review. Your saved CV is unchanged."
+msgstr ""
+
+#: src/features/usage/allowance-limit.tsx
+msgctxt "allowance.job.description"
+msgid "The job copy allowance for this base CV is full."
+msgstr ""
+
 #: src/features/settings/ai/api-keys.tsx
 msgid "the key"
 msgstr "ଚାବି"
@@ -15886,6 +15973,11 @@ msgstr "ଚାବି"
 #: src/features/settings/ai/providers.tsx
 msgid "The key is encrypted on the server and never shown again. Saving tests the connection."
 msgstr "ଚାବି ସର୍ଭରରେ ଏନକ୍ରିପ୍ଟ ହୋଇଛି ଏବଂ ଆଉ ଦେଖାଯିବ ନାହିଁ | ସଞ୍ଚୟ ସଂଯୋଗକୁ ପରୀକ୍ଷା କରେ |"
+
+#: src/features/usage/allowance-limit.tsx
+msgctxt "allowance.language.description"
+msgid "The language copy allowance for this base CV is full."
+msgstr ""
 
 #: src/features/ats-checker/messages.ts
 msgid "The language setting helps software interpret the text."
@@ -15920,6 +16012,11 @@ msgstr ""
 #: src/features/auth/copy.generated.ts
 msgctxt "auth.verifyEmail.expiryHint"
 msgid "The link is valid for a limited time. You can request a new one."
+msgstr ""
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.launch.jobTextRequired"
+msgid "The linked job has no job description. Add the job description to that saved job, then start the review."
 msgstr ""
 
 #: src/features/career/workspace/saved.tsx
@@ -15958,10 +16055,6 @@ msgstr ""
 #: src/components/layout/not-found-screen.tsx
 msgid "The page you're looking for may have been moved or no longer exists."
 msgstr "ଆପଣ ଖୋଜୁଥିବା ପୃଷ୍ଠାଟି ହୁଏତ ଘୁଞ୍ଚାଯାଇଛି କିମ୍ବା ଆଉ ନାହିଁ।"
-
-#: src/features/resume/editor/check/parser-view.tsx
-#~ msgid "The page's PDF couldn't be read. Edit anything to render it again."
-#~ msgstr "ପୃଷ୍ଠାର PDF ପ read ିହେଲା ନାହିଁ | ଏହାକୁ ପୁନର୍ବାର ରେଣ୍ଡର୍ କରିବାକୁ କିଛି ସଂପାଦନ କରନ୍ତୁ |"
 
 #: src/features/auth/pages/resume-password.tsx
 msgid "The password you entered is incorrect"
@@ -16028,6 +16121,11 @@ msgctxt "workspace.privacy.3777ef11e644"
 msgid "The request can be retried. No partial archive is available."
 msgstr ""
 
+#: src/features/resume/editor/proposals/review-failure.tsx
+msgctxt "review.failure.safety"
+msgid "The response did not pass the factual safety checks. Nothing was applied. Retry can produce a different response."
+msgstr ""
+
 #: src/features/ats-checker/messages.ts
 msgid "The result covers only the first pages."
 msgstr ""
@@ -16050,6 +16148,16 @@ msgstr "ରେଜୁମ୍ ଯେପରି ଅଛି |"
 msgid "The resume preview could not be updated. The last valid preview is still shown."
 msgstr "ରିଜ୍ୟୁମ୍ ପ୍ରିଭ୍ୟୁ ଅପଡେଟ୍ କରାଯାଇପାରିଲା ନାହିଁ। ଶେଷ ବୈଧ ପ୍ରିଭ୍ୟୁ ଏବେ ବି ଦେଖାଯାଉଛି।"
 
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.launch.invalidSelection"
+msgid "The review selection is incomplete or invalid. Cancel and select the text or facts again, then start a new review."
+msgstr ""
+
+#: src/features/resume/import/review.tsx
+msgctxt "review.import.replaceDescription"
+msgid "The reviewed CV will replace the contents of “{name}”. Its saved history and copies are kept."
+msgstr ""
+
 #: src/features/ats-guide/examples.ts
 msgid "The role title separates from its description"
 msgstr ""
@@ -16071,12 +16179,22 @@ msgstr ""
 msgid "The saved provider key can't be decrypted. Enter the key again in Settings → AI & developer."
 msgstr "ସଞ୍ଚିତ ପ୍ରଦାନକାରୀ ଚାବିକୁ ଡିକ୍ରିପ୍ଟ କରାଯାଇପାରିବ ନାହିଁ | ସେଟିଂସମୂହ → AI ଏବଂ ଡେଭଲପର୍ ରେ ପୁନର୍ବାର ଚାବି ପ୍ରବେଶ କରନ୍ତୁ |"
 
+#: src/features/resume/editor/proposals/review-failure.tsx
+msgctxt "review.failure.changed"
+msgid "The saved source or review settings changed. Retry to prepare a fresh request from the current draft."
+msgstr ""
+
 #: src/features/resume/editor/check/review-findings.tsx
 msgid "The section is highlighted if the exact text cannot be located."
 msgstr ""
 
 #: src/features/resume/editor/write/improve.tsx
 msgid "The selected field and related confirmed facts are included in this review."
+msgstr ""
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.launch.ambiguousPassage"
+msgid "The selected text matches more than one passage. Select one text block and request a new review."
 msgstr ""
 
 #: src/features/settings/ai/web-access.tsx
@@ -16095,10 +16213,6 @@ msgstr "ସେବା କୋଟା ଶେଷ ହୋଇଛି |"
 msgid "The service rejected the credentials."
 msgstr "ସେବା ପରିଚୟପତ୍ରକୁ ପ୍ରତ୍ୟାଖ୍ୟାନ କଲା |"
 
-#: src/features/resume/editor/proposals/review-operation.tsx
-#~ msgid "The source and language copy have different sections or text blocks. Open the saved CV and align its structure with the source before requesting a translation."
-#~ msgstr ""
-
 #: src/features/assistant/copy.generated.ts
 msgctxt "review.launch.translationStructure"
 msgid "The source and language copy have different sections or text blocks. Open the saved CV and align its structure with the source before requesting a translation."
@@ -16106,6 +16220,11 @@ msgstr ""
 
 #: src/features/resume/variants/language-versions.tsx
 msgid "The source changed or is unavailable. Update deliberately; saved copies stay independent."
+msgstr ""
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.launch.sourceLocked"
+msgid "The source document is locked or already submitted. Unlock an editable document or create an editable copy before requesting a review."
 msgstr ""
 
 #: src/features/resume/variants/translation-review.tsx
@@ -16148,13 +16267,14 @@ msgstr ""
 msgid "There is an issue that may block reading"
 msgstr ""
 
-#: src/features/resume/share/download-tab.tsx
-#~ msgid "There is information to review. PDF download remains free and available."
-#~ msgstr ""
-
 #: src/features/career/workspace/apply.tsx
 msgid "These are the answers saved when you applied."
 msgstr "ଆପଣ ଆବେଦନ କରିବା ସମୟରେ ସେଭ୍ ହୋଇଥିବା ଉତ୍ତର ଏଗୁଡ଼ିକ।"
+
+#: src/features/resume/import/ai-assistance-panel.tsx
+msgctxt "import.help.localOnly"
+msgid "These choices update this draft only. Review and confirm the import to save them."
+msgstr ""
 
 #: src/features/career/copy.generated.ts
 msgctxt "editor.field.usageHint"
@@ -16177,6 +16297,11 @@ msgstr "ଭାବୁଛି"
 #: src/features/assistant/conversation.tsx
 msgid "Thinking…"
 msgstr "ଭାବୁଛି…"
+
+#: src/features/usage/allowance-limit.tsx
+msgctxt "allowance.ai.next"
+msgid "This allowance does not reset automatically. Continue editing manually or contact support. Your draft is kept."
+msgstr ""
 
 #: src/features/applications/components/application-detail-page.tsx
 msgid "This application could not be refreshed."
@@ -16208,6 +16333,11 @@ msgstr "ଏହି ସଂଯୋଗ ଅନୁରୋଧ ଅବ alid ଧ କିମ�
 #: src/features/career/coach-thread.tsx
 msgid "This conversation couldn't be opened."
 msgstr "ଏହି ବାର୍ତ୍ତାଳାପ ଖୋଲାଯାଇ ପାରିଲା ନାହିଁ |"
+
+#: src/features/usage/allowance-limit.tsx
+msgctxt "allowance.provider.description"
+msgid "This conversation no longer matches the active AI settings."
+msgstr ""
 
 #: src/features/career/copy.generated.ts
 msgctxt "editor.conflict.title"
@@ -16343,6 +16473,16 @@ msgid "This PDF is a scanned image. There's no text to read. Start blank and ent
 msgstr ""
 
 #: src/features/assistant/copy.generated.ts
+msgctxt "review.launch.requestReused"
+msgid "This request belongs to an earlier selection. Cancel it and start a new review for your current selection."
+msgstr ""
+
+#: src/features/resume/editor/proposals/review-failure.tsx
+msgctxt "review.failure.inputLimit"
+msgid "This request is too large. Select fewer facts or a shorter passage, then start a new review."
+msgstr ""
+
+#: src/features/assistant/copy.generated.ts
 msgctxt "review.launch.requestChanged"
 msgid "This request needs changes before it can start. Cancel and review the selected text. Your draft is kept."
 msgstr ""
@@ -16372,6 +16512,11 @@ msgstr "ଏହି ରିଜ୍ୟୁମଟି ଜଣେ AI ଏଜେଣ୍ଟଙ
 #: src/features/resume/builder/draft.ts
 msgid "This resume's sharing settings changed elsewhere."
 msgstr "ଏହି ରିଜ୍ୟୁମର ସେୟାରିଂ ସେଟିଂସ୍ ଅନ୍ୟତ୍ର ପରିବର୍ତ୍ତନ ହୋଇଛି।"
+
+#: src/features/resume/editor/proposals/review-failure.tsx
+msgctxt "review.failure.budget"
+msgid "This review reached its processing budget. Use a shorter passage or fewer selected facts before starting again."
+msgstr ""
 
 #: src/features/assistant/copy.generated.ts
 msgctxt "privacy.ai.scope.summary"
@@ -16406,6 +16551,11 @@ msgstr ""
 #: src/features/assistant/copy.generated.ts
 msgctxt "privacy.ai.scope.translation"
 msgid "This review sends the source CV text and the target language to the processing provider to prepare a language copy. Suggestions are optional. Review the results before you apply or use them."
+msgstr ""
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.launch.languageRequired"
+msgid "This review supports Arabic and English documents. Choose one of these document languages before starting."
 msgstr ""
 
 #: src/features/applications/components/application-detail-page.tsx
@@ -16448,13 +16598,19 @@ msgstr "ଏହି କାହାଣୀ ଉପଲବ୍ଧ ନାହିଁ କି�
 msgid "This task uses 1 assistant operation when its result is saved."
 msgstr ""
 
-#: src/features/resume/editor/proposals/review-operation.tsx
-#~ msgid "This task uses 1 operation. It sends the selected text and related confirmed facts, without contact details, to the approved processing provider. Suggestions are optional and require your review."
-#~ msgstr ""
-
 #: src/features/career/schedule-sheet.tsx
 msgid "This time does not exist in your timezone. Choose another time."
 msgstr "ଆପଣଙ୍କ ସମୟ ଅଞ୍ଚଳରେ ଏହି ସମୟ ନାହିଁ। ଅନ୍ୟ ଏକ ସମୟ ବାଛନ୍ତୁ।"
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.translation.batchCost"
+msgid "This translation has {total} parts. Starting it uses one AI use in total. Retrying parts uses no extra AI uses. Nothing changes until every part passes and you confirm."
+msgstr ""
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.translation.startChargedFailure"
+msgid "This translation stopped. Its single AI use was charged when it started. Your CV is unchanged."
+msgstr ""
 
 #: src/features/auth/errors.ts
 msgid "This username is unavailable. Choose another."
@@ -16553,10 +16709,6 @@ msgstr "ଶିରୋନାମା"
 msgid "Today"
 msgstr "ଆଜି |"
 
-#: src/features/resume/share/format.ts
-#~ msgid "Today {time}"
-#~ msgstr "ଆଜି {time} |"
-
 #: src/features/career/workspace/practise.tsx
 msgid "Today, {hour}"
 msgstr "ଆଜି, {hour}"
@@ -16611,9 +16763,29 @@ msgstr "{model} ସହ ଟ୍ରାନ୍ସକ୍ରାଇବ୍ କରୁଛ�
 msgid "Transcript copied"
 msgstr "ଟ୍ରାନ୍ସକ୍ରିପ୍ଟ କପି ହୋଇଛି |"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.translateToArabic"
+msgid "Translate to Arabic"
+msgstr ""
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.translateToEnglish"
+msgid "Translate to English"
+msgstr ""
+
 #: src/features/ats-guide/ai-features.ts
 msgctxt "reviewGuide.ai.translation.name"
 msgid "Translation"
+msgstr ""
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.launch.translationUnsupported"
+msgid "Translation does not support these sections yet: {sections}. Hide them in the source CV and language copy. Alternatively, move their text into supported sections in both CVs. Then try again. Your draft is kept."
+msgstr ""
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.ready"
+msgid "Translation ready"
 msgstr ""
 
 #: src/features/resume/editor/check/review-values.ts
@@ -16664,6 +16836,7 @@ msgstr ""
 #: src/features/career/load-state.tsx
 #: src/features/career/workspace/practise.tsx
 #: src/features/career/workspace/shell.tsx
+#: src/features/documents/base-cv-limit.tsx
 #: src/features/documents/library-error.tsx
 #: src/features/letters/save-error.ts
 #: src/features/resume/import/review.tsx
@@ -16695,6 +16868,11 @@ msgstr ""
 
 #: src/routes/email-change.tsx
 msgid "Try again from account settings."
+msgstr ""
+
+#: src/features/usage/allowance-limit.tsx
+msgctxt "allowance.busy.next"
+msgid "Try again later. Your draft is kept."
 msgstr ""
 
 #: src/features/career/workspace/practise.tsx
@@ -16928,6 +17106,11 @@ msgctxt "common.actions.undo"
 msgid "Undo"
 msgstr ""
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.undoLastAction"
+msgid "Undo last action"
+msgstr ""
+
 #: src/features/resume/share/history-tab.tsx
 msgid "Undo restore"
 msgstr ""
@@ -16935,6 +17118,11 @@ msgstr ""
 #: src/features/resume/stylesheet/toolbar.tsx
 msgid "Undo resume change"
 msgstr "ରେଜୁମ୍ ପରିବର୍ତ୍ତନକୁ ପୂର୍ବବତ୍ କରନ୍ତୁ |"
+
+#: src/features/resume/import/ai-assistance-panel.tsx
+msgctxt "import.help.undo"
+msgid "Undo this item"
+msgstr ""
 
 #: src/features/career/offers.tsx
 #: src/features/settings/account/security.tsx
@@ -17149,12 +17337,13 @@ msgid "Use {minimum} pt margins"
 msgstr "{minimum} pt ମାର୍ଜିନ ବ୍ୟବହାର କରନ୍ତୁ |"
 
 #: src/features/resume/editor/check/messages.ts
-#~ msgid "Use {minimum} pt(translator)"
-#~ msgstr ""
-
-#: src/features/resume/editor/check/messages.ts
 msgid "Use {url}"
 msgstr "{url} ବ୍ୟବହାର କରନ୍ତୁ |"
+
+#: src/features/auth/errors.ts
+msgctxt "auth.validation.username"
+msgid "Use 3 to 64 lowercase letters, digits, dots, underscores or hyphens for your username."
+msgstr ""
 
 #: src/features/settings/account/profile.tsx
 msgid "Use 3 to 64 lowercase letters, numbers, dots, hyphens and underscores."
@@ -17167,10 +17356,6 @@ msgstr ""
 #: src/features/ats-checker/messages.ts
 msgid "Use a clear international phone format"
 msgstr ""
-
-#: src/features/ats-checker/messages.ts
-#~ msgid "Use a clear international phone format(translator)"
-#~ msgstr ""
 
 #: src/features/resume/editor/check/messages.ts
 msgid "Use a clearer date"
@@ -17209,8 +17394,18 @@ msgstr ""
 msgid "Use a standard page size"
 msgstr ""
 
+#: src/features/auth/errors.ts
+msgctxt "auth.validation.password"
+msgid "Use a stronger password with 8 to 64 characters."
+msgstr ""
+
 #: src/features/ats-checker/messages.ts
 msgid "Use a TrueType or OpenType font and export again."
+msgstr ""
+
+#: src/features/resume/import/ai-assistance-panel.tsx
+msgctxt "import.help.useAll"
+msgid "Use all in draft"
 msgstr ""
 
 #: src/features/applications/calendar-copy.ts
@@ -17292,10 +17487,6 @@ msgstr ""
 #: src/features/ats-checker/messages.ts
 msgid "Use one date format throughout"
 msgstr ""
-
-#: src/features/ats-checker/messages.ts
-#~ msgid "Use one date format throughout(translator)"
-#~ msgstr ""
 
 #: src/features/ats-checker/messages.ts
 msgid "Use paragraphs and lists for content that needs a sequence."
@@ -17505,15 +17696,6 @@ msgstr "ପାସୱାର୍ଡ ସତ୍ୟାପନ ହେଉଛି..."
 msgid "Version name, e.g. Application draft"
 msgstr ""
 
-#: src/features/applications/components/detail/sent-documents.tsx
-#~ msgid "Version sent {date}"
-#~ msgstr "ସଂସ୍କରଣ {date} ପଠାଇଲା |"
-
-#. placeholder {0}: application.sentCheckScore
-#: src/features/applications/components/detail/sent-documents.tsx
-#~ msgid "Version sent {date} · Check {0}"
-#~ msgstr "ସଂସ୍କରଣ {date} ପଠାଇଲା · {0} ଯାଞ୍ଚ କରନ୍ତୁ |"
-
 #: src/features/resume/share/history-tab.tsx
 msgid "Versions"
 msgstr "ସଂସ୍କରଣ |"
@@ -17543,10 +17725,6 @@ msgstr "ଚାକିରି ଆବେଦନ ଦେଖନ୍ତୁ |"
 #: src/features/applications/components/application-detail-page.tsx
 msgid "View full posting"
 msgstr ""
-
-#: src/features/resume/share/download-tab.tsx
-#~ msgid "View issues"
-#~ msgstr ""
 
 #: src/features/career/copy.generated.ts
 msgctxt "editor.conflict.viewLatest"
@@ -17630,8 +17808,9 @@ msgstr "ସ୍ୱର ସେଟିଂସ୍"
 msgid "Volunteer"
 msgstr "ସ୍ୱେଚ୍ଛାସେବକ"
 
-#: src/features/resume/editor/proposals/review-operation.tsx
-msgid "Waiting for cancellation…"
+#: src/features/usage/allowance-limit.tsx
+msgctxt "allowance.concurrent.next"
+msgid "Wait for it to finish, then try again. Your draft is kept."
 msgstr ""
 
 #: src/features/assistant/conversation.tsx
@@ -17645,6 +17824,11 @@ msgstr "ଆପଣଙ୍କ ଅପେକ୍ଷାରେ"
 #: src/features/applications/next-step.ts
 msgid "Waiting to hear back"
 msgstr "ପୁନର୍ବାର ଶୁଣିବାକୁ ଅପେକ୍ଷା କରିଛି |"
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.progress.queued"
+msgid "Waiting to start…"
+msgstr ""
 
 #: src/features/ats-checker/messages.ts
 msgid "Warning"
@@ -17961,10 +18145,6 @@ msgstr "ଆପଣ କ'ଣ ଭିନ୍ନ ଭାବେ କରିଥାନ୍ତ�
 msgid "What you did: {0}"
 msgstr "ଆପଣ କ'ଣ କଲେ: {0}"
 
-#: src/features/applications/components/detail/sent-documents.tsx
-#~ msgid "What you sent"
-#~ msgstr "ତୁମେ ଯାହା ପଠାଇଲ"
-
 #. placeholder {0}: date(application.appliedAt)
 #: src/features/career/workspace/shell.tsx
 msgid "What you sent · {0}"
@@ -17994,10 +18174,6 @@ msgstr "ଆପଣ ପଠାନ୍ତୁ ଦବାଇଲେ, {shared} {connection
 msgid "Where"
 msgstr ""
 
-#: src/features/applications/components/insights-view.tsx
-#~ msgid "Where applications come from"
-#~ msgstr "ଯେଉଁଠାରେ ଆବେଦନଗୁଡ଼ିକ ଆସେ |"
-
 #: src/features/applications/insights-copy.ts
 msgctxt "applications.insights.sources"
 msgid "Where applications come from"
@@ -18010,10 +18186,6 @@ msgstr "ଆପଣ କେଉଁଠି କାମ କରିବାକୁ ଚାହ�
 #: src/features/career/offers.tsx
 msgid "Where you work"
 msgstr "କାମର ସ୍ଥାନ"
-
-#: src/features/applications/components/insights-view.tsx
-#~ msgid "Where your applications went"
-#~ msgstr "ଯେଉଁଠାରେ ଆପଣଙ୍କର ଆବେଦନ ଗଲା |"
 
 #: src/features/career/coach.tsx
 msgid "Which opportunities best match my priorities?"
@@ -18082,10 +18254,6 @@ msgstr ""
 #: src/routes/builder/letter/-components/write-panel.tsx
 msgid "Without one, you fill in the recipient yourself and drafting uses only your resume."
 msgstr "ଗୋଟିଏ ବିନା, ଆପଣ ନିଜେ ପ୍ରାପ୍ତକର୍ତ୍ତା ପୁରଣ କରନ୍ତି ଏବଂ ଡ୍ରାଫ୍ଟ କରିବା କେବଳ ଆପଣଙ୍କର ରେଜୁମ୍ ବ୍ୟବହାର କରେ |"
-
-#: src/features/applications/components/insights-view.tsx
-#~ msgid "without usable dates"
-#~ msgstr ""
 
 #: src/features/applications/insights-copy.ts
 msgctxt "applications.insights.missingDates"
@@ -18224,17 +18392,9 @@ msgstr ""
 msgid "Writing an answer…"
 msgstr "ଏକ ଉତ୍ତର ଲେଖୁଛି…"
 
-#: src/features/resume/editor/check/check-panel.tsx
-#~ msgid "Writing and content"
-#~ msgstr ""
-
 #: src/features/settings/ai/providers.tsx
 msgid "Writing help, tailored suggestions and the assistant. The default provider is used wherever you don't pick one. Your keys stay encrypted."
 msgstr "ଲେଖା ସାହାଯ୍ୟ, ଅନୁକୂଳିତ ପରାମର୍ଶ ଓ ସହକାରୀ। ଆପଣ ଯେଉଁଠି ପ୍ରଦାନକାରୀ ବାଛନ୍ତି ନାହିଁ, ସେଠାରେ ଡିଫଲ୍ଟ ପ୍ରଦାନକାରୀ ବ୍ୟବହୃତ ହୁଏ। ଆପଣଙ୍କ କି ଏନକ୍ରିପ୍ଟେଡ୍ ରହେ।"
-
-#: src/features/resume/editor/check/check-panel.tsx
-#~ msgid "Writing notes"
-#~ msgstr ""
 
 #: src/features/career/offers.tsx
 msgid "Written offer"
@@ -18263,22 +18423,10 @@ msgstr ""
 msgid "Yesterday"
 msgstr "ଗତକାଲି"
 
-#: src/features/resume/share/format.ts
-#~ msgid "Yesterday {time}"
-#~ msgstr "ଗତକାଲି {time} |"
-
 #: src/features/assistant/conversation.tsx
 #: src/features/career/coach.tsx
 msgid "You"
 msgstr "ତୁମେ"
-
-#: src/libs/error-message.ts
-msgid "You already have a job copy for this base CV. Your selections are kept."
-msgstr ""
-
-#: src/libs/error-message.ts
-msgid "You already have a language copy for this base CV. Your selections are kept."
-msgstr ""
 
 #. placeholder {0}: result.takenBy
 #: src/features/resume/share/link-tab.tsx
@@ -18341,12 +18489,6 @@ msgstr ""
 msgid "You forgot this before, so it wasn't saved again."
 msgstr "ଆପଣ ଏହାକୁ ପୂର୍ବରୁ ଭୁଲାଇ ଦେଇଥିଲେ, ତେଣୁ ଏହା ପୁଣି ସେଭ୍ ହେଲା ନାହିଁ।"
 
-#: src/features/documents/new-document-dialog.tsx
-#: src/features/resume/import/start.tsx
-#: src/libs/error-message.ts
-msgid "You have reached the limit for base CVs. Your existing documents remain available to edit and download."
-msgstr ""
-
 #: src/hooks/use-form-blocker.tsx
 msgid "You have unsaved changes that will be lost."
 msgstr "ଆପଣଙ୍କର ସଞ୍ଚୟ ନହୋଇଥିବା ପରିବର୍ତ୍ତନ ହରାଇ ଯିବ।"
@@ -18355,10 +18497,6 @@ msgstr "ଆପଣଙ୍କର ସଞ୍ଚୟ ନହୋଇଥିବା ପରି
 msgctxt "billing.usage.startOperationsLimitHint"
 msgid "You have used all your free assistant operations. They do not renew. You can continue editing manually and download a PDF."
 msgstr ""
-
-#: src/features/resume/editor/check/check-panel.tsx
-#~ msgid "You make the decision"
-#~ msgstr ""
 
 #: src/features/career/offers.tsx
 msgid "You said: “{said}” Ask before deciding."
@@ -18447,6 +18585,11 @@ msgstr ""
 #: src/features/career/workspace/practise.tsx
 msgid "Your attempts"
 msgstr "ଆପଣଙ୍କ ପ୍ରୟାସ"
+
+#: src/features/usage/allowance-limit.tsx
+msgctxt "allowance.base.description"
+msgid "Your base CV allowance is full."
+msgstr ""
 
 #: src/features/career/workspace/prepare.tsx
 msgid "Your briefing"
@@ -18766,6 +18909,11 @@ msgstr ""
 msgid "Your phone number changed on the resume. The letter updated too."
 msgstr "ରେଜୁମେରେ ତୁମର ଫୋନ୍ ନମ୍ବର ବଦଳିଗଲା | ଚିଠି ମଧ୍ୟ ଅପଡେଟ୍ ହୋଇଛି |"
 
+#: src/features/resume/import/review.tsx
+msgctxt "review.import.baseCvLimit"
+msgid "Your plan includes 1 base CV. Replace your existing base CV, save only confirmed facts to Career information, or open your existing CV. Your review is kept."
+msgstr ""
+
 #: src/features/career/coach.tsx
 msgid "your preferences"
 msgstr "ଆପଣଙ୍କ ପସନ୍ଦ"
@@ -18822,10 +18970,6 @@ msgctxt "auth.session.expiredHint"
 msgid "Your saved edits are safe. Sign in to return to this page."
 msgstr ""
 
-#: src/features/applications/components/insights-view.tsx
-#~ msgid "Your search is taking shape"
-#~ msgstr ""
-
 #: src/features/applications/insights-copy.ts
 msgctxt "applications.insights.emptyTitle"
 msgid "Your search is taking shape"
@@ -18845,6 +18989,11 @@ msgstr ""
 
 #: src/features/applications/components/detail/document-manager.tsx
 msgid "Your selections remain unchanged."
+msgstr ""
+
+#: src/features/usage/allowance-limit.tsx
+msgctxt "allowance.concurrent.description"
+msgid "Your simultaneous AI operation allowance is in use."
 msgstr ""
 
 #: src/features/career/coach.tsx
@@ -18901,7 +19050,3 @@ msgstr "ଜୁମ୍ ଆଉଟ୍ କରନ୍ତୁ"
 #: src/libs/locale.ts
 msgid "Zulu"
 msgstr "ଜୁଲୁ"
-
-#: src/features/applications/components/insights-view.tsx
-#~ msgid "دون تواريخ صالحة"
-#~ msgstr ""

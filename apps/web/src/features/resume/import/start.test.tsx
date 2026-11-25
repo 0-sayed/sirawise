@@ -4,17 +4,18 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { beforeEach, expect, it, vi } from "vite-plus/test";
 import { i18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
+import { ORPCError } from "@orpc/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Dialog } from "@reactive-resume/ui/components/dialog";
 import { StartCvDialog } from "./start";
 import { useDialogStore } from "@/dialogs/store";
-const mocks = vi.hoisted(() => ({ create: vi.fn(), linkApplication: vi.fn(), navigate: vi.fn() }));
+const mocks = vi.hoisted(() => ({ create: vi.fn(), list: vi.fn(), linkApplication: vi.fn(), navigate: vi.fn() }));
 vi.mock("@tanstack/react-router", () => ({
 	useNavigate: () => mocks.navigate,
 	useRouteContext: () => ({ session: { user: { id: "owner" } } }),
 }));
 vi.mock("@/libs/orpc/client", () => ({
-	client: { resume: { create: mocks.create }, documents: { linkApplication: mocks.linkApplication } },
+	client: { resume: { create: mocks.create, list: mocks.list }, documents: { linkApplication: mocks.linkApplication } },
 	orpc: {
 		documents: { counts: { queryKey: () => ["documents", "counts"] }, key: () => ["documents"] },
 		applications: { key: () => ["applications"] },
@@ -24,6 +25,36 @@ beforeEach(() => {
 	vi.resetAllMocks();
 	i18n.loadAndActivate({ locale: "en-US", messages: {} });
 	useDialogStore.getState().openDialog("document.new", undefined);
+});
+it("names the 1 base CV limit and opens the existing CV instead of retrying creation", async () => {
+	mocks.create.mockRejectedValue(
+		new ORPCError("PRECONDITION_FAILED", {
+			data: { reason: "BASE_CV_LIMIT", allowance: { limit: 1, used: 1, reserved: 0, remaining: 0 } },
+		}),
+	);
+	mocks.list.mockResolvedValue([
+		{ id: "existing", name: "My CV", variantKind: "base" },
+		{ id: "copy", name: "English copy", variantKind: "language" },
+	]);
+	render(
+		<I18nProvider i18n={i18n}>
+			<QueryClientProvider client={new QueryClient()}>
+				<Dialog open>
+					<StartCvDialog />
+				</Dialog>
+			</QueryClientProvider>
+		</I18nProvider>,
+	);
+	fireEvent.click(screen.getByRole("button", { name: /^Write from scratch/ }));
+	await screen.findByText("1 of 1 base CVs used.");
+	await waitFor(() => expect(screen.getByRole("button", { name: "Open existing CV" })).toBeEnabled());
+	expect(screen.queryByRole("button", { name: "Try again" })).not.toBeInTheDocument();
+	fireEvent.click(screen.getByRole("button", { name: "Open existing CV" }));
+	expect(mocks.navigate).toHaveBeenCalledWith({
+		to: "/builder/$resumeId",
+		params: { resumeId: "existing" },
+		search: { mode: "write" },
+	});
 });
 it.each(["ar-SA", "en-US"])("manual creates an empty %s CV and opens Write without review", async (locale) => {
 	mocks.create.mockResolvedValue("new-cv");

@@ -33,6 +33,82 @@ CERTIFICATIONS
 AWS Solutions Architect  Amazon  2021
 `;
 
+const educationFields = (lines: string, locale: string) =>
+	parseResumeText(`Example Person\nEducation\n${lines}`, { locale }).sections.education.items.map(
+		({ school, degree, area, location, dates }) => [school, degree, area, location, dates],
+	);
+
+it("reads every Arabic PDF education entry with its own date range", () => {
+	const lines = `معهد واحة المعرفة 3 ماجستير
+نظم المعلومات وإدارة العمليات الرياض • 01/2019-01/2021
+معهد واحة المعرفة 2 دبلوم مهني
+نظم المعلومات وإدارة العمليات الرياض • 01/2010-01/2012
+معهد واحة المعرفة 1 بكالوريوس
+نظم المعلومات وإدارة العمليات الرياض • 01/2004-01/2006`;
+	expect(educationFields(lines, "ar-SA")).toEqual([
+		[
+			"معهد واحة المعرفة 3",
+			"ماجستير",
+			"نظم المعلومات وإدارة العمليات",
+			"الرياض",
+			{ start: "2019-01", end: "2021-01", present: false },
+		],
+		[
+			"معهد واحة المعرفة 2",
+			"دبلوم مهني",
+			"نظم المعلومات وإدارة العمليات",
+			"الرياض",
+			{ start: "2010-01", end: "2012-01", present: false },
+		],
+		[
+			"معهد واحة المعرفة 1",
+			"بكالوريوس",
+			"نظم المعلومات وإدارة العمليات",
+			"الرياض",
+			{ start: "2004-01", end: "2006-01", present: false },
+		],
+	]);
+});
+
+it.each([
+	{
+		lines: "Ain Shams University 2020\nدرجة البكالوريوس في علوم الحاسب",
+		locale: "ar-SA",
+		expected: ["Ain Shams University", "درجة البكالوريوس", "علوم الحاسب", "", "2020", null],
+	},
+	{
+		lines: "2021\nMaster of Science in Statistics — North Coast University · Halifax, Canada",
+		locale: "en-US",
+		expected: ["North Coast University", "Master of Science", "Statistics", "Halifax, Canada", "2021", null],
+	},
+	{
+		lines: "West College, Diploma, Industrial Design | Lisbon - 2018-2020",
+		locale: "en-US",
+		expected: ["West College", "Diploma", "Industrial Design", "Lisbon", "2018", "2020"],
+	},
+	{
+		lines: "Bachelor of Arts\nRiver Academy\nHistory\nBristol\n٢٠١٩",
+		locale: "en-US",
+		expected: ["River Academy", "Bachelor of Arts", "History", "Bristol", "2019", null],
+	},
+	{
+		lines: "Master of Arts in history\nUniversity of London|New Haven, CT\n2001",
+		locale: "en-US",
+		expected: ["University of London", "Master of Arts", "history", "New Haven, CT", "2001", null],
+	},
+])("maps education fields independently in $lines", ({ lines, locale, expected }) => {
+	const [school, degree, area, location, start, end] = expected;
+	expect(educationFields(lines, locale)).toEqual([[school, degree, area, location, { start, end, present: false }]]);
+});
+
+it("keeps dates attached to the school on the same line across separate entries", () => {
+	const data = parseResumeText("Example Person\nEducation\nEast Institute\n2024 | City College | Diploma");
+	expect(data.sections.education.items.map(({ school, degree, dates }) => [school, degree, dates?.start])).toEqual([
+		["East Institute", "", null],
+		["City College", "Diploma", "2024"],
+	]);
+});
+
 describe("parseResumeText", () => {
 	const data = parseResumeText(SAMPLE);
 
@@ -355,6 +431,51 @@ it("recognizes Arabic aliases with omitted source locale and Persian contact dig
 	expect(data.basics.phone).toBe("+966 50 123 4567");
 	expect(data.sections.experience.items[0]?.company).toBe("شركة ألف");
 });
+it("keeps Arabic role heads and punctuated titles out of experience descriptions", () => {
+	const positions = [
+		"مدير عمليات المنتجات",
+		"مدير عمليات",
+		"مدير برامج",
+		"مدير مشاريع",
+		"قائد فريق",
+		"محلل أول",
+		"محلل عمليات",
+		"منسق عمليات",
+		"(قائد فريق)",
+		"قائد-فريق",
+		"مشرف عمليات",
+		"رئيسة التحرير",
+	];
+	const issues: unknown[] = [];
+	const headers = positions.map((position) => `شركة المثال | ${position} | 2020 - 2022\n• طورت إجراءات العمل`);
+	const data = parseResumeText(`أحمد\nالخبرة\n${headers.join("\n")}`, {
+		locale: "ar-SA",
+		onUncertain: (issue) => issues.push(issue),
+	});
+	const items = data.sections.experience.items;
+	expect(items.map(({ position }) => position)).toEqual(positions);
+	expect(issues).toEqual([]);
+	for (const { position, description } of items) expect(description).not.toContain(position);
+});
+
+it.each(["مسير إنتاج", "مراقبة الجودة الصناعية", "Scrum Master", "Site Supervisor", "Product Steward"])(
+	"keeps %s as a position in a two-part dated header",
+	(position) => {
+		const issues: unknown[] = [];
+		const data = parseResumeText(
+			`Sara Example\nEXPERIENCE\nExample Labs | ${position}\n2020 - 2022\n• Planned releases.`,
+			{
+				onUncertain: (issue) => issues.push(issue),
+			},
+		);
+		expect(data.sections.experience.items).toMatchObject([{ position, description: "<p>Planned releases.</p>" }]);
+		expect(issues).toEqual(
+			["مسير إنتاج", "Product Steward"].includes(position)
+				? [{ field: "position", source: position, section: "experience", entryIndex: 0 }]
+				: [],
+		);
+	},
+);
 it("decodes Arabic presentation forms without folding hamza", () => {
 	const data = parseResumeText(
 		"أﺣﻤﺪ اﻟﻌﺘﻴﺒﻲ\nsynthetic@example.test\nاﻟﺨﺒﺮة اﻟﻌﻤﻠﻴﺔ\nﺷﺮﻛﺔ اﻷﻓﻖ | ﻣﻬﻨﺪس ﺑﺮﻣﺠﻴﺎت\n2020 - 2022",
@@ -487,4 +608,62 @@ it("retains a custom section with short non-location columns after contacts", ()
 	expect(data.basics).toMatchObject({ name: "Ada Lovelace", email: "ada@example.com" });
 	expect(JSON.stringify(data.customSections)).toContain("ReactConf");
 	expect(JSON.stringify(data.customSections)).toContain("Spoke about parsers");
+});
+
+it("preserves English and Arabic summary line breaks without PDF layout evidence", () => {
+	const english = parseResumeText(
+		[
+			"Sayed Ashraf",
+			"Software Engineer",
+			"Summary",
+			"Software Engineer building web applications with Node.js, TypeScript, PostgreSQL, and React, using Codex daily for AI-",
+			"assisted development. At BandAI, as a Senior Software Engineer, built an AI gateway that reduced costs, along with a",
+			"Salla app and Chrome extension to help merchants review and improve store policies.",
+		].join("\n"),
+	);
+	expect(english.summary.content).toBe(
+		"<p>Software Engineer building web applications with Node.js, TypeScript, PostgreSQL, and React, using Codex daily for AI-</p><p>assisted development. At BandAI, as a Senior Software Engineer, built an AI gateway that reduced costs, along with a</p><p>Salla app and Chrome extension to help merchants review and improve store policies.</p>",
+	);
+
+	const arabic = parseResumeText(
+		[
+			"نواف السهلي",
+			"مدير عمليات المنتجات وتحسين الخدمات",
+			"الملخص المهني",
+			"مدير عمليات المنتجات وتحسين الخدمات بخبرة 20 عاما في تنسيق العمليات وقيادة برامج التحسين، ومهارات في التدريب وإدارة",
+			"التغيير وتحليل المتطلبات. طور تقارير الجودة الأسبوعية وخفض وقت إعدادها بنسبة 16%. خفض زمن إعداد التقارير بنسبة 22%",
+			"عبر توحيد متطلبات البيانات ومعايير المراجعة.",
+		].join("\n"),
+		{ locale: "ar-SA" },
+	);
+	expect(arabic.summary.content).toBe(
+		"<p>مدير عمليات المنتجات وتحسين الخدمات بخبرة 20 عاما في تنسيق العمليات وقيادة برامج التحسين، ومهارات في التدريب وإدارة</p><p>التغيير وتحليل المتطلبات. طور تقارير الجودة الأسبوعية وخفض وقت إعدادها بنسبة 16%. خفض زمن إعداد التقارير بنسبة 22%</p><p>عبر توحيد متطلبات البيانات ومعايير المراجعة.</p>",
+	);
+});
+it("preserves consecutive summary bullets and neighboring prose as different blocks", () => {
+	const result = parseResumeText(
+		"Ada Example\nSummary\nBuilt secure services\nfor release reviews.\n• Measured latency\n• Kept C++ support\n\nMaintained the release notes.",
+	);
+	expect(result.summary.content).toBe(
+		"<p>Built secure services</p><p>for release reviews.</p><ul><li>Measured latency</li><li>Kept C++ support</li></ul><p>Maintained the release notes.</p>",
+	);
+});
+
+it("keeps separated and indented Arabic fluency with its language", () => {
+	const data = parseResumeText("اللغات\nالعربية  اللغة الأم\nالإنجليزية\n  إجادة مهنية", { locale: "ar-SA" });
+	expect(data.sections.languages.items.map(({ language, fluency }) => ({ language, fluency }))).toEqual([
+		{ language: "العربية", fluency: "اللغة الأم" },
+		{ language: "الإنجليزية", fluency: "إجادة مهنية" },
+	]);
+});
+
+it("keeps labeled and nested Arabic skill groups with their keywords", () => {
+	const data = parseResumeText("المهارات\nهندسة البرمجيات: TypeScript، React\nالبيانات\n  • SQL\n  • PostgreSQL\nGit", {
+		locale: "ar-SA",
+	});
+	expect(data.sections.skills.items.map(({ name, keywords }) => ({ name, keywords }))).toEqual([
+		{ name: "هندسة البرمجيات", keywords: ["TypeScript", "React"] },
+		{ name: "البيانات", keywords: ["SQL", "PostgreSQL"] },
+		{ name: "Git", keywords: [] },
+	]);
 });

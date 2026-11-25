@@ -38,7 +38,7 @@ export async function grantRuntimePrivileges(pool, role) {
 	await pool.query(`REVOKE UPDATE,DELETE,TRUNCATE ON ai_review_decision FROM "${role}"`);
 	await pool.query(`REVOKE UPDATE,DELETE,TRUNCATE ON cover_letter_proposal_decision FROM "${role}"`);
 	await pool.query(`REVOKE UPDATE,TRUNCATE ON ai_import_review_source FROM "${role}"`);
-	await pool.query(`REVOKE ALL ON ai_platform_budget FROM "${role}"`);
+	await pool.query(`REVOKE ALL ON ai_platform_budget,ai_platform_capacity FROM "${role}"`);
 	await pool.query(`REVOKE DELETE ON ai_operation,ai_operation_attempt FROM "${role}"`);
 	await pool.query(`REVOKE ALL ON deletion_replay_record,support_access_log FROM "${role}"`);
 	await pool.query(
@@ -52,7 +52,7 @@ export async function grantRuntimePrivileges(pool, role) {
 		`GRANT EXECUTE ON FUNCTION master_cv_quiesce_deleted_account(text),master_cv_erase_deleted_account(text) TO "${role}"`,
 	);
 	await pool.query(
-		`GRANT EXECUTE ON FUNCTION master_cv_ai_queue_owners(),master_cv_ai_admit_budget(text,bigint,bigint),master_cv_ai_reconcile_budget(text) TO "${role}"`,
+		`GRANT EXECUTE ON FUNCTION master_cv_ai_queue_owners(),master_cv_ai_admit_budget(text,bigint,bigint),master_cv_ai_admit_operation(text,bigint,bigint),master_cv_ai_reconcile_budget(text),master_cv_ai_hold_translation(text,bigint),master_cv_ai_can_dispatch(text),master_cv_ai_claim_slot(text),master_cv_ai_queue_position(text) TO "${role}"`,
 	);
 	await pool.query(`GRANT EXECUTE ON FUNCTION master_cv_queue_owners(),master_cv_privacy_queue_owners() TO "${role}"`);
 	await pool.query(`GRANT EXECUTE ON FUNCTION master_cv_stale_agent_owners() TO "${role}"`);

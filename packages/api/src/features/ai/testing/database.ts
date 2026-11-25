@@ -32,13 +32,13 @@ export function aiTestDatabase() {
 			`GRANT USAGE ON SCHEMA public TO "${role}"; GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public TO "${role}"`,
 		);
 		await fixture.query(
-			`REVOKE UPDATE,DELETE ON career_fact_revision FROM "${role}"; REVOKE UPDATE,DELETE,TRUNCATE ON ai_usage_ledger FROM "${role}"; REVOKE ALL ON ai_platform_budget FROM "${role}"; REVOKE DELETE ON ai_operation,ai_operation_attempt FROM "${role}"`,
+			`REVOKE UPDATE,DELETE ON career_fact_revision FROM "${role}"; REVOKE UPDATE,DELETE,TRUNCATE ON ai_usage_ledger FROM "${role}"; REVOKE ALL ON ai_platform_budget,ai_platform_capacity FROM "${role}"; REVOKE DELETE ON ai_operation,ai_operation_attempt FROM "${role}"`,
 		);
 		await fixture.query(
 			`REVOKE UPDATE,DELETE,TRUNCATE ON cover_letter_proposal_decision FROM "${role}"; REVOKE UPDATE,DELETE,TRUNCATE ON ai_review_decision FROM "${role}"; REVOKE UPDATE,TRUNCATE ON ai_import_review_source FROM "${role}"`,
 		);
 		await fixture.query(
-			`GRANT EXECUTE ON FUNCTION master_cv_ai_queue_owners(),master_cv_ai_admit_budget(text,bigint,bigint),master_cv_ai_reconcile_budget(text) TO "${role}"`,
+			`GRANT EXECUTE ON FUNCTION master_cv_ai_queue_owners(),master_cv_ai_admit_budget(text,bigint,bigint),master_cv_ai_admit_operation(text,bigint,bigint),master_cv_ai_reconcile_budget(text),master_cv_ai_hold_translation(text,bigint),master_cv_ai_can_dispatch(text),master_cv_ai_claim_slot(text),master_cv_ai_queue_position(text) TO "${role}"`,
 		);
 		await fixture.query(
 			`INSERT INTO "user"(id,name,email,username,display_username) VALUES ('alice','Alice','alice@example.test','alice','alice'),('bob','Bob','bob@example.test','bob','bob')`,

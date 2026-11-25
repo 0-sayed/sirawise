@@ -25,7 +25,13 @@ import { protectedProcedure } from "../../context";
 import { aiRequestRateLimit } from "../../middleware/rate-limit";
 import { aiProvidersService } from "../ai-providers/service";
 import { atsReviewInputSchema, atsReviewOutputSchema } from "./ats-review";
-import { getProcessingNotices, processingConsentService } from "./consent";
+import {
+	getProcessingNotices,
+	processingAcceptanceSchema,
+	processingConsentService,
+	processingNoticeInputSchema,
+	processingNoticeSchema,
+} from "./consent";
 import { improveInputSchema, improveLine, improveOutputSchema } from "./improve";
 import { operationService } from "./operations";
 import { reportAiContent } from "./reports";
@@ -34,6 +40,7 @@ import {
 	dismissReviewQuestion,
 	getLatestResumeReview,
 	getReview,
+	listResumeReviews,
 	recordReviewAnswer,
 } from "./review-decisions";
 import { createImportReviewSource, prepareResumeReview } from "./review-sources";
@@ -78,6 +85,20 @@ async function getRunnableProvider(userId: string, aiProviderId?: string) {
 export const aiRouter = {
 	variantReview: variantReviewRouter,
 	review: {
+		list: protectedProcedure
+			.route({ method: "GET", path: "/ai/reviews", tags: ["AI"], operationId: "listResumeReviews" })
+			.input(z.strictObject({ resumeId: z.string().min(1).max(200) }))
+			.output(
+				z.array(
+					z.strictObject({
+						operationId: z.string(),
+						targets: z.array(
+							z.strictObject({ target: reviewTargetSchema, pendingCount: z.number().int().nonnegative() }),
+						),
+					}),
+				),
+			)
+			.handler(({ context, input }) => listResumeReviews(context.user.id, input.resumeId)),
 		latest: protectedProcedure
 			.route({ method: "GET", path: "/ai/reviews/latest", tags: ["AI"], operationId: "latestResumeReview" })
 			.input(z.strictObject({ resumeId: z.string().min(1).max(200) }))
@@ -156,22 +177,12 @@ export const aiRouter = {
 	processing: {
 		notices: protectedProcedure
 			.route({ method: "GET", path: "/ai/processing-notices", tags: ["AI"], operationId: "aiProcessingNotices" })
-			.input(z.object({}).optional())
-			.output(
-				z.array(
-					z.strictObject({ route: routeBindingSchema, noticeVersion: z.string(), purposes: z.array(z.string()) }),
-				),
-			)
-			.handler(() => getProcessingNotices()),
+			.input(processingNoticeInputSchema)
+			.output(z.array(processingNoticeSchema))
+			.handler(({ context, input }) => getProcessingNotices(context.user.id, input)),
 		grant: protectedProcedure
 			.route({ method: "POST", path: "/ai/processing-consent", tags: ["AI"], operationId: "grantAiProcessingConsent" })
-			.input(
-				z.strictObject({
-					route: routeBindingSchema,
-					purpose: z.string().min(1).max(200),
-					noticeVersion: z.string().min(1).max(200),
-				}),
-			)
+			.input(processingAcceptanceSchema)
 			.output(z.strictObject({ id: z.string() }))
 			.handler(({ context, input }) => processingConsentService.grant(context.user.id, input)),
 		revoke: protectedProcedure
@@ -198,6 +209,37 @@ export const aiRouter = {
 			.handler(({ context }) => usageService.getStartUsage(context.user.id)),
 	},
 	operations: {
+		retryTranslation: protectedProcedure
+			.route({
+				method: "POST",
+				path: "/ai/operations/{id}/translation-retries",
+				tags: ["AI"],
+				operationId: "retryTranslationPart",
+			})
+			.use(aiRequestRateLimit)
+			.input(
+				z
+					.strictObject({
+						id: z.string().min(1).max(200),
+						requestKey: z.string().min(1).max(200),
+						scope: z.literal("failed_parts").optional(),
+						partIndex: z.number().int().nonnegative().optional(),
+						execution: z
+							.strictObject({ route: routeBindingSchema, consentVersion: z.string().min(1).max(200) })
+							.optional(),
+					})
+					.refine(({ scope, partIndex }) => scope === undefined || partIndex === undefined),
+			)
+			.output(operationViewSchema)
+			.handler(({ context, input }) =>
+				operationService.retryTranslation(
+					context.user.id,
+					input.id,
+					input.requestKey,
+					input.execution,
+					input.partIndex === undefined ? input.scope : { partIndex: input.partIndex },
+				),
+			),
 		preflight: protectedProcedure
 			.route({ method: "POST", path: "/ai/operations/preflight", tags: ["AI"], operationId: "preflightAiOperation" })
 			.use(aiRequestRateLimit)

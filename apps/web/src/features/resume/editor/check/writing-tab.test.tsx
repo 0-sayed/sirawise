@@ -52,11 +52,11 @@ it("renders the current allowance guidance without a plans action", () => {
 			<WritingTab />
 		</I18nProvider>,
 	);
-	expect(
-		screen.getByText(
-			"You used all available assistant operations. Your draft is kept. Review your allowance in account settings.",
-		),
-	).toBeDefined();
+	expect(screen.getByRole("alert").textContent).toContain("No AI uses are available in your current allowance.");
+	expect(screen.getByRole("alert").textContent).toContain(
+		"This allowance does not reset automatically. Continue editing manually or contact support. Your draft is kept.",
+	);
+	expect(screen.getByRole("link", { name: "Help and contact" }).getAttribute("href")).toBe("/help");
 	expect(screen.queryByRole("button", { name: /plans/i })).toBeNull();
 });
 
@@ -70,6 +70,9 @@ it("announces a running operation instead of unavailable writing suggestions", (
 	);
 	expect(screen.queryByText("Writing suggestions are not available yet")).toBeNull();
 	expect(
-		screen.getByText("An operation is already in progress. Your writing is kept.").closest('[data-slot="alert-title"]'),
+		screen.getByText("Simultaneous AI operation limit reached").closest('[data-slot="alert-title"]'),
 	).not.toBeNull();
+	expect(screen.getByRole("alert").textContent).toContain(
+		"Wait for an operation to finish, then try again. Your draft is kept.",
+	);
 });

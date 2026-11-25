@@ -8,9 +8,9 @@ import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 import { demoCredentials, demoAccountName } from "../../../tooling/local/demo-fixture";
 import { loginViaUi } from "../fixtures/auth";
+import { expect, test } from "../fixtures/demo-test";
 import { detectAuthenticatedPage } from "../fixtures/design-detector";
 import { settleScreen } from "../fixtures/screen";
-import { expect, test } from "../fixtures/test";
 
 const sections = ["experience", "education", "skills", "languages", "certifications"] as const;
 function client(page: Page): RouterClient<typeof router> {
@@ -38,8 +38,9 @@ async function capture(page: Page, info: TestInfo, locale: string, width: number
 		fullPage: false,
 	});
 }
-test("dense master keeps facts and CVs intact across all four layouts", async ({ page, baseURL }, info) => {
+test("dense master keeps facts and CVs intact across all four layouts", async ({ page, baseURL, demoLock }, info) => {
 	test.setTimeout(300_000);
+	await demoLock();
 	if (!baseURL) throw new Error("MISSING_BROWSER_BASE_URL");
 	const seed = () =>
 		execFileSync(process.execPath, ["tooling/local/demo-seed.mjs"], {
@@ -79,11 +80,13 @@ test("dense master keeps facts and CVs intact across all four layouts", async ({
 			await expect(page.locator("html")).toHaveAttribute("dir", ar ? "rtl" : "ltr");
 			await expect(page.locator('[id^="career-section-"]')).toHaveCount(5);
 			await expect(page.locator('[id^="career-heading-"]')).toHaveCount(7);
-			expect(
-				await page
-					.locator('[id^="career-section-"]')
-					.evaluateAll((groups) => groups.map((group) => group.querySelectorAll("article").length)),
-			).toEqual([3, 2, 8, 2, 3]);
+			await expect
+				.poll(() =>
+					page
+						.locator('[id^="career-section-"]')
+						.evaluateAll((groups) => groups.map((group) => group.querySelectorAll("article").length)),
+				)
+				.toEqual([3, 2, 8, 2, 3]);
 			await capture(page, info, locale, width, "initial");
 			const geometry = await page.evaluate(() => {
 				const nav = document.querySelector('[data-slot="career-section-index"]');

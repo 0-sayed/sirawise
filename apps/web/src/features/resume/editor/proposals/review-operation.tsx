@@ -3,20 +3,22 @@ import type { ReactNode } from "react";
 import { Trans } from "@lingui/react/macro";
 import { ORPCError } from "@orpc/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Alert, AlertTitle, AlertDescription, AlertActions } from "@reactive-resume/ui/components/alert";
 import { Button } from "@reactive-resume/ui/components/button";
-import {
-	Dialog,
-	DialogContent,
-	DialogTitle,
-	DialogDescription,
-	DialogFooter,
-} from "@reactive-resume/ui/components/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogFooter } from "@reactive-resume/ui/components/dialog";
 import { Icon } from "@reactive-resume/ui/components/icon";
+import {
+	acceptProcessingNotice,
+	ProcessingNoticeContent,
+	useProcessingNotice,
+	useTranslationRetryConsent,
+} from "./processing-consent";
+import { ReviewFailureReason, TranslationPartFailure } from "./review-failure";
 import { QuerySkeleton } from "@/components/query-skeleton";
 import { useAssistantCopy } from "@/features/assistant/copy.generated";
 import { assistantAvailability } from "@/features/assistant/operation-state";
+import { AllowanceLimitNotice, getAllowanceReason } from "@/features/usage/allowance-limit";
 import { client, orpc } from "@/libs/orpc/client";
 
 export function ReviewNotice({
@@ -47,30 +49,73 @@ export function ReviewNotice({
 		</Alert>
 	);
 }
-function launchIssue(error: Error | null) {
+export function launchIssue(error: Error | null) {
 	if (!error) return null;
 	const code = error instanceof ORPCError ? error.code : undefined;
-	const reason = error instanceof ORPCError ? (error.data?.reason ?? code) : error.message;
+	const reason =
+		error instanceof ORPCError
+			? (error.data?.reason ?? (/^[A-Z][A-Z_]+$/u.test(error.message) ? error.message : code))
+			: error.message;
+	const recovery = {
+		SAVE_REQUIRED: "review.launch.saveRequired",
+		AI_REVIEW_SAVE_REQUIRED: "review.launch.saveRequired",
+		LETTER_EVIDENCE_REQUIRED: "review.launch.jobRequired",
+		LETTER_JOB_TEXT_REQUIRED: "review.launch.jobTextRequired",
+		LETTER_SOURCE_REQUIRED: "review.launch.cvRequired",
+		LETTER_LANGUAGE_REQUIRED: "review.launch.languageRequired",
+		AI_SOURCE_CHANGED: "review.launch.sourceChanged",
+		SOURCE_CHANGED: "review.launch.sourceChanged",
+		RESUME_VERSION_CHANGED: "review.launch.sourceChanged",
+		JOB_SELECTION_CHANGED: "review.launch.sourceChanged",
+		JOB_REVISION_CHANGED: "review.launch.sourceChanged",
+		JOB_DIGEST_CHANGED: "review.launch.sourceChanged",
+		LETTER_REVIEW_STALE: "review.launch.sourceChanged",
+		CONFLICT: "review.launch.sourceChanged",
+		AI_SOURCE_UNAVAILABLE: "review.launch.sourceUnavailable",
+		AI_REVIEW_UNAVAILABLE: "review.launch.sourceUnavailable",
+		REVIEW_UNAVAILABLE: "review.launch.sourceUnavailable",
+		SOURCE_UNAVAILABLE: "review.launch.sourceUnavailable",
+		NOT_FOUND: "review.launch.sourceUnavailable",
+		AI_SOURCE_EXPIRED: "review.launch.sourceExpired",
+		AI_SOURCE_LOCKED: "review.launch.sourceLocked",
+		RESUME_LOCKED: "review.launch.sourceLocked",
+		LETTER_LOCKED: "review.launch.sourceLocked",
+		SUBMITTED_DOCUMENT_IMMUTABLE: "review.launch.sourceLocked",
+		AI_INVALID_REQUEST: "review.launch.invalidSelection",
+		BAD_REQUEST: "review.launch.invalidSelection",
+		AI_AMBIGUOUS_PASSAGE: "review.launch.ambiguousPassage",
+		AI_REQUEST_KEY_REUSED: "review.launch.requestReused",
+		REQUEST_KEY_REUSED: "review.launch.requestReused",
+		TRANSLATION_BATCH_INCOMPLETE: "review.launch.batchIncomplete",
+	} as const;
+	if (reason && Object.hasOwn(recovery, reason))
+		return { key: recovery[reason as keyof typeof recovery], action: "none" } as const;
 	if (
 		["AI_UNAVAILABLE", "AI_NOT_ENABLED", "NO_APPROVED_ROUTE", "WORKER_UNAVAILABLE", "FEATURE_UNAVAILABLE"].includes(
 			reason,
 		)
 	)
 		return { key: "review.assistant.environmentUnavailable", action: "none" } as const;
-	if (reason === "AI_BUDGET_LIMIT") return { key: "review.launch.budgetReached", action: "none" } as const;
-	if (reason === "AI_OPERATIONS_LIMIT") return { key: "review.launch.allowanceUsed", action: "none" } as const;
-	if (["BASE_CV_LIMIT", "LANGUAGE_COPY_LIMIT", "JOB_COPY_LIMIT"].includes(reason))
-		return { key: "review.launch.documentLimit", action: "none" } as const;
-	if (["AI_CONSENT_REQUIRED", "AI_PROVIDER_CHANGED"].includes(reason))
+	if (reason === "AI_INPUT_LIMIT") return { key: "review.launch.inputTooLarge", action: "none" } as const;
+	if (reason === "AI_CONSENT_REQUIRED" || reason === "AI_CONSENT_NOTICE_CHANGED")
 		return { key: "review.launch.consentRequired", action: "consent" } as const;
 	if (reason === "TRANSLATION_STRUCTURE_CHANGED")
 		return { key: "review.launch.translationStructure", action: "none" } as const;
-	if (reason === "AI_CONCURRENCY_LIMIT") return { key: "review.launch.busy", action: "retry" } as const;
+	if (reason === "TRANSLATION_PARTIAL_COVERAGE")
+		return {
+			key: "review.launch.translationUnsupported",
+			action: "none",
+			sections:
+				error instanceof ORPCError && Array.isArray(error.data?.sections)
+					? error.data.sections.filter((section: unknown): section is string => typeof section === "string")
+					: [],
+		} as const;
 	if (
 		[
 			"AI_PROVIDER_ERROR",
 			"PROVIDER_ERROR",
 			"TIMEOUT",
+			"AI_TIMEOUT",
 			"INTERNAL_SERVER_ERROR",
 			"BAD_GATEWAY",
 			"SERVICE_UNAVAILABLE",
@@ -80,38 +125,40 @@ function launchIssue(error: Error | null) {
 		(error instanceof TypeError && /fetch|network|load failed/i.test(error.message))
 	)
 		return { key: "review.launch.providerError", action: "retry" } as const;
-	return { key: "review.launch.requestChanged", action: "none" } as const;
+	return { key: "review.launch.unexpectedError", action: "none" } as const;
 }
 
-const reviewScopes = {
-	"review.wording": "privacy.ai.scope.wording",
-	"review.extraction": "privacy.ai.scope.extraction",
-	"review.job-evidence": "privacy.ai.scope.job-evidence",
-	"review.tailoring": "privacy.ai.scope.tailoring",
-	"review.translation": "privacy.ai.scope.translation",
-	"review.summary": "privacy.ai.scope.summary",
-	"review.cover-letter": "privacy.ai.scope.cover-letter",
-} as const;
+type ReviewKind =
+	`review.${"wording" | "extraction" | "job-evidence" | "tailoring" | "translation" | "summary" | "cover-letter"}`;
 
 /** Consent is an explicit choice before preparation/staging; a decline makes no mutation request. */
 export function ReviewLaunch({
+	id,
 	kind,
 	prepare,
 	onStarted,
 	children,
 	disabled = false,
+	retryRequest = 0,
+	variant = "primary",
 }: {
-	kind: keyof typeof reviewScopes;
+	id?: string;
+	retryRequest?: number;
+	kind: ReviewKind;
 	prepare: () => Promise<{ sources: SourceRevision[]; parameters: Record<string, unknown> }>;
 	onStarted: (operationId: string) => void;
 	children: ReactNode;
 	disabled?: boolean;
+	variant?: "primary" | "secondary";
 }) {
 	const copy = useAssistantCopy();
 	const availability = useQuery(orpc.ai.availability.queryOptions());
 	const usage = useQuery(orpc.ai.usage.get.queryOptions());
 	const [open, setOpen] = useState(false);
+	const processing = useProcessingNotice(open, kind);
 	const [request, setRequest] = useState<OperationRequest | null>(null);
+	const [translationParts, setTranslationParts] = useState<number | null>(null);
+	const launching = useRef(false);
 	const state = assistantAvailability(
 		availability.data,
 		usage.data?.operations.remaining,
@@ -119,13 +166,20 @@ export function ReviewLaunch({
 	);
 	const start = useMutation({
 		mutationFn: async () => {
+			const notice = processing.notice;
+			if (!notice) throw new Error("AI_UNAVAILABLE");
 			let pending = request;
+			if (
+				pending &&
+				(pending.kind !== kind ||
+					pending.route.routeId !== notice.route.routeId ||
+					pending.route.routeRevision !== notice.route.routeRevision ||
+					pending.route.configRevision !== notice.route.configRevision ||
+					pending.consentVersion !== notice.noticeVersion)
+			)
+				pending = null;
 			if (!pending) {
-				const notices = await client.ai.processing.notices({});
-				// Route ordering is server policy. Never silently switch to a second processor.
-				const notice = notices.find((notice) => notice.purposes.includes(kind));
-				if (!notice) throw new Error("AI_UNAVAILABLE");
-				await client.ai.processing.grant({ route: notice.route, purpose: kind, noticeVersion: notice.noticeVersion });
+				await acceptProcessingNotice(notice);
 				const prepared = await prepare();
 				pending = {
 					sources: prepared.sources,
@@ -138,18 +192,50 @@ export function ReviewLaunch({
 				setRequest(pending);
 			}
 			const preflight = await client.ai.operations.preflight(pending);
-			if (!preflight.available) throw new Error(preflight.reason ?? "AI_UNAVAILABLE");
+			if (!preflight.available)
+				throw new ORPCError("PRECONDITION_FAILED", {
+					data: {
+						reason: preflight.reason ?? "AI_UNAVAILABLE",
+						...("allowance" in preflight ? { allowance: preflight.allowance } : {}),
+					},
+				});
+			if (kind === "review.translation" && (translationParts === null || pending !== request)) {
+				setTranslationParts(preflight.translationParts ?? 1);
+				return null;
+			}
 			return client.ai.operations.start(pending);
 		},
+		onError: (error) => {
+			if (!getAllowanceReason(error) && launchIssue(error)?.key === "review.launch.unexpectedError")
+				console.error("AI review launch failed", { kind, error });
+			if (getAllowanceReason(error) === "AI_OPERATIONS_LIMIT") void usage.refetch();
+		},
 		onSuccess: (operation) => {
+			if (!operation) return;
 			setOpen(false);
+			processing.reload();
 			setRequest(null);
+			setTranslationParts(null);
 			onStarted(operation.id);
 			void usage.refetch();
 		},
 	});
-	const issue = launchIssue(start.error);
-	if (availability.error || usage.error)
+	const lastRetry = useRef(retryRequest);
+	const resetStart = start.reset;
+	useEffect(() => {
+		if (lastRetry.current === retryRequest) return;
+		lastRetry.current = retryRequest;
+		setRequest(null);
+		setTranslationParts(null);
+		resetStart();
+		setOpen(true);
+	}, [retryRequest, resetStart]);
+
+	const allowanceReason = getAllowanceReason(start.error);
+	const issue = allowanceReason ? null : launchIssue(start.error);
+	const exhausted = state === "exhausted" || allowanceReason === "AI_OPERATIONS_LIMIT";
+	const startDisabled = disabled || start.isPending || usage.data?.operations.remaining === 0 || exhausted;
+	if ((availability.error || usage.error) && !exhausted)
 		return (
 			<ReviewNotice
 				retry={() => {
@@ -181,24 +267,37 @@ export function ReviewLaunch({
 				{copy("review.assistant.error.unavailableHint")}
 			</ReviewNotice>
 		);
-	if (state === "exhausted")
+	if (exhausted && !open)
 		return (
-			<ReviewNotice retry={() => void usage.refetch()}>
-				{copy(kind === "review.wording" ? "review.launch.allowanceUsed" : "billing.usage.startOperationsLimitHint")}
-			</ReviewNotice>
+			<>
+				<Button id={id} disabled>
+					{children}
+				</Button>
+				<AllowanceLimitNotice
+					reason="AI_OPERATIONS_LIMIT"
+					error={start.error}
+					{...(usage.data ? { usage: usage.data } : {})}
+				/>
+			</>
 		);
-	if (state === "busy")
+	if (state === "busy" && !open)
 		return (
-			<ReviewNotice title={<Trans>An operation is already in progress. Your writing is kept.</Trans>}>
-				<Trans>Your draft is kept while the assistant works.</Trans>
-			</ReviewNotice>
+			<>
+				<Button id={id} disabled>
+					{children}
+				</Button>
+				<AllowanceLimitNotice reason="AI_CONCURRENCY_LIMIT" />
+			</>
 		);
 	return (
 		<>
 			<Button
-				disabled={disabled || start.isPending}
+				id={id}
+				variant={variant}
+				disabled={startDisabled}
 				onClick={() => {
 					start.reset();
+					setTranslationParts(null);
 					setOpen(true);
 				}}
 			>
@@ -209,7 +308,11 @@ export function ReviewLaunch({
 				onOpenChange={(next) => {
 					if (!start.isPending) {
 						setOpen(next);
-						if (!next) setRequest(null);
+						if (!next) {
+							processing.reload();
+							setRequest(null);
+							setTranslationParts(null);
+						}
 					}
 				}}
 			>
@@ -217,13 +320,45 @@ export function ReviewLaunch({
 					<DialogTitle>
 						<Trans>Review with the assistant</Trans>
 					</DialogTitle>
-					<DialogDescription>
-						{copy(reviewScopes[kind])} {copy("privacy.ai.overseasNotice")}
-					</DialogDescription>
+					<ProcessingNoticeContent {...processing} />
+					{translationParts !== null && (
+						<p role="status">{copy("review.translation.batchCost", { total: translationParts })}</p>
+					)}
 					{usage.data?.operations.remaining != null && (
 						<p className="type-metadata text-ink-2">
 							{copy("billing.usage.remainingOperations", { remaining: usage.data.operations.remaining })}
 						</p>
+					)}
+					{(allowanceReason || exhausted) && (
+						<AllowanceLimitNotice
+							reason={allowanceReason ?? "AI_OPERATIONS_LIMIT"}
+							error={start.error}
+							target={
+								kind === "review.cover-letter" ? "cover-letter" : kind === "review.extraction" ? "import" : "resume"
+							}
+							{...(usage.data ? { usage: usage.data } : {})}
+							actions={
+								allowanceReason === "AI_PROVIDER_CHANGED" ? (
+									<Button
+										variant="secondary"
+										onClick={() => {
+											setRequest(null);
+											setTranslationParts(null);
+											processing.reload();
+											start.reset();
+										}}
+									>
+										{copy("review.launch.reviewConsent")}
+									</Button>
+								) : allowanceReason === "AI_CONCURRENCY_LIMIT" ||
+								  allowanceReason === "AI_TARGET_BUSY" ||
+								  allowanceReason === "AI_PLATFORM_BUSY" ? (
+									<Button variant="secondary" disabled={start.isPending} onClick={() => start.mutate()}>
+										<Trans>Retry</Trans>
+									</Button>
+								) : undefined
+							}
+						/>
 					)}
 					{issue && (
 						<ReviewNotice
@@ -234,6 +369,8 @@ export function ReviewLaunch({
 										variant="secondary"
 										onClick={() => {
 											setRequest(null);
+											setTranslationParts(null);
+											processing.reload();
 											start.reset();
 										}}
 									>
@@ -242,7 +379,7 @@ export function ReviewLaunch({
 								)
 							}
 						>
-							{copy(issue.key)}
+							{copy(issue.key, "sections" in issue ? { sections: issue.sections.join(", ") } : undefined)}
 						</ReviewNotice>
 					)}
 					<DialogFooter>
@@ -251,13 +388,31 @@ export function ReviewLaunch({
 							disabled={start.isPending}
 							onClick={() => {
 								setOpen(false);
+								processing.reload();
 								setRequest(null);
+								setTranslationParts(null);
 							}}
 						>
 							{copy("common.actions.cancel")}
 						</Button>
-						<Button disabled={start.isPending} hidden={issue !== null} onClick={() => start.mutate()}>
-							<Trans>Start review</Trans>
+						<Button
+							disabled={startDisabled || !processing.notice}
+							hidden={issue !== null || allowanceReason !== null}
+							onClick={() => {
+								if (launching.current) return;
+								launching.current = true;
+								start.mutate(undefined, {
+									onSettled: () => {
+										launching.current = false;
+									},
+								});
+							}}
+						>
+							{kind === "review.translation" && translationParts === null ? (
+								copy("review.translation.prepare")
+							) : (
+								<Trans>Start review</Trans>
+							)}
 						</Button>
 					</DialogFooter>
 				</DialogContent>
@@ -266,24 +421,79 @@ export function ReviewLaunch({
 	);
 }
 
-export function ReviewOperationPanel({ operationId, children }: { operationId: string; children: ReactNode }) {
+type ReviewElapsedProps = { startedAt: string };
+
+function ReviewElapsed({ startedAt }: ReviewElapsedProps) {
+	const copy = useAssistantCopy();
+	const [now, setNow] = useState(Date.now);
+	useEffect(() => {
+		const timer = window.setInterval(() => setNow(Date.now()), 1000);
+		return () => window.clearInterval(timer);
+	}, []);
+	const seconds = Math.max(0, Math.floor((now - Date.parse(startedAt)) / 1000));
+	if (seconds < 5) return null;
+	return (
+		<p className="type-metadata" aria-live="off">
+			{copy("review.progress.elapsed", { seconds })}
+		</p>
+	);
+}
+
+export function ReviewOperationPanel({
+	operationId,
+	children,
+	kind,
+	onRetry,
+}: {
+	operationId: string;
+	children: ReactNode;
+	kind?: ReviewKind;
+	onRetry?: () => void;
+}) {
+	const copy = useAssistantCopy();
 	const status = useQuery({
 		...orpc.ai.operations.get.queryOptions({ input: { id: operationId } }),
-		refetchInterval: (query) =>
-			query.state.data && ["queued", "running", "cancel_requested"].includes(query.state.data.state) ? 1000 : false,
+		refetchInterval: (query) => {
+			const operation = query.state.data;
+			return operation &&
+				(["queued", "running", "cancel_requested"].includes(operation.state) ||
+					(operation.progress?.activeParts ?? 0) > 0 ||
+					(operation.progress?.pendingRetryParts ?? 0) > 0)
+				? 1000
+				: false;
+		},
 	});
 	const queryClient = useQueryClient();
 	const operationState = status.data?.state;
 	useEffect(() => {
-		if (operationState && ["waiting_review", "succeeded", "failed", "cancelled"].includes(operationState))
+		if (operationState && ["waiting_review", "succeeded", "failed", "cancelled"].includes(operationState)) {
 			void queryClient.invalidateQueries({ queryKey: orpc.ai.usage.get.queryOptions().queryKey });
+			if (operationState === "succeeded" && orpc.resume?.key) {
+				void queryClient.invalidateQueries({ queryKey: orpc.resume.key() });
+			}
+		}
 	}, [operationState, queryClient]);
+	const [retryKey, setRetryKey] = useState(() => crypto.randomUUID());
+	const retryPart = useTranslationRetryConsent(async (notice) => {
+		await client.ai.operations.retryTranslation({
+			id: operationId,
+			requestKey: retryKey,
+			scope: "failed_parts",
+			execution: { route: notice.route, consentVersion: notice.noticeVersion },
+		});
+		setRetryKey(crypto.randomUUID());
+		void status.refetch();
+		void queryClient.invalidateQueries({ queryKey: orpc.ai.usage.get.queryOptions().queryKey });
+	});
 	const cancel = useMutation({
 		mutationFn: () => client.ai.operations.cancel({ id: operationId }),
 		onSuccess: () => {
 			void status.refetch();
 		},
 	});
+	const retryAllowance = getAllowanceReason(retryPart.error);
+	const retryIssue = retryAllowance || !(retryPart.error instanceof Error) ? null : launchIssue(retryPart.error);
+	const failureAllowance = getAllowanceReason({ data: { reason: status.data?.failureCode } });
 	if (status.error)
 		return (
 			<ReviewNotice
@@ -296,28 +506,88 @@ export function ReviewOperationPanel({ operationId, children }: { operationId: s
 		);
 	if (!status.data) return <QuerySkeleton shape="rows" label={<Trans>Loading review…</Trans>} />;
 	if (status.data.resultId) return children;
-	if (status.data.state === "failed" || status.data.state === "cancelled")
+	if (status.data.retryable && status.data.progress?.part && status.data.progress.total)
 		return (
-			<ReviewNotice retry={() => void status.refetch()}>
-				<Trans>
-					No review was delivered. No operation was deducted. You can request a new review or keep editing manually.
-				</Trans>
+			<ReviewNotice
+				actions={
+					<Button variant="secondary" disabled={retryPart.pending} onClick={() => retryPart.open()}>
+						{copy("review.translation.retryFailedParts")}
+					</Button>
+				}
+			>
+				<p>
+					{copy("review.translation.failedParts", {
+						count: status.data.progress.failedParts ?? 1,
+					})}
+				</p>
+				{status.data.progress.failedPartDetails?.length
+					? status.data.progress.failedPartDetails.map((part) => (
+							<TranslationPartFailure key={part.part} part={part.part} code={part.failureCode} />
+						))
+					: status.data.failureCode && <ReviewFailureReason code={status.data.failureCode} />}
+				{retryPart.dialog}
+				{retryIssue && <p>{copy(retryIssue.key)}</p>}
+				{retryAllowance && <AllowanceLimitNotice error={retryPart.error} />}
+				{failureAllowance && <AllowanceLimitNotice reason={failureAllowance} />}
 			</ReviewNotice>
 		);
+	if (status.data.state === "failed" || status.data.state === "cancelled") {
+		const unavailable = status.data.failureCode === "AI_PROVIDER_UNAVAILABLE";
+		return (
+			<ReviewNotice retry={unavailable ? undefined : onRetry}>
+				{status.data.failureCode === "AI_INPUT_LIMIT" ? (
+					copy("review.launch.inputTooLarge")
+				) : status.data.failureCode === "AI_QUEUE_EXPIRED" && !onRetry ? (
+					copy("review.progress.queueExpired")
+				) : (
+					<ReviewFailureReason code={status.data.failureCode} />
+				)}
+				{kind === "review.translation" && status.data.charged && !unavailable && (
+					<p>{copy("review.translation.startChargedFailure")}</p>
+				)}
+				{status.data.failureCode === "AI_QUEUE_EXPIRED" && !status.data.charged && (
+					<p>{copy("review.progress.queueNoCharge")}</p>
+				)}
+			</ReviewNotice>
+		);
+	}
+	const progress = status.data.progress;
+	const step =
+		status.data.state === "cancel_requested"
+			? "cancelling"
+			: (progress?.step ?? (status.data.state === "queued" ? "queued" : null));
+	const waiting = step === "queued";
+	const queuePosition = status.data.queuePosition;
 	return (
 		<Alert variant="info">
-			<Icon name="sparkle" />
-			<AlertTitle>
-				<Trans>Review in progress</Trans>
-			</AlertTitle>
+			<Icon name="spinner" className="animate-spin motion-reduce:animate-none" />
+			{!waiting && (
+				<AlertTitle>
+					<Trans>Review in progress</Trans>
+				</AlertTitle>
+			)}
 			<AlertDescription>
 				<p role="status">
-					{status.data.state === "cancel_requested" ? (
-						<Trans>Waiting for cancellation…</Trans>
-					) : (
-						<Trans>Your draft is kept while the assistant works.</Trans>
+					{step ? copy(`review.progress.${step}`) : <Trans>Your draft is kept while the assistant works.</Trans>}
+					{waiting && queuePosition !== undefined && (
+						<span className="block">{copy("review.progress.queuePosition", { position: queuePosition })}</span>
 					)}
+					{progress?.completedParts !== undefined && progress.total !== undefined ? (
+						<span className="block">
+							{copy("review.progress.completedParts", { completed: progress.completedParts, total: progress.total })}
+						</span>
+					) : !waiting && progress?.part !== undefined && progress.total !== undefined ? (
+						<span className="block">
+							{copy("review.progress.part", { part: progress.part, total: progress.total })}
+						</span>
+					) : null}
 				</p>
+				{step && !waiting && (
+					<p>
+						<Trans>Your draft is kept while the assistant works.</Trans>
+					</p>
+				)}
+				{progress && !waiting && <ReviewElapsed key={progress.startedAt} startedAt={progress.startedAt} />}
 
 				{cancel.error && (
 					<ReviewNotice retry={() => cancel.mutate()}>

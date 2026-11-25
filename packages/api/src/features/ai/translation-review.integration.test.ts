@@ -3,17 +3,38 @@ import { randomUUID } from "node:crypto";
 import { expect, it } from "vite-plus/test";
 import { withDatabaseOwner, withOwnerDatabase } from "@reactive-resume/db/client";
 import { blockText } from "@reactive-resume/resume/proposals";
-import { educationItemSchema } from "@reactive-resume/schema/resume/data";
+import { buildTranslationInventory } from "@reactive-resume/resume/translation";
+import { customSectionSchema, educationItemSchema } from "@reactive-resume/schema/resume/data";
 import { defaultResumeData } from "@reactive-resume/schema/resume/default";
 import { resumeService } from "../resume/service";
-import { createVariant } from "../resume/variants";
+import { applyReviewedTranslation, createVariant } from "../resume/variants";
+import { runAiOperations } from "./operation-worker";
+import { operationService } from "./operations";
+import { withAiRuntime } from "./route-policy";
 import { aiTestDatabase } from "./testing/database";
+import { syntheticReviewRuntime } from "./testing/runtime";
 import { decideVariantReview, getVariantReview } from "./variant-decisions";
+import { variantReviewHandlers } from "./variant-handlers";
 import { loadVariantSnapshot, prepareVariantReview } from "./variant-sources";
 import { validateVariantOutput } from "./variant-validation";
+import { variantVerificationInventory } from "./variant-verifier";
 
 const database = aiTestDatabase();
-async function fixture(official = false, protectedName?: string) {
+function translateFact(fact: { id: string; text: string }) {
+	const text =
+		fact.text === "مهندس"
+			? "Engineer"
+			: fact.text === "نبذة"
+				? "Summary"
+				: fact.text.includes("React")
+					? fact.text.replace(
+							"استخدمت React في 1445 هـ. لم أدر ميزانية.",
+							"Used React in 1445 AH. Did not manage a budget.",
+						)
+					: fact.text;
+	return { sourceId: fact.id, text, claims: [{ id: "claim", text, evidenceIds: [fact.id], kind: "translation" }] };
+}
+async function fixture(official = false, protectedName?: string, custom = false) {
 	await database.admin().query("DELETE FROM resume_variant_source WHERE user_id='alice'");
 	await database.admin().query("DELETE FROM resume WHERE user_id='alice'");
 	const data = structuredClone(defaultResumeData);
@@ -24,6 +45,30 @@ async function fixture(official = false, protectedName?: string) {
 	data.summary.title = "نبذة";
 	data.summary.content = `<p>${protectedName ? `${protectedName} ` : ""}استخدمت React في 1445 هـ. لم أدر ميزانية.</p>`;
 	data.metadata.layout.pages = [{ fullWidth: false, main: ["summary"], sidebar: [] }];
+	if (custom) {
+		data.customSections = [
+			customSectionSchema.parse({
+				id: "courses",
+				type: "certifications",
+				title: "دورات",
+				hidden: false,
+				items: [
+					{
+						id: "course",
+						hidden: false,
+						title: "شهادة",
+						issuer: "المعهد المحلي",
+						date: "1445 هـ",
+						website: { url: "https://private.example.test", label: "" },
+						description: `<p>${data.basics.name} استخدمت React في 1445 هـ. لم أدر ميزانية.</p>`,
+					},
+				],
+			}),
+		];
+		const page = data.metadata.layout.pages[0];
+		assert(page);
+		page.main.push("courses");
+	}
 	if (official) {
 		data.sections.education.hidden = false;
 		data.sections.education.items = [
@@ -68,25 +113,12 @@ async function fixture(official = false, protectedName?: string) {
 		}),
 	);
 	const snapshot = await database.run(() =>
-		withOwnerDatabase("alice", (tx) => loadVariantSnapshot(tx, "alice", prepared)),
+		withOwnerDatabase("alice", (tx) => loadVariantSnapshot(tx, "alice", prepared, { fullTranslation: true })),
 	);
 	const raw = {
 		direction: "ar-en",
 		sourceRevision: copy.updatedAt,
-		segments: snapshot.cv.map((fact) => {
-			const text =
-				fact.text === "مهندس"
-					? "Engineer"
-					: fact.text === "نبذة"
-						? "Summary"
-						: fact.text.includes("React")
-							? fact.text.replace(
-									"استخدمت React في 1445 هـ. لم أدر ميزانية.",
-									"Used React in 1445 AH. Did not manage a budget.",
-								)
-							: fact.text;
-			return { sourceId: fact.id, text, claims: [{ id: "claim", text, evidenceIds: [fact.id], kind: "translation" }] };
-		}),
+		segments: snapshot.cv.map(translateFact),
 		notes: [],
 	};
 	const result = validateVariantOutput(snapshot, raw);
@@ -97,9 +129,64 @@ async function fixture(official = false, protectedName?: string) {
 			"INSERT INTO ai_operation(id,user_id,request_key,fingerprint,kind,sources,parameters,route,consent_version,prompt_version,schema_version,state,result,delivered_at) VALUES ($1,'alice',$1,'fixture','review.translation',$2,$3,'{}','1','translation-v2','translation-v2','waiting_review',$4,now())",
 			[operationId, JSON.stringify(prepared.sources), JSON.stringify(prepared.parameters), JSON.stringify(result)],
 		);
-	return { source, sourceRevision, copy, operationId, raw };
+	return { source, sourceRevision, copy, operationId, raw, prepared };
 }
 const run = <T>(work: () => T) => database.run(work);
+
+it("accepts a factually verified translation through the production handler when advisory quality was not assessed", async () => {
+	const f = await fixture();
+	const request = {
+		...f.prepared,
+		requestKey: randomUUID(),
+		route: { routeId: "synthetic", routeRevision: "1", configRevision: "1" },
+		consentVersion: "1",
+	};
+	const handler = variantReviewHandlers["review.translation"];
+	await run(() =>
+		withOwnerDatabase("alice", async (tx) => {
+			const snapshot = await loadVariantSnapshot(tx, "alice", request);
+			const output = { ...f.raw, segments: snapshot.cv.map(translateFact) };
+			const inventory = variantVerificationInventory(snapshot, output);
+			const verdict = {
+				schemaVersion: 1,
+				verdicts: inventory.claims.map((claim) => ({
+					claimId: claim.id,
+					verdict: "supported",
+					evidenceIds: claim.evidenceIds,
+					reason: "All translated facts are supported by the matching source segment.",
+				})),
+				retention: {
+					status: "retained",
+					evidenceIds: snapshot.cv.map((fact) => fact.id),
+					reason: "All source facts survive.",
+				},
+				absence: [],
+				coverage: { status: "complete", reason: "Every response assertion was checked." },
+				premises: [],
+				quality: {
+					assessment: "translation_language_quality",
+					status: "unclear",
+					reason:
+						"Translation quality was not requested by the verifier task; no independent language-quality assessment can be inferred",
+				},
+			};
+			assert(handler.verifier?.validateInContext && handler.validateResult);
+			expect(handler.verifier.output.safeParse(verdict).success).toBe(true);
+			await expect(handler.verifier.validateInContext(tx, "alice", request, output, verdict)).resolves.toMatchObject({
+				output,
+			});
+			await expect(handler.validateResult(tx, "alice", request, output)).resolves.toMatchObject({
+				kind: "review.translation",
+				output,
+			});
+		}),
+	);
+	expect(
+		(await database.admin().query("SELECT data FROM resume WHERE id=$1", [f.copy.resumeId])).rows[0].data.metadata.page
+			.locale,
+	).toBe("ar-SA");
+});
+
 async function decide(
 	f: Awaited<ReturnType<typeof fixture>>,
 	subjectIds: string[],
@@ -119,6 +206,64 @@ async function decide(
 		}),
 	);
 }
+
+it("reviews and confirms custom sections atomically with protected names and official terms", async () => {
+	const f = await fixture(false, undefined, true);
+	const before = await run(() => getVariantReview("alice", f.operationId));
+	expect(before.terms.terms.map((term) => term.target)).toEqual(
+		expect.arrayContaining([
+			expect.objectContaining({ sectionId: "certifications", customSectionId: "courses", field: "title" }),
+			expect.objectContaining({ sectionId: "certifications", customSectionId: "courses", field: "issuer" }),
+		]),
+	);
+	expect(JSON.stringify(f.raw)).not.toContain("اسم خاص");
+	expect(JSON.stringify(before)).not.toMatch(/\[LOCAL_\d+\]/u);
+	await expect(decide(f, ["translation"])).rejects.toMatchObject({ code: "CONFLICT" });
+	// Confirming the first official term triggers one-click auto-apply (items 65 & 68), confirming remaining terms and applying atomically.
+	const firstTerm = before.terms.terms[0];
+	assert(firstTerm);
+	const accepted = await decide(f, [firstTerm.id]);
+	expect(accepted.statuses.translation).toBe("accepted");
+	expect(accepted.data.customSections[0]?.items[0]?.issuer).toBe("المعهد المحلي");
+	expect(accepted.data.customSections[0]?.items[0]?.date).toBe("1445 هـ");
+	expect(accepted.data.customSections[0]?.items[0]?.description).toContain("اسم خاص Used React");
+	expect(accepted.data.customSections[0]?.items[0]?.website).toMatchObject({
+		url: "https://private.example.test",
+		label: "",
+	});
+	expect(
+		(await database.admin().query("SELECT data FROM resume WHERE id=$1", [f.source])).rows[0].data.customSections[0]
+			.items[0].description,
+	).toContain("استخدمت");
+	const undone = await decide(f, ["translation"], "undo", { undoDecisionId: accepted.decisionId });
+	expect(undone.data.metadata.page.locale).toBe("ar-SA");
+});
+
+it("names unsupported sections before admission or review without spending an operation", async () => {
+	const f = await fixture(false, undefined, true);
+	await database
+		.admin()
+		.query(
+			`UPDATE resume SET data=jsonb_set(jsonb_set(data, '{customSections,0,type}', '"legacy-renderer"'), '{customSections,0,title}', '"Legacy content"') WHERE id=ANY($1)`,
+			[[f.source, f.copy.resumeId]],
+		);
+	const expected = {
+		code: "PRECONDITION_FAILED",
+		data: { reason: "TRANSLATION_PARTIAL_COVERAGE", sections: ["Legacy content"] },
+	};
+	await expect(
+		run(() =>
+			prepareVariantReview("alice", {
+				kind: "review.translation",
+				resumeId: f.copy.resumeId,
+				expectedUpdatedAt: f.copy.updatedAt,
+				expectedSourceRevision: f.sourceRevision,
+			}),
+		),
+	).rejects.toMatchObject(expected);
+	await expect(run(() => getVariantReview("alice", f.operationId))).rejects.toMatchObject(expected);
+	expect((await database.admin().query("SELECT count(*)::int n FROM ai_usage_ledger")).rows[0].n).toBe(0);
+});
 
 it("keeps segment approvals local, applies the complete translation atomically, replays once and undoes only this copy", async () => {
 	const f = await fixture();
@@ -232,19 +377,39 @@ it("does not offer or execute an undo of an undo event", async () => {
 	expect(unchanged.statuses.translation).toBe("pending");
 });
 
+it("keeps all pending official names in one decision and permits a later per-name correction", async () => {
+	const f = await fixture(true);
+	const initial = await run(() => getVariantReview("alice", f.operationId));
+	// Item 68: only true proper names (school, not degree) are official terms.
+	expect(initial.terms.terms).toHaveLength(1);
+	await expect(decide(f, [initial.terms.terms[0]?.id ?? "missing", "translation"])).rejects.toMatchObject({
+		code: "BAD_REQUEST",
+	});
+	const accepted = await decide(
+		f,
+		initial.terms.terms.map((term) => term.id),
+	);
+	const confirmed = await run(() => getVariantReview("alice", f.operationId));
+	expect(confirmed.terms.terms.every((term) => term.status === "confirmed" && term.value === term.source)).toBe(true);
+	// Undo auto-apply before editing a confirmed official name
+	await decide(f, ["translation"], "undo", { undoDecisionId: accepted.decisionId });
+	const term = confirmed.terms.terms[0];
+	assert(term);
+	await decide(f, [term.id], "accept", { decision: "accept_edited", editedText: "Reviewed official name" });
+	const corrected = await run(() => getVariantReview("alice", f.operationId));
+	expect(corrected.terms.terms.find((entry) => entry.id === term.id)?.value).toBe("Reviewed official name");
+});
+
 it("requires persisted official terms, invalidates the affected segment, and retains user terminology only in this copy", async () => {
 	const f = await fixture(true);
 	for (const segment of f.raw.segments) await decide(f, [segment.sourceId]);
 	await expect(decide(f, ["translation"])).rejects.toMatchObject({ code: "CONFLICT" });
-	let view = await run(() => getVariantReview("alice", f.operationId));
-	expect(view.terms.terms).toHaveLength(2);
-	for (const term of view.terms.terms) {
-		await decide(f, [term.id]);
-		view = await run(() => getVariantReview("alice", f.operationId));
-		expect(view.segments[term.id.slice("term:".length)]?.status).toBe("pending");
-		await decide(f, [term.id.slice("term:".length)]);
-	}
-	const accepted = await decide(f, ["translation"]);
+	const view = await run(() => getVariantReview("alice", f.operationId));
+	expect(view.terms.terms).toHaveLength(1);
+	const term = view.terms.terms[0];
+	assert(term);
+	const accepted = await decide(f, [term.id]);
+	expect(accepted.statuses.translation).toBe("accepted");
 	expect(accepted.data.sections.education.items[0]?.school).toBe("المعهد المحلي");
 	expect(accepted.data.sections.education.items[0]?.degree).toBe("شهادة إتمام تدريب");
 	expect(accepted.data.sections.education.items[0]?.website.url).toBe("https://private.example.test");
@@ -256,9 +421,8 @@ it("rejects official-term corrections after final approval until that approval i
 	const initial = await run(() => getVariantReview("alice", f.operationId));
 	const term = initial.terms.terms[0];
 	assert(term);
-	for (const entry of initial.terms.terms) await decide(f, [entry.id]);
-	for (const segment of f.raw.segments) await decide(f, [segment.sourceId]);
-	const accepted = await decide(f, ["translation"]);
+	const accepted = await decide(f, [term.id]);
+	expect(accepted.statuses.translation).toBe("accepted");
 	const confirmed = await run(() => getVariantReview("alice", f.operationId));
 	const correction = async () => {
 		const view = await run(() => getVariantReview("alice", f.operationId));
@@ -279,9 +443,7 @@ it("rejects official-term corrections after final approval until that approval i
 	expect(unchanged.latestDecisionId).toBe(accepted.decisionId);
 	expect(unchanged.terms).toEqual(confirmed.terms);
 	await decide(f, ["translation"], "undo", { undoDecisionId: accepted.decisionId });
-	await correction();
-	await decide(f, [term.id.slice("term:".length)]);
-	const corrected = await decide(f, ["translation"]);
+	const corrected = await correction();
 	expect(JSON.stringify(corrected.data)).toContain("Corrected official term");
 });
 
@@ -348,11 +510,10 @@ it("resolves local names in review text before confirmation, after term edits an
 	const segmentId = school.id.slice("term:".length);
 	expect(before.segments[segmentId]?.text).toBe(school.source);
 	expect(JSON.stringify(before)).not.toMatch(/\[LOCAL_\d+\]/u);
-	for (const term of before.terms.terms) await decide(f, [term.id], "accept", {});
 	const reviewedName = "Local Institute";
-	await run(async () => {
+	const applied = await run(async () => {
 		const view = await getVariantReview("alice", f.operationId);
-		await decideVariantReview("alice", {
+		return decideVariantReview("alice", {
 			operationId: f.operationId,
 			requestKey: randomUUID(),
 			expectedUpdatedAt: view.updatedAt,
@@ -365,8 +526,6 @@ it("resolves local names in review text before confirmation, after term edits an
 	const after = await run(() => getVariantReview("alice", f.operationId));
 	expect(after.segments[segmentId]?.text).toBe(reviewedName);
 	expect(JSON.stringify(after)).not.toMatch(/\[LOCAL_\d+\]/u);
-	for (const segment of f.raw.segments) await decide(f, [segment.sourceId]);
-	const applied = await decide(f, ["translation"]);
 	expect(applied.data.sections.education.items[0]?.school).toBe(reviewedName);
 	expect(JSON.stringify(applied.data)).not.toMatch(/\[LOCAL_\d+\]/u);
 });
@@ -422,3 +581,204 @@ it.each(["addition", "removal"] as const)(
 		).toEqual(before);
 	},
 );
+
+it("realigns rich-text block count for an unedited AI language copy when source summary paragraphs change, while still blocking manually edited copies", async () => {
+	const f = await fixture(true);
+	// Source summary changes from 1 block to 2 blocks (e.g. after accepting an AI summary on the source CV)
+	const sourceRow = (await database.admin().query("SELECT data FROM resume WHERE id=$1", [f.source])).rows[0].data;
+	const updatedSource = structuredClone(sourceRow);
+	updatedSource.summary.content = "<p>Used React in 1445 AH.</p><p>Did not manage a budget.</p>";
+	await database
+		.admin()
+		.query("UPDATE resume SET data=$2, updated_at=updated_at+interval '1 second' WHERE id=$1", [
+			f.source,
+			JSON.stringify(updatedSource),
+		]);
+	const sourceRevision = (
+		await database.admin().query("SELECT updated_at FROM resume WHERE id=$1", [f.source])
+	).rows[0].updated_at.toISOString();
+
+	// Unedited AI language copy succeeds in preparing translation
+	const prepared = await run(() =>
+		prepareVariantReview("alice", {
+			kind: "review.translation",
+			resumeId: f.copy.resumeId,
+			expectedUpdatedAt: f.copy.updatedAt,
+			expectedSourceRevision: sourceRevision,
+		}),
+	);
+	expect(prepared.kind).toBe("review.translation");
+
+	// Once the user manually edits the copy, block divergence must be blocked to protect manual edits
+	const editedCopy = structuredClone(
+		(await database.admin().query("SELECT data FROM resume WHERE id=$1", [f.copy.resumeId])).rows[0].data,
+	);
+	editedCopy.summary.content = "<p>Manual user edit</p>";
+	await database
+		.admin()
+		.query("UPDATE resume SET data=$2, updated_at=updated_at+interval '2 seconds' WHERE id=$1", [
+			f.copy.resumeId,
+			JSON.stringify(editedCopy),
+		]);
+	const copyUpdatedAt = (
+		await database.admin().query("SELECT updated_at FROM resume WHERE id=$1", [f.copy.resumeId])
+	).rows[0].updated_at.toISOString();
+
+	await expect(
+		run(() =>
+			prepareVariantReview("alice", {
+				kind: "review.translation",
+				resumeId: f.copy.resumeId,
+				expectedUpdatedAt: copyUpdatedAt,
+				expectedSourceRevision: sourceRevision,
+			}),
+		),
+	).rejects.toMatchObject({ code: "CONFLICT", data: { reason: "TRANSLATION_STRUCTURE_CHANGED" } });
+});
+
+it.each([
+	[0, "<p><strong>Previously saved English</strong></p><p>Verified English</p><p>Verified English</p>"],
+	[1, "<p>Verified English</p><p></p><p>Verified English</p>"],
+])("preserves the saved target of withheld paragraph %i when the source gains paragraphs", async (index, expected) => {
+	const f = await fixture();
+	const stored = async (id: string) =>
+		(await database.admin().query("SELECT data, updated_at FROM resume WHERE id=$1", [id])).rows[0];
+	const source = (await stored(f.source)).data;
+	source.summary.content = "<p>فقرة أولى</p><p>فقرة ثانية</p><p>فقرة ثالثة</p>";
+	await database.admin().query("UPDATE resume SET data=$2 WHERE id=$1", [f.source, JSON.stringify(source)]);
+	const copy = (await stored(f.copy.resumeId)).data;
+	copy.summary.content = "<p><strong>Previously saved English</strong></p>";
+	await database.admin().query("UPDATE resume SET data=$2 WHERE id=$1", [f.copy.resumeId, JSON.stringify(copy)]);
+	const segments = buildTranslationInventory(source).segments;
+	const withheld = segments.find(({ target }) => "blockIndex" in target && target.blockIndex === index);
+	assert(withheld);
+	const expectedSourceRevision = (await stored(f.source)).updated_at.toISOString();
+	const result = await run(() =>
+		withOwnerDatabase("alice", (tx) =>
+			applyReviewedTranslation(tx, "alice", {
+				resumeId: f.copy.resumeId,
+				sourceResumeId: f.source,
+				expectedSourceRevision,
+				data: copy,
+				payload: {
+					schemaVersion: 1,
+					kind: "review.translation",
+					segments: Object.fromEntries(
+						segments
+							.filter(({ id }) => id !== withheld.id)
+							.map(({ id }) => [id, { status: "accepted", author: "model", text: "Verified English" }]),
+					),
+					terms: { schemaVersion: 1, terms: [] },
+					before: null,
+					after: null,
+				},
+				withheldSegmentIds: new Set([withheld.id]),
+			}),
+		),
+	);
+	expect(result.data.summary.content).toBe(expected);
+});
+
+it("journals and delivers a supported translation with the observed unclear-quality response through the complete worker", async () => {
+	await database
+		.admin()
+		.query(
+			"INSERT INTO ai_processing_consent(id,user_id,route_id,route_revision,notice_version,purpose,config_revision) VALUES ('translation-verifier-consent','alice','synthetic','1','1','review.translation','1')",
+		);
+	await database
+		.admin()
+		.query(
+			"INSERT INTO ai_platform_budget(id,route_id,route_revision,window_date,cap_micros,request_cap_micros,concurrency) VALUES ('translation-verifier-budget','synthetic','1',(now() AT TIME ZONE 'UTC')::date,100000,10000,2)",
+		);
+	const quality = {
+		assessment: "translation_language_quality",
+		status: "unclear",
+		reason:
+			"Translation quality was not requested by the verifier task; no independent language-quality assessment can be inferred",
+	};
+	const runtime = {
+		...syntheticReviewRuntime,
+		fetch: async (_url: unknown, init?: RequestInit) => {
+			const body = JSON.parse(String(init?.body));
+			const payload = JSON.parse(body.messages.at(-1).content);
+			const selection = (id: string) =>
+				JSON.parse(payload.selections.find((entry: { id: string }) => entry.id === id).text);
+			const verifying = payload.selections.some((entry: { id: string }) => entry.id === "variant-verification-task");
+			const facts = selection("variant-cv-evidence") as Array<{ id: string; text: string }>;
+			const task = selection(verifying ? "variant-verification-task" : "variant-task");
+			const output = verifying
+				? {
+						schemaVersion: 1,
+						verdicts: task.claims.map((claim: { id: string; evidenceIds: string[] }) => ({
+							claimId: claim.id,
+							verdict: "supported",
+							evidenceIds: claim.evidenceIds,
+							reason: "The matching source supports every fact.",
+						})),
+						retention: {
+							status: "retained",
+							evidenceIds: facts.map((fact) => fact.id),
+							reason: "Every source fact survives.",
+						},
+						absence: [],
+						coverage: { status: "complete", reason: "Checked the whole response." },
+						premises: [],
+						quality,
+					}
+				: {
+						direction: task.direction,
+						sourceRevision: task.sourceRevision,
+						segments: facts.map(translateFact),
+						notes: [],
+					};
+			return Response.json({
+				id: "synthetic-translation-verifier",
+				model: body.model,
+				provider: body.provider.only[0],
+				choices: [{ index: 0, message: { role: "assistant", content: JSON.stringify(output) }, finish_reason: "stop" }],
+				usage: { prompt_tokens: 5, completion_tokens: 5, total_tokens: 10, cost: 0.00001 },
+			});
+		},
+	};
+	await database.run(() =>
+		withAiRuntime(runtime, async () => {
+			const f = await fixture();
+			const operation = await operationService.start("alice", {
+				kind: f.prepared.kind,
+				parameters: f.prepared.parameters,
+				sources: f.prepared.sources,
+				requestKey: randomUUID(),
+				route: { routeId: "synthetic", routeRevision: "1", configRevision: "1" },
+				consentVersion: "1",
+			});
+			await runAiOperations();
+			expect(await operationService.get("alice", operation.id)).toMatchObject({
+				state: "succeeded",
+				resultId: operation.id,
+				failureCode: null,
+			});
+			const attempts = (
+				await database
+					.admin()
+					.query("SELECT step_id,outcome,output FROM ai_operation_attempt WHERE operation_id=$1 ORDER BY ordinal", [
+						operation.id,
+					])
+			).rows;
+			expect(attempts.map(({ step_id, outcome }) => ({ step_id, outcome }))).toEqual([
+				{ step_id: "generate", outcome: "valid" },
+				{ step_id: "verify", outcome: "valid" },
+			]);
+			expect(attempts[1].output._verifyCalls).toEqual([
+				expect.objectContaining({ outcome: "valid", output: expect.objectContaining({ quality }) }),
+			]);
+			expect(await operationService.getResult("alice", operation.id)).toMatchObject({
+				kind: "review.translation",
+				output: { segments: f.raw.segments.map(({ sourceId, text }) => ({ sourceId, text })) },
+			});
+			expect(
+				(await database.admin().query("SELECT data FROM resume WHERE id=$1", [f.copy.resumeId])).rows[0].data.metadata
+					.page.locale,
+			).toBe("en-US");
+		}),
+	);
+});

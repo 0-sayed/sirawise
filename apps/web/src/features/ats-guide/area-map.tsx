@@ -292,62 +292,7 @@ export function CvFeatureMap({
 				</svg>
 				<figure className="guide-paper-wrap" aria-hidden="true">
 					<div className="guide-paper">
-						<svg viewBox="0 0 244 344" preserveAspectRatio="none" className="guide-paper-drawing">
-							<g className="guide-paper-text" direction={rtl ? "rtl" : "ltr"} textAnchor="start">
-								<text x={rtl ? 222 : 22} y="42" className="guide-paper-name">
-									{i18n._(mapCopy.fullName)}
-								</text>
-								<text x={rtl ? 222 : 22} y="60">
-									{i18n._(mapCopy.jobTitle)}
-								</text>
-							</g>
-							<rect {...bands.layout} data-guide-band="layout" fill="none" />
-							<rect {...bands.contact} data-guide-band="contact" className="guide-paper-contact" />
-							<g className="guide-paper-contact-lines">
-								<path d="M 36 83 H 70 M 84 83 H 124 M 138 83 H 178" />
-								<path d="M 200 80 H 210 V 87 H 200 Z M 200 80 L 205 84 L 210 80" />
-							</g>
-							{(
-								[
-									["profile", "parseability"],
-									["experience", "content"],
-									["education", "sections"],
-								] as const
-							).map(([label, area], index) => (
-								<g key={label}>
-									<rect
-										{...{ ...bands[area], y: [104, 168, 232][index] }}
-										data-guide-illustration={area}
-										className={`guide-paper-block guide-paper-block-${index}`}
-									/>
-									<g transform={`translate(${bands[area].x} ${[104, 168, 232][index]})`}>
-										<text
-											x={rtl ? 194 : 6}
-											y="16"
-											direction={rtl ? "rtl" : "ltr"}
-											textAnchor="start"
-											className="guide-paper-section"
-										>
-											{i18n._(mapCopy[label])}
-										</text>
-										{index > 0 && <path d={rtl ? "M 6 13 H 40" : "M 160 13 H 194"} className="guide-paper-date" />}
-										<g transform={rtl ? "translate(200 0) scale(-1 1)" : undefined} className="guide-paper-lines">
-											<path d="M 6 28 H 194 M 6 36 H 166 M 6 44 H 134" />
-										</g>
-									</g>
-								</g>
-							))}
-							<g className="guide-paper-skills">
-								<rect x="98" y="300" width="36" height="8" rx="2" />
-								<rect x="142" y="300" width="36" height="8" rx="2" />
-								<rect x="186" y="300" width="36" height="8" rx="2" />
-							</g>
-							<rect
-								{...bands.dates}
-								x={rtl ? 244 - bands.dates.x - bands.dates.width : bands.dates.x}
-								data-guide-band="dates"
-								className="guide-paper-date-band"
-							/>
+						<GuidePaperDrawing rtl={rtl}>
 							{nodes.map((node) => {
 								const area = node.id;
 								const band = bands[node.area];
@@ -377,7 +322,7 @@ export function CvFeatureMap({
 									</g>
 								);
 							})}
-						</svg>
+						</GuidePaperDrawing>
 					</div>
 					<figcaption className="type-metadata text-ink-3">{i18n._(mapCopy.illustrative)}</figcaption>
 				</figure>
@@ -457,5 +402,69 @@ export function CvFeatureMap({
 			</div>
 			{footer}
 		</SectionCard>
+	);
+}
+
+function GuidePaperDrawing({ rtl = false, children }: { rtl?: boolean; children?: ReactNode }) {
+	const { i18n } = useLingui();
+	return (
+		<svg viewBox="0 0 244 344" preserveAspectRatio="none" className="guide-paper-drawing">
+			<g className="guide-paper-text" direction={rtl ? "rtl" : "ltr"} textAnchor="start">
+				<text x={rtl ? 222 : 22} y="42" className="guide-paper-name">
+					{i18n._(mapCopy.fullName)}
+				</text>
+				<text x={rtl ? 222 : 22} y="60">
+					{i18n._(mapCopy.jobTitle)}
+				</text>
+			</g>
+			<rect {...bands.layout} data-guide-band="layout" fill="none" />
+			<rect {...bands.contact} data-guide-band="contact" className="guide-paper-contact" />
+			<g className="guide-paper-contact-lines">
+				<path d="M 36 83 H 70 M 84 83 H 124 M 138 83 H 178" />
+				<path d="M 200 80 H 210 V 87 H 200 Z M 200 80 L 205 84 L 210 80" />
+			</g>
+			{(
+				[
+					["profile", "parseability"],
+					["experience", "content"],
+					["education", "sections"],
+				] as const
+			).map(([label, area], index) => (
+				<g key={label}>
+					<rect
+						{...{ ...bands[area], y: [104, 168, 232][index] }}
+						data-guide-illustration={area}
+						className={`guide-paper-block guide-paper-block-${index}`}
+					/>
+					<g transform={`translate(${bands[area].x} ${[104, 168, 232][index]})`}>
+						<text
+							x={rtl ? 194 : 6}
+							y="16"
+							direction={rtl ? "rtl" : "ltr"}
+							textAnchor="start"
+							className="guide-paper-section"
+						>
+							{i18n._(mapCopy[label])}
+						</text>
+						{index > 0 && <path d={rtl ? "M 6 13 H 40" : "M 160 13 H 194"} className="guide-paper-date" />}
+						<g transform={rtl ? "translate(200 0) scale(-1 1)" : undefined} className="guide-paper-lines">
+							<path d="M 6 28 H 194 M 6 36 H 166 M 6 44 H 134" />
+						</g>
+					</g>
+				</g>
+			))}
+			<g className="guide-paper-skills">
+				<rect x="98" y="300" width="36" height="8" rx="2" />
+				<rect x="142" y="300" width="36" height="8" rx="2" />
+				<rect x="186" y="300" width="36" height="8" rx="2" />
+			</g>
+			<rect
+				{...bands.dates}
+				x={rtl ? 244 - bands.dates.x - bands.dates.width : bands.dates.x}
+				data-guide-band="dates"
+				className="guide-paper-date-band"
+			/>
+			{children}
+		</svg>
 	);
 }

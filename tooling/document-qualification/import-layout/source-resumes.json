@@ -1,0 +1,47 @@
+{
+	"app-arabic": {
+		"locale": "ar-SA",
+		"name": "نواف السهلي",
+		"summary": ["مهندس برمجيات يعمل على خدمات آمنة.", "يحافظ على ترتيب البيانات."],
+		"jobs": [
+			["شركة الأفق", "مهندس برمجيات"],
+			["شركة النور", "مطور تطبيقات"]
+		]
+	},
+	"app-english": {
+		"locale": "en-US",
+		"name": "Ada Example",
+		"summary": [
+			"Built AI-assisted tools for release reviews. The same team improved export speed by 22% and kept C++ support.",
+			"Kept results at -5 when the input was unchanged."
+		],
+		"summaryBullets": ["Measured latency in three services.", "Kept C++ support."],
+		"experienceDescription": [
+			"Developed release tools for independent audits and documented how each team reviewed production changes before publishing a new release to customers.",
+			"Maintained the release notes."
+		],
+		"jobs": [
+			["Horizon Systems", "Software Engineer"],
+			["Northstar Labs", "Release Engineer"]
+		]
+	},
+	"app-mixed": {
+		"locale": "ar-SA",
+		"name": "ليلى الحربي",
+		"summary": ["عملت في BandAI بصفة مهندسة.", "تحسن الأداء 22% مع دعم C++."],
+		"jobs": [
+			["BandAI", "مهندسة برمجيات"],
+			["شركة النور", "Software Engineer"]
+		],
+		"sidebar": ["TypeScript", "TypeScript"]
+	},
+	"office-mixed": {
+		"locale": "en-US",
+		"name": "Mariam Example",
+		"summary": ["Built secure services with a 22% improvement.", "عملت في BandAI بصفة مهندسة."],
+		"jobs": [
+			["BandAI", "Software Engineer"],
+			["Horizon Systems", "Release Engineer"]
+		]
+	}
+}

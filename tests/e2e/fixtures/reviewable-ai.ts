@@ -1,7 +1,44 @@
-import type { Page, TestInfo } from "@playwright/test";
+import type { Locator, Page, TestInfo } from "@playwright/test";
+import { resolve } from "node:path";
 import { expect } from "@playwright/test";
 import { Pool } from "pg";
 import { createSampleResumeFromDashboard } from "./resume";
+
+export async function selectCompactTranslation(page: Page) {
+	await page.context().setExtraHTTPHeaders({ "x-synthetic-translation-contract": "compact" });
+}
+
+export async function simulateVerifierBackup(page: Page) {
+	await page.context().setExtraHTTPHeaders({ "x-synthetic-verifier": "backup-recovery" });
+	await seedReviewBudget("synthetic-backup");
+}
+
+export async function readVerifierDispatches(operationId: string) {
+	const pool = new Pool({ connectionString: process.env.DATABASE_MIGRATION_URL ?? process.env.DATABASE_URL });
+	try {
+		const { rows } = await pool.query<{ endpoint: string; outcome: string }>(
+			`SELECT call->>'endpointSlot' AS endpoint, call->>'outcome' AS outcome
+			 FROM ai_operation_attempt, jsonb_array_elements(output->'_verifyCalls') WITH ORDINALITY AS entry(call, position)
+			 WHERE operation_id=$1 AND step_id='verify' ORDER BY ordinal, position`,
+			[operationId],
+		);
+		return rows;
+	} finally {
+		await pool.end();
+	}
+}
+
+export async function expectReviewTextDirection(passage: Locator, direction: "ltr" | "rtl") {
+	await expect(passage).toHaveAttribute("dir", "auto");
+	await expect(passage).toHaveCSS("direction", direction);
+	await expect(passage).toHaveCSS("text-align", "start");
+}
+
+export async function captureReviewDirection(page: Page, info: TestInfo, name: string) {
+	const evidence = process.env.E2E_PUBLIC_EVIDENCE_DIR;
+	const filename = `${name}-${await page.locator("html").getAttribute("lang")}-${page.viewportSize()?.width}.png`;
+	await page.screenshot({ path: evidence ? resolve(evidence, filename) : info.outputPath(filename) });
+}
 
 export async function seedReview(
 	page: Page,
@@ -27,11 +64,13 @@ export async function seedReview(
 	await page.reload();
 	return resumeId;
 }
-export async function seedReviewBudget() {
+export async function seedReviewBudget(route = "synthetic") {
 	const pool = new Pool({ connectionString: process.env.DATABASE_MIGRATION_URL ?? process.env.DATABASE_URL });
 	try {
+		// Allow a six-part translation alongside the other browser workers.
 		await pool.query(
-			"INSERT INTO ai_platform_budget(id,route_id,route_revision,window_date,cap_micros,request_cap_micros,concurrency) VALUES ('t006-browser','synthetic','1',(now() AT TIME ZONE 'UTC')::date,100000,10000,2) ON CONFLICT DO NOTHING",
+			"INSERT INTO ai_platform_budget(id,route_id,route_revision,window_date,cap_micros,request_cap_micros,concurrency) VALUES ($1,$2,'1',(now() AT TIME ZONE 'UTC')::date,100000,10000,10) ON CONFLICT DO NOTHING",
+			[route === "synthetic" ? "t006-browser" : `reviewable-browser-${route}`, route],
 		);
 	} finally {
 		await pool.end();
@@ -47,12 +86,7 @@ export async function openReview(page: Page, width = 1440, tab: ReviewTab = "ats
 			.click();
 	const expand = page.getByRole("button", { name: /^(Open full review|فتح المراجعة الكاملة)$/u });
 	if (await expand.isVisible()) await expand.click();
-	const names = {
-		ats: /^(ATS check|فحص ATS)(?: \d+)?$/u,
-		writing: /^(Data check|فحص البيانات) \d+$/u,
-		ai: /^(AI|الذكاء الاصطناعي) (?:\d+|AI unavailable|الذكاء الاصطناعي غير متاح)$/u,
-	};
-	const reviewTab = page.getByRole("tab", { name: names[tab] });
+	const reviewTab = page.locator(`[role="tab"][data-review-tab="${tab}"]`);
 	if ((await reviewTab.getAttribute("aria-selected")) !== "true") await reviewTab.click();
 	await expect(page.getByRole("region", { name: /^(Review findings|ملاحظات المراجعة)$/u })).toBeVisible();
 }

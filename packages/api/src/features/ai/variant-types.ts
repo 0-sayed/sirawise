@@ -1,3 +1,4 @@
+import type { ProtectedTranslation } from "./translation-invariants";
 import type { TailoringOutput } from "@reactive-resume/schema/resume/variant-outputs";
 
 export type CvFact = {
@@ -28,6 +29,9 @@ export type VariantSnapshot = GuardContext & {
 	resumeId: string;
 	sourceRevision: string;
 	direction?: "ar-en" | "en-ar";
+	translationBatchCount?: number;
+	translationPlanHash?: string;
+	translationProtection?: ProtectedTranslation;
 	variant?: {
 		resumeId: string;
 		baseRevision: string;
@@ -40,4 +44,7 @@ export type VariantSnapshot = GuardContext & {
 		order: TailoringOutput["order"];
 	};
 	translationAliases?: Array<{ source: string; target: string }>;
+	evidenceSelection?: { totalPassages: number; omittedPassages: number; excerptedPassageIds: string[] };
+	jobEvidenceContract?: { maxInputCodePoints: number; maxOutputTokens: number };
+	jobNoteIds?: string[];
 };

@@ -12,6 +12,10 @@ const saved = JSON.parse(readFileSync(new URL("./fixtures/judge-calibration.json
 };
 const plan = planJudgeCanaries(loadModels(new URL("../../models-tasks.json", import.meta.url).pathname));
 const rowFor = (key: string) => required(saved.results.find((row) => row.key === key));
+const scoreArchived = (
+	probe: (typeof plan)[number],
+	result: JudgeCanaryReceipt["results"][number] = rowFor(probe.key),
+) => scoreJudgeCanary(probe, result, "archived-full-response");
 const honest = required(plan.find((probe) => probe.c.id === "judge-canary-cover-letter-en" && probe.defect === "gold"));
 
 it("distinguishes a relevance bridge from a claim of prior job duties in judge instructions", () => {
@@ -38,7 +42,7 @@ it("shows exact readable claim IDs without priming the saved invented alias", ()
 
 it("accepts the honestly labeled saved bridge while preserving the original false-reject evidence", () => {
 	const original = rowFor(honest.key);
-	expect(scoreJudgeCanary(honest, original)).toMatchObject({ falseReject: true, guardRejected: false, fault: null });
+	expect(scoreArchived(honest, original)).toMatchObject({ falseReject: true, guardRejected: false, fault: null });
 	const corrected = structuredClone(original);
 	const verdict = corrected.verdict as {
 		verdicts: { claimId: string; verdict: string; reason: string }[];
@@ -52,24 +56,24 @@ it("accepts the honestly labeled saved bridge while preserving the original fals
 		status: "complete",
 		reason: "Both work facts and the non-assertive duty reference were checked.",
 	};
-	expect(scoreJudgeCanary(honest, corrected)).toMatchObject({
+	expect(scoreArchived(honest, corrected)).toMatchObject({
 		falseReject: false,
 		pipelineFalseReject: false,
 		guardRejected: false,
 		fault: null,
 	});
 	// This is a retrospective human-labeled policy regression, not a new measured model verdict.
-	expect(scoreJudgeCanary(honest, original).falseReject).toBe(true);
+	expect(scoreArchived(honest, original).falseReject).toBe(true);
 });
 
 it("catches every planted defect using the saved paid verdicts and deterministic guard", () => {
 	const attacks = plan.filter((probe) => !probe.expectedAccepted);
 	expect(attacks).toHaveLength(54);
-	for (const probe of attacks) expect(scoreJudgeCanary(probe, rowFor(probe.key)).pipelineCaught, probe.key).toBe(true);
+	for (const probe of attacks) expect(scoreArchived(probe).pipelineCaught, probe.key).toBe(true);
 });
 
 it("retains all legacy faults and flags missing translation quality in saved receipts", () => {
-	const faults = plan.map((probe) => scoreJudgeCanary(probe, rowFor(probe.key)).fault).filter(Boolean);
+	const faults = plan.map((probe) => scoreArchived(probe).fault).filter(Boolean);
 	expect(faults).toHaveLength(34);
 	expect(faults.filter((fault) => fault === "VERIFIER_MQM_REQUIRED")).toHaveLength(11);
 	expect(faults.filter((fault) => fault === "AI_VERIFICATION_RETENTION_SCOPE")).toHaveLength(9);

@@ -57,7 +57,11 @@ export const resumeDto = {
 			})
 			.optional()
 			.default({ tags: [], sort: "lastUpdatedAt" }),
-		output: z.array(resumeSchema.omit({ data: true, password: true, userId: true })),
+		output: z.array(
+			resumeSchema
+				.omit({ data: true, password: true, userId: true })
+				.extend({ variantKind: z.enum(["base", "language", "job"]) }),
+		),
 	},
 
 	getById: {

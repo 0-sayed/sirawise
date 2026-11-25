@@ -1,17 +1,18 @@
 // @vitest-environment happy-dom
 import type { Resume } from "../builder/draft";
 import type { ResumeData } from "@reactive-resume/schema/resume/data";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vite-plus/test";
 import { i18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
+import { ORPCError } from "@orpc/client";
 import { defaultResumeData } from "@reactive-resume/schema/resume/default";
 import { SaveConflict } from "./save-conflict";
 
-const documents = vi.hoisted(() => ({ local: null as Resume | null, saved: null as Resume | null }));
+const documents = vi.hoisted(() => ({ local: null as Resume | null, saved: null as Resume | null, resolve: vi.fn() }));
 vi.mock("../builder/draft", () => ({
 	useResumeStore: (selector: (state: unknown) => unknown) =>
-		selector({ resume: documents.local, resolveConflict: vi.fn() }),
+		selector({ resume: documents.local, resolveConflict: documents.resolve }),
 }));
 vi.mock("@tanstack/react-query", () => ({ useQuery: () => ({ data: documents.saved, isPending: false }) }));
 vi.mock("@tanstack/react-router", () => ({ useNavigate: () => vi.fn() }));
@@ -161,4 +162,20 @@ it("keeps built-in section and summary differences visible", () => {
 it("does not invent difference rows for identical copies", () => {
 	showDifference(() => {});
 	expect(screen.queryAllByRole("listitem")).toHaveLength(0);
+});
+
+it("keeps local conflict edits and saved-copy recovery after the base allowance denies a new copy", async () => {
+	documents.resolve.mockRejectedValueOnce(
+		new ORPCError("PRECONDITION_FAILED", {
+			data: { reason: "BASE_CV_LIMIT", allowance: { limit: 1, used: 1, reserved: 0, remaining: 0 } },
+		}),
+	);
+	showDifference((data) => {
+		data.summary.content = "Unsaved facts";
+	});
+	fireEvent.click(screen.getByRole("button", { name: "Save my edits as a new copy" }));
+	await screen.findByText("1 of 1 base CVs used.");
+	expect(documents.local?.data.summary.content).toBe("Unsaved facts");
+	expect(screen.getByRole("button", { name: "Open saved copy" })).toBeEnabled();
+	expect(screen.getByRole("link", { name: "Help and contact" }).getAttribute("href")).toBe("/help");
 });

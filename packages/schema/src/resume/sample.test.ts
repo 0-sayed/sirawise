@@ -15,7 +15,7 @@ it.each(["ar-SA", "en-US"])(
 		const female = createSampleResumeData(undefined, locale, "female");
 		const male = createSampleResumeData(undefined, locale, "male");
 		expect(female.basics.name).toBe(locale === "ar-SA" ? "سارة العتيبي" : "Sara Alotaibi");
-		expect(male.basics.name).toBe(locale === "ar-SA" ? "عبدالله القحطاني" : "Abdullah Alqahtani");
+		expect(male.basics.name).toBe(locale === "ar-SA" ? "عبدالإله الجبل" : "Abdulelah Aljabal");
 		expect(male.picture.url).not.toBe(female.picture.url);
 		expect(female.picture.url).toBe("/photos/sample-woman.jpg");
 		expect(male.basics.location).toContain(locale === "ar-SA" ? "جدة" : "Jeddah");

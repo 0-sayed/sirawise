@@ -73,7 +73,7 @@ const rows = receipt.results.map((result) => {
 		defect: result.defect,
 		expectedAccepted: result.defect === "gold",
 	};
-	const score = scoreJudgeCanary(probe, result);
+	const score = scoreJudgeCanary(probe, result, "archived-full-response");
 	const invalidGold =
 		result.defect === "gold" && ["judge-canary-translation-ar", "judge-canary-translation-mixed"].includes(c.id);
 	const omissionQuality = c.category === "summary" && result.defect === "lost-fact";

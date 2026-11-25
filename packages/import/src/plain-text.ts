@@ -1,10 +1,12 @@
+import type { PdfParagraph } from "./pdf-paragraphs";
 import type { ResumeData, SectionType } from "@reactive-resume/schema/resume/data";
 import { normalizeSectionHeading } from "@reactive-resume/resume/ats";
 import { parseResumeData } from "@reactive-resume/schema/resume/data";
+import { readLegacyDates } from "@reactive-resume/schema/resume/dates";
 import { defaultResumeData } from "@reactive-resume/schema/resume/default";
 import { parsePeriod, parseSingleDate } from "@reactive-resume/schema/resume/period";
 import { generateId, normalizeNumericDigits } from "@reactive-resume/utils/string";
-import { BULLET_PATTERN, toHtml } from "./html";
+import { arrayToHtmlList, BULLET_PATTERN, toHtml } from "./html";
 import { normalizeImportedText } from "./normalize";
 
 export type ImportReviewIssue = {
@@ -21,6 +23,8 @@ type Segment = {
 	key: SectionKey | null;
 	title: string;
 	lines: string[];
+	startLine: number;
+	pdfUnits?: PdfParagraph[];
 };
 
 type RawEntry = {
@@ -130,12 +134,12 @@ const PERIOD_CANDIDATE = new RegExp(
 	"giu",
 );
 const STRONG_SEPARATOR = /\s*[|•·]\s*|\s{2,}|\s+[–—]\s+/;
-const SENTENCE_END = /[.!?]$/;
+const SENTENCE_END = /[.!?؟…][”’"')\]]*$/u;
 const TRAILING_DATES = [/(?:\p{L}{3,}\.?\s+)?(?:\d{1,2}[/.])?(?:19|20)\d{2}$/u, /(?:\d{1,2}[/.])?(?:19|20)\d{2}$/];
 
 const normalizeHeading = normalizeSectionHeading;
 
-function knownHeading(line: string): SectionKey | null {
+export function knownHeading(line: string): SectionKey | null {
 	const normalized = normalizeHeading(line);
 	if (!normalized || normalized.split(" ").length > MAX_HEADING_WORDS) return null;
 
@@ -173,15 +177,15 @@ function looksLikeTitleCaseHeading(line: string): boolean {
  * within the lookahead of the next role's dates would be promoted to a header, stealing the current
  * entry's description and seeding a garbage item from a sentence.
  */
-function looksLikeEntryHeader(line: string): boolean {
+export function looksLikeEntryHeader(line: string): boolean {
 	const trimmed = line.trim();
+	if (!trimmed || SENTENCE_END.test(trimmed) || /^\p{Ll}/u.test(trimmed)) return false;
 	if (STRONG_SEPARATOR.test(trimmed)) return true;
-	if (SENTENCE_END.test(trimmed)) return false;
 
 	return trimmed.split(/\s+/).length <= MAX_ENTRY_HEADER_WORDS;
 }
 
-function findPeriod(line: string, locale = "en-US"): string {
+export function findPeriod(line: string, locale = "en-US"): string {
 	// Explicit calendar labels and day-level numeric dates require review, not silent omission.
 	if (
 		/^\s*\p{Nd}{4}\s*(?:هـ?|هجري)(?:\s*[-–—]\s*\p{Nd}{4}\s*(?:هـ?|هجري))?\s*$/u.test(line) ||
@@ -192,6 +196,9 @@ function findPeriod(line: string, locale = "en-US"): string {
 
 	for (const match of line.match(PERIOD_CANDIDATE) ?? []) {
 		if (parsePeriod(match, locale)) return match.trim();
+		// A role followed by a numeric range can be tokenized as a named-month candidate.
+		const numeric = match.replace(/^\p{L}{3,}\.?\s+(?=\p{Nd})/u, "");
+		if (numeric !== match && parsePeriod(numeric, locale)) return numeric.trim();
 	}
 
 	return "";
@@ -234,11 +241,22 @@ function isDateLine(line: string, allowSingleDate = true, locale = "en-US"): boo
 	return bare !== "" && parseSingleDate(bare, locale) !== null;
 }
 
-function introducesEntry(lines: readonly string[], index: number, allowSingleDate = true, locale = "en-US"): boolean {
+export function isPdfEntryDate(line: string): boolean {
+	return isDateLine(line) || isDateLine(line, true, "ar-SA");
+}
+
+function introducesEntry(
+	lines: readonly string[],
+	index: number,
+	allowSingleDate = true,
+	locale = "en-US",
+	isDate = (line: string) => isDateLine(line, allowSingleDate, locale),
+	startsEntry?: (index: number) => boolean,
+): boolean {
 	for (let offset = 1; offset <= ENTRY_PREAMBLE_LOOKAHEAD; offset++) {
 		const line = lines[index + offset];
-		if (line === undefined || BULLET_PATTERN.test(line)) return false;
-		if (isDateLine(line, allowSingleDate, locale)) return true;
+		if (line === undefined || BULLET_PATTERN.test(line) || startsEntry?.(index + offset)) return false;
+		if (isDate(line)) return true;
 	}
 
 	return false;
@@ -274,13 +292,64 @@ function splitList(lines: string[]): string[] {
 	const values: string[] = [];
 
 	for (const line of lines) {
-		for (const piece of line.replace(BULLET_PATTERN, "").split(/[,;|•·]|\s{3,}/)) {
+		for (const piece of line.replace(BULLET_PATTERN, "").split(/[,،;؛|•·]|\s{3,}/u)) {
 			const value = piece.trim();
 			if (value) values.push(value);
 		}
 	}
 
 	return [...new Set(values)].slice(0, MAX_LIST_ITEMS);
+}
+
+function parseSkills(lines: string[], pdfUnits?: readonly PdfParagraph[]) {
+	const skills: { name: string; keywords: string[] }[] = [];
+	let group: (typeof skills)[number] | undefined;
+	for (const [index, raw] of lines.entries()) {
+		const line = raw.replace(BULLET_PATTERN, "").trim();
+		const labeled = /^([^:：]+)[:：]\s*(.*)$/u.exec(line);
+		if (group && !labeled && (/^(?: {2,}|\t)/u.test(raw) || pdfUnits?.[index]?.fieldContinuation)) {
+			group.keywords = splitList([...group.keywords, line]);
+		} else {
+			const name = labeled?.[1]?.trim();
+			group = name ? { name, keywords: splitList([labeled?.[2] ?? ""]) } : undefined;
+			if (group) skills.push(group);
+			else {
+				const names = splitList([line]);
+				const entries = names.map((name) => ({ name, keywords: [] }));
+				skills.push(...entries);
+				group = entries.length === 1 ? entries[0] : undefined;
+			}
+		}
+	}
+	const seen = new Set<string>();
+	return skills
+		.filter(({ name, keywords }) => {
+			const key = JSON.stringify([name, keywords]);
+			if (seen.has(key)) return false;
+			seen.add(key);
+			return true;
+		})
+		.slice(0, MAX_LIST_ITEMS);
+}
+
+function parseLanguages(lines: string[], pdfUnits?: readonly PdfParagraph[]) {
+	const languages: { language: string; fluency: string }[] = [];
+	for (const [index, raw] of lines.entries()) {
+		const line = raw.replace(BULLET_PATTERN, "").trim();
+		const previous = languages.at(-1);
+		if (previous && !previous.fluency && (/^(?: {2,}|\t)/u.test(raw) || pdfUnits?.[index]?.fieldContinuation)) {
+			previous.fluency = line;
+			continue;
+		}
+		for (const entry of line.split(/[;؛]/u)) {
+			if (!entry.trim()) continue;
+			const pair =
+				/^(.+?)\s*[([]\s*(.+?)\s*[)\]]?$/u.exec(entry.trim()) ??
+				/^(.+?)(?:\s*[:：–—-]\s*|\s{2,})(.+)$/u.exec(entry.trim());
+			languages.push({ language: (pair?.[1] ?? entry).trim(), fluency: (pair?.[2] ?? "").trim() });
+		}
+	}
+	return languages;
 }
 
 /**
@@ -295,21 +364,37 @@ function withHeaderText(entry: RawEntry): RawEntry {
 	return { ...entry, headerParts: splitHeaderParts(first ?? ""), body: rest };
 }
 
-function groupEntries(lines: string[], allowSingleDate = false, locale = "en-US"): RawEntry[] {
+function groupEntries(
+	lines: string[],
+	allowSingleDate = false,
+	locale = "en-US",
+	pdfUnits?: readonly PdfParagraph[],
+): RawEntry[] {
 	const cleaned = lines.map((line) => line.trim()).filter(Boolean);
+	const pdf = Boolean(pdfUnits);
 	const entries: RawEntry[] = [];
 	let current: RawEntry | null = null;
 
 	const dateOf = (line: string) => {
 		if (BULLET_PATTERN.test(line)) return "";
 
-		const period = findPeriod(line, locale);
+		const period = pdf
+			? (line
+					.split(/\s*[|•·]\s*|\s{2,}/u)
+					.map((part) => findPeriod(part, locale))
+					.find(Boolean) ?? "")
+			: findPeriod(line, locale);
 		if (period) return period;
 
 		return allowSingleDate ? findSingleDate(line, locale) : "";
 	};
 
 	for (const [index, line] of cleaned.entries()) {
+		const unit = pdfUnits?.[index];
+		if (unit?.entryStart && current) {
+			entries.push(current);
+			current = null;
+		}
 		const date = dateOf(line);
 
 		if (date) {
@@ -332,8 +417,25 @@ function groupEntries(lines: string[], allowSingleDate = false, locale = "en-US"
 		}
 
 		const isBullet = BULLET_PATTERN.test(line);
+		const roleBelowEmployer =
+			pdf &&
+			current.period &&
+			current.body.length === 0 &&
+			!current.headerParts.some(looksLikeRole) &&
+			looksLikeRole(line);
 		const leadsToDate =
-			!isBullet && looksLikeEntryHeader(line) && introducesEntry(cleaned, index, allowSingleDate, locale);
+			!isBullet &&
+			!roleBelowEmployer &&
+			!(unit && unit.sourceLineIds.length > 1) &&
+			looksLikeEntryHeader(line) &&
+			introducesEntry(
+				cleaned,
+				index,
+				allowSingleDate,
+				locale,
+				pdf ? (next) => Boolean(dateOf(next)) : undefined,
+				pdfUnits ? (next) => Boolean(pdfUnits[next]?.entryStart) : undefined,
+			);
 
 		if (leadsToDate && !current.period && current.body.length === 0) {
 			current.headerParts.push(...splitHeaderParts(line));
@@ -365,14 +467,14 @@ const emptyWebsite = { url: "", label: "", inlineLink: false };
 
 // Recognition hints, not a title generator. Unrecognized fields stay reviewable.
 const ROLE_WORD =
-	/\b(?:engineer|developer|designer|manager|director|analyst|accountant|consultant|specialist|officer|lead|architect|administrator|coordinator|technician|teacher|researcher|intern|founder)\b|(?:مهندس|مهندسة|مطور|مطورة|مدير|مديرة|مصمم|مصممة|محلل|محللة|محاسب|محاسبة|استشاري|أخصائي|مسؤول|معلم|باحث)/iu;
+	/(?<![\p{L}\p{M}])(?:engineer|developer|designer|manager|director|analyst|accountant|consultant|specialist|officer|lead|architect|administrator|coordinator|technician|teacher|researcher|intern|founder|supervisor|head|chief|owner|master|vp|cto|sre|(?:مهندس|مطور|مدير|مصمم|محلل|محاسب|استشاري|أخصائي|مسؤول|معلم|باحث|قائد|منسق|مشرف|رئيس|نائب|معماري|مبرمج|فني|مدقق|مراقب|محرر|كاتب|مختص)ة?)(?![\p{L}\p{M}])/iu;
 const WORK_MODE = /^(?:remote|hybrid|on[- ]site|عن بعد|هجين|حضوري)$/iu;
 const PLACE =
 	/^(?:Saudi Arabia|Egypt|United Arab Emirates|UAE|UK|United Kingdom|United States|USA|Germany|France|Canada|India|Berlin|London|Cairo|Riyadh|Dubai|السعودية|مصر|الإمارات|الرياض|القاهرة|جدة|دبي|المملكة العربية السعودية)$/iu;
 const NON_LOCATION_TAIL =
 	/\b(?:visa|work[- ]permit|sponsor(?:ship|ed)?|nationality|citizen|work authorization|authorized to work)\b|تأشيرة|تصريح العمل|الجنسية|كفالة/iu;
 
-function looksLikeRole(value: string): boolean {
+export function looksLikeRole(value: string): boolean {
 	return (
 		ROLE_WORD.test(value) &&
 		value.split(/\s+/).length <= MAX_ENTRY_HEADER_WORDS &&
@@ -381,8 +483,12 @@ function looksLikeRole(value: string): boolean {
 	);
 }
 
+export function isRecognizedLocation(value: string): boolean {
+	return WORK_MODE.test(value) || PLACE.test(value);
+}
+
 function looksLikeLocation(value: string): boolean {
-	return !looksLikeRole(value) && (WORK_MODE.test(value) || PLACE.test(value) || /[,،]/u.test(value));
+	return !looksLikeRole(value) && (isRecognizedLocation(value) || /[,،]/u.test(value));
 }
 
 function credibleLocation(value: string): boolean {
@@ -413,7 +519,7 @@ function trimRecognizedLocation(value: string): string {
 		let recognized = "";
 		for (let end = words.length; end > 0; end--) {
 			const candidate = words.slice(0, end).join(" ");
-			if (PLACE.test(candidate) || WORK_MODE.test(candidate)) {
+			if (isRecognizedLocation(candidate)) {
 				recognized = candidate;
 				break;
 			}
@@ -434,6 +540,176 @@ function trimRecognizedLocation(value: string): string {
 		.replace(/([,،])\s*/gu, "$1 ")
 		.replace(/\s*·\s*/gu, " · ")
 		.trim();
+}
+
+const EDUCATION_SEPARATOR = /\s*[|•·,،–—]\s*|\s+-\s+|[ \t]{2,}/u;
+const EDUCATION_STRONG_SEPARATOR = /\s*[|•·–—]\s*|\s+-\s+|[ \t]{2,}/u;
+const SCHOOL_WORD =
+	/(?<![\p{L}\p{M}])(?:university|college|institute|academy|school|université|جامعة|الجامعة|كلية|معهد|أكاديمية|مدرسة)(?![\p{L}\p{M}])/iu;
+const DEGREE_START = String.raw`(?:(?:درجة|شهادة)\s+)?(?:(?:ال)?(?:بكالوريوس|ماجستير|دكتوراه|دكتوراة|دبلوم|ليسانس)|(?:bachelor|master|associate)(?:['’]s)?|doctorate|diploma|ph\.?d\.?|[bm]\.?\s?(?:sc|eng|ba|a|s)\.?)`;
+const DEGREE_WORD = new RegExp(String.raw`(?<![\p{L}\p{M}])${DEGREE_START}(?![\p{L}\p{M}])`, "iu");
+const BARE_EDUCATION_YEAR = /^\d{4}(?=\s|$)/u;
+
+function educationDate(line: string, locale: string): string {
+	const period = findPeriod(line, locale);
+	if (period) return period;
+	for (const field of line.split(EDUCATION_SEPARATOR)) {
+		const part = field.trim();
+		const date = findSingleDate(part, locale);
+		if (date && (date === part || part.endsWith(` ${date}`))) return date;
+		const year = BARE_EDUCATION_YEAR.exec(part)?.[0] ?? /(?<=\s)\d{4}$/u.exec(part)?.[0];
+		if (year && parseSingleDate(year, locale)) return year;
+	}
+	return "";
+}
+
+export function readEducationDates(text: string, locale: string) {
+	return readLegacyDates(text, { locale, single: parseSingleDate(text, locale) !== null });
+}
+
+function trimEducationSeparators(text: string): string {
+	return text.replace(/^[\s|•·,،–—-]+|[\s|•·,،–—-]+$/gu, "");
+}
+
+function educationLocation(text: string): { location: string; header: string } {
+	const lastField = text.split(EDUCATION_STRONG_SEPARATOR).at(-1) ?? "";
+	const cityRegion = /^([^,،]+)([,،])\s*(.+)$/u.exec(lastField);
+	if (cityRegion?.[1] && cityRegion[3]) {
+		const [, city, separator, region] = cityRegion;
+		if (
+			!SCHOOL_WORD.test(city) &&
+			!DEGREE_WORD.test(city) &&
+			credibleLocation(city) &&
+			(isRecognizedLocation(region) || /^[A-Z]{2,3}$/u.test(region))
+		)
+			return { location: `${city}${separator} ${region}`, header: text.slice(0, -lastField.length) };
+	}
+	for (const match of lastField.matchAll(/(?:^|\s|[,،])(?=[^\s,،])/gu)) {
+		const start = match.index + match[0].length;
+		const location = lastField.slice(start);
+		if (!isRecognizedLocation(location)) continue;
+		const prefix = lastField.slice(0, start);
+		// A place name can be part of an institution or the subject after a preposition.
+		if (
+			/\s(?:of|in|في)\s*$/iu.test(prefix) ||
+			(SCHOOL_WORD.test(lastField) && !DEGREE_WORD.test(lastField) && !/[,،]\s*$/u.test(prefix))
+		)
+			break;
+		return { location, header: text.slice(0, text.length - lastField.length + start) };
+	}
+	return { location: "", header: text };
+}
+
+export function readEducationHeader(text: string, locale: string) {
+	const line = normalizeImportedText(text).trim();
+	const period = educationDate(line, locale);
+	const withoutDate = trimEducationSeparators(period ? line.replace(period, " ") : line);
+	const { header, location } = educationLocation(withoutDate);
+	let school = "";
+	let degree = "";
+	let area = "";
+	const extra: string[] = [];
+	for (const part of header.split(EDUCATION_SEPARATOR).map(trimEducationSeparators).filter(Boolean)) {
+		const qualification = DEGREE_WORD.exec(part);
+		if (!qualification) {
+			if (!school && SCHOOL_WORD.test(part)) school = part;
+			else extra.push(part);
+			continue;
+		}
+		if (qualification.index > 0) {
+			const institution = part.slice(0, qualification.index).trim();
+			if (!SCHOOL_WORD.test(institution) || school || degree) {
+				extra.push(part);
+				continue;
+			}
+			school = institution;
+		}
+		let credential = part.slice(qualification.index);
+		const at = /\s+(?:at|from|من)\s+/iu.exec(credential);
+		if (!school && at && SCHOOL_WORD.test(credential.slice(at.index + at[0].length))) {
+			school = credential.slice(at.index + at[0].length);
+			credential = credential.slice(0, at.index);
+		}
+		const subject = /\s+(?:in|في|تخصص)\s+/iu.exec(credential);
+		if (degree) extra.push(part);
+		else if (subject) {
+			degree = credential.slice(0, subject.index);
+			area = credential.slice(subject.index + subject[0].length);
+		} else degree = credential;
+	}
+	return { school, degree, area, location, period, extra };
+}
+
+export function isEducationFieldLine(line: string): boolean {
+	return (
+		SCHOOL_WORD.test(line) ||
+		DEGREE_WORD.test(line) ||
+		EDUCATION_STRONG_SEPARATOR.test(line) ||
+		Boolean(educationDate(normalizeImportedText(line), "en-US")) ||
+		Boolean(educationLocation(line).location)
+	);
+}
+
+type EducationEntry = {
+	startLine: number;
+	school: string;
+	degree: string;
+	area: string;
+	location: string;
+	period: string;
+	body: string[];
+};
+
+export function readEducationEntries(lines: readonly string[], locale: string): EducationEntry[] {
+	const entries: EducationEntry[] = [];
+	let current: EducationEntry | undefined;
+	for (const [index, raw] of lines.entries()) {
+		const line = raw.trim();
+		if (!line || knownHeading(line) === "education") continue;
+		if (BULLET_PATTERN.test(line) || (SENTENCE_END.test(line) && !isEducationFieldLine(line))) {
+			current?.body.push(line);
+			continue;
+		}
+		const row = readEducationHeader(line, locale);
+		const next = lines[index + 1];
+		const nextSchool = next && (row.period || row.degree) ? readEducationHeader(next, locale).school : "";
+		const startsNext =
+			current &&
+			((row.school && current.school) ||
+				(row.degree && current.degree && nextSchool) ||
+				(row.period && current.period && (nextSchool || row.degree)));
+		if (!current || startsNext) {
+			current = { startLine: index, school: "", degree: "", area: "", location: "", period: "", body: [] };
+			entries.push(current);
+		}
+		current.school ||= row.school;
+		current.degree ||= row.degree;
+		current.area ||= row.area;
+		current.location ||= row.location;
+		current.period ||= row.period;
+		for (const [partIndex, part] of row.extra.entries()) {
+			if (!current.school && !SENTENCE_END.test(part)) current.school = part;
+			else if (
+				!current.body.length &&
+				!current.area &&
+				!SENTENCE_END.test(part) &&
+				part.split(/\s+/u).length <= MAX_ENTRY_HEADER_WORDS
+			)
+				current.area = part;
+			else if (
+				!current.body.length &&
+				!current.location &&
+				current.degree &&
+				current.area &&
+				partIndex === row.extra.length - 1 &&
+				looksLikeEntryHeader(part) &&
+				credibleLocation(part)
+			)
+				current.location = part;
+			else current.body.push(part);
+		}
+	}
+	return entries.filter(({ school }) => school);
 }
 
 function experienceFields(entry: RawEntry, options: ImportOptions, entryIndex: number) {
@@ -472,10 +748,22 @@ function experienceFields(entry: RawEntry, options: ImportOptions, entryIndex: n
 			body.unshift(...bullets.map((bullet) => `• ${bullet}`));
 		}
 	}
-	if (!position)
+	const tentativeTitle = unused[0];
+	if (
+		!position &&
+		entry.period &&
+		entry.headerParts.length === 2 &&
+		unused.length === 1 &&
+		tentativeTitle &&
+		looksLikeEntryHeader(tentativeTitle)
+	) {
+		position = tentativeTitle;
+		unused.shift();
+	}
+	if (!position || !looksLikeRole(position))
 		options.onUncertain?.({
 			field: "position",
-			source: unused.join(" | ") || entry.headerParts.join(" | "),
+			source: position || unused.join(" | ") || entry.headerParts.join(" | "),
 			section: "experience",
 			entryIndex,
 		});
@@ -539,30 +827,31 @@ function buildSectionItems(
 	locale: string,
 	options: ImportOptions,
 	experienceEntryOffset = 0,
+	pdfUnits?: readonly PdfParagraph[],
 ): unknown[] {
-	if (key === "skills" || key === "interests") {
+	if (key === "skills") {
+		return parseSkills(lines, pdfUnits).map((skill) => ({
+			...baseItem(),
+			...skill,
+			icon: "",
+			iconColor: "",
+			proficiency: "",
+			level: 0,
+		}));
+	}
+
+	if (key === "interests") {
 		return splitList(lines).map((name) => ({
 			...baseItem(),
 			icon: "",
 			iconColor: "",
 			name,
-			...(key === "skills" ? { proficiency: "", level: 0, keywords: [] } : { keywords: [] }),
+			keywords: [],
 		}));
 	}
 
 	if (key === "languages") {
-		return lines
-			.map((line) => line.replace(BULLET_PATTERN, "").trim())
-			.filter(Boolean)
-			.map((line) => {
-				const match = /^(.+?)\s*[([–—-]\s*(.+?)\s*[)\]]?$/.exec(line);
-				return {
-					...baseItem(),
-					language: (match?.[1] ?? line).trim(),
-					fluency: (match?.[2] ?? "").trim(),
-					level: 0,
-				};
-			});
+		return parseLanguages(lines, pdfUnits).map((language) => ({ ...baseItem(), ...language, level: 0 }));
 	}
 
 	if (key === "profiles") {
@@ -583,8 +872,23 @@ function buildSectionItems(
 			});
 	}
 
+	if (key === "education") {
+		return readEducationEntries(lines, locale).map(({ school, degree, area, location, period, body }) => ({
+			...baseItem(),
+			school,
+			degree,
+			area,
+			location,
+			grade: "",
+			period,
+			...(period ? { dates: readEducationDates(period, locale) } : {}),
+			website: emptyWebsite,
+			description: toHtml(body),
+		}));
+	}
+
 	const dated = key === "awards" || key === "certifications" || key === "publications";
-	const groupedEntries = groupEntries(lines, dated, locale);
+	const groupedEntries = groupEntries(lines, dated, locale, pdfUnits);
 	const entries = key === "experience" ? attachSharedEmployer(groupedEntries) : groupedEntries;
 
 	if (key === "experience") {
@@ -594,20 +898,6 @@ function buildSectionItems(
 			period: entry.period,
 			website: emptyWebsite,
 			roles: [],
-		}));
-	}
-
-	if (key === "education") {
-		return entries.map((entry) => ({
-			...baseItem(),
-			school: entry.headerParts[0] ?? "",
-			degree: entry.headerParts[1] ?? "",
-			area: "",
-			grade: "",
-			location: entry.headerParts[2] ?? "",
-			period: entry.period,
-			website: emptyWebsite,
-			description: entryDescription(entry, 3),
 		}));
 	}
 
@@ -675,9 +965,21 @@ function buildSectionItems(
 	}));
 }
 
-function segment(lines: string[], locale: string): { header: string[]; segments: Segment[] } {
+function hasFieldContinuations(section: Segment | null): boolean {
+	return section?.key === "skills" || section?.key === "languages";
+}
+
+function segment(
+	lines: string[],
+	locale: string,
+	pdfUnits?: readonly PdfParagraph[],
+): { header: string[]; segments: Segment[] } {
 	const records = lines
-		.map((line, index) => ({ line: line.trim(), precededByBlank: index > 0 && !lines[index - 1]?.trim() }))
+		.map((line, index) => ({
+			line: line.trim(),
+			startLine: index,
+			precededByBlank: index > 0 && !lines[index - 1]?.trim(),
+		}))
 		.filter((record) => record.line);
 	const cleaned = records.map((record) => record.line);
 	const boundary = headerBoundary(cleaned);
@@ -685,13 +987,20 @@ function segment(lines: string[], locale: string): { header: string[]; segments:
 	const segments: Segment[] = [];
 	let current: Segment | null = null;
 
-	for (const [index, { line, precededByBlank }] of records.entries()) {
-		const key = knownHeading(line);
+	for (const [index, { line, startLine, precededByBlank }] of records.entries()) {
+		const raw = lines[startLine] ?? line;
+		const listField = hasFieldContinuations(current);
+		const nested = listField && /^(?: {2,}|\t)/u.test(raw);
+		const key = nested ? null : knownHeading(line);
 		const isolatedTitleCase = precededByBlank && looksLikeTitleCaseHeading(line);
 		// With no section open the entry-preamble guard has nothing to protect: skipping it there keeps
 		// a dated custom section that opens the body from being swallowed into the contact header.
 		const unknown =
 			key === null &&
+			!nested &&
+			!(listField && !precededByBlank && pdfUnits?.[startLine]?.role !== "heading") &&
+			pdfUnits?.[startLine]?.role !== "paragraph" &&
+			pdfUnits?.[startLine]?.role !== "list-item" &&
 			!(current?.key === "experience" && looksLikeRole(line)) &&
 			index > boundary &&
 			(looksLikeHeading(line) || isolatedTitleCase) &&
@@ -699,17 +1008,47 @@ function segment(lines: string[], locale: string): { header: string[]; segments:
 
 		if (key !== null || unknown) {
 			if (current) segments.push(current);
-			current = { key, title: line.replace(/[:：]\s*$/, "").trim(), lines: [] };
+			current = {
+				key,
+				title: line.replace(/[:：]\s*$/, "").trim(),
+				lines: [],
+				startLine,
+				...(pdfUnits ? { pdfUnits: [] } : {}),
+			};
 			continue;
 		}
 
-		if (current) current.lines.push(line);
-		else header.push(line);
+		if (current) {
+			if (current.key === "summary" && precededByBlank && current.lines.length) current.lines.push("");
+			current.lines.push(listField ? raw.trimEnd() : line);
+			const unit = pdfUnits?.[startLine];
+			if (unit) current.pdfUnits?.push(unit);
+		} else header.push(line);
 	}
 
 	if (current) segments.push(current);
 
 	return { header, segments };
+}
+
+/** Native parser boundaries, expressed as offsets into the unchanged extraction. */
+export function locateResumeTextSections(text: string, locale: string) {
+	const parts = text.split(/(\r\n|\r|\n)/);
+	const lines: string[] = [];
+	const offsets: number[] = [];
+	let offset = 0;
+	for (let index = 0; index < parts.length; index += 2) {
+		const line = parts[index] ?? "";
+		offsets.push(offset);
+		lines.push(normalizeImportedText(line));
+		offset += line.length + (parts[index + 1]?.length ?? 0);
+	}
+	const { segments } = segment(lines, locale);
+	return segments.map((section, index) => ({
+		key: section.key,
+		start: offsets[section.startLine] ?? 0,
+		end: offsets[segments[index + 1]?.startLine ?? lines.length] ?? text.length,
+	}));
 }
 
 function parseHeader(lines: string[], options: ImportOptions) {
@@ -780,8 +1119,37 @@ export function parseResumeText(text: string, options: ImportOptions = {}): Resu
 	// compatibility glyphs; retain the raw extraction separately and never fold Arabic letters.
 	const editableText = normalizeImportedText(text);
 	const lines = editableText.replace(/\r\n?/g, "\n").split("\n");
+	return parseResumeLines(lines, options);
+}
+
+export function parsePdfResume(units: readonly PdfParagraph[], options: ImportOptions = {}): ResumeData {
+	return parseResumeLines(
+		units.map((unit) => normalizeImportedText(unit.text)),
+		options,
+		units,
+	);
+}
+
+function summaryHtml(lines: readonly string[]): string {
+	const blocks: string[] = [];
+	let bullets: string[] = [];
+	for (const line of [...lines, ""]) {
+		if (BULLET_PATTERN.test(line)) {
+			bullets.push(line.replace(BULLET_PATTERN, ""));
+			continue;
+		}
+		if (bullets.length) {
+			blocks.push(arrayToHtmlList(bullets));
+			bullets = [];
+		}
+		blocks.push(toHtml([line]));
+	}
+	return blocks.join("");
+}
+
+function parseResumeLines(lines: string[], options: ImportOptions, pdfUnits?: readonly PdfParagraph[]): ResumeData {
 	const locale = options.locale ?? defaultResumeData.metadata.page.locale;
-	const { header, segments } = segment(lines, locale);
+	const { header, segments } = segment(lines, locale, pdfUnits);
 	const contact = parseHeader(header, options);
 
 	const data: ResumeData = structuredClone(defaultResumeData);
@@ -800,7 +1168,7 @@ export function parseResumeText(text: string, options: ImportOptions = {}): Resu
 		if (item.lines.length === 0) continue;
 
 		if (item.key === "summary") {
-			const content = toHtml(item.lines);
+			const content = summaryHtml(item.lines);
 			data.summary.content = data.summary.content ? `${data.summary.content}${content}` : content;
 			if (!order.includes("summary")) order.push("summary");
 			continue;
@@ -829,6 +1197,7 @@ export function parseResumeText(text: string, options: ImportOptions = {}): Resu
 			data.metadata.page.locale,
 			options,
 			item.key === "experience" ? experienceEntryOffset : 0,
+			item.pdfUnits,
 		);
 		if (items.length === 0) continue;
 		if (item.key === "experience") experienceEntryOffset += items.length;

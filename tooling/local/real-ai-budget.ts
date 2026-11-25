@@ -42,7 +42,7 @@ export async function ensureLocalAiBudget(
 		route.routeId !== "local-real-ai" ||
 		!Number.isSafeInteger(route.dayCapMicros) ||
 		route.dayCapMicros <= 0 ||
-		route.dayCapMicros > 3000000 ||
+		route.dayCapMicros > 15000000 ||
 		!Number.isSafeInteger(route.requestCapMicros) ||
 		route.requestCapMicros <= 0 ||
 		route.requestCapMicros > Math.min(route.dayCapMicros, 200000)
@@ -55,8 +55,9 @@ export async function ensureLocalAiBudget(
 			 (id, route_id, route_revision, window_date, cap_micros, request_cap_micros, concurrency)
 			 SELECT $1 || ':' || $2 || ':' || day::text, $1, $2, day, $3, $4, $5
 			 FROM (SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')::date AS day) AS budget_window
-			 ON CONFLICT (route_id, route_revision, window_date) DO NOTHING`,
-			[route.routeId, route.routeRevision, route.dayCapMicros, route.requestCapMicros, 2],
+			 ON CONFLICT (route_id, route_revision, window_date)
+			 DO UPDATE SET concurrency = GREATEST(ai_platform_budget.concurrency, EXCLUDED.concurrency)`,
+			[route.routeId, route.routeRevision, route.dayCapMicros, route.requestCapMicros, 6],
 		);
 	} catch {
 		// pg errors can contain administrative credentials. Keep startup output safe.

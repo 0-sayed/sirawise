@@ -8,6 +8,7 @@ import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { withOwnerDatabase } from "@reactive-resume/db/client";
 import {
 	aiOperation,
+	aiReviewDecision,
 	careerFact,
 	resume,
 	resumeFactLink,
@@ -15,12 +16,17 @@ import {
 	resumeVariantSource,
 } from "@reactive-resume/db/schema";
 import {
+	alignRichTextStructure,
 	buildTranslationInventory,
+	translationBlockOnlyDivergence,
 	translationPlaceholders,
 	translationStructureMatches,
 	writeTranslationTarget,
 } from "@reactive-resume/resume/translation";
 import { createVariantInputSchema } from "@reactive-resume/schema/resume/variants";
+import { resumeContactValues } from "../ai/payload";
+import { prepareTranslationFacts } from "../ai/translation-invariants";
+import { hasUnresolvedTranslationPlaceholder, resolveTranslationText } from "../ai/translation-placeholders";
 import { readJobRevision } from "../career/job-targets";
 import { lockDocumentOwner } from "../documents/ownership";
 import { createResumeInTransaction } from "./service";
@@ -202,7 +208,10 @@ export function listVariants(ownerId: string, resumeId: string) {
 					documentLocale: cv.data.metadata.page.locale,
 					targetLocale: provenance?.targetLocale ?? null,
 					updatedAt: cv.updatedAt.toISOString(),
-					operationId: operation?.id ?? null,
+					operationId:
+						(operation?.parameters.translationBatch as { rootId?: string } | undefined)?.rootId ??
+						operation?.id ??
+						null,
 				};
 			}),
 		);
@@ -210,6 +219,28 @@ export function listVariants(ownerId: string, resumeId: string) {
 }
 
 /** Called only by the locked final decision transaction; never persists partially reviewed content. */
+/** True when a language copy has no manual edits since creation or its last accepted translation. */
+export async function isUneditedAiLanguageCopy(
+	tx: OwnerTransaction,
+	ownerId: string,
+	copy: { id: string; createdAt: Date; updatedAt: Date },
+): Promise<boolean> {
+	if (copy.updatedAt.getTime() === copy.createdAt.getTime()) return true;
+	const [decision] = await tx
+		.select({ id: aiReviewDecision.id })
+		.from(aiReviewDecision)
+		.where(
+			and(
+				eq(aiReviewDecision.userId, ownerId),
+				eq(aiReviewDecision.resumeId, copy.id),
+				eq(aiReviewDecision.event, "accept"),
+				eq(aiReviewDecision.afterRevision, copy.updatedAt.toISOString()),
+			),
+		)
+		.limit(1);
+	return Boolean(decision);
+}
+
 export async function applyReviewedTranslation(
 	tx: OwnerTransaction,
 	ownerId: string,
@@ -219,6 +250,9 @@ export async function applyReviewedTranslation(
 		expectedSourceRevision: string;
 		data: ResumeData;
 		payload: VariantDecisionPayload;
+		withheldSegmentIds: ReadonlySet<string>;
+		segmentIds?: ReadonlySet<string>;
+		compactTranslation?: boolean;
 	},
 ) {
 	const [source] = await tx
@@ -239,42 +273,90 @@ export async function applyReviewedTranslation(
 		!provenance.targetLocale
 	)
 		throw new ORPCError("CONFLICT");
-	if (!translationStructureMatches(source.data, input.data))
-		throw new ORPCError("CONFLICT", { data: { reason: "TRANSLATION_STRUCTURE_CHANGED" } });
+	const needsAlignment = !translationStructureMatches(source.data, input.data);
+	if (needsAlignment) {
+		const [copyMeta] = await tx
+			.select({ id: resume.id, createdAt: resume.createdAt, updatedAt: resume.updatedAt })
+			.from(resume)
+			.where(and(eq(resume.userId, ownerId), eq(resume.id, input.resumeId), isNull(resume.trashedAt)));
+		if (
+			!copyMeta ||
+			!translationBlockOnlyDivergence(source.data, input.data) ||
+			!(await isUneditedAiLanguageCopy(tx, ownerId, copyMeta))
+		) {
+			throw new ORPCError("CONFLICT", { data: { reason: "TRANSLATION_STRUCTURE_CHANGED" } });
+		}
+	}
 	const inventory = buildTranslationInventory(source.data);
+	if (inventory.blocking.length)
+		throw new ORPCError("PRECONDITION_FAILED", {
+			data: { reason: "TRANSLATION_PARTIAL_COVERAGE", sections: inventory.blockingSections },
+		});
 	const placeholders = translationPlaceholders(source.data);
+	const protection = input.compactTranslation ? prepareTranslationFacts(source.data, inventory.segments) : undefined;
+	const contactValues = resumeContactValues(input.data);
+	const actionable = inventory.segments.filter(({ id }) => !input.withheldSegmentIds.has(id));
+	const selected = input.segmentIds;
+	const targets = selected ? actionable.filter(({ id }) => selected.has(id)) : actionable;
+	const terms = selected
+		? input.payload.terms.terms.filter(({ id }) => selected.has(id.slice("term:".length)))
+		: input.payload.terms.terms;
 	if (
-		inventory.blocking.length ||
-		inventory.segments.length !== Object.keys(input.payload.segments).length ||
-		input.payload.terms.terms.some((term) => term.status !== "confirmed")
+		!targets.length ||
+		(selected && targets.length !== selected.size) ||
+		actionable.length !== Object.keys(input.payload.segments).length ||
+		terms.some((term) => term.status !== "confirmed")
 	)
 		throw new ORPCError("CONFLICT", { data: { reason: "TRANSLATION_REVIEW_INCOMPLETE" } });
-	const data = structuredClone(input.data);
-	for (const segment of inventory.segments) {
+	const pending = new Map<string, string>();
+	for (const segment of targets) {
 		const approved = input.payload.segments[segment.id];
 		if (!approved || approved.status !== "accepted")
 			throw new ORPCError("CONFLICT", { data: { reason: "TRANSLATION_REVIEW_INCOMPLETE" } });
-		const term = input.payload.terms.terms.find((term) => term.id === `term:${segment.id}`);
-		const text =
-			term?.value ??
-			placeholders.reduce(
-				(text, entry) =>
-					text.replaceAll(
-						entry.token,
-						() => input.payload.terms.terms.find((term) => term.source === entry.value)?.value ?? entry.value,
-					),
-				approved.text,
-			);
-		if (/\[(?:redacted|LOCAL_\d+)\]/iu.test(text))
-			throw new ORPCError("CONFLICT", { data: { reason: "TRANSLATION_LOCAL_VALUE_UNRESOLVED" } });
-		writeTranslationTarget(data, segment.target, text);
+		const term = terms.find((term) => term.id === `term:${segment.id}`);
+		const text = resolveTranslationText({
+			text: approved.text,
+			sourceText: segment.text,
+			placeholders,
+			terms: input.payload.terms.terms,
+			contactValues,
+			basicsName: input.data.basics.name,
+			termValue: term?.value,
+			scope: protection ? { sourceId: segment.id, localMap: protection.localMap } : undefined,
+		});
+		if (hasUnresolvedTranslationPlaceholder(text))
+			throw new ORPCError("CONFLICT", {
+				data: { reason: "TRANSLATION_LOCAL_VALUE_UNRESOLVED", segmentId: segment.id },
+			});
+		pending.set(segment.id, text);
 	}
-	data.metadata.page.locale = provenance.targetLocale;
+	const data = needsAlignment
+		? alignRichTextStructure(
+				source.data,
+				input.data,
+				selected || input.withheldSegmentIds.size
+					? { pending, preserveEmptySlots: provenance.acceptedSourceRevision === input.expectedSourceRevision }
+					: undefined,
+			)
+		: structuredClone(input.data);
+	for (const segment of targets) {
+		const text = pending.get(segment.id);
+		if (text !== undefined) writeTranslationTarget(data, segment.target, text);
+	}
+	if (!selected) data.metadata.page.locale = provenance.targetLocale;
 	return {
 		data,
 		provenance: {
-			acceptedSourceRevision: source.updatedAt.toISOString(),
-			terminology: input.payload.terms,
+			acceptedSourceRevision: selected ? provenance.acceptedSourceRevision : source.updatedAt.toISOString(),
+			terminology: selected
+				? {
+						...provenance.terminology,
+						terms: [
+							...provenance.terminology.terms.filter(({ id }) => !selected.has(id.slice("term:".length))),
+							...terms,
+						],
+					}
+				: input.payload.terms,
 			acceptedFactRevisions: provenance.acceptedFactRevisions,
 		},
 	};

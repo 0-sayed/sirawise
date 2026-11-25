@@ -57,6 +57,31 @@ const resume = () => ({
 });
 
 describe("atomic review passage application", () => {
+	it("replaces the entire adjacent paragraph span and rebases untouched passages after it", () => {
+		const data = resume();
+		const before = "<p>Built a gateway that</p><p>routes service requests.</p><p>Kept logs.</p>";
+		data.summary.content = before + "<p>Kept logs.</p>";
+		const targetHash = hashReviewTarget(data.summary.content);
+		const merge = proposal({
+			before,
+			after: "<p>Built a gateway that routes service requests. Kept logs.</p>",
+			blockIndex: 0,
+			targetHash,
+		});
+		const later = proposal({
+			id: "later",
+			before: "<p>Kept logs.</p>",
+			after: "<p>Maintained logs.</p>",
+			blockIndex: 3,
+			targetHash,
+		});
+		const merged = applyReviewProposals(data, [merge]);
+		expect(merged.summary.content).toBe(merge.after + later.before);
+		expect(rebaseReviewProposal(merged, later, [merge]).blockIndex).toBe(1);
+		expect(applyReviewProposals(merged, [later], [merge]).summary.content).toBe(merge.after + later.after);
+		expect(applyReviewProposals(data, [later, merge]).summary.content).toBe(merge.after + later.after);
+	});
+
 	it("rebases only acknowledged sibling changes and keeps full-field manual-edit detection", () => {
 		const first = proposal();
 		const sibling = proposal({ id: "p2", before: "<p>Kept manual work.</p>", after: "<p>Preserved manual work.</p>" });
@@ -68,6 +93,28 @@ describe("atomic review passage application", () => {
 		next.summary.content += "<p>New manual work.</p>";
 		expect(() => rebaseReviewProposal(next, sibling, [first])).toThrow();
 	});
+	it("applies repeated blocks by position individually and as a batch, retaining the full-field guard", () => {
+		const data = resume();
+		data.summary.content = "<ul><li>Built services.</li><li>Built services.</li></ul>";
+		const first = proposal({
+			before: "<li>Built services.</li>",
+			after: "<li>Developed services.</li>",
+			blockIndex: 0,
+			targetHash: hashReviewTarget(data.summary.content),
+		});
+		const second = proposal({ ...first, id: "p2", blockIndex: 1 });
+		const next = applyReviewProposals(data, [second]);
+		expect(next.summary.content).toBe("<ul><li>Built services.</li><li>Developed services.</li></ul>");
+		expect(applyReviewProposals(next, [first], [second]).summary.content).toBe(
+			"<ul><li>Developed services.</li><li>Developed services.</li></ul>",
+		);
+		expect(applyReviewProposals(data, [first, second]).summary.content).toBe(
+			"<ul><li>Developed services.</li><li>Developed services.</li></ul>",
+		);
+		next.summary.content += "<p>Manual edit.</p>";
+		expect(() => rebaseReviewProposal(next, first, [second])).toThrow("STALE_REVIEW_TARGET");
+		expect(() => applyReviewProposals(data, [{ ...first, blockIndex: 9 }])).toThrow();
+	});
 	it("changes only the selected paragraph without mutating its input", () => {
 		const data = resume();
 		const updated = applyReviewProposals(data, [proposal()]);
@@ -75,6 +122,15 @@ describe("atomic review passage application", () => {
 		expect(data.summary.content).toBe(original);
 		expect(updated.basics).toEqual(data.basics);
 	});
+	it.each(["Kept manual work.", "Developed services. Kept manual work."])(
+		"rejects copying an untouched paragraph into %s",
+		(text) => {
+			const data = resume();
+			const copying = proposal({ after: `<p>${text}</p>`, blockIndex: 0 });
+			expect(() => applyReviewProposals(data, [copying])).toThrow("DUPLICATE_REVIEW_CONTENT");
+			expect(data.summary.content).toBe(original);
+		},
+	);
 	it("rejects duplicate IDs, overlap and a stale complete target field atomically", () => {
 		const data = resume();
 		for (const batch of [

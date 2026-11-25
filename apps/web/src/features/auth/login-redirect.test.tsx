@@ -53,6 +53,7 @@ vi.mock("@reactive-resume/ui/components/toast", () => ({ toast: { add: vi.fn(), 
 import { LoginPage } from "./pages/login";
 import { RegisterPage } from "./pages/register";
 import { VerifyTwoFactorBackupPage, VerifyTwoFactorPage } from "./pages/verify-2fa";
+import { getUiLocaleMessages } from "@/libs/locale";
 
 beforeEach(() => {
 	vi.clearAllMocks();
@@ -90,6 +91,21 @@ function submitLogin(container: HTMLElement, identifier: string, passwordValue =
 	fireEvent.change(password, { target: { value: passwordValue } });
 	fireEvent.submit(form);
 }
+
+it.each(["en-US", "ar-SA"] as const)(
+	"keeps the sign-in email label accessible in %s with validation",
+	async (locale) => {
+		i18n.loadAndActivate(await getUiLocaleMessages(locale));
+		const { container } = renderLogin();
+		const name = locale === "en-US" ? "Email address" : "البريد الإلكتروني";
+		const email = screen.getByRole("textbox", { name });
+		expect(screen.getByLabelText(name, { exact: true })).toBe(email);
+		submitLogin(container, "a@a.a");
+		await waitFor(() => expect(email).toHaveAttribute("aria-invalid", "true"));
+		expect(screen.getByRole("textbox", { name })).toBe(email);
+		expect(mocks.email).not.toHaveBeenCalled();
+	},
+);
 
 describe("OAuth callback after sign-in", () => {
 	it("continues account creation only after verified password sign-in", async () => {

@@ -1,4 +1,4 @@
-import { openPdfReview } from "../fixtures/import-review";
+import { confirmPdfSections, openPdfReview } from "../fixtures/import-review";
 import { createSampleResumeFromDashboard } from "../fixtures/resume";
 import { expect, test } from "../fixtures/test";
 
@@ -140,14 +140,15 @@ test("dismissed delayed confirmation cannot close or navigate a reopened review"
 		await held;
 		await route.fulfill({ response }).catch(() => {});
 	});
-	await page.getByRole("button", { name: "Create CV and open editor", exact: true }).click();
+	await confirmPdfSections(page);
+	await page.getByRole("button", { name: "Create CV only", exact: true }).click();
 	await started;
 	await openPdfReview(page);
 	await page.getByLabel("Full name", { exact: true }).fill("New active review");
 	release();
 	await expect(page.getByLabel("Full name", { exact: true })).toHaveValue("New active review");
 	await expect(page).toHaveURL(/\/dashboard\/import\//);
-	await expect(page.getByRole("button", { name: "Create CV and open editor", exact: true })).toBeVisible();
+	await expect(page.getByRole("button", { name: /^Create CV (?:only|and save career information)$/ })).toBeVisible();
 });
 
 test("stale master reconciliation preserves local review corrections", async ({ authPage: page }) => {
@@ -171,13 +172,19 @@ test("stale master reconciliation preserves local review corrections", async ({ 
 	await second.getByRole("button", { name: "Confirm changes", exact: true }).click();
 	await expect(second.getByRole("dialog")).not.toBeVisible();
 	const master = await (await page.request.get("/api/openapi/career/master")).json();
-	await page.getByRole("button", { name: "Create CV and open editor", exact: true }).click();
+	await confirmPdfSections(page);
+	const saveCareer = page.getByRole("button", { name: "Create CV and save career information", exact: true });
+	await saveCareer.click();
 	const refresh = page.getByRole("button", { name: "Refresh career information for review", exact: true });
 	await expect(refresh).toBeVisible();
-	await expect(page.getByRole("button", { name: "Create CV and open editor", exact: true })).toBeDisabled();
+	await expect(saveCareer).toBeDisabled();
 	await refresh.click();
+	await page
+		.getByRole("navigation", { name: "Review sections", exact: true })
+		.getByRole("button", { name: "Basic information", exact: true })
+		.click();
 	await expect(page.getByLabel("Full name", { exact: true })).toHaveValue("Local correction survives");
-	await page.getByRole("button", { name: "Create CV and open editor", exact: true }).click();
+	await page.getByRole("button", { name: "Create CV only", exact: true }).click();
 	await expect(page).toHaveURL(/\/builder\//);
 	const id = new URL(page.url()).pathname.split("/").at(-1);
 	expect((await (await page.request.get(`/api/openapi/resumes/${id}`)).json()).data.basics.name).toBe(

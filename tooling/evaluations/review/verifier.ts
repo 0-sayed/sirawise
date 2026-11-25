@@ -14,6 +14,7 @@ import {
 	VARIANT_VERIFIER_VERSION,
 	variantVerifierPrompt,
 	variantVerifierSchema,
+	translationVerifierSchema,
 } from "@reactive-resume/api/features/ai/variant-verifier";
 import { captureResponse } from "./attempt";
 import {
@@ -143,7 +144,10 @@ export function benchmarkVerifierSpec(c: ExecutionCase) {
 				schema:
 					c.category === "translation"
 						? variantVerifierSchema.extend({
-								quality: tasksVerifierSchema.shape.quality.extend({ mqm: mqmErrorsSchema }),
+								quality: tasksVerifierSchema.shape.quality.extend({
+									assessment: translationVerifierSchema.shape.quality.shape.assessment.unwrap(),
+									mqm: mqmErrorsSchema,
+								}),
 							})
 						: variantVerifierSchema,
 			};

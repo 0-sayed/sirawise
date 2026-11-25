@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { proposalTargetSchema } from "./ai-review";
 
+/** Cardinality is a backstop; the serialized route input budget remains authoritative. */
+export const MAX_VARIANT_PASSAGES = 500;
+export const MAX_VARIANT_INPUT_CODE_POINTS = 32000;
+export const MAX_TRANSLATION_TEXT_LENGTH = 16000;
 const jobevidenceIdentifier = z.string().trim().min(1).max(200);
 /** Required fields and closed objects work across the installed strict-schema routes. */
 export const jobEvidenceSchema = z.strictObject({
@@ -116,8 +120,34 @@ export const tailoringOutputSchema = z.strictObject({
 export type TailoringOutput = z.infer<typeof tailoringOutputSchema>;
 
 const translationId = z.string().trim().min(1).max(200);
-const translationText = z.string().trim().min(1).max(4000);
+const translationText = z.string().trim().min(1).max(MAX_TRANSLATION_TEXT_LENGTH);
 const translationDirection = z.enum(["ar-en", "en-ar"]);
+export const translationCandidateSchema = z.strictObject({
+	direction: translationDirection,
+	sourceRevision: translationId,
+	segments: z
+		.array(z.strictObject({ sourceId: translationId, text: translationText }))
+		.min(1)
+		.max(MAX_VARIANT_PASSAGES),
+});
+export type TranslationCandidate = z.infer<typeof translationCandidateSchema>;
+
+export const translationCheckSchema = z.strictObject({
+	schemaVersion: z.literal(1),
+	batchId: translationId,
+	checkedSourceIds: z.array(translationId).min(1).max(MAX_VARIANT_PASSAGES),
+	supportedSourceIds: z.array(translationId).max(MAX_VARIANT_PASSAGES),
+	issues: z
+		.array(
+			z.strictObject({
+				sourceIds: z.array(translationId).min(1).max(MAX_VARIANT_PASSAGES),
+				code: z.enum(["addition", "omission", "polarity", "responsibility", "credential"]),
+			}),
+		)
+		.max(MAX_VARIANT_PASSAGES * 5),
+});
+export type TranslationCheck = z.infer<typeof translationCheckSchema>;
+
 export const translationOutputSchema = z.strictObject({
 	direction: translationDirection,
 	sourceRevision: translationId,
@@ -138,7 +168,20 @@ export const translationOutputSchema = z.strictObject({
 					.max(50),
 			}),
 		)
-		.max(49),
+		.max(MAX_VARIANT_PASSAGES),
 	notes: z.array(translationText).max(5),
 });
 export type TranslationOutput = z.infer<typeof translationOutputSchema>;
+
+/** Complete reviewed documents can contain any number of independently bounded call results. */
+export const translationReviewOutputSchema = translationOutputSchema.extend({
+	segments: z.array(
+		translationOutputSchema.shape.segments.element.extend({
+			text: z.string().min(1),
+			claims: z.array(
+				translationOutputSchema.shape.segments.element.shape.claims.element.extend({ text: z.string().min(1) }),
+			),
+		}),
+	),
+	notes: z.array(z.string().min(1)),
+});

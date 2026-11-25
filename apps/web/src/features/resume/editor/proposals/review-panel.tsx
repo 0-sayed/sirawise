@@ -3,9 +3,9 @@ import type { ReviewDecisionInput, ReviewProposal } from "@reactive-resume/schem
 import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { blockText, collectPassages } from "@reactive-resume/resume/proposals";
-import { rebaseReviewProposal } from "@reactive-resume/resume/review-evidence";
+import { hasCompleteReviewScope, rebaseReviewProposal } from "@reactive-resume/resume/review-evidence";
 import { Button } from "@reactive-resume/ui/components/button";
 import {
 	Dialog,
@@ -26,6 +26,7 @@ import { QuerySkeleton } from "@/components/query-skeleton";
 import { useAssistantCopy } from "@/features/assistant/copy.generated";
 import { assistantAvailability } from "@/features/assistant/operation-state";
 import { savePendingChanges, useResumeStore } from "@/features/resume/builder/draft";
+import { useVariantsCopy } from "@/features/resume/variants/copy.generated";
 import { client, orpc } from "@/libs/orpc/client";
 
 export function useResumeReviewSummary(): {
@@ -41,11 +42,7 @@ export function useResumeReviewSummary(): {
 		usage.data?.operations.reserved,
 	);
 	const enabled = Boolean(resumeId) && status !== "not_enabled" && status !== "loading";
-	const latest = useQuery({ ...orpc.ai.review.latest.queryOptions({ input: { resumeId: resumeId ?? "" } }), enabled });
-	const review = useQuery({
-		...orpc.ai.review.get.queryOptions({ input: { operationId: latest.data ?? "" } }),
-		enabled: enabled && Boolean(latest.data),
-	});
+	const history = useQuery({ ...orpc.ai.review.list.queryOptions({ input: { resumeId: resumeId ?? "" } }), enabled });
 	const state =
 		availability.error || usage.error
 			? "unavailable"
@@ -56,14 +53,14 @@ export function useResumeReviewSummary(): {
 					: status === "unavailable" || status === "exhausted"
 						? "unavailable"
 						: "available";
-	const bound = review.data?.result.sourceRevision.id === resumeId;
 	const pendingCount =
-		state === "off" || latest.error || review.error || !bound || review.data?.result.kind !== "wording"
+		state === "off" || history.error || !history.data
 			? null
-			: review.data.result.proposals.filter(
-					(proposal) => (review.data?.statuses[proposal.id] ?? "pending") === "pending",
-				).length;
-	return { state, pendingCount: enabled && latest.isSuccess && latest.data === null ? 0 : pendingCount };
+			: history.data.reduce(
+					(total, operation) => total + operation.targets.reduce((count, entry) => count + entry.pendingCount, 0),
+					0,
+				);
+	return { state, pendingCount };
 }
 
 export function ReviewResultPanel({
@@ -74,7 +71,12 @@ export function ReviewResultPanel({
 	onRequestNew?: (() => void) | undefined;
 }) {
 	const copy = useAssistantCopy();
+	const variantsCopy = useVariantsCopy();
 	const review = useQuery(orpc.ai.review.get.queryOptions({ input: { operationId } }));
+	const queryClient = useQueryClient();
+	useEffect(() => {
+		if (review.dataUpdatedAt) void queryClient.invalidateQueries({ queryKey: orpc.ai.review.list.key() });
+	}, [review.dataUpdatedAt, queryClient]);
 	const data = useResumeStore((state) => state.resume?.data);
 	const locked = useResumeStore(
 		(state) =>
@@ -186,7 +188,7 @@ export function ReviewResultPanel({
 	const stateOf = (proposal: ReviewProposal) => {
 		if (statuses[proposal.id] !== "pending") return statuses[proposal.id] ?? "pending";
 		try {
-			if (!data) return "stale";
+			if (!data || !hasCompleteReviewScope(proposal, result.evidence)) return "stale";
 			rebaseReviewProposal(
 				data,
 				proposal,
@@ -234,6 +236,12 @@ export function ReviewResultPanel({
 					}}
 				>
 					<Trans>Could not save your answer. Your text is kept.</Trans>
+				</ReviewNotice>
+			)}
+			{result.withheld && result.withheld.count > 0 && (
+				<ReviewNotice>
+					{variantsCopy("review.withheldItems", { count: result.withheld.count })}
+					<span className="mt-1 block type-metadata text-ink-2">{variantsCopy("review.withheldReason.default")}</span>
 				</ReviewNotice>
 			)}
 			{result.proposals.length > 0 && (
@@ -449,14 +457,19 @@ export function ResumeReviewWorkspace({
 	action?: "review" | "verb" | "shorter" | "result" | "custom";
 	request?: string | undefined;
 }) {
+	const copy = useAssistantCopy();
 	const resume = useResumeStore((state) => state.resume);
-	const latest = useQuery({
-		...orpc.ai.review.latest.queryOptions({ input: { resumeId: resume?.id ?? "" } }),
+	const history = useQuery({
+		...orpc.ai.review.list.queryOptions({ input: { resumeId: resume?.id ?? "" } }),
 		enabled: Boolean(resume),
 	});
+	const [retryRequest, setRetryRequest] = useState(0);
 	const [selectedTarget, setSelectedTarget] = useState("");
 	const selectId = useId();
-	const [started, setStarted] = useState<{ resumeId: string; operationId: string } | null>(null);
+	const [chosenReview, setChosenReview] = useState<{ resumeId: string; target: string; operationId: string } | null>(
+		null,
+	);
+	const historySelectId = useId();
 	const queryClient = useQueryClient();
 	if (!resume) return null;
 	const passages = collectPassages(resume.data, {
@@ -472,7 +485,29 @@ export function ResumeReviewWorkspace({
 		: choices.some(([key]) => key === selectedTarget)
 			? selectedTarget
 			: (choices[0]?.[0] ?? "");
-	const operationId = (started?.resumeId === resume.id ? started.operationId : null) ?? latest.data;
+	const sameTarget = (candidate: ReviewProposal["target"], selected: ReviewProposal["target"]) =>
+		candidate.sectionId === selected.sectionId &&
+		candidate.itemId === selected.itemId &&
+		candidate.roleId === selected.roleId &&
+		candidate.field === selected.field;
+	const selectedAddress = target ?? choices.find(([key]) => key === selected)?.[1].target;
+	const reviews =
+		history.data?.filter((operation) =>
+			operation.targets.some((entry) => selectedAddress && sameTarget(entry.target, selectedAddress)),
+		) ?? [];
+	const operationId =
+		chosenReview?.resumeId === resume.id && chosenReview.target === selected
+			? chosenReview.operationId
+			: reviews[0]?.operationId;
+	const pendingFor = (target: ReviewProposal["target"]) =>
+		(history.data ?? []).reduce(
+			(total, operation) =>
+				total +
+				operation.targets
+					.filter((entry) => sameTarget(entry.target, target))
+					.reduce((count, entry) => count + entry.pendingCount, 0),
+			0,
+		);
 	const prepare = async () => {
 		if (!(await savePendingChanges(resume.id))) throw new Error("AI_REVIEW_SAVE_REQUIRED");
 		const saved = useResumeStore.getState();
@@ -538,6 +573,9 @@ export function ResumeReviewWorkspace({
 						{choices.map(([key, passage]) => (
 							<option key={key} value={key}>
 								{passage.location}
+								{pendingFor(passage.target) > 0
+									? ` · ${copy("review.wording.pendingCount", { count: pendingFor(passage.target) })}`
+									: ""}
 							</option>
 						))}
 					</NativeSelect>
@@ -547,28 +585,57 @@ export function ResumeReviewWorkspace({
 				</div>
 			)}
 			<ReviewLaunch
+				retryRequest={retryRequest}
 				key={JSON.stringify([resume.id, selected, action, request])}
 				kind="review.wording"
 				prepare={prepare}
 				disabled={resume.isLocked || !selected}
 				onStarted={(id) => {
-					setStarted({ resumeId: resume.id, operationId: id });
-					void queryClient.invalidateQueries({ queryKey: orpc.ai.review.latest.key() });
+					setChosenReview({ resumeId: resume.id, target: selected, operationId: id });
+					void queryClient.invalidateQueries({ queryKey: orpc.ai.review.list.key() });
 				}}
 			>
 				<Trans>Review wording</Trans>
 			</ReviewLaunch>
-			{latest.error && (
+			{history.error && (
 				<ReviewNotice
 					retry={() => {
-						void latest.refetch();
+						void history.refetch();
 					}}
 				>
 					<Trans>Could not reload this review. Your draft is kept.</Trans>
 				</ReviewNotice>
 			)}
+			{reviews.length > 1 && (
+				<div className="grid gap-2">
+					<label htmlFor={historySelectId}>{copy("review.wording.savedReviews")}</label>
+					<NativeSelect
+						id={historySelectId}
+						value={operationId ?? ""}
+						onChange={(event) =>
+							setChosenReview({ resumeId: resume.id, target: selected, operationId: event.target.value })
+						}
+					>
+						{reviews.map((review, index) => (
+							<option key={review.operationId} value={review.operationId}>
+								{copy("review.wording.savedReview", {
+									number: reviews.length - index,
+									count: review.targets
+										.filter((entry) => selectedAddress && sameTarget(entry.target, selectedAddress))
+										.reduce((total, entry) => total + entry.pendingCount, 0),
+								})}
+							</option>
+						))}
+					</NativeSelect>
+				</div>
+			)}
 			{operationId && (
-				<ReviewOperationPanel key={operationId} operationId={operationId}>
+				<ReviewOperationPanel
+					kind="review.wording"
+					onRetry={() => setRetryRequest((n) => n + 1)}
+					key={operationId}
+					operationId={operationId}
+				>
 					<ReviewResultPanel operationId={operationId} />
 				</ReviewOperationPanel>
 			)}

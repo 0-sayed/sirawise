@@ -20,6 +20,7 @@ import { useSubmitValidation } from "@reactive-resume/ui/hooks/use-submit-valida
 import { generateRandomName } from "@reactive-resume/utils/string";
 import { cn } from "@reactive-resume/utils/style";
 import { StartCvDialog } from "../resume/import/start";
+import { BaseCvLimitNotice, baseCvLimitMessage } from "./base-cv-limit";
 import { isBaseCvLimit } from "./creation-error";
 import { prepareFirstCvCelebration } from "./first-cv-celebration";
 import { useNewDocumentsStore } from "./new-documents";
@@ -30,6 +31,7 @@ import { usePersonalToolAvailable } from "@/features/personal-tools/availability
 import { detectImportKind, ImportError, readResumeFile, summarizeImport } from "@/features/resume/import/read-file";
 import { AiProviderLoadState } from "@/features/settings/integrations/ai-provider-load-state";
 import { useHasUsableAiProvider } from "@/features/settings/integrations/hooks/use-has-usable-ai-provider";
+import { AllowanceLimitNotice, getAllowanceReason } from "@/features/usage/allowance-limit";
 import { getOrpcErrorMessage, getResumeErrorMessage } from "@/libs/error-message";
 import { formatRelativeTime } from "@/libs/locale";
 import { ENTER_CLASS, POP_CLASS } from "@/libs/motion";
@@ -50,7 +52,7 @@ type Step =
 	| { name: "choose" }
 	| { name: "importing"; file: File; stage: number; notes: string[] }
 	| { name: "imported"; file: File; resumeId: string; sections: number; entries: number; flagged: number }
-	| { name: "failed"; file: File; message: string }
+	| { name: "failed"; file: File; message: string; error: unknown }
 	| { name: "copy" };
 
 type OpenResumeOptions = { importedFrom?: string };
@@ -151,7 +153,7 @@ function useResumeImport(
 							},
 							fallback: t`Something went wrong while importing. Try again, or start blank.`,
 						});
-			setStep({ name: "failed", file, message });
+			setStep({ name: "failed", file, message, error });
 		}
 	};
 
@@ -207,17 +209,12 @@ function LegacyNewDocumentDialog({ data, onStart }: { data?: NewDocumentDialogDa
 
 	return (
 		<DialogContent size="wide">
-			{baseCvLimit && (
-				<div role="alert" className="grid gap-3 rounded-xl border border-line bg-bg p-4">
-					<p>
-						<Trans>
-							You have reached the limit for base CVs. Your existing documents remain available to edit and download.
-						</Trans>
-					</p>
-					<Button variant="secondary" onClick={closeDialog}>
-						<Trans>Close</Trans>
-					</Button>
-				</div>
+			{(!!baseCvLimit || (step.name === "failed" && isBaseCvLimit(step.error))) && (
+				<BaseCvLimitNotice
+					error={baseCvLimit || (step.name === "failed" ? step.error : undefined)}
+					busy={creating}
+					onOpen={openResume}
+				/>
 			)}
 			<AiProviderLoadState state={providerState} />
 			<input
@@ -437,7 +434,7 @@ function ImportStep({ step, creating, onCancel, onStartBlank, onChooseFile, onCl
 /** Start blank, try a sample, or a new letter: each creates the document at once and opens it. */
 export function useStartDocument(applicationId?: string) {
 	const lettersEnabled = usePersonalToolAvailable("coverLetters");
-	const [baseCvLimit, setBaseCvLimit] = useState(false);
+	const [baseCvLimit, setBaseCvLimit] = useState<unknown>(null);
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const closeDialog = useDialogStore((state) => state.closeDialog);
@@ -456,10 +453,10 @@ export function useStartDocument(applicationId?: string) {
 	};
 	const failed = (error: unknown) => {
 		if (isBaseCvLimit(error)) {
-			setBaseCvLimit(true);
+			setBaseCvLimit(error);
 			toast.add({
 				type: "error",
-				description: t`You have reached the limit for base CVs. Your existing documents remain available to edit and download.`,
+				description: baseCvLimitMessage(error),
 			});
 			return;
 		}
@@ -691,7 +688,7 @@ type CopyForApplicationProps = {
 /** Pick a resume and a job; the copy is named from both and linked to the application. */
 function CopyForApplication({ initialSourceId, initialJobId, onBack, onCreated }: CopyForApplicationProps) {
 	const sourceFieldId = useId();
-	const [copyError, setCopyError] = useState<string | null>(null);
+	const [copyError, setCopyError] = useState<unknown>(null);
 	const nameId = useId();
 	const { data: documents } = useQuery(orpc.documents.list.queryOptions({ input: { trashed: false } }));
 	const { data: applications } = useQuery(applicationsListQueryOptions());
@@ -726,7 +723,7 @@ function CopyForApplication({ initialSourceId, initialJobId, onBack, onCreated }
 			toast.add({ description: message });
 			onCreated(resumeId, Boolean(job));
 		} catch (error) {
-			setCopyError(getResumeErrorMessage(error));
+			setCopyError(error);
 		}
 	};
 
@@ -790,11 +787,15 @@ function CopyForApplication({ initialSourceId, initialJobId, onBack, onCreated }
 				</span>
 			</div>
 
-			{copyError && (
-				<Alert variant="error">
-					<Icon name="warning-circle" />
-					<AlertDescription>{copyError}</AlertDescription>
-				</Alert>
+			{getAllowanceReason(copyError) ? (
+				<AllowanceLimitNotice error={copyError} />
+			) : (
+				!!copyError && (
+					<Alert variant="error">
+						<Icon name="warning-circle" />
+						<AlertDescription>{getResumeErrorMessage(copyError)}</AlertDescription>
+					</Alert>
+				)
 			)}
 			<div className="flex flex-wrap justify-end gap-2">
 				<BackNavigation onClick={onBack}>

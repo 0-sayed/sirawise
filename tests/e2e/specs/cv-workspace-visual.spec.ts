@@ -73,10 +73,9 @@ for (const locale of ["en-US", "ar-SA"] as const)
 			else await page.getByRole("button", { name: /^(Review|مراجعة)/u }).click();
 			const pdfLabel = ar ? "قابلية قراءة PDF" : "PDF readability";
 			const pdfReadiness = page.getByRole("region", { name: pdfLabel, exact: true });
-			await expect(page.getByRole("tab", { name: ar ? "فحص ATS" : "ATS check", exact: true })).toHaveAttribute(
-				"aria-selected",
-				"true",
-			);
+			await expect(
+				page.getByRole("tab", { name: ar ? "قابلية القراءة الآلية (ATS)" : "Machine readability (ATS)", exact: true }),
+			).toHaveAttribute("aria-selected", "true");
 			await expect(pdfReadiness.getByText(ar ? "لم يُفحص" : "Not checked", { exact: true })).toBeVisible();
 			await expect(page.locator("[data-pdf-bytes-hash]")).toHaveCount(0);
 			await settleScreen(page);

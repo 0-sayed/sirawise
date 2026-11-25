@@ -100,7 +100,7 @@ it("does not count an unrelated absence or out-of-scope retention rejection as d
 it("keeps scoped retention, absence, response coverage and question premises as safety failures", async () => {
 	for (const kind of ["retention", "absence", "coverage", "premises"] as const) {
 		const category = {
-			retention: "translation",
+			retention: "tailoring",
 			absence: "job-evidence",
 			coverage: "summary",
 			premises: "interview-prep",
@@ -113,6 +113,14 @@ it("keeps scoped retention, absence, response coverage and question premises as 
 		expect((await rescore(receipt))?.honestFalseRejects, kind).toBe(1);
 	}
 });
+it.each(["lost", "unclear"] as const)(
+	"counts a translation retention verdict of %s as a safety rejection",
+	async (status) => {
+		const { receipt, verdict } = changed("translation", "gold");
+		verdict.retention = { status, evidenceIds: ["cv-1"], reason: "Translation retention was not verified." };
+		expect((await rescore(receipt))?.honestFalseRejects).toBe(1);
+	},
+);
 it("reports unavailable verification separately from an honest safety false rejection", async () => {
 	const { receipt, row } = changed("summary", "gold");
 	row.outcome = "truncated";

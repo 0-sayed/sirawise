@@ -1,5 +1,16 @@
-import { afterEach, expect, it, vi } from "vite-plus/test";
+import { expect, it, vi } from "vite-plus/test";
 import { createRouterClient } from "@orpc/server";
+import { rateLimitConfig } from "@reactive-resume/utils/rate-limit";
+import { operationService } from "./operations";
+
+vi.mock("../../redis", async () => {
+	const { MemoryRatelimiter } = await import("@orpc/experimental-ratelimit/memory");
+	return {
+		createRateLimiter: (_name: string, configuration: ConstructorParameters<typeof MemoryRatelimiter>[0]) =>
+			new MemoryRatelimiter(configuration),
+	};
+});
+vi.mock("@reactive-resume/env/server", () => ({ env: { FLAG_DISABLE_API_RATE_LIMIT: false } }));
 
 vi.mock("../../context", async () => {
 	const { os } = await vi.importActual<typeof import("@orpc/server")>("@orpc/server");
@@ -16,14 +27,9 @@ vi.mock("./operations", () => ({
 	},
 }));
 
-afterEach(() => {
-	vi.unstubAllEnvs();
-	vi.resetModules();
-});
 it("rate limits preflight before it reaches budget admission", async () => {
 	vi.stubEnv("NODE_ENV", "production");
-	vi.stubEnv("FLAG_DISABLE_API_RATE_LIMIT", "false");
-	const { aiRouter } = await import("./router");
+	const { aiRouter } = await import("./router").finally(() => vi.unstubAllEnvs());
 	const client = createRouterClient(aiRouter, { context: { user: { id: "preflight-rate-limit" } } as never });
 	const request = {
 		requestKey: "test",
@@ -33,15 +39,12 @@ it("rate limits preflight before it reaches budget admission", async () => {
 		consentVersion: "1",
 		parameters: {},
 	};
-	let limited = false;
-	for (let i = 0; i < 100; i++) {
-		try {
-			await client.operations.preflight({ ...request, requestKey: `request-${i}` });
-		} catch (error) {
-			expect(error).toMatchObject({ code: "TOO_MANY_REQUESTS" });
-			limited = true;
-			break;
-		}
+	const limit = rateLimitConfig.orpc.aiRequest.maxRequests;
+	for (let i = 0; i < limit; i++) {
+		await expect(client.operations.preflight({ ...request, requestKey: `request-${i}` })).resolves.toMatchObject({
+			available: true,
+		});
 	}
-	expect(limited).toBe(true);
+	await expect(client.operations.preflight(request)).rejects.toMatchObject({ code: "TOO_MANY_REQUESTS" });
+	expect(operationService.preflight).toHaveBeenCalledTimes(limit);
 });

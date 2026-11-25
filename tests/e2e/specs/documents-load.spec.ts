@@ -5,8 +5,8 @@ import { hostname, platform, arch, cpus } from "node:os";
 import { performance } from "node:perf_hooks";
 import { demoCredentials, demoAccountName, demoFixture } from "../../../tooling/local/demo-fixture";
 import { loginViaUi } from "../fixtures/auth";
+import { expect, test } from "../fixtures/demo-test";
 import { rpcRequestPaths } from "../fixtures/rpc-failure";
-import { expect, test } from "../fixtures/test";
 
 async function measure(page: Page) {
 	const requests: Record<string, number> = {};
@@ -60,8 +60,9 @@ async function measure(page: Page) {
 	};
 }
 
-test("demo library load measurements", async ({ browser, page, baseURL }, testInfo) => {
+test("demo library load measurements", async ({ browser, page, baseURL, demoLock }, testInfo) => {
 	test.setTimeout(600_000);
+	await demoLock();
 	const seed = execFileSync(process.execPath, ["tooling/local/demo-seed.mjs"], {
 		encoding: "utf8",
 		env: { ...process.env, NODE_ENV: "test", npm_config_verify_deps_before_run: "false" },

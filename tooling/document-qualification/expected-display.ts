@@ -1,12 +1,11 @@
 /** Independent source oracle: no renderer, formatter, or reader imports. D31 / Round 10. */
 export function expectedExportDateDisplay(source: string, rtl = true): string {
 	const value = source.replace(/[٠-٩۰-۹]/gu, (char) => String(char.charCodeAt(0) - (char <= "٩" ? 0x660 : 0x6f0)));
-	if (!rtl) return value;
 	// Whole date facts only. Contact, prose and identifier contexts never enter range recognition.
 	const part = "(?:[12]\\d{3}(?:-\\d{2}(?:-\\d{2})?)?|\\d{1,2}/(?:\\d{1,2}/)?[12]\\d{3})";
 	const closed = new RegExp(`^(${part})(\\s+هـ)?\\s*[–—-]\\s*(${part})(\\s+هـ)?$`, "u").exec(value);
 	const open = new RegExp(`^(${part})\\s*[–—-]\\s*(Present|حتى الآن|حالياً|حاليا|الآن|الحاضر)$`, "u").exec(value);
-	if (open) return `${open[1]} - ${open[2]}`;
+	if (open) return rtl ? `${open[1]} - ${open[2]}` : value;
 	if (!closed) return value;
 	const first = closed[1];
 	const last = closed[3];
@@ -33,7 +32,8 @@ export function expectedExportDateDisplay(source: string, rtl = true): string {
 	const b = parse(last);
 	if (!a || !b || a.key > b.key || a.precision !== b.precision || a.slash !== b.slash || (hijri && a.precision !== 1))
 		return value;
-	return `${first}-${last}${hijri ? " هـ" : ""}`;
+	if (hijri) return rtl ? `${first} هـ - ${last} هـ` : value;
+	return `${first}-${last}`;
 }
 
 /** D33 source-only display rule; observed reader output remains unchanged. */

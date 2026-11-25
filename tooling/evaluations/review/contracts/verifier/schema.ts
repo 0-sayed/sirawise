@@ -54,10 +54,11 @@ export const tasksVerifierSchema = z.strictObject({
 		status: z.enum(["appropriate", "no_change_needed", "inappropriate", "unclear"]),
 		reason,
 		mqm: mqmErrorsSchema.nullable().default(null),
+		assessment: z.literal("translation_language_quality").optional(),
 	}),
 });
 export const tasksVerifierWireSchema = tasksVerifierSchema.extend({
-	quality: tasksVerifierSchema.shape.quality.extend({ mqm: mqmErrorsSchema.nullable() }),
+	quality: tasksVerifierSchema.shape.quality.omit({ assessment: true }).extend({ mqm: mqmErrorsSchema.nullable() }),
 });
 export type TasksVerification = z.infer<typeof tasksVerifierSchema>;
 

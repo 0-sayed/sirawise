@@ -1,20 +1,13 @@
+import { getAllowanceFailure, getAllowanceModel, getAllowanceReason } from "@/features/usage/allowance-limit";
 export function isBaseCvLimit(error: unknown): boolean {
 	return getCreationLimit(error) === "BASE_CV_LIMIT";
 }
 
-export function getCreationLimit(error: unknown): "BASE_CV_LIMIT" | "LANGUAGE_COPY_LIMIT" | "JOB_COPY_LIMIT" | null {
-	const reasons = ["BASE_CV_LIMIT", "LANGUAGE_COPY_LIMIT", "JOB_COPY_LIMIT"] as const;
-	if (
-		!error ||
-		typeof error !== "object" ||
-		!("code" in error) ||
-		error.code !== "PRECONDITION_FAILED" ||
-		!("data" in error) ||
-		!error.data ||
-		typeof error.data !== "object" ||
-		!("reason" in error.data)
-	)
-		return null;
-	const candidate = error.data.reason;
-	return reasons.find((reason) => reason === candidate) ?? null;
+function getCreationLimit(error: unknown): "BASE_CV_LIMIT" | "LANGUAGE_COPY_LIMIT" | "JOB_COPY_LIMIT" | null {
+	const reason = getAllowanceReason(error);
+	return reason === "BASE_CV_LIMIT" || reason === "LANGUAGE_COPY_LIMIT" || reason === "JOB_COPY_LIMIT" ? reason : null;
 }
+export const baseCvLimitMessage = (error?: unknown) => {
+	const model = getAllowanceModel("BASE_CV_LIMIT", undefined, getAllowanceFailure(error)?.allowance);
+	return `${model.description} ${model.nextStep}`;
+};

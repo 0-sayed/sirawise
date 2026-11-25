@@ -15,7 +15,7 @@ import { AuthErrorSummary } from "../components/auth-error-summary";
 import { AuthHeading } from "../components/auth-heading";
 import { SocialAuth } from "../components/social-auth";
 import { useAuthCopy } from "../copy.generated";
-import { authErrorMessage } from "../errors";
+import { validAuthEmail, authErrorMessage } from "../errors";
 import {
 	getAuthRedirectOptions,
 	getOAuthCreationOptions,
@@ -114,6 +114,7 @@ export function LoginPage({ disableEmailAuth, disableSignups, allowGuestLogin }:
 	const router = useRouter();
 	const { callbackURL, reauthenticate, reason } = useSearch({ from: "/auth" });
 	const copy = useAuthCopy();
+	const [errorField, setErrorField] = useState<"identifier" | "password">("password");
 	const [error, setError] = useState<string | null>(null);
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
@@ -127,6 +128,12 @@ export function LoginPage({ disableEmailAuth, disableSignups, allowGuestLogin }:
 		validators: { onSubmit: formSchema },
 		onSubmit: async ({ value }) => {
 			setError(null);
+			setErrorField("password");
+			if (value.identifier.includes("@") && !validAuthEmail(value.identifier)) {
+				setErrorField("identifier");
+				setError(authErrorMessage("INVALID_EMAIL"));
+				return;
+			}
 			await submitLogin({
 				value,
 				callbackURL,
@@ -206,7 +213,7 @@ export function LoginPage({ disableEmailAuth, disableSignups, allowGuestLogin }:
 					</p>
 				</div>
 			)}
-			<AuthErrorSummary message={error} field="login-password" />
+			<AuthErrorSummary message={error} field={errorField === "identifier" ? "login-identifier" : "login-password"} />
 
 			{!disableEmailAuth && (
 				<form
@@ -220,10 +227,16 @@ export function LoginPage({ disableEmailAuth, disableSignups, allowGuestLogin }:
 					<form.Field name="identifier">
 						{(field) => (
 							<FormItem className="gap-1.5" hasError={field.state.meta.isTouched && field.state.meta.errors.length > 0}>
-								<FormLabel className="type-label text-ink">{copy("auth.email.label")}</FormLabel>
+								<FormLabel htmlFor="login-identifier" id="login-identifier-label" className="type-label text-ink">
+									{copy("auth.email.label")}
+								</FormLabel>
 								<FormControl
 									render={
 										<Input
+											id="login-identifier"
+											aria-labelledby="login-identifier-label"
+											aria-invalid={(!!error && errorField === "identifier") || undefined}
+											aria-errormessage={error && errorField === "identifier" ? "login-identifier-error" : undefined}
 											autoComplete="section-login username webauthn"
 											placeholder="john.doe@example.com"
 											size="lg"
@@ -257,6 +270,8 @@ export function LoginPage({ disableEmailAuth, disableSignups, allowGuestLogin }:
 										<PasswordInput
 											embedded
 											id="login-password"
+											aria-invalid={(!!error && errorField === "password") || undefined}
+											aria-errormessage={error && errorField === "password" ? "login-password-error" : undefined}
 											aria-labelledby="login-password-label"
 											minLength={6}
 											maxLength={64}

@@ -1,0 +1,26 @@
+{
+	"selections": [
+		{
+			"feature": "job-evidence",
+			"endpointSlot": "primary",
+			"writerModel": "openai/gpt-6.1-terra",
+			"verifierModel": "deepseek/deepseek-v4.1-flash-1017",
+			"promptVersion": "job-evidence-v8-explicit-verdict-scopes",
+			"schemaVersion": "job-evidence-v3-classified-verdicts",
+			"routeSha256": "1253770956597bfbd0de305391df626a488b595cc2484e320d4611722df9c6a0",
+			"manifestSha256": "fdb52026f1f0f2c5dff312a8dc937fd325e561b10c3b99d8088f535e0e0653d7",
+			"scoredReceiptsSha256": "ea2ca7d39df13e89bfb68f8ea927f4166f41431e3842e8277afca1f03549c9ef"
+		},
+		{
+			"feature": "extraction",
+			"endpointSlot": "primary",
+			"writerModel": "openai/gpt-6-luna",
+			"verifierModel": "deepseek/deepseek-v4.1-flash-1017",
+			"promptVersion": "extraction-v7-source-span-verification",
+			"schemaVersion": "extraction-v5-selective-delivery",
+			"routeSha256": "d81c19614d7d61a1159e3ff874ed5237a0d5c451a1bedfef909a82d6665de8ed",
+			"manifestSha256": "fdb52026f1f0f2c5dff312a8dc937fd325e561b10c3b99d8088f535e0e0653d7",
+			"scoredReceiptsSha256": "ea2ca7d39df13e89bfb68f8ea927f4166f41431e3842e8277afca1f03549c9ef"
+		}
+	]
+}
