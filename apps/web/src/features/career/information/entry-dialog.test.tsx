@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import type { MasterFact } from "@reactive-resume/schema/career-master";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vite-plus/test";
 import { i18n } from "@lingui/core";
@@ -25,14 +26,14 @@ beforeEach(() => {
 	i18n.loadAndActivate({ locale: "en-US", messages: {} });
 	savePending.mockReset().mockResolvedValue({ id: "fact", revision: 1, draftRevision: 1 });
 });
-function mount(section: "experience" | "education" | "certifications" = "experience") {
+function mount(section: "experience" | "education" | "certifications" = "experience", facts: MasterFact[] = []) {
 	return render(
 		<I18nProvider i18n={i18n}>
 			<QueryClientProvider client={new QueryClient()}>
 				<CareerEntryDialog
 					section={section}
 					entityId="entry"
-					facts={[]}
+					facts={facts}
 					profileRevision={1}
 					onClose={vi.fn()}
 					onSaved={vi.fn()}
@@ -124,4 +125,34 @@ it("keeps focus on the end date after following the date-order error link", asyn
 	await waitFor(() => expect(end).toHaveFocus());
 	expect(screen.queryByRole("button", { name: "January" })).not.toBeInTheDocument();
 	expect(savePending).not.toHaveBeenCalled();
+});
+
+it("clears a discarded date error when cancelling removal", async () => {
+	const source = { kind: "manual", id: "entry", quote: "2024" } as const;
+	mount("experience", [
+		{
+			id: "dates",
+			text: "2024",
+			source,
+			status: "active",
+			confirmation: "confirmed",
+			revision: 1,
+			draftRevision: 0,
+			structured: {
+				entityId: "entry",
+				section: "experience",
+				field: "dates",
+				source,
+				value: { start: "2024", end: null, present: false },
+			},
+			proposedStructured: null,
+		},
+	]);
+	fireEvent.change(screen.getByRole("textbox", { name: "Start date" }), { target: { value: "invalid" } });
+	expect(screen.getByRole("button", { name: "Review changes" })).toBeDisabled();
+	fireEvent.click(screen.getByRole("button", { name: "Remove entry" }));
+	fireEvent.click(await screen.findByRole("button", { name: "Cancel" }));
+	expect(screen.getByRole("textbox", { name: "Start date" })).toHaveValue("2024");
+	expect(screen.queryByText("Choose a valid date.")).not.toBeInTheDocument();
+	expect(screen.getByRole("button", { name: "Review changes" })).toBeEnabled();
 });

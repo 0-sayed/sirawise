@@ -387,7 +387,14 @@ export function CareerEntryDialog({ section, entityId, facts, profileRevision, o
 							{hasInvalidDate && <p role="alert" className="type-body text-danger-text">{t`Choose a valid date.`}</p>}
 							<TaskOverlayFooter>
 								{facts.length > 0 && (
-									<Button variant="ghost" disabled={pending} onClick={() => setRemoving(true)}>
+									<Button
+										variant="ghost"
+										disabled={pending}
+										onClick={() => {
+											setInvalidDates({});
+											setRemoving(true);
+										}}
+									>
 										<Trans>Remove entry</Trans>
 									</Button>
 								)}

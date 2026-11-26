@@ -130,6 +130,7 @@ export function StartCvDialog({ data: initial }: StartCvDialogProps) {
 				},
 			});
 			controller.signal.throwIfAborted();
+			data.metadata.page.locale = locale;
 			const flowId = crypto.randomUUID();
 			await saveReviewDraft({
 				version: 1,

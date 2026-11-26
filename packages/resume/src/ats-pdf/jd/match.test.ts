@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 import { matchJobDescription } from "./match";
+import { isGenericJobWord } from "./stopwords";
 import { matchingWindows, tokenize } from "./tokenize";
 
 describe("tokenize", () => {
@@ -9,7 +10,7 @@ describe("tokenize", () => {
 	});
 
 	it("matches singular and plural possessives without altering the source span", () => {
-		expect(tokenize("client's users' Node.js’s C++'s C# .net don't")).toEqual([
+		expect(tokenize("client's users' Node.js’s C++'s C# .net don't José's Zoë’s")).toEqual([
 			"client",
 			"users",
 			"Node.js",
@@ -17,6 +18,8 @@ describe("tokenize", () => {
 			"C#",
 			".net",
 			"don't",
+			"José",
+			"Zoë",
 		]);
 		expect(matchingWindows("AWS’s Lambda", 2)).toContainEqual({
 			text: "aws lambda",
@@ -32,6 +35,11 @@ describe("tokenize", () => {
 });
 
 describe("matchJobDescription", () => {
+	it("treats bare and definite Arabic job vocabulary as generic", () => {
+		for (const word of ["مطلوبة", "المطلوبة", "والمرشح", "الإدارة", "الادارية"])
+			expect(isGenericJobWord(word)).toBe(true);
+		expect(isGenericJobWord("البرمجة")).toBe(false);
+	});
 	it("matches a posting's abbreviation against the resume's spelled-out form", () => {
 		const report = matchJobDescription({
 			jobDescription: "Requirements\n- Strong K8s experience\n- Solid JS fundamentals",

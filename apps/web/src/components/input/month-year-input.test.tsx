@@ -52,6 +52,16 @@ it("does not open on focus or typed date input", async () => {
 	await expectClosed();
 });
 
+it.each([
+	["1890", "1890"],
+	["Jan 2120", "2120-01"],
+])("accepts the typed date %s", (value, expected) => {
+	const { input, commit } = mount();
+	fireEvent.change(input, { target: { value } });
+	expect(commit).toHaveBeenLastCalledWith(expected);
+	expect(input).not.toHaveAttribute("aria-invalid", "true");
+});
+
 it("opens on a field click and closes when typing starts", async () => {
 	const { user, input } = mount();
 	await user.click(input);

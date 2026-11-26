@@ -129,6 +129,10 @@ describe("upgradeResumeDates", () => {
 });
 
 describe("formatYearMonth", () => {
+	it.each(["0000", "0099", "0999"])("keeps the four-digit year %s", (year) => {
+		expect(formatYearMonth(`${year}-01`, { locale: "en-US", format: "short" })).toBe(`Jan ${year}`);
+	});
+
 	it.each([
 		["short", "en-US", "Mar 2022"],
 		["long", "en-US", "March 2022"],

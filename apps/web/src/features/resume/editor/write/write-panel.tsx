@@ -48,7 +48,11 @@ export function WritePanel() {
 			<CareerReuseNotice key={resumeId} available={isEmpty && !locked} />
 
 			<BasicsCard locked={locked} />
-			<Button variant="secondary" render={<Link to="/dashboard/resumes/$resumeId/job" params={{ resumeId }} />}>
+			<Button
+				variant="secondary"
+				nativeButton={false}
+				render={<Link to="/dashboard/resumes/$resumeId/job" params={{ resumeId }} />}
+			>
 				{copy("review.launch.cvJobLink")}
 			</Button>
 

@@ -20,7 +20,7 @@ type FormControlContextValue = {
 	labelId?: string;
 	hasError?: boolean;
 	"aria-describedby"?: string;
-	"aria-invalid"?: boolean | "true" | "false";
+	"aria-invalid"?: React.AriaAttributes["aria-invalid"];
 };
 
 const FormControlContext = React.createContext<FormControlContextValue | null>(null);
@@ -116,6 +116,7 @@ function FormControl({ render, ...props }: useRender.ComponentProps<"div">) {
 	const controlId = `${id}-form-item`;
 	const labelId = `${id}-form-item-label`;
 	const describedBy = hasError ? `${id}-form-item-description ${id}-form-item-message` : `${id}-form-item-description`;
+	const invalid = "aria-invalid" in props ? props["aria-invalid"] : hasError;
 
 	const contextValue = React.useMemo<FormControlContextValue>(
 		() => ({
@@ -123,9 +124,9 @@ function FormControl({ render, ...props }: useRender.ComponentProps<"div">) {
 			labelId,
 			hasError,
 			"aria-describedby": describedBy,
-			"aria-invalid": hasError,
+			"aria-invalid": invalid,
 		}),
-		[controlId, describedBy, hasError, labelId],
+		[controlId, describedBy, hasError, invalid, labelId],
 	);
 
 	useFormControlWarning(controlId);
@@ -138,7 +139,7 @@ function FormControl({ render, ...props }: useRender.ComponentProps<"div">) {
 			id: controlId,
 			"data-slot": "form-control",
 			"aria-describedby": describedBy,
-			"aria-invalid": hasError,
+			"aria-invalid": invalid,
 			...props,
 		},
 	});

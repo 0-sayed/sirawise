@@ -36,7 +36,7 @@ function segment(text: string): Segment[] {
 export function tokenize(text: string): string[] {
 	// Keep UTF-16 positions intact for matchingWindows.
 	const withoutPossessives = text.replace(
-		/([a-z][a-z0-9._/+#-]*)(['’](?:s(?![a-z])|(?<=s['’])(?![a-z])))/giu,
+		/(?<![\p{L}\p{M}\p{N}_])([\p{L}][\p{L}\p{M}\p{N}._/+#-]*)(['’](?:s|(?<=s['’])))(?![\p{L}\p{M}])/giu,
 		(word, stem: string, suffix: string) =>
 			isEnglishContraction(word.toLowerCase().replaceAll("’", "'")) ? word : stem + " ".repeat(suffix.length),
 	);

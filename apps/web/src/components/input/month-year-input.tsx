@@ -18,7 +18,7 @@ const monthDateSamples = Array.from({ length: 12 }, (_, month) => new Date(Date.
 function readTypedDate(text: string, locale: string): YearMonth | null | undefined {
 	const value = text.trim();
 	if (!value) return null;
-	const reading = readSingleDate(value, locale);
+	const reading = readSingleDate(value, locale, { allowAnyYear: true });
 	return reading ? toYearMonth(reading.endpoint) : undefined;
 }
 
@@ -68,9 +68,11 @@ export function MonthYearInput({
 		[locale],
 	);
 	const formatted = value ? formatYearMonth(value, { locale, format }) : "";
-	const years = Array.from({ length: 111 }, (_, index) => selectedYear + 10 - index);
+	const years = Array.from({ length: 111 }, (_, index) => selectedYear + 10 - index).filter(
+		(year) => year >= 0 && year <= 9999,
+	);
 	const chooseMonth = (month: number) => {
-		const next = `${calendarYear}-${String(month + 1).padStart(2, "0")}` as YearMonth;
+		const next = toYearMonth({ year: calendarYear, month: month + 1 });
 		setTyped(null);
 		setOpen(false);
 		setInvalid(false);
@@ -174,7 +176,7 @@ export function MonthYearInput({
 						{months.map(({ value: month, label: monthLabel }) => (
 							<Button
 								key={month}
-								variant={value === `${calendarYear}-${String(month + 1).padStart(2, "0")}` ? "secondary" : "ghost"}
+								variant={value === toYearMonth({ year: calendarYear, month: month + 1 }) ? "secondary" : "ghost"}
 								size="calendar-date"
 								onClick={() => chooseMonth(month)}
 							>

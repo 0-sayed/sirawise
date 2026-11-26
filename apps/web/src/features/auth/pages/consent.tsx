@@ -64,6 +64,7 @@ export function OAuthConsentPage({ oauthQuery, email }: OAuthConsentPageProps) {
 		}
 	}
 
+	const clientName = client?.client_name?.trim();
 	const skeletonWait1 = useSkeletonLoading(isPending);
 	return (
 		<>
@@ -84,8 +85,13 @@ export function OAuthConsentPage({ oauthQuery, email }: OAuthConsentPageProps) {
 			) : client ? (
 				<div className={cn(ENTER_CLASS, "space-y-4")}>
 					<p className="font-medium wrap-anywhere">
-						<bdi dir="auto">{client.client_name?.trim() || t`Unknown application`}</bdi>
+						<bdi dir="auto">{clientName || t`Unknown application`}</bdi>
 					</p>
+					{!clientName && (
+						<p className="type-metadata wrap-anywhere text-ink-2">
+							<bdi dir="ltr">{clientId}</bdi>
+						</p>
+					)}
 					<p className="type-body">
 						<Trans>Only allow applications you trust. This application will be able to:</Trans>
 					</p>

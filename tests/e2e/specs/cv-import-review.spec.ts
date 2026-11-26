@@ -228,6 +228,7 @@ for (const locale of ["en-US", "ar-SA"] as const)
 				: { body: raw };
 			const body = typeof item.body === "string" ? JSON.parse(item.body) : item.body;
 			const input = importReviewInputSchema.parse(body.json);
+			expect(input.data.metadata.page.locale).toBe(locale);
 			const expected = buildCareerFactCandidates(input.data, { kind: "manual", id: input.flowId, quote: "" });
 			expect(expected.length).toBeGreaterThan(0);
 			expect(
