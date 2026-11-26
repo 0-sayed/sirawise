@@ -61,7 +61,7 @@ it("keeps empty and unusable jobs unknown and discloses selection limits", () =>
 
 it.each([
 	["React.js, C++, C#", "😀 REACT, C++, C#"],
-	["إِدَارَة, تحليل", "😀 إِدَارَة وتحليل"],
+	["إِحْصَاء, تحليل", "😀 إِحْصَاء وتحليل"],
 	["مهارة١٢, مـهارة", "مهارة12، مهارة"],
 	["ﬁnance, Ｒｅａｃｔ, café", "finance; React; café"],
 	["React, React", "“React” — React"],
