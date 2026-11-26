@@ -1179,14 +1179,11 @@ button .success-tick {
 	}
 }
 
-.review-wording[data-review-action="accept"] ins {
+.review-wording[data-review-action="accept"] p {
 	animation: review-inserted var(--d3) var(--ease) both;
 }
-.review-wording[data-review-action="undo"] del {
+.review-wording[data-review-action="undo"] :is(del, ins) {
 	animation: review-inserted var(--d2) var(--ease) both;
-}
-.review-wording[data-review-action="undo"] ins {
-	animation: review-restored var(--d2) var(--ease) both;
 }
 @keyframes review-inserted {
 	from {
@@ -1194,14 +1191,6 @@ button .success-tick {
 	}
 	to {
 		opacity: 1;
-	}
-}
-@keyframes review-restored {
-	from {
-		opacity: 1;
-	}
-	to {
-		opacity: 0.5;
 	}
 }
 .preview-edit-highlight[data-review-action] {
@@ -1220,7 +1209,7 @@ button .success-tick {
 	}
 }
 @media (prefers-reduced-motion: reduce) {
-	.review-wording[data-review-action] :is(del, ins) {
+	.review-wording[data-review-action] :is(del, ins, p) {
 		animation: none;
 	}
 	.preview-edit-highlight[data-review-action][data-motion="static"] {
@@ -1230,12 +1219,19 @@ button .success-tick {
 	}
 }
 
-/* Evidence review additions: shared semantic warning role, also distinguished by underline. */
-.wording-added {
-	color: var(--warn-text);
-	background: var(--warn-soft);
-	text-decoration: underline;
-	text-decoration-style: dotted;
+.diff-del,
+.diff-ins {
+	@apply rounded-sm px-0.5;
+	unicode-bidi: isolate;
+}
+.diff-del {
+	@apply bg-danger-soft text-danger-text line-through;
+}
+.diff-ins {
+	@apply bg-accent-soft text-accent-text underline decoration-dotted;
+}
+.diff-punct {
+	@apply px-1;
 }
 
 /* Check return uses the existing edit acknowledgement, with a static reduced-motion cue. */

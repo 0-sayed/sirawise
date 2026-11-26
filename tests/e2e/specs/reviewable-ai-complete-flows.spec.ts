@@ -1,5 +1,6 @@
 import {
 	captureReviewDirection,
+	captureReviewFooter,
 	expectReviewTextDirection,
 	openWriting,
 	seedReview,
@@ -29,7 +30,8 @@ test("job-evidence and tailoring complete flows persist accepted results in Arab
 
 	// Job-evidence review on job copy -> accept -> persists across reload without mutating CV
 	await page.goto(`/dashboard/resumes/${copyId}/job`);
-	await page.getByRole("button", { name: "مراجعة أدلة الوظيفة", exact: true }).click();
+	await page.getByRole("button", { name: /Detailed requirement check|فحص متطلبات الوظيفة بالتفصيل/u }).click();
+	await page.getByRole("button", { name: "فحص متطلبات الوظيفة", exact: true }).click();
 	await page.getByRole("dialog").getByRole("button", { name: "بدء المراجعة", exact: true }).click();
 	await expect
 		.poll(async () => (await api.career.jobTargets.evidence({ resumeId: copyId })).semantic.state, {
@@ -52,7 +54,7 @@ test("job-evidence and tailoring complete flows persist accepted results in Arab
 	expect((await api.resume.getById({ id: sourceId })).data).toEqual(original.data);
 
 	// Tailoring review on job copy -> accept -> persists across reload on copy only
-	await launchTailoringReview(page, copyId);
+	await launchTailoringReview(page, copyId, true);
 	const proposals = page.locator("[data-proposal-index]");
 	await expect(proposals).toHaveCount(3, { timeout: 30_000 });
 	const summaryProposal = proposals.filter({ hasText: "Did not manage a budget." });
@@ -130,6 +132,7 @@ for (const locale of ["ar-SA", "en-US"] as const)
 			const newText = await proposed.innerText();
 			await proposed.scrollIntoViewIfNeeded();
 			await captureReviewDirection(page, info, "cover-letter");
+			await captureReviewFooter(page, info, "cover-letter-footer", accept);
 			await accept.click();
 			await expect
 				.poll(async () => (await api.coverLetters.getById({ id: letter.id })).revision)
@@ -165,34 +168,45 @@ test("one-click translation auto-applies and persists across reload while leavin
 	expect((await api.resume.getById({ id: sourceId })).data).toEqual(source.data);
 });
 
-test("summary review complete flow accepts and persists across reload in Arabic interface", async ({
-	authPage: page,
-}, info) => {
-	test.setTimeout(90_000);
-	const resumeId = await seedVariantReview(page, info, true);
-	const api = variantClient(page);
-	const before = (await api.resume.getById({ id: resumeId })).data.summary.content;
-	await expect(
-		await page.request.post("/api/auth/update-user", {
-			data: { uiLocale: "ar-SA" },
-			headers: { origin: String(info.project.use.baseURL) },
-		}),
-	).toBeOK();
-	await page.goto(`/builder/${resumeId}`);
-	await page.getByRole("button", { name: "الملخّص", exact: true }).first().click();
-	await page
-		.locator("summary")
-		.filter({ hasText: /اختر حقائق/ })
-		.click();
-	await page.getByRole("checkbox").first().check();
-	await page.getByRole("button", { name: "مراجعة النبذة", exact: true }).click();
-	await page.getByRole("dialog").getByRole("button", { name: "بدء المراجعة", exact: true }).click();
-	await expect(page.getByRole("dialog")).toHaveCount(0);
-	const accept = page.getByRole("button", { name: "قبول", exact: true }).first();
-	await expect(accept).toBeVisible({ timeout: 30_000 });
-	await accept.click();
-	await expect.poll(async () => (await api.resume.getById({ id: resumeId })).data.summary.content).not.toBe(before);
-	const persisted = (await api.resume.getById({ id: resumeId })).data.summary.content;
-	await page.reload();
-	expect((await api.resume.getById({ id: resumeId })).data.summary.content).toBe(persisted);
-});
+for (const locale of ["ar-SA", "en-US"] as const)
+	for (const width of [1440, 390])
+		test(`summary review accepts and persists across reload at ${locale} ${width}`, async ({
+			authPage: page,
+		}, info) => {
+			test.setTimeout(90_000);
+			const ar = locale === "ar-SA";
+			await page.setViewportSize({ width, height: 900 });
+			const resumeId = await seedVariantReview(page, info, true);
+			const api = variantClient(page);
+			const before = (await api.resume.getById({ id: resumeId })).data.summary.content;
+			await expect(
+				await page.request.post("/api/auth/update-user", {
+					data: { uiLocale: locale },
+					headers: { origin: String(info.project.use.baseURL) },
+				}),
+			).toBeOK();
+			await page.goto(`/builder/${resumeId}`);
+			await page
+				.getByRole("button", { name: ar ? "الملخّص" : "Summary", exact: true })
+				.first()
+				.click();
+			await page
+				.locator("summary")
+				.filter({ hasText: ar ? "اختر حقائق للنبذة" : "Select facts for the summary" })
+				.click();
+			await page.getByRole("checkbox").first().check();
+			await page.getByRole("button", { name: ar ? "مراجعة النبذة" : "Review summary", exact: true }).click();
+			await page
+				.getByRole("dialog")
+				.getByRole("button", { name: ar ? "بدء المراجعة" : "Start review", exact: true })
+				.click();
+			await expect(page.getByRole("dialog")).toHaveCount(0);
+			const accept = page.getByRole("button", { name: ar ? "قبول" : "Accept", exact: true }).first();
+			await expect(accept).toBeVisible({ timeout: 30_000 });
+			await captureReviewFooter(page, info, "summary-footer", accept);
+			await accept.click();
+			await expect.poll(async () => (await api.resume.getById({ id: resumeId })).data.summary.content).not.toBe(before);
+			const persisted = (await api.resume.getById({ id: resumeId })).data.summary.content;
+			await page.reload();
+			expect((await api.resume.getById({ id: resumeId })).data.summary.content).toBe(persisted);
+		});

@@ -12,7 +12,7 @@ export function TranslationPartFailure({ part, code }: { part: number; code?: st
 				<ReviewFailureReason code={code} />
 			) : code?.startsWith("AI_VERIFICATION") || code === "AI_REVIEW_INVALID" ? (
 				<Trans context="review.translation.partSafety">
-					Could not be verified as an accurate translation. The original text is kept.
+					This segment did not pass the translation checks. The original text is kept.
 				</Trans>
 			) : (
 				<ReviewFailureReason code={code} />

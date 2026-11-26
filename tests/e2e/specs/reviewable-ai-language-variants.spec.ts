@@ -1,7 +1,72 @@
 import { captureReviewDirection, expectReviewTextDirection } from "../fixtures/reviewable-ai";
 import { settleScreen } from "../fixtures/screen";
 import { expect, test } from "../fixtures/test";
-import { seedVariantReview, variantClient, startVariantReview } from "../fixtures/variants";
+import { decideVariantFixture, seedVariantReview, variantClient, startVariantReview } from "../fixtures/variants";
+
+for (const locale of ["en-US", "ar-SA"] as const) {
+	for (const width of [1440, 390]) {
+		test(`stale translation keeps the saved copy and starts a fresh review in ${locale} at ${width}px`, async ({
+			authPage: page,
+		}, info) => {
+			await page.setViewportSize({ width, height: 900 });
+			const id = await seedVariantReview(page, info);
+			await expect(
+				await page.request.post("/api/auth/update-user", {
+					data: { uiLocale: locale },
+					headers: { origin: String(info.project.use.baseURL) },
+				}),
+			).toBeOK();
+			const api = variantClient(page);
+			const source = await api.resume.getById({ id });
+			const copy = await api.resume.variants.create({
+				sourceResumeId: id,
+				expectedUpdatedAt: source.updatedAt.toISOString(),
+				variantKind: "language",
+				targetLocale: "ar-SA",
+				requestKey: crypto.randomUUID(),
+			});
+			await startVariantReview(
+				page,
+				await api.ai.variantReview.prepare({
+					kind: "review.translation",
+					resumeId: copy.resumeId,
+					expectedUpdatedAt: copy.updatedAt,
+					expectedSourceRevision: source.updatedAt.toISOString(),
+				}),
+			);
+			const saved = await api.resume.getById({ id: copy.resumeId });
+			saved.data.basics.headline = "عنوان عربي محفوظ";
+			await api.resume.update({
+				id: copy.resumeId,
+				data: saved.data,
+				expectedUpdatedAt: saved.updatedAt.toISOString(),
+			});
+			await page.goto(`/dashboard/resumes/${id}/languages`);
+			const ar = locale === "ar-SA";
+			await expect(
+				page.getByText(
+					ar
+						? "تغيّرت السيرة الذاتية بعد الترجمة، لذا لم تعد هذه المراجعة محدثة. ابدأ ترجمة جديدة."
+						: "The CV changed after this translation, so this review is out of date. Start a new translation.",
+				),
+			).toBeVisible();
+			await expect(page.getByText("عنوان عربي محفوظ", { exact: true })).toBeVisible();
+			await expect(page.getByRole("button", { name: /^(Retry|إعادة المحاولة)$/u })).toHaveCount(0);
+			expect((await api.resume.getById({ id: copy.resumeId })).data).toEqual(saved.data);
+			await settleScreen(page);
+			await expect(page.locator("html")).toHaveAttribute("dir", ar ? "rtl" : "ltr");
+			expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+			await captureReviewDirection(page, info, "stale-translation");
+			const started = page.waitForResponse((response) =>
+				/^\/api\/rpc\/ai\/operations\/start(?:\/__batch__)?$/u.test(new URL(response.url()).pathname),
+			);
+			await page.getByRole("button", { name: ar ? "تحديث النسخة" : "Update copy", exact: true }).click();
+			expect((await started).ok()).toBe(true);
+			await expect(page.getByRole("dialog")).toHaveCount(0);
+		});
+	}
+}
+
 test("translation auto-applies when verified with no pending terms, survives reload and undo locally", async ({
 	authPage: page,
 }, info) => {
@@ -95,8 +160,9 @@ for (const locale of ["en-US", "ar-SA"] as const)
 			await expect(page.getByRole("dialog")).toHaveCount(0);
 			await expect(page.getByRole("button", { name: /^(Accept|قبول)$/ }).first()).toBeVisible({ timeout: 30000 });
 			const summary = page.locator(".review-wording");
-			await expectReviewTextDirection(summary.locator("del"), direction);
-			await expectReviewTextDirection(summary.locator("ins"), direction);
+			const summaryPassages = summary.locator('p[dir="auto"]');
+			expect(await summaryPassages.count()).toBeGreaterThan(0);
+			for (const passage of await summaryPassages.all()) await expectReviewTextDirection(passage, direction);
 			await summary.scrollIntoViewIfNeeded();
 			await settleScreen(page);
 			await page.screenshot({ path: info.outputPath("summary-review.png"), fullPage: true });
@@ -104,23 +170,33 @@ for (const locale of ["en-US", "ar-SA"] as const)
 			await page.goto(`/dashboard/resumes/${id}/job`);
 			await page.getByLabel(/^(Job title|المسمى الوظيفي)$/).fill("Engineer");
 			await page.getByLabel(/^(Job ad|إعلان الوظيفة)$/).fill("TypeScript and SAP required");
-			await page.getByRole("button", { name: /^(Compare|قارن|مقارنة)$/ }).click();
-			await page.getByRole("button", { name: /^(Review job evidence|مراجعة أدلة الوظيفة)$/ }).click();
-			await page
-				.getByRole("dialog")
-				.getByRole("button", { name: /^(Start review|بدء المراجعة)$/ })
-				.click();
+			await page.getByRole("button", { name: /^(Compare with job|مقارنة بالوظيفة)$/ }).click();
+			await page.getByRole("button", { name: /Detailed requirement check|فحص متطلبات الوظيفة بالتفصيل/u }).click();
+			await page.getByRole("button", { name: /^(Check job requirements|فحص متطلبات الوظيفة)$/ }).click();
 			await expect(page.getByRole("dialog")).toHaveCount(0);
 			await expect
 				.poll(async () => (await api.career.jobTargets.evidence({ resumeId: id })).semantic.state, { timeout: 30000 })
 				.toBe("waiting-review");
-			const report = page.getByRole("region", { name: "report", exact: true });
-			await expectReviewTextDirection(report.locator('p[dir="auto"]').first(), "ltr");
-			await expectReviewTextDirection(report.locator('p[dir="auto"]').last(), direction);
-			await expect(report.locator("p").nth(1)).toHaveCSS("direction", ar ? "rtl" : "ltr");
+			const report = page.getByRole("region", {
+				name: ar ? "فحص متطلبات الوظيفة بالتفصيل" : "Detailed requirement check",
+				exact: true,
+			});
+			await expectReviewTextDirection(report.getByText("TypeScript and SAP required", { exact: true }), "ltr");
+			await expectReviewTextDirection(
+				report.getByText(
+					ar ? "قارن هذه الملاحظة بالمعلومات الواردة في المصدر." : "Check this finding against the source information.",
+					{ exact: true },
+				),
+				ar ? "rtl" : "ltr",
+			);
+			expect((await api.resume.getById({ id })).data.basics.headline).toBe(ar ? "Engineer" : "مهندس");
+			await expect(report.getByText(ar ? "دليل جزئي" : "Partial evidence", { exact: true })).toHaveCSS(
+				"direction",
+				ar ? "rtl" : "ltr",
+			);
 			await report.scrollIntoViewIfNeeded();
 			await captureReviewDirection(page, info, "job-evidence");
-			await page.getByRole("button", { name: /^(Add information|إضافة معلومة)$/ }).click();
+			await page.getByRole("button", { name: /^(Add a fact|أضف معلومة)$/ }).click();
 			const dialog = page.getByRole("dialog");
 			await expect(dialog.getByText("TypeScript and SAP required", { exact: true })).toBeVisible();
 			await expect(dialog.getByText("TypeScript and SAP required", { exact: true })).toHaveAttribute("dir", "auto");
@@ -158,38 +234,57 @@ test("auto-applied translation, undo and re-approval preserve readable local nam
 	});
 	const operationId = await startVariantReview(page, prepared);
 	await page.goto(`/dashboard/resumes/${id}/languages`);
-	await expect(page.getByText("Translation ready", { exact: true })).toBeVisible();
+	await expect(page.getByText("Arabic · Ready", { exact: true })).toBeVisible();
 	await expect(page.getByText(/\[LOCAL_\d+\]/)).toHaveCount(0);
 	await page.getByRole("button", { name: "Compare with original", exact: true }).click();
-	await page.getByText("Show 1 confirmed name", { exact: true }).click();
-	await expect(page.getByText("Synthetic Institute", { exact: true }).first()).toBeVisible();
+	const names = page.locator("details").filter({ has: page.getByText("Show 1 confirmed name", { exact: true }) });
+	await names.locator("summary").click();
+	await expect(names.getByText("Synthetic Institute", { exact: true })).toBeVisible();
 	await settleScreen(page);
 	await page.screenshot({ path: info.outputPath("translation-local-names.png"), fullPage: true });
-	await page.getByRole("button", { name: "Undo last action", exact: true }).click();
+	const initial = await api.ai.variantReview.get({ operationId });
+	const approval = initial.undoable.find(({ subjectIds }) => subjectIds.includes("translation"));
+	if (!approval) throw new Error("Expected undoable legacy approval");
+	await decideVariantFixture(api, operationId, {
+		subjectIds: ["translation"],
+		decision: "undo",
+		undoDecisionId: approval.decisionId,
+	});
 	await expect.poll(async () => (await api.resume.getById({ id: copy.resumeId })).data).toEqual(source.data);
+	await page.reload();
 	const pending = await api.ai.variantReview.get({ operationId });
 	expect(Object.values(pending.segments).map(({ status }) => status)).toEqual(Array(4).fill("accepted"));
 	expect(pending.terms.terms.filter(({ status }) => status === "confirmed")).toHaveLength(1);
-	await page.getByRole("button", { name: /^Summary\b/u }).click();
-	const summary = page.getByRole("region").filter({ hasText: "Built TypeScript services" });
-	const reject = summary.getByRole("button", { name: "Reject", exact: true });
-	await reject.click();
-	await expect(summary.getByText("Rejected", { exact: true })).toBeVisible();
-	await expect(page.getByRole("button", { name: "Approve language copy", exact: true })).toBeDisabled();
+	const sourceSegment = pending.sourceSegments.find(({ text }) => text.includes("Built TypeScript services"));
+	if (!sourceSegment) throw new Error("Expected synthetic summary segment");
+	await page.getByRole("button", { name: "Show original text", exact: true, pressed: false }).click();
+	const summary = page.locator('[data-slot="translation-segment"]').filter({
+		has: page.getByText(sourceSegment.text, { exact: true }),
+	});
+	await expect(summary.getByRole("button", { name: "Edit", exact: true })).toBeVisible();
+	await expect(summary.getByRole("button", { name: "Reject", exact: true })).toHaveCount(0);
+	await decideVariantFixture(api, operationId, { subjectIds: [sourceSegment.id], decision: "reject" });
+	const approve = page.getByRole("button", { name: "Approve & save Arabic copy", exact: true });
+	await expect(approve).toBeEnabled();
 	const rejected = await api.ai.variantReview.get({ operationId });
 	expect(Object.values(rejected.segments).filter(({ status }) => status === "rejected")).toHaveLength(1);
 	expect(rejected.latestDecisionId).not.toBe(pending.latestDecisionId);
 	expect((await api.resume.getById({ id: copy.resumeId })).data).toEqual(source.data);
-	await summary.getByRole("button", { name: "Undo", exact: true }).click();
-	await expect(page.getByText("Rejected", { exact: true })).toHaveCount(0);
-	await expect(reject).toBeEnabled();
+	const last = rejected.undoable.find(({ subjectIds }) => subjectIds.includes(sourceSegment.id));
+	if (!last) throw new Error("Expected undoable legacy rejection");
+	await decideVariantFixture(api, operationId, {
+		subjectIds: last.subjectIds,
+		decision: "undo",
+		undoDecisionId: last.decisionId,
+	});
 	const undone = await api.ai.variantReview.get({ operationId });
 	expect(undone.segments).toEqual(pending.segments);
 	expect(undone.terms).toEqual(pending.terms);
 	expect(undone.latestDecisionId).not.toBeNull();
 	expect(undone.latestDecisionId).not.toBe(rejected.latestDecisionId);
 	expect((await api.resume.getById({ id: copy.resumeId })).data).toEqual(source.data);
-	await page.getByRole("button", { name: "Approve language copy", exact: true }).click();
+	await page.reload();
+	await approve.click();
 	await expect
 		.poll(async () => (await api.resume.getById({ id: copy.resumeId })).data.metadata.page.locale)
 		.toBe("ar-SA");
@@ -220,12 +315,19 @@ for (const width of [1440, 390])
 			expectedSourceRevision: source.updatedAt.toISOString(),
 		});
 		const operationId = await startVariantReview(page, prepared);
+		const initial = await api.ai.variantReview.get({ operationId });
+		const approval = initial.undoable.find(({ subjectIds }) => subjectIds.includes("translation"));
+		if (!approval) throw new Error("Expected undoable legacy approval");
+		await decideVariantFixture(api, operationId, {
+			subjectIds: ["translation"],
+			decision: "undo",
+			undoDecisionId: approval.decisionId,
+		});
 		await page.goto(`/dashboard/resumes/${id}/languages`);
-		await page.getByRole("button", { name: "Compare with original", exact: true }).click();
-		await page.getByRole("button", { name: "Undo last action", exact: true }).click();
 		await expect.poll(async () => (await api.resume.getById({ id: copy.resumeId })).data).toEqual(source.data);
-		await page.getByText("Show 1 confirmed name", { exact: true }).click();
-		const trigger = page.getByRole("button", { name: "Confirm term" }).first();
+		const names = page.locator("details").filter({ has: page.getByText("Show 1 confirmed name", { exact: true }) });
+		await names.locator("summary").click();
+		const trigger = names.getByRole("button", { name: "Edit", exact: true });
 		await expect(trigger).toBeVisible();
 		await expect(trigger).toBeEnabled();
 		const termsBefore = (await api.ai.variantReview.get({ operationId })).terms.terms;
@@ -242,7 +344,7 @@ for (const width of [1440, 390])
 		await overlay.getByRole("button", { name: "Cancel", exact: true }).click();
 		await expect(overlay).toHaveCount(0);
 		await expect(trigger).toBeFocused();
-		await expect(page.getByText("Synthetic Institute", { exact: true })).toBeVisible();
+		await expect(names.getByText("Synthetic Institute", { exact: true })).toBeVisible();
 		expect((await api.ai.variantReview.get({ operationId })).terms.terms).toEqual(termsBefore);
 		expect((await api.resume.getById({ id: copy.resumeId })).data).toEqual(source.data);
 	});

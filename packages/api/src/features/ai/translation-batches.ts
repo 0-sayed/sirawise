@@ -9,11 +9,6 @@ import {
 	MAX_VARIANT_PASSAGES,
 } from "@reactive-resume/schema/resume/variant-outputs";
 import { bindTranslationPart } from "./translation-invariants";
-import {
-	buildTranslationCheck,
-	compactTranslationCheckTargetBytes,
-	compactTranslationLimits,
-} from "./translation-verifier";
 import { buildCompactTranslationWriter, buildVariantWriterPayload } from "./variant-contracts";
 import { buildVariantVerificationPayload } from "./variant-verifier";
 
@@ -90,7 +85,7 @@ function translationPartSnapshots(
 	}));
 }
 
-type TranslationBudget = { maxInputCodePoints: number; maxOutputTokens: number; verifierMaxInputBytes?: number };
+type TranslationBudget = { maxInputCodePoints: number; maxOutputTokens: number };
 
 function planCompactTranslation(
 	snapshot: VariantSnapshot,
@@ -102,13 +97,10 @@ function planCompactTranslation(
 	if (!prepared || !direction || !snapshot.cv.length) throw new Error("AI_INPUT_LIMIT");
 	const writerLimit = Math.min(MAX_VARIANT_INPUT_CODE_POINTS, budget.maxInputCodePoints);
 	const writerTokens = Math.min(1200, Math.floor(budget.maxOutputTokens * 0.75));
-	const verifyLimits = compactTranslationLimits(compactProseSizing, direction);
-	const verifierLimit = Math.min(
-		compactTranslationCheckTargetBytes,
-		budget.verifierMaxInputBytes ?? budget.maxInputCodePoints,
-	);
+	// Keep writer requests short and bounded.
+	const maxSegments = direction === "ar-en" ? 18 : 6;
 	const fits = (cv: VariantSnapshot["cv"]) => {
-		if (cv.length > verifyLimits.maxPairs) return false;
+		if (cv.length > maxSegments) return false;
 		const output = {
 			direction,
 			sourceRevision: snapshot.sourceRevision,
@@ -120,15 +112,7 @@ function planCompactTranslation(
 		if (projectedTokens > writerTokens) return false;
 		try {
 			buildCompactTranslationWriter({ ...snapshot, cv }, writerLimit);
-			const check = buildTranslationCheck({ ...prepared, maskedSegments: cv }, output, "part-999999");
-			// Allow a second byte for each English letter projected into the Arabic target.
-			const targetExtraBytes =
-				direction === "en-ar" ? cv.reduce((total, { text }) => total + (text.match(/[A-Za-z]/gu)?.length ?? 0), 0) : 0;
-			const proseBytes = cv.reduce((total, { text }) => total + 2 * Buffer.byteLength(text), targetExtraBytes);
-			return (
-				(cv.length === 1 || proseBytes <= verifyLimits.proseBytes) &&
-				Buffer.byteLength(JSON.stringify(check)) + targetExtraBytes <= verifierLimit
-			);
+			return true;
 		} catch (error) {
 			if (error instanceof Error && error.message === "AI_INPUT_LIMIT") return false;
 			throw error;
@@ -455,6 +439,7 @@ export function mergePartialTranslationBatches(
 ): {
 	output: TranslationOutput;
 	withheldSegmentIds: string[];
+	withheldSegmentParts: Array<{ id: string; partIndex: number; reason: string }>;
 	withholdingIdsComplete: boolean;
 	withheld?: {
 		count: number;
@@ -540,6 +525,7 @@ export function mergePartialTranslationBatches(
 
 	return {
 		withheldSegmentIds: withheldItems.map(({ id }) => id),
+		withheldSegmentParts: withheldItems,
 		withholdingIdsComplete,
 		output: {
 			direction: snapshot.direction,

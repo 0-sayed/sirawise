@@ -25,12 +25,10 @@ it("dispatches the application verifier route and blocks a batch above its appro
 	const approvals = {
 		campaignId: "offline-runtime-test",
 		suiteCaps: {
-			"translation-primary": 436660,
 			"job-evidence-primary": 672401,
 			"extraction-primary": 1091956,
 		},
 		routes: {
-			translation: verifierLimits,
 			"job-evidence": verifierLimits,
 			extraction: verifierLimits,
 			wording: verifierLimits,
@@ -65,7 +63,7 @@ it("dispatches the application verifier route and blocks a batch above its appro
 		QUALIFICATION_APPROVED_LIMITS: JSON.stringify(approvals),
 	};
 	const cli = "evaluations/review/pipeline-safety/cli.ts";
-	const suites = "translation-primary,job-evidence-primary,extraction-primary";
+	const suites = "job-evidence-primary,extraction-primary";
 	const isolation = fileURLToPath(new URL("../../../local/test-isolation.mjs", import.meta.url));
 	const prepare = (output: string, env: typeof environment, flags: string[] = []) =>
 		execFileSync(
@@ -102,12 +100,33 @@ it("dispatches the application verifier route and blocks a batch above its appro
 				process.loadEnvFile = () => {};
 				const networkFetch = globalThis.fetch;
 				const requests = [];
-				globalThis.fetch = (input, init) => {
+				let remainingBatches = 0;
+				globalThis.fetch = async (input, init) => {
 					const url = new URL(input instanceof Request ? input.url : String(input));
 					if (url.hostname === "127.0.0.1") return networkFetch(input, init);
 					assert.equal(url.href, "https://openrouter.ai/api/v1/chat/completions");
 					requests.push(String(init.body));
-					throw new Error("OFFLINE_PROVIDER_REQUEST_BLOCKED");
+					if (--remainingBatches === 0) throw new Error("OFFLINE_PROVIDER_REQUEST_BLOCKED");
+					const wire = JSON.parse(init.body);
+					const selections = JSON.parse(wire.messages.at(-1).content).selections;
+					const task = JSON.parse(selections.find(({ id }) => id === "variant-verification-task").text);
+					assert.equal(task.category, "job-evidence");
+					const output = {
+						schemaVersion: 2,
+						verdicts: task.claims.map(({ id, evidenceIds }) => ({ claimId: id, evidenceIds, verdict: "supported", reason: "Synthetic" })),
+						premises: task.premises.map(({ id }) => ({ id, verdict: "supported", reason: "Synthetic", issueClass: null })),
+						absence: task.absence.map(({ id }) => ({ id, verdict: "confirmed_absent" })),
+						coverage: { status: "complete", reason: "Synthetic" },
+						quality: { status: "appropriate", reason: "Synthetic" },
+						retention: null,
+					};
+					return Response.json({
+						id: "synthetic-job-verifier",
+						model: wire.model,
+						provider: wire.provider.only[0],
+						choices: [{ index: 0, message: { role: "assistant", content: JSON.stringify(output) }, finish_reason: "stop" }],
+						usage: { prompt_tokens: 5, completion_tokens: 5, total_tokens: 10, cost: 0 },
+					});
 				};
 				const [manifestFile, ledgerDirectory, blockedManifest] = process.argv.slice(1);
 				const raw = await readFile(manifestFile, "utf8");
@@ -130,7 +149,7 @@ it("dispatches the application verifier route and blocks a batch above its appro
 					"requiredSourceIds", "requiredClaimIds", "supportedSourceIds", "requirementId", "premiseId", "absenceId",
 				]);
 				const protocolIds = new Set([
-					"translation-check", "variant-cv-evidence", "variant-job-context", "variant-verification-task",
+					"variant-cv-evidence", "variant-job-context", "variant-verification-task",
 					"variant-response", "verification-task", "verification-response", "verification-claims", "response",
 				]);
 				function assertOpaque(value, caseId, key = "", identifier = false) {
@@ -168,7 +187,7 @@ it("dispatches the application verifier route and blocks a batch above its appro
 				assert(manifest.routes.every(({ limits }) => limits.maxCallCostMicros === 100000));
 				assert.deepEqual(manifest.suites.map(({ cases }) =>
 					cases.flatMap(({ batches }) => batches).reduce((sum, { boundMicros }) => sum + boundMicros, 0)
-				), [328045, 399932, 1000000]);
+				), [458122, 1000000]);
 				process.env.QUALIFICATION_ARMED_MANIFEST = createHash("sha256").update(blocked).digest("hex");
 				await assert.rejects(startQualificationServer(blockedManifest, "0", ledgerDirectory), /QUALIFICATION_CALL_LIMIT/);
 				assert.equal(requests.length, 0);
@@ -180,6 +199,7 @@ it("dispatches the application verifier route and blocks a batch above its appro
 					for (const suite of manifest.suites) {
 						for (const planned of suite.cases) {
 							const before = requests.length;
+							remainingBatches = planned.batches.length;
 							const response = await fetch(endpoint + "/case", {
 								method: "POST",
 								headers: { "content-type": "application/json" },
@@ -190,7 +210,7 @@ it("dispatches the application verifier route and blocks a batch above its appro
 							assert.equal(receipt.caseId, planned.id);
 							assert.equal(receipt.suite, suite.id);
 							assert.equal(receipt.status, planned.batches.length ? "transport_failed" : "evaluated");
-							assert.equal(requests.length - before, planned.batches.length, planned.id);
+							assert.equal(requests.length - before, planned.batches.length, JSON.stringify({ id: planned.id, calls: receipt.calls }));
 							for (const [index, request] of requests.slice(before).entries()) {
 								assert(!request.includes(manifest.fixtureIdentifierSeed), planned.id);
 								assert.doesNotMatch(request, leak, planned.id);
@@ -206,11 +226,7 @@ it("dispatches the application verifier route and blocks a batch above its appro
 								const selections = JSON.parse(wire.messages.at(-1).content).selections;
 								const selection = (id) => JSON.parse(selections.find((item) => item.id === id).text);
 								let orderedIds = batch.itemIds;
-								if (planned.feature === "translation") {
-									const task = selection("translation-check");
-									orderedIds = task.pairs.map(({ sourceId }) => sourceId);
-									assert.deepEqual(task.requiredSourceIds, orderedIds);
-								} else if (planned.feature === "job-evidence") {
+								if (planned.feature === "job-evidence") {
 									const requirements = selection("variant-response").requirements;
 									orderedIds = [...requirements.map(({ id }) => id), ...batch.itemIds.filter((id) => id.startsWith("note:"))];
 									const task = selection("variant-verification-task");
@@ -237,11 +253,11 @@ it("dispatches the application verifier route and blocks a batch above its appro
 								assert.equal(call.routeSha256, planned.routeSha256);
 								assert.equal(call.promptSha256, planned.batches[index].promptSha256);
 								assert.equal(call.schemaSha256, planned.batches[index].schemaSha256);
-								assert.equal(call.responseId, null);
+								assert.equal(call.responseId, index < receipt.calls.length - 1 ? "synthetic-job-verifier" : null);
 							}
 						}
 					}
-					console.log(JSON.stringify({ cases: cases.length, blockedCalls: requests.length }));
+					console.log(JSON.stringify({ cases: cases.length, dispatchedCalls: requests.length }));
 				} finally {
 					await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
 				}
@@ -252,7 +268,7 @@ it("dispatches the application verifier route and blocks a batch above its appro
 		],
 		{ cwd: tooling, env: environment, encoding: "utf8", timeout: 15_000 },
 	);
-	expect(JSON.parse(result)).toEqual({ cases: 48, blockedCalls: 36 });
+	expect(JSON.parse(result)).toEqual({ cases: 32, dispatchedCalls: 26 });
 	const ledger = JSON.parse(await readFile(ledgerFile, "utf8"));
 	expect(ledger).toMatchObject({ capMicros: 2500000 });
 	expect(ledger.holds[0]).toEqual(priorHold);

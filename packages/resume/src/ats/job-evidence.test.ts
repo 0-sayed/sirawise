@@ -9,8 +9,8 @@ const identity = {
 	contentHash: "h1",
 	jobId: "job",
 	jobRevision: "j1",
-	rubricVersion: "literal-v1",
-	normalizationVersion: "matching-v2",
+	rubricVersion: "literal-v2",
+	normalizationVersion: JOB_NORMALIZATION_VERSION,
 };
 const passage = (text: string, id = "summary") => ({ id, target: { sectionId: "summary", field: "content" }, text });
 
@@ -22,6 +22,15 @@ it("reports distinct literal React/SAP coverage without inferring ability", () =
 		["sap", false],
 	]);
 	expect(jobTermReportSchema.parse(report)).toEqual(report);
+	expect(
+		analyzeJobTerms({ identity, jobText: "React SAP", passages: [passage("React")] }).terms.map((term) => [
+			term.term,
+			term.matched,
+		]),
+	).toEqual([
+		["react", true],
+		["sap", false],
+	]);
 	expect(
 		analyzeJobTerms({ identity, jobText: "React, REACT.js, react, SAP, sap", passages: [passage("React")] })
 			.denominator,
@@ -158,4 +167,64 @@ it("excludes Arabic function words and phrases made from them from literal cover
 		passages: [passage("على في إلى مع الذي من أجل وقد بالإضافة إلى")],
 	});
 	expect(report.terms.map(({ term, matched }) => [term, matched])).toEqual([["kubernetes", false]]);
+});
+
+it.each([
+	[
+		"TypeScript services, TypeScript stack, TypeScript solutions, TypeScript systems, TypeScript applications, TypeScript development, TypeScript experience",
+	],
+	[
+		"خدمات TypeScript، TypeScript حلول، أنظمة TypeScript، تطبيقات TypeScript، تطوير TypeScript، خبرة TypeScript، حزمة TypeScript",
+	],
+])("drops generic skill phrases while preserving named skills (%s)", (examples) => {
+	const skills = "system design, machine learning, React Native";
+	const text = `${examples}, ${skills}`;
+	const report = analyzeJobTerms({ identity, jobText: text, passages: [passage(text)] });
+	const matches = report.terms.filter((term) => term.matched).map((term) => term.term);
+	expect(matches).toEqual(expect.arrayContaining(["typescript", "system design", "machine-learning", "react-native"]));
+	expect(
+		[...report.terms.map((term) => term.term), ...report.excludedTerms].filter((term) => term.includes("typescript")),
+	).toEqual(["typescript"]);
+});
+
+it.each([
+	{
+		// Adapted from Parloa's Lead Solutions Engineer posting and the ZynoStack engineering ad.
+		jobText:
+			"Work with clients and explain each client's needs across modern technology stacks. Requirements: AWS, React, Kubernetes, system design, React Native, product management, mobile, SQL, Figma, SAP, customer service, platform engineering.",
+		kept: [
+			"aws",
+			"react",
+			"kubernetes",
+			"system design",
+			"react-native",
+			"product-management",
+			"mobile",
+			"sql",
+			"figma",
+			"sap",
+			"customer-service",
+			"platform-engineering",
+		],
+		noise: ["client", "clients", "explain", "technology stacks", "modern technology", "customer", "platform"],
+	},
+	{
+		// Adapted from Taqweed's Ecommerce Project Manager posting.
+		jobText:
+			"توضيح الحلول مع عملاء سعوديين في بيئة عمل مثالية على منصة تعمل على مدار الساعة. المتطلبات: إدارة المشاريع، متجر إلكتروني، SAP.",
+		kept: ["إدارة المشاريع", "متجر إلكتروني", "sap"],
+		noise: ["توضيح", "عملاء", "بيئة عمل", "منصة", "مثالية"],
+	},
+])("keeps real job skills and omits boilerplate: $jobText", ({ jobText, kept, noise }) => {
+	const report = analyzeJobTerms({ identity, jobText, passages: [] });
+	const terms = [...report.terms.map(({ term }) => term), ...report.excludedTerms];
+	expect(terms).toEqual(expect.arrayContaining(kept));
+	for (const term of noise) expect(terms).not.toContain(term);
+	expect(report.identity.normalizationVersion).toBe("matching-v3");
+});
+
+it("ranks curated skills before repeated free text and requirements before other free text", () => {
+	const jobText = "widgets, widgets, widgets, widgets, AWS.\nQualifications: SQL, microbiology.";
+	const report = analyzeJobTerms({ identity, jobText, passages: [] });
+	expect(report.terms.map(({ term }) => term)).toEqual(["sql", "aws", "microbiology", "widgets"]);
 });

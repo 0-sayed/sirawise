@@ -1492,6 +1492,7 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("AI delivery and gl
 			let active = 0;
 			let peak = 0;
 			let simulatedTime = Date.now();
+			let waveReady = false;
 			const pricedVerifier = batchCount === 4;
 			const writerCostMicros = pricedVerifier ? 16_041 : 1000;
 			const routeId = pricedVerifier ? "synthetic-priced-verifier" : syntheticRoute.routeId;
@@ -1517,10 +1518,14 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("AI delivery and gl
 					const body = JSON.parse(String(args[1]?.body));
 					const isVerifier = body.messages[0].content === "Verify split batch.";
 					if (isVerifier) {
+						if (active === 0) waveReady = false;
 						peak = Math.max(peak, ++active);
-						await new Promise((resolve) => setTimeout(resolve, 30));
+						if (active === batchCount) {
+							simulatedTime += 20_000;
+							waveReady = true;
+						}
+						await vi.waitFor(() => expect(waveReady).toBe(true), { timeout: 3000 });
 						active--;
-						if (active === 0) simulatedTime += 20_000;
 					} else {
 						writers++;
 						simulatedTime += 5_000;

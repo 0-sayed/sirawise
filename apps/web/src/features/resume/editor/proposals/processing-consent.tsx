@@ -12,6 +12,8 @@ import {
 	DialogTitle,
 } from "@reactive-resume/ui/components/dialog";
 import { Icon } from "@reactive-resume/ui/components/icon";
+import { IconButton } from "@reactive-resume/ui/components/icon-button";
+import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "@reactive-resume/ui/components/popover";
 import { useAssistantCopy } from "@/features/assistant/copy.generated";
 import { client } from "@/libs/orpc/client";
 
@@ -41,8 +43,10 @@ export function useProcessingNotice(open: boolean, purpose: string) {
 		if (!open) return;
 		let active = true;
 		void client.ai.processing.notices({ purpose, locale }).then(
-			([notice]) => {
-				if (active) setResult(notice?.purpose === purpose && notice.locale === locale ? { key, notice } : { key });
+			(notices) => {
+				const matching = notices.filter((notice) => notice.purpose === purpose && notice.locale === locale);
+				const notice = matching.find((notice) => notice.alreadyGranted) ?? matching[0];
+				if (active) setResult(notice ? { key, notice } : { key });
 			},
 			() => {
 				if (active) setResult({ key });
@@ -59,7 +63,12 @@ export function useProcessingNotice(open: boolean, purpose: string) {
 	};
 }
 
-export function ProcessingNoticeContent({ notice, failed, reload }: ReturnType<typeof useProcessingNotice>) {
+export function ProcessingNoticeContent({
+	notice,
+	failed,
+	reload,
+	description = true,
+}: ReturnType<typeof useProcessingNotice> & { description?: boolean }) {
 	const copy = useAssistantCopy();
 	if (failed)
 		return (
@@ -74,20 +83,39 @@ export function ProcessingNoticeContent({ notice, failed, reload }: ReturnType<t
 				</AlertActions>
 			</Alert>
 		);
+	const Text = description ? DialogDescription : "p";
 	return (
-		<DialogDescription lang={notice?.locale} dir={notice?.locale === "ar-SA" ? "rtl" : "ltr"}>
+		<Text lang={notice?.locale} dir={notice?.locale === "ar-SA" ? "rtl" : "ltr"}>
 			{notice?.content ?? copy("review.launch.loadingConsent")}
-		</DialogDescription>
+		</Text>
+	);
+}
+
+export function ProcessingDetails({ purpose }: { purpose: string }) {
+	const copy = useAssistantCopy();
+	const [open, setOpen] = useState(false);
+	const processing = useProcessingNotice(open, purpose);
+	return (
+		<Popover open={open} onOpenChange={setOpen}>
+			<PopoverTrigger
+				render={<IconButton icon="info" variant="quiet" size="icon-sm" label={copy("privacy.ai.details")} />}
+			/>
+			<PopoverContent align="start">
+				<PopoverTitle>{copy("privacy.ai.title")}</PopoverTitle>
+				<ProcessingNoticeContent {...processing} description={false} />
+			</PopoverContent>
+		</Popover>
 	);
 }
 
 export function useTranslationRetryConsent(
-	retry: (notice: ProcessingNotice, partIndex?: number) => Promise<unknown>,
+	retry: (notice: ProcessingNotice, partIndex?: number, segmentId?: string) => Promise<unknown>,
 	disabled = false,
 	partLabel?: string,
+	segmentLabel?: string,
 ) {
 	const copy = useAssistantCopy();
-	const [target, setTarget] = useState<{ partIndex: number | undefined } | null>(null);
+	const [target, setTarget] = useState<{ partIndex?: number | undefined; segmentId?: string | undefined } | null>(null);
 	const open = target !== null;
 	const [pending, setPending] = useState(false);
 	const [error, setError] = useState<unknown>(null);
@@ -108,7 +136,7 @@ export function useTranslationRetryConsent(
 		try {
 			await acceptProcessingNotice(notice);
 			if (target?.partIndex === undefined) await retry(notice);
-			else await retry(notice, target.partIndex);
+			else await retry(notice, target.partIndex, target.segmentId);
 			close();
 		} catch (error) {
 			setError(error);
@@ -133,18 +161,18 @@ export function useTranslationRetryConsent(
 		};
 	}, [open, notice, processing.failed]);
 	return {
-		open: (partIndex?: number) => {
+		open: (partIndex?: number, segmentId?: string) => {
 			if (open || disabled) return;
 			setError(null);
 			setNeedsReview(false);
 			autoSubmit.current = true;
-			setTarget({ partIndex });
+			setTarget({ partIndex, segmentId });
 		},
-		pending,
+		pending: pending || (open && !notice && !processing.failed),
 		error,
 		dialog: (
 			<Dialog
-				open={open}
+				open={open && Boolean(processing.failed || (notice && !notice.alreadyGranted) || error)}
 				onOpenChange={(next) => {
 					if (!next && !pending) close();
 				}}
@@ -152,6 +180,9 @@ export function useTranslationRetryConsent(
 				<DialogContent>
 					<DialogTitle>{copy("review.launch.reviewConsent")}</DialogTitle>
 					<ProcessingNoticeContent {...processing} />
+					{notice && !notice.alreadyGranted && !error && (
+						<p className="type-body text-ink-2">{copy("privacy.ai.retryConsent")}</p>
+					)}
 					{needsReview && (
 						<Alert variant="warn">
 							<Icon name="warning-circle" />
@@ -188,7 +219,11 @@ export function useTranslationRetryConsent(
 								if (notice) void submit(notice);
 							}}
 						>
-							{target?.partIndex === undefined ? copy("review.translation.retryFailedParts") : partLabel}
+							{target?.partIndex === undefined
+								? copy("review.translation.retryFailedParts")
+								: target.segmentId
+									? segmentLabel
+									: partLabel}
 						</Button>
 					</DialogFooter>
 				</DialogContent>

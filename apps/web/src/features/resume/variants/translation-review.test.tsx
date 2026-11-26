@@ -5,13 +5,15 @@ import { afterEach, expect, it, vi } from "vite-plus/test";
 import { i18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
 import { buildTranslationInventory } from "@reactive-resume/resume/translation";
-import { educationItemSchema, experienceItemSchema } from "@reactive-resume/schema/resume/data";
+import { educationItemSchema, experienceItemSchema, projectItemSchema } from "@reactive-resume/schema/resume/data";
 import { defaultResumeData } from "@reactive-resume/schema/resume/default";
 import { messages as arabicMessages } from "../../../../locales/ar-SA.po";
+import { TranslationGapReason } from "./translation-gaps";
 import { TranslationReview } from "./translation-review";
 const state = vi.hoisted(() => ({
 	data: {} as Record<string, unknown>,
 	mutate: vi.fn(),
+	complete: null as ((result: unknown, variables: unknown) => Promise<void>) | null,
 	error: null as unknown,
 	notices: vi.fn(),
 	grant: vi.fn(),
@@ -19,8 +21,15 @@ const state = vi.hoisted(() => ({
 }));
 vi.mock("@tanstack/react-query", () => ({
 	useQuery: () => ({ data: state.data, refetch: vi.fn() }),
-	useQueryClient: () => ({ invalidateQueries: vi.fn() }),
-	useMutation: () => ({ mutate: state.mutate, isPending: false, error: state.error }),
+	useQueryClient: () => ({ getQueryData: vi.fn(), invalidateQueries: vi.fn() }),
+	useMutation: (options: { onSuccess?: typeof state.complete; onError?: unknown }) => {
+		if (options.onError && options.onSuccess) state.complete = options.onSuccess;
+		return { mutate: state.mutate, reset: vi.fn(), isPending: false, error: state.error };
+	},
+}));
+vi.mock("@tanstack/react-router", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@tanstack/react-router")>()),
+	Link: ({ children }: { children: React.ReactNode }) => <a href="/dashboard/career/information">{children}</a>,
 }));
 vi.mock("@/libs/orpc/client", () => ({
 	orpc: {
@@ -29,6 +38,7 @@ vi.mock("@/libs/orpc/client", () => ({
 			operations: { get: { queryOptions: () => ({}) } },
 		},
 		resume: { key: () => [] },
+		career: { jobTargets: { key: () => [] } },
 	},
 	client: {
 		ai: {
@@ -38,35 +48,43 @@ vi.mock("@/libs/orpc/client", () => ({
 	},
 }));
 vi.mock("../editor/proposals/review-operation", () => ({
-	ReviewNotice: ({ children, actions }: { children: React.ReactNode; actions?: React.ReactNode }) => (
+	ReviewNotice: ({
+		title,
+		children,
+		actions,
+	}: {
+		title?: React.ReactNode;
+		children: React.ReactNode;
+		actions?: React.ReactNode;
+	}) => (
 		<div>
-			<p>{children}</p>
+			<div>{title}</div>
+			<div>{children}</div>
 			{actions}
 		</div>
 	),
 }));
 vi.mock("../editor/proposals/review-client", () => ({ submitVariantDecision: vi.fn() }));
-vi.mock("./clarification", () => ({
-	Clarification: ({ questions }: { questions: Array<{ id: string; prompt: string; context?: string }> }) => (
-		<>
-			{questions.map((question) => (
-				<div key={question.id}>
-					<span>{question.id}</span>
-					<p>{question.context}</p>
-					<p>{question.prompt}</p>
-				</div>
-			))}
-		</>
-	),
-}));
 afterEach(() => {
 	cleanup();
 	state.mutate.mockReset();
 	state.notices.mockReset();
 	state.grant.mockReset();
 	state.retryTranslation.mockReset();
+	state.complete = null;
 	state.error = null;
 });
+
+it("shows the full changed number when the value includes a colon", () => {
+	i18n.loadAndActivate({ locale: "en-US", messages: {} });
+	render(
+		<I18nProvider i18n={i18n}>
+			<TranslationGapReason reason="TRANSLATION_FACT_NUMBER:12:30" />
+		</I18nProvider>,
+	);
+	expect(screen.getByText("The number 12:30 changed.")).toBeDefined();
+});
+
 function show(
 	terms: Array<string | { id: string; source: string; value?: string; status?: "pending" | "confirmed" }>,
 	segment: "pending" | "accepted",
@@ -78,7 +96,7 @@ function show(
 		result: {
 			kind: "review.translation",
 			sourceRevision: { id: "copy" },
-			output: { segments: [{ sourceId: "source", text: "Generated target", claims: [] }] },
+			output: { direction: "ar-en", segments: [{ sourceId: "source", text: "Generated target", claims: [] }] },
 		},
 		sourceSegments: [{ id: "source", text: "النص الأصلي" }],
 		terms: {
@@ -108,29 +126,124 @@ function show(
 		</I18nProvider>,
 	);
 }
+
+const uuidPattern = /[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}/iu;
+const firstItemId = "01a213fd-3d4a-7401-b946-75736fe7286a";
+const secondItemId = "01a213fd-3d4a-7401-b946-75736fe7286b";
+const unknownItemId = "01a213fd-3d4a-7401-b946-75736fe7286c";
+
 it.each([
-	[["school"], "accepted", false],
-	[[], "pending", false],
-	[[], "accepted", true],
-] as const)(
-	"blocks final approval for unresolved terminology, unreviewed segments or stale source (%j)",
-	(terms, segment, stale) => {
-		show([...terms], segment, stale);
-		const compare = screen.queryByRole("button", { name: "Compare with original" });
-		if (compare) fireEvent.click(compare);
-		expect(screen.getByRole("button", { name: "Approve language copy" }).hasAttribute("disabled")).toBe(true);
-		// Expand the collapsed section to verify segment source and translation are rendered inside.
-		fireEvent.click(screen.getByRole("button", { name: /Other sections/ }));
-		expect(screen.getByText("النص الأصلي")).toBeDefined();
-		expect(screen.getByText("Generated target")).toBeDefined();
-	},
-);
+	["en-US", "Projects", "Current order", "Proposed order", "Move مشروع B above Project A."],
+	["ar-SA", "المشاريع", "الترتيب الحالي", "الترتيب المقترح", "انقل مشروع B فوق Project A."],
+] as const)("shows and accepts a readable reorder in %s", (locale, section, before, after, explanation) => {
+	i18n.loadAndActivate({ locale, messages: locale === "ar-SA" ? arabicMessages : {} });
+	const data = structuredClone(defaultResumeData);
+	const project = { hidden: false, period: "", description: "" };
+	data.sections.projects.items = [
+		projectItemSchema.parse({ ...project, id: firstItemId, name: "Project A" }),
+		projectItemSchema.parse({ ...project, id: secondItemId, name: "مشروع B" }),
+	];
+	state.data = {
+		result: {
+			kind: "review.tailoring",
+			output: {
+				patches: [],
+				order: [{ sectionId: "projects", itemIds: [secondItemId, firstItemId] }],
+			},
+		},
+		statuses: {},
+		segments: {},
+		undoable: [],
+	};
+	const view = () => (
+		<I18nProvider i18n={i18n}>
+			<TranslationReview operationId="operation" sourceData={data} />
+		</I18nProvider>
+	);
+	const { container, rerender } = render(view());
+	expect(container.textContent).not.toMatch(uuidPattern);
+	expect(screen.getByRole("heading", { name: section })).toBeVisible();
+	for (const [label, titles] of [
+		[before, ["Project A", "مشروع B"]],
+		[after, ["مشروع B", "Project A"]],
+	] as const) {
+		const items = within(screen.getByRole("list", { name: label })).getAllByRole("listitem");
+		expect(items.map((item) => item.textContent)).toEqual(titles);
+		for (const item of items) expect(item.querySelector("bdi")).toHaveAttribute("dir", "auto");
+	}
+	expect(screen.getByText(explanation, { normalizer: (text) => text.replace(/[\u2068\u2069]/gu, "") })).toBeVisible();
+	fireEvent.click(screen.getByRole("button", { name: locale === "ar-SA" ? "قبول" : "Accept" }));
+	expect(state.mutate).toHaveBeenCalledWith({ subjectIds: ["order"], decision: "accept" });
+
+	state.data.result = {
+		kind: "review.tailoring",
+		output: { patches: [], order: [{ sectionId: "projects", itemIds: [unknownItemId, firstItemId] }] },
+	};
+	rerender(view());
+	expect(container.textContent).not.toMatch(uuidPattern);
+	expect(screen.queryByRole("list", { name: after })).toBeNull();
+	expect(screen.queryByRole("button", { name: locale === "ar-SA" ? "قبول" : "Accept" })).toBeNull();
+});
+
+it("keeps translation segment IDs out of visible text and accessible labels", () => {
+	const { container, rerender } = show([], "pending");
+	state.data = {
+		...state.data,
+		result: {
+			kind: "review.translation",
+			sourceRevision: { id: secondItemId },
+			output: { direction: "ar-en", segments: [{ sourceId: firstItemId, text: "Generated target", claims: [] }] },
+		},
+		sourceSegments: [{ id: firstItemId, text: "النص الأصلي" }],
+		segments: { [firstItemId]: { text: "Generated target", status: "pending" } },
+	};
+	rerender(
+		<I18nProvider i18n={i18n}>
+			<TranslationReview operationId="operation" />
+		</I18nProvider>,
+	);
+	expect(screen.getByText("Generated target")).toBeInTheDocument();
+	expect(container.textContent).not.toMatch(uuidPattern);
+	expect(
+		Array.from(container.querySelectorAll("[aria-label]"), (element) => element.getAttribute("aria-label")).join(" "),
+	).not.toMatch(uuidPattern);
+});
+it.each([
+	[["school"], false, "Confirm the official names before saving."],
+	[[], true, "The source or this copy changed. Start a new translation to save a current copy."],
+] as const)("blocks approval with an inline explanation (%j)", (terms, stale, reason) => {
+	show([...terms], "pending", stale);
+	expect(screen.getByRole("button", { name: "Approve & save English copy" })).toBeDisabled();
+	expect(screen.getByText(reason)).toBeVisible();
+});
+
+it("blocks approval when there is nothing to save", () => {
+	const view = show([], "pending");
+	state.data.segments = {};
+	view.rerender(
+		<I18nProvider i18n={i18n}>
+			<TranslationReview operationId="operation" />
+		</I18nProvider>,
+	);
+	expect(screen.getByRole("button", { name: "Approve & save English copy" })).toBeDisabled();
+	expect(screen.getByText("Retry untranslated parts to get a draft you can save.")).toBeVisible();
+});
 it("confirms 68 pending official names with one action while retaining per-name controls", () => {
 	const names = Array.from({ length: 68 }, (_, index) => `term:official-${index}`);
-	show(names, "accepted");
-	fireEvent.click(screen.getByRole("button", { name: "Keep all names as they are" }));
+	const view = show(names, "accepted");
+	expect(screen.getByRole("button", { name: "Approve & save English copy" })).toBeDisabled();
+	fireEvent.click(screen.getByRole("button", { name: "Keep all as written" }));
 	expect(state.mutate).toHaveBeenCalledWith({ subjectIds: names, decision: "accept" });
-	expect(screen.getAllByRole("button", { name: "Confirm term" })).toHaveLength(68);
+	const namesCard = screen.getByText("68 terms need your confirmation").closest("section");
+	if (!namesCard) throw new Error("Missing official names card");
+	expect(within(namesCard).getAllByRole("button", { name: "Edit" })).toHaveLength(68);
+	for (const term of (state.data.terms as { terms: { status: string }[] }).terms) term.status = "confirmed";
+	view.rerender(
+		<I18nProvider i18n={i18n}>
+			<TranslationReview operationId="operation" />
+		</I18nProvider>,
+	);
+	expect(screen.getByRole("button", { name: "Approve & save English copy" })).toBeEnabled();
 });
 
 it("deduplicates repeated source terms, shows occurrence count, confirms all occurrences at once, and collapses confirmed names", () => {
@@ -149,68 +262,65 @@ it("deduplicates repeated source terms, shows occurrence count, confirms all occ
 	// Only 1 pending unique row is visible by default; confirmed group is behind Compare with original disclosure.
 	expect(screen.getAllByText("جامعة الرياض")).toHaveLength(1);
 	expect(screen.getByText("2 occurrences")).toBeDefined();
-	expect(
-		screen.getByText("Resolve the items below to finish and save your language copy automatically."),
-	).toBeDefined();
+	expect(screen.getByText("Show 1 confirmed name")).toBeDefined();
 
 	// Confirming the pending unique row sends all its occurrence IDs.
-	const [firstPendingButton] = screen.getAllByRole("button", { name: "Confirm term" });
+	const [firstPendingButton] = screen.getAllByRole("button", { name: "Edit" });
 	expect(firstPendingButton).toBeDefined();
 	if (firstPendingButton) fireEvent.click(firstPendingButton);
 	const dialog = screen.getByRole("dialog");
 	fireEvent.change(within(dialog).getByLabelText("Reviewed term"), { target: { value: "Riyadh University" } });
 	fireEvent.click(within(dialog).getByRole("button", { name: "Confirm term" }));
-	expect(state.mutate).toHaveBeenCalledWith({
+	expect(state.mutate.mock.lastCall?.[0]).toEqual({
 		subjectIds: ["term:5", "term:6"],
 		decision: "accept_edited",
 		editedText: "Riyadh University",
 	});
 });
 
-it("shows Translation ready when auto-applied and keeps per-part comparison optional", () => {
-	show([], "accepted").unmount();
+it("offers optional comparison of a saved copy without approval controls", () => {
+	const view = show([], "accepted");
 	(state.data.statuses as Record<string, string>).translation = "accepted";
-	render(
+	view.rerender(
 		<I18nProvider i18n={i18n}>
 			<TranslationReview operationId="operation" />
 		</I18nProvider>,
 	);
-	expect(screen.getByText("Translation ready")).toBeDefined();
-	expect(screen.queryByRole("button", { name: "Approve language copy" })).toBeNull();
-	const compare = screen.getByRole("button", { name: "Compare with original" });
-	fireEvent.click(compare);
-	expect(screen.getByRole("button", { name: "Hide comparison" })).toBeDefined();
-	expect(screen.getByRole("button", { name: /Other sections/ })).toBeDefined();
+	expect(screen.queryByRole("button", { name: /Approve & save/u })).toBeNull();
+	fireEvent.click(screen.getByRole("button", { name: "Show original text" }));
+	fireEvent.click(screen.getByText("Other sections"));
+	expect(screen.getByText("النص الأصلي")).toBeVisible();
 });
 
-it("shows one-line all-confirmed message when 0 names need confirmation and enables Accept all", () => {
-	show(
-		[
-			{ id: "term:1", source: "مجلس الواحة", value: "مجلس الواحة", status: "confirmed" },
-			{ id: "term:2", source: "مجلس الواحة", value: "مجلس الواحة", status: "confirmed" },
-		],
-		"pending",
+it("offers one approval immediately for a 91-part draft and calls onSaved after the final decision", async () => {
+	const view = show([{ id: "term:1", source: "مجلس الواحة", status: "confirmed" }], "pending");
+	const onSaved = vi.fn();
+	const ids = ["source", ...Array.from({ length: 90 }, (_, index) => `source-${index}`)];
+	const result = state.data.result as { output: { segments: unknown[] } };
+	result.output.segments = ids.map((sourceId) => ({ sourceId, text: "Generated target" }));
+	state.data.segments = Object.fromEntries(ids.map((id) => [id, { text: "Generated target", status: "pending" }]));
+	view.rerender(
+		<I18nProvider i18n={i18n}>
+			<TranslationReview operationId="operation" onSaved={onSaved} />
+		</I18nProvider>,
 	);
-
-	expect(screen.getByText("All names are confirmed.")).toBeDefined();
-	expect(screen.getByText("Show 1 confirmed name")).toBeDefined();
-	expect(screen.getByRole("status").textContent).toBe("0 of 1 accepted");
-	const acceptAll = screen.getByRole("button", { name: "Accept all" });
-	expect(acceptAll.hasAttribute("disabled")).toBe(false);
-	fireEvent.click(acceptAll);
-	expect(state.mutate).toHaveBeenCalledWith({ subjectIds: ["source"], decision: "accept" });
+	expect(screen.queryByText("All names are confirmed.")).toBeNull();
+	expect(screen.getByText("Show 1 confirmed name").closest("details")).not.toHaveAttribute("open");
+	expect(screen.queryByText("0 of 91 accepted")).toBeNull();
+	expect(screen.queryByRole("button", { name: /Accept all|Accept section/u })).toBeNull();
+	const approve = screen.getByRole("button", { name: "Approve & save English copy" });
+	expect(approve).toBeEnabled();
+	fireEvent.click(approve);
+	expect(state.mutate).toHaveBeenCalledWith({
+		subjectIds: ["translation"],
+		decision: "accept",
+		approveSegmentIds: ids,
+	});
+	expect(onSaved).not.toHaveBeenCalled();
+	await state.complete?.({}, state.mutate.mock.lastCall?.[0]);
+	expect(onSaved).toHaveBeenCalledOnce();
 });
-
-it("disables Accept all with a short reason while names still need confirmation", () => {
-	show([{ id: "term:1", source: "جامعة الرياض", value: "جامعة الرياض", status: "pending" }], "pending");
-	fireEvent.click(screen.getByRole("button", { name: "Compare with original" }));
-
-	const acceptAll = screen.getByRole("button", { name: "Accept all" });
-	expect(acceptAll.hasAttribute("disabled")).toBe(true);
-	expect(screen.getByText("Confirm all names before accepting all segments.")).toBeDefined();
-});
-
-it("groups segments by CV section collapsed by default with per-section Accept section and scoped Accept all", () => {
+it("opens summary by default and stages wording or original text through the edit decision", () => {
 	const data = structuredClone(defaultResumeData);
 	data.summary.hidden = false;
 	data.summary.title = "نبذة";
@@ -296,169 +406,35 @@ it("groups segments by CV section collapsed by default with per-section Accept s
 		</I18nProvider>,
 	);
 
-	// Progress shows accepted out of total.
-	expect(screen.getByText(`1 of ${inventory.segments.length} accepted`)).toBeDefined();
-
-	// Sections are collapsed by default: per-segment Accept buttons are hidden until expanded.
-	expect(screen.queryByRole("button", { name: "Accept" })).toBeNull();
-	expect(screen.getByRole("button", { name: /Summary/ }).getAttribute("aria-expanded")).toBe("false");
-	expect(screen.getByRole("button", { name: /Experience/ }).getAttribute("aria-expanded")).toBe("false");
-	expect(screen.getByRole("button", { name: /Education/ }).getAttribute("aria-expanded")).toBe("false");
-
-	// Accept all accepts only pending verified segments (excludes acceptedId and rejectedId).
-	fireEvent.click(screen.getByRole("button", { name: "Accept all" }));
-	const expectedPending = inventory.segments
-		.map((seg) => seg.id)
-		.filter((id) => id !== acceptedId && id !== rejectedId);
-	expect(state.mutate).toHaveBeenCalledWith({ subjectIds: expectedPending, decision: "accept" });
-
-	// Secondary Accept section for Experience accepts only Experience's pending segments.
-	state.mutate.mockReset();
-	const acceptSectionButtons = screen.getAllByRole("button", { name: "Accept section" });
-	// Summary (index 0), Experience (index 1), Education (index 2).
-	const experienceAcceptButton = acceptSectionButtons[1];
-	expect(experienceAcceptButton).toBeDefined();
-	if (experienceAcceptButton) fireEvent.click(experienceAcceptButton);
-	expect(state.mutate).toHaveBeenCalledWith({
-		subjectIds: experienceSegments.map((seg) => seg.id).filter((id) => id !== rejectedId),
-		decision: "accept",
-	});
-
-	// Expanding Summary reveals per-segment Accept/Edit/Reject controls.
-	fireEvent.click(screen.getByRole("button", { name: /Summary/ }));
 	const pendingSummary = summarySegments.find(({ id }) => id !== acceptedId);
 	if (!pendingSummary) throw new Error("Expected a pending summary segment");
-	const pendingCard = within(screen.getByRole("region", { name: pendingSummary.id }));
-	expect(pendingCard.getByRole("button", { name: "Accept" })).toBeDefined();
-	expect(pendingCard.getByRole("button", { name: "Edit" })).toBeDefined();
-	const pendingReject = pendingCard.getByRole("button", { name: "Reject" });
-	const acceptedReject = within(screen.getByRole("region", { name: acceptedId })).getByRole("button", {
-		name: "Reject",
+	const pendingCardElement = screen
+		.getByText(`EN: ${pendingSummary.text}`)
+		.closest<HTMLElement>('[data-slot="translation-segment"]');
+	if (!pendingCardElement) throw new Error("Expected the pending translation card");
+	const pendingCard = within(pendingCardElement);
+	expect(screen.getByText("Summary", { exact: true }).closest("details")).toHaveAttribute("open");
+	expect(screen.getByText("Experience", { exact: true }).closest("details")).not.toHaveAttribute("open");
+	expect(screen.getByText("Education", { exact: true }).closest("details")).not.toHaveAttribute("open");
+	expect(pendingCard.queryByRole("button", { name: /^(Accept|Reject)$/u })).toBeNull();
+	expect(pendingCard.queryByText(pendingSummary.text)).toBeNull();
+	fireEvent.click(screen.getByRole("button", { name: "Show original text" }));
+	expect(pendingCard.getByText(pendingSummary.text).closest("bdi")).toBeDefined();
+	fireEvent.click(pendingCard.getByRole("button", { name: "Keep original" }));
+	expect(state.mutate.mock.lastCall?.[0]).toEqual({
+		subjectIds: [pendingSummary.id],
+		decision: "accept_edited",
+		editedText: pendingSummary.text,
 	});
-	expect(screen.getAllByRole("button", { name: "Reject" })).toHaveLength(2);
-	expect(acceptedReject).not.toBe(pendingReject);
-	state.mutate.mockReset();
-	fireEvent.click(pendingReject);
-	expect(state.mutate).toHaveBeenCalledExactlyOnceWith({ subjectIds: [pendingSummary.id], decision: "reject" });
-});
-
-it("enables final approval only after all segments and terminology are reviewed", () => {
-	show([], "accepted");
-	expect(screen.getByRole("button", { name: "Approve language copy" }).hasAttribute("disabled")).toBe(false);
-});
-
-it("shows contextual section/segment undo and a single labelled Undo last action before the Approve/Back footer", () => {
-	const data = structuredClone(defaultResumeData);
-	data.summary.hidden = false;
-	data.summary.title = "نبذة";
-	data.summary.content = "<p>ملخص مهني</p>";
-	data.sections.experience.hidden = false;
-	data.sections.experience.items = [
-		experienceItemSchema.parse({
-			id: "exp-1",
-			hidden: false,
-			company: "مجلس الواحة",
-			position: "مدير",
-			location: "",
-			period: "2020-2025",
-			website: { url: "", label: "" },
-			description: "<p>قيادة الفريق</p>",
-		}),
-	];
-	data.metadata.layout.pages = [{ fullWidth: false, main: ["summary", "experience"], sidebar: [] }];
-
-	const inventory = buildTranslationInventory(data);
-	const summarySegments = inventory.segments.filter((seg) => seg.target.sectionId === "summary");
-	const experienceSegments = inventory.segments.filter((seg) => seg.target.sectionId === "experience");
-	const singleSummaryId = summarySegments[0]?.id ?? "";
-	const experienceIds = experienceSegments.map((seg) => seg.id);
-
-	i18n.loadAndActivate({ locale: "en-US", messages: {} });
-	state.data = {
-		result: {
-			kind: "review.translation",
-			sourceRevision: { id: "copy" },
-			output: {
-				segments: inventory.segments.map((seg) => ({
-					sourceId: seg.id,
-					text: `EN: ${seg.text}`,
-					claims: [],
-				})),
-			},
-		},
-		sourceSegments: inventory.segments.map((seg) => ({ id: seg.id, text: seg.text })),
-		terms: { terms: [] },
-		segments: Object.fromEntries(
-			inventory.segments.map((seg) => [
-				seg.id,
-				{
-					text: `EN: ${seg.text}`,
-					status: seg.id === singleSummaryId || experienceIds.includes(seg.id) ? "accepted" : "pending",
-				},
-			]),
-		),
-		statuses: {
-			translation: "pending",
-			...Object.fromEntries(
-				inventory.segments.map((seg) => [
-					seg.id,
-					seg.id === singleSummaryId || experienceIds.includes(seg.id) ? "accepted" : "pending",
-				]),
-			),
-		},
-		stale: false,
-		undoable: [
-			{ decisionId: "dec-sum-1", subjectIds: [singleSummaryId] },
-			{ decisionId: "dec-exp-all", subjectIds: experienceIds },
-		],
-		answeredQuestionIds: [],
-		dismissedQuestionIds: [],
-	};
-
-	render(
-		<I18nProvider i18n={i18n}>
-			<TranslationReview operationId="operation" sourceData={data} />
-		</I18nProvider>,
-	);
-
-	// Exactly one "Undo last action" button with descriptive helper text, placed BEFORE the Approve/Back footer.
-	const undoLastButton = screen.getByRole("button", { name: "Undo last action" });
-	const approveButton = screen.getByRole("button", { name: "Approve language copy" });
-	expect(screen.getAllByRole("button", { name: "Undo last action" })).toHaveLength(1);
-	expect(screen.getByText(`Accepted section Experience · ${experienceIds.length} parts`)).toBeDefined();
-	expect(Boolean(undoLastButton.compareDocumentPosition(approveButton) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
-
-	// Section-level small Undo appears ONLY on Experience (accepted via Accept section), NOT on partially-accepted Summary.
-	const sectionUndoButtons = screen.getAllByRole("button", { name: "Undo" });
-	expect(sectionUndoButtons).toHaveLength(1);
-	if (sectionUndoButtons[0]) fireEvent.click(sectionUndoButtons[0]);
-	expect(state.mutate).toHaveBeenCalledWith({
-		subjectIds: experienceIds,
-		decision: "undo",
-		undoDecisionId: "dec-exp-all",
+	fireEvent.click(pendingCard.getByRole("button", { name: "Edit" }));
+	fireEvent.change(pendingCard.getByRole("textbox"), { target: { value: "Custom wording" } });
+	fireEvent.click(pendingCard.getByRole("button", { name: "Save wording" }));
+	expect(state.mutate.mock.lastCall?.[0]).toEqual({
+		subjectIds: [pendingSummary.id],
+		decision: "accept_edited",
+		editedText: "Custom wording",
 	});
-
-	// Clicking "Undo last action" undoes the last action (Experience section).
-	state.mutate.mockReset();
-	fireEvent.click(undoLastButton);
-	expect(state.mutate).toHaveBeenCalledWith({
-		subjectIds: experienceIds,
-		decision: "undo",
-		undoDecisionId: "dec-exp-all",
-	});
-
-	// Expanding Summary shows Undo inside the accepted single segment card.
-	state.mutate.mockReset();
-	fireEvent.click(screen.getByRole("button", { name: /Summary/ }));
-	const undoButtonsAfterExpand = screen.getAllByRole("button", { name: "Undo" });
-	expect(undoButtonsAfterExpand).toHaveLength(2);
-	const segmentUndo = undoButtonsAfterExpand[0];
-	if (segmentUndo) fireEvent.click(segmentUndo);
-	expect(state.mutate).toHaveBeenCalledWith({
-		subjectIds: [singleSummaryId],
-		decision: "undo",
-		undoDecisionId: "dec-sum-1",
-	});
+	expect(screen.getByRole("button", { name: /Approve & save/u })).toBeEnabled();
 });
 
 it("flags segments with unresolved placeholders, blocks Approve, and allows editing even if accepted", () => {
@@ -492,8 +468,7 @@ it("flags segments with unresolved placeholders, blocks Approve, and allows edit
 	expect(screen.getByText("Needs edit")).toBeDefined();
 	expect(screen.getByRole("button", { name: "Edit" })).toBeDefined();
 
-	fireEvent.click(screen.getByRole("button", { name: "Compare with original" }));
-	expect(screen.getByRole("button", { name: "Approve language copy" }).hasAttribute("disabled")).toBe(true);
+	expect(screen.getByRole("button", { name: /Approve & save/u })).toBeDisabled();
 });
 
 it.each([
@@ -503,7 +478,7 @@ it.each([
 	],
 	[
 		{ data: { reason: "TRANSLATION_REVIEW_INCOMPLETE" } },
-		"Could not approve yet. Confirm all names and accept all segments before approving.",
+		"Could not save the draft. Reload the review and resolve any remaining items.",
 	],
 	[new Error("BOOM"), "The decision was not saved. Reload the review before trying again."],
 ])("shows a clear error notice for approve/decision failures (%j)", (error, expectedMessage) => {
@@ -573,16 +548,18 @@ it("does not offer a Suggest again action that cannot create a new review", () =
 });
 
 it.each(["accepted", "rejected"])("locks official terms after final translation is %s", (status) => {
-	show(["school"], "accepted").unmount();
+	show([{ id: "school", source: "المعهد", status: "confirmed" }], "accepted").unmount();
 	(state.data.statuses as Record<string, string>).translation = status;
 	render(
 		<I18nProvider i18n={i18n}>
 			<TranslationReview operationId="operation" />
 		</I18nProvider>,
 	);
-	const compare = screen.queryByRole("button", { name: "Compare with original" });
-	if (compare) fireEvent.click(compare);
-	expect(screen.getByRole("button", { name: "Confirm term" }).hasAttribute("disabled")).toBe(true);
+	const names = screen.getByText("Show 1 confirmed name").closest("details");
+	if (!names) throw new Error("Missing confirmed names disclosure");
+	names.open = true;
+	expect(within(names).queryByRole("button", { name: "Edit" })).toBeNull();
+	expect(screen.queryByRole("button", { name: "Confirm term" })).toBeNull();
 });
 
 it("shows the cited job requirement, localized verdict and an actionable clarification instead of an enum and repeated explanation", () => {
@@ -615,19 +592,79 @@ it("shows the cited job requirement, localized verdict and an actionable clarifi
 	};
 	render(
 		<I18nProvider i18n={i18n}>
-			<TranslationReview operationId="operation" />
+			<TranslationReview operationId="operation" onContinued={vi.fn()} />
 		</I18nProvider>,
 	);
-	const report = within(screen.getByRole("region", { name: "report" }));
+	const report = within(screen.getByRole("region", { name: "Detailed requirement check" }));
 	expect(report.getByText("TypeScript and SAP required").getAttribute("dir")).toBe("auto");
 	expect(report.getByText("No evidence found").getAttribute("dir")).toBeNull();
 	expect(report.getByText("No supporting evidence was found in this CV.").getAttribute("dir")).toBe("auto");
-	expect(screen.getAllByText(/TypeScript and SAP required/)).toHaveLength(2);
+	expect(screen.getAllByText(/TypeScript and SAP required/)).toHaveLength(1);
 	expect(screen.queryByText(/no_evidence/)).toBeNull();
 	expect(screen.getByText(/No evidence found/)).toBeDefined();
 	expect(screen.getByText("What experience, study or project can you confirm for this requirement?")).toBeDefined();
 	expect(screen.getAllByText(/No supporting evidence was found in this CV/)).toHaveLength(1);
-	expect(screen.getByText("requirement")).toBeDefined();
+	expect(report.getByRole("button", { name: "Add a fact" })).toBeDefined();
+});
+
+it("shows five collapsed passages for 18 distinct job clarification prompts", async () => {
+	i18n.loadAndActivate({ locale: "en-US", messages: {} });
+	const sourceSegments = Array.from({ length: 5 }, (_, index) => ({
+		id: `passage-${index}`,
+		text: `${index === 0 ? "What you will do1. " : ""}Build service ${index}. ${"The full source gives more details. ".repeat(35)}End of passage ${index}.`,
+	}));
+	const requirements = [0, 1, 0, 2, 0, 3, 1, 0, 2, 3, 1, 4, 0, 2, 1, 4, 0, 0].map((passage, index) => ({
+		id: `requirement-${index}`,
+		spanIds: [`passage-${passage}`],
+		verdict: "partial",
+		evidenceIds: [],
+		explanation: `The CV partially supports requirement ${index}.`,
+	}));
+	state.data = {
+		result: {
+			kind: "review.job-evidence",
+			sourceRevision: { kind: "resume", id: "cv", revision: "1" },
+			output: { requirements, notes: [] },
+		},
+		sourceSegments,
+		terms: { terms: [] },
+		segments: {},
+		statuses: { report: "pending" },
+		stale: false,
+		undoable: [],
+		answeredQuestionIds: [],
+		dismissedQuestionIds: [],
+	};
+	render(
+		<I18nProvider i18n={i18n}>
+			<TranslationReview operationId="operation" onContinued={vi.fn()} />
+		</I18nProvider>,
+	);
+	const report = screen.getByRole("region", { name: "Detailed requirement check" });
+	const passages = Array.from(report.querySelectorAll("details"));
+	expect(passages).toHaveLength(5);
+	expect(passages.every((passage) => !passage.open)).toBe(true);
+	expect(passages.map((passage) => passage.querySelector("summary")?.textContent)).toEqual(
+		sourceSegments.map((_, index) => expect.stringContaining(`Build service ${index}.`)),
+	);
+	for (const passage of sourceSegments) expect(within(report).getAllByText(passage.text)).toHaveLength(1);
+	expect(
+		within(report).getAllByText("What experience, study or project can you confirm for this requirement?"),
+	).toHaveLength(18);
+	expect(within(report).getAllByRole("button", { name: "Add a fact" })).toHaveLength(18);
+	expect(within(report).getAllByRole("button", { name: "Skip" })).toHaveLength(18);
+	for (const requirement of requirements) expect(within(report).getByText(requirement.explanation)).toBeDefined();
+
+	const lastFinding = "The CV partially supports requirement 17.";
+	const lastRequirement = within(report).getByText(lastFinding).closest("li");
+	if (!lastRequirement) throw new Error("Expected a row for the last requirement");
+	fireEvent.click(within(lastRequirement).getByRole("button", { name: "Add a fact" }));
+	const dialog = await screen.findByRole("dialog");
+	expect(within(dialog).getByText(lastFinding)).toBeDefined();
+	fireEvent.change(within(dialog).getByRole("textbox"), { target: { value: "Built a reporting service." } });
+	fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+	fireEvent.click(within(lastRequirement).getByRole("button", { name: "Add a fact" }));
+	expect(((await screen.findByRole("textbox")) as HTMLTextAreaElement).value).toBe("Built a reporting service.");
 });
 
 it("explains partial job evidence with a visible recovery action", () => {
@@ -637,7 +674,9 @@ it("explains partial job evidence with a visible recovery action", () => {
 			kind: "review.job-evidence",
 			sourceRevision: { id: "cv" },
 			output: {
-				requirements: [{ id: "requirement", spanIds: ["job"], verdict: "partial", explanation: "Built services." }],
+				requirements: [
+					{ id: "requirement", spanIds: ["job"], verdict: "partial", evidenceIds: [], explanation: "Built services." },
+				],
 				notes: [],
 			},
 		},
@@ -652,14 +691,13 @@ it("explains partial job evidence with a visible recovery action", () => {
 	};
 	render(
 		<I18nProvider i18n={i18n}>
-			<TranslationReview operationId="operation" />
+			<TranslationReview operationId="operation" onContinued={vi.fn()} />
 		</I18nProvider>,
 	);
-	expect(
-		screen.getByText(
-			"Only part of the job requirement is supported by this CV. Add confirmed information or request a new review.",
-		),
-	).toBeDefined();
+	const report = within(screen.getByRole("region", { name: "Detailed requirement check" }));
+	expect(report.getByText("Partial evidence")).toBeVisible();
+	expect(report.getByText("Built services.")).toBeVisible();
+	expect(report.getByRole("button", { name: "Add a fact" })).toBeEnabled();
 });
 
 it("shows a visible withheld-items notice when individual unverified items were withheld", () => {
@@ -696,11 +734,11 @@ it("shows a visible withheld-items notice when individual unverified items were 
 			<TranslationReview operationId="operation" />
 		</I18nProvider>,
 	);
-	expect(screen.getByText("2 items were withheld because they could not be verified.")).toBeDefined();
+	expect(screen.getByText("2 requirements could not be checked. Retry or check them yourself.")).toBeDefined();
 	expect(screen.getByText(/Supported backend experience\./)).toBeDefined();
 });
 
-it("does not repeat a single full job ad under every job-evidence item and shows plain withheld reasons without raw IDs", () => {
+it("does not repeat a single full job ad under every job-evidence item and uses a short title for a withheld item without raw IDs", () => {
 	i18n.loadAndActivate({ locale: "en-US", messages: {} });
 	const fullAd = "Line 1: Measure service quality.\nLine 2: Prepare weekly reports.\nLine 3: Manage cloud infra.";
 	state.data = {
@@ -750,11 +788,15 @@ it("does not repeat a single full job ad under every job-evidence item and shows
 	expect(screen.getAllByText(/No CV evidence of measuring service quality\./).length).toBeGreaterThan(0);
 	expect(screen.getAllByText(/No CV evidence of preparing weekly reports\./).length).toBeGreaterThan(0);
 	expect(screen.queryByText(/req-03/)).toBeNull();
+	const toggle = screen.getByRole("button", { name: "Show unchecked requirements" });
+	expect(toggle).toHaveAttribute("aria-expanded", "false");
+	fireEvent.click(toggle);
 	expect(screen.getByText("Job requirement 3")).toBeVisible();
-	expect(screen.getByText("The checked evidence did not support this finding.")).toBeVisible();
+	expect(screen.queryAllByText(/Line 1: Measure service quality\./)).toHaveLength(0);
+	expect(screen.queryByText("The checked evidence did not support this finding.")).toBeNull();
 });
 
-it("lists withheld job requirement spans with plain reasons when distinct spans exist and never raw IDs", () => {
+it("lists distinct withheld requirement titles only after expansion", () => {
 	i18n.loadAndActivate({ locale: "en-US", messages: {} });
 	state.data = {
 		result: {
@@ -795,12 +837,18 @@ it("lists withheld job requirement spans with plain reasons when distinct spans 
 			<TranslationReview operationId="operation" />
 		</I18nProvider>,
 	);
-	expect(screen.getByText(/Ten years of experience required\./)).toBeDefined();
-	expect(screen.getByText(/Importance level was not stated explicitly in the job ad/)).toBeDefined();
+	const toggle = screen.getByRole("button", { name: "Show unchecked requirements" });
+	expect(toggle).toHaveAttribute("aria-expanded", "false");
+	fireEvent.click(toggle);
+	const title = screen.getByText("Ten years of experience required.");
+	expect(title.tagName).toBe("BDI");
+	expect(title).toHaveAttribute("dir", "auto");
+	expect(title).toHaveClass("truncate");
+	expect(screen.queryByText(/Importance level was not stated explicitly in the job ad/)).toBeNull();
 	expect(screen.queryByText(/req-07/)).toBeNull();
 });
 
-it.each(["en-US", "ar-SA"] as const)("shows the withheld finding and reason in %s", (locale) => {
+it.each(["en-US", "ar-SA"] as const)("keeps withheld findings and reasons out of the page in %s", (locale) => {
 	i18n.loadAndActivate({ locale, messages: locale === "ar-SA" ? arabicMessages : {} });
 	state.data = {
 		result: {
@@ -848,10 +896,17 @@ it.each(["en-US", "ar-SA"] as const)("shows the withheld finding and reason in %
 			<TranslationReview operationId="operation" />
 		</I18nProvider>,
 	);
-	expect(screen.getByText(/Ten years of experience required\./)).toBeDefined();
-	expect(screen.getByText(locale === "ar-SA" ? "نتيجة غير متحقق منها" : "Unverified finding")).toBeVisible();
-	expect(screen.getByText("The candidate meets the experience requirement.")).toBeVisible();
-	expect(screen.getByText(locale === "ar-SA" ? /الأهمية/ : /Importance level was not stated explicitly/)).toBeVisible();
+	const ar = locale === "ar-SA";
+	const toggle = screen.getByRole("button", {
+		name: ar ? "عرض المتطلبات التي لم تُفحص" : "Show unchecked requirements",
+	});
+	expect(toggle).toHaveAttribute("aria-expanded", "false");
+	expect(screen.queryByText("Ten years of experience required.")).toBeNull();
+	fireEvent.click(toggle);
+	expect(screen.getByText("Ten years of experience required.")).toBeVisible();
+	expect(screen.queryByText(ar ? "نتيجة غير متحقق منها" : "Unverified finding")).toBeNull();
+	expect(screen.queryByText("The candidate meets the experience requirement.")).toBeNull();
+	expect(screen.queryByText(ar ? /الأهمية/ : /Importance level was not stated explicitly/)).toBeNull();
 	expect(screen.queryByText(/req-07/)).toBeNull();
 });
 
@@ -923,9 +978,15 @@ it.each(["en-US", "ar-SA"] as const)(
 		);
 		const localized = locale === "ar-SA";
 		if (!localized) {
-			expect(screen.getByText("2 items were withheld because they could not be verified.")).toBeDefined();
-			expect(screen.getAllByText(/Could not be verified as an accurate translation/)).toHaveLength(2);
+			expect(screen.getByText("2 parts stayed in their original language")).toBeVisible();
+			expect(screen.getByRole("button", { name: "Retry untranslated parts" })).toHaveAttribute(
+				"data-variant",
+				"secondary",
+			);
 		}
+		const details = screen.getByText(localized ? "عرض التفاصيل (2)" : "Show details (2)").closest("details");
+		if (!details) throw new Error("Missing untranslated parts disclosure");
+		details.open = true;
 		const retry = screen
 			.getAllByRole("button", { name: localized ? "إعادة محاولة هذا الجزء" : "Retry this part" })
 			.at(-1);
@@ -951,9 +1012,11 @@ it.each(["en-US", "ar-SA"] as const)(
 		expect(state.grant).toHaveBeenCalledWith(expect.objectContaining({ noticeSha256: notice.noticeSha256 }));
 		expect(state.notices).toHaveBeenCalledWith({ purpose: notice.purpose, locale });
 		if (!localized) {
-			fireEvent.click(screen.getByRole("button", { name: "Compare with original" }));
-			fireEvent.click(screen.getByRole("button", { name: /Other sections|Summary/ }));
-			expect(screen.getAllByText("Not translated")).toHaveLength(2);
+			fireEvent.click(screen.getByRole("button", { name: "Show original text" }));
+			const section = screen.getByText("Other sections", { selector: "summary *" }).closest("details");
+			if (!section) throw new Error("Missing translation preview section");
+			section.open = true;
+			expect(screen.getAllByText("Not translated yet")).toHaveLength(2);
 		}
 	},
 );
@@ -987,66 +1050,43 @@ it("shows a clear no-change-needed status and close action when summary review n
 		</I18nProvider>,
 	);
 	expect(screen.getByText("No summary changes are needed. Your summary is unchanged.")).toBeDefined();
-	expect(screen.getByText("لا حاجة إلى تعديل الملخص الحالي.")).toBeDefined();
+	expect(screen.getByText("Check this finding against the source information.")).toBeDefined();
+	expect(screen.queryByText("لا حاجة إلى تعديل الملخص الحالي.")).toBeNull();
 	const closeButton = screen.getByRole("button", { name: "Close" });
 	fireEvent.click(closeButton);
 	expect(onClose).toHaveBeenCalledTimes(1);
 });
 
-it("lists each incomplete translation part with its own plain reason instead of a generic failure message", () => {
-	i18n.loadAndActivate({ locale: "en-US", messages: {} });
-	state.data = {
-		result: {
-			kind: "review.translation",
-			sourceRevision: { id: "cv" },
-			withheld: {
-				count: 2,
-				rules: ["AI_TIMEOUT", "AI_VERIFICATION_CLAIM_SUPPORT"],
-				items: [
-					{ id: "summary:0", reason: "AI_TIMEOUT", partIndex: 0 },
-					{ id: "summary:1", reason: "AI_VERIFICATION_CLAIM_SUPPORT", partIndex: 2 },
-				],
-			},
-			output: {
-				direction: "en-ar",
-				sourceRevision: "2026-01-01T00:00:00.000Z",
-				segments: [
-					{
-						sourceId: "summary:0",
-						text: "Original part 1.",
-						claims: [{ id: "c1", kind: "translation", text: "Original part 1.", evidenceIds: ["summary:0"] }],
-					},
-					{
-						sourceId: "summary:1",
-						text: "Original part 3.",
-						claims: [{ id: "c2", kind: "translation", text: "Original part 3.", evidenceIds: ["summary:1"] }],
-					},
-				],
-				notes: [],
-			},
-		},
-		sourceSegments: [
-			{ id: "summary:0", text: "Original part 1." },
-			{ id: "summary:1", text: "Original part 3." },
-		],
-		terms: { terms: [] },
-		segments: {
-			"summary:0": { text: "Original part 1.", status: "accepted", author: "model" },
-			"summary:1": { text: "Original part 3.", status: "accepted", author: "model" },
-		},
-		statuses: { translation: "accepted", "summary:0": "accepted", "summary:1": "accepted" },
-		stale: false,
-		undoable: [],
-		answeredQuestionIds: [],
-		dismissedQuestionIds: [],
-	};
-	render(
+it("collapses 18 untranslated parts and uses secondary buttons in the notice and preview", () => {
+	const view = show([], "pending");
+	const gaps = Array.from({ length: 18 }, (_, index) => ({
+		id: `gap-${index}`,
+		text: `Supports direct AI API calls (${index}).`,
+		untranslated: { partIndex: index, reason: "TRANSLATION_FACT_TERM:SQL" },
+	}));
+	state.data.sourceSegments = [...(state.data.sourceSegments as unknown[]), ...gaps];
+	view.rerender(
 		<I18nProvider i18n={i18n}>
 			<TranslationReview operationId="operation" />
 		</I18nProvider>,
 	);
-	expect(screen.getByText(/Part 1:/)).toBeDefined();
-	expect(screen.getByText(/ran out of time/i)).toBeDefined();
-	expect(screen.getByText(/Part 3:/)).toBeDefined();
-	expect(screen.getByText(/Could not be verified as an accurate translation/)).toBeDefined();
+	const details = screen.getByText("Show details (18)").closest("details");
+	expect(details).not.toHaveAttribute("open");
+	expect(screen.getByRole("button", { name: "Retry untranslated parts" })).toHaveAttribute("data-variant", "secondary");
+	expect(details).not.toBeNull();
+	if (!details) throw new Error("Missing details");
+	details.open = true;
+	expect(within(details).getAllByRole("button", { name: "Retry this segment" })).toHaveLength(18);
+	expect(within(details).getByText("Supports direct AI API calls (0).").closest("bdi")).toBeDefined();
+	expect(within(details).getAllByText("The term SQL was changed.")).toHaveLength(18);
+	const section = screen.getByText("Other sections", { selector: "summary *" }).closest("details");
+	if (!section) throw new Error("Missing section");
+	section.open = true;
+	expect(within(section).getAllByText("Not translated yet")).toHaveLength(18);
+	const rowElement = within(section)
+		.getByText("Supports direct AI API calls (0).")
+		.closest<HTMLElement>('[data-slot="translation-segment"]');
+	if (!rowElement) throw new Error("Expected the first untranslated card");
+	const row = within(rowElement);
+	expect(row.getByRole("button", { name: "Retry this segment" })).toHaveAttribute("data-variant", "secondary");
 });

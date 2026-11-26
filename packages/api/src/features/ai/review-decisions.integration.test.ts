@@ -108,11 +108,11 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("atomic review deci
 			);
 		expect(await database.run(() => listResumeReviews("alice", f.id))).toEqual(
 			expect.arrayContaining([
-				{
+				expect.objectContaining({
 					operationId: f.operationId,
 					targets: [{ target: { sectionId: "summary", field: "content" }, pendingCount: 1 }],
-				},
-				{ operationId: otherId, targets: [{ target, pendingCount: 1 }] },
+				}),
+				expect.objectContaining({ operationId: otherId, targets: [{ target, pendingCount: 1 }] }),
 			]),
 		);
 		await database.run(() =>
@@ -123,6 +123,37 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("atomic review deci
 		expect(history.find((entry) => entry.operationId === otherId)?.targets[0]?.pendingCount).toBe(0);
 		await expect(database.run(() => listResumeReviews("bob", f.id))).rejects.toMatchObject({ code: "NOT_FOUND" });
 	});
+	it("counts question-only reviews until answered and keeps their timestamp and outcome", async () => {
+		const f = await fixture((result) => {
+			result.proposals = [];
+			result.questions = [
+				{ id: "q", target: { sectionId: "summary", field: "content" }, prompt: "What changed?", evidenceIds: ["e1"] },
+			];
+		});
+		const history = () => database.run(() => listResumeReviews("alice", f.id));
+		expect(await history()).toMatchObject([
+			{
+				operationId: f.operationId,
+				kind: "review.wording",
+				state: "waiting_review",
+				createdAt: expect.any(String),
+				pendingCount: 0,
+				unansweredQuestionCount: 1,
+				answeredCount: 0,
+			},
+		]);
+		await database.run(() =>
+			recordReviewAnswer("alice", {
+				operationId: f.operationId,
+				questionId: "q",
+				requestKey: `answer-${f.id}`,
+				expectedSource: { kind: "resume", id: f.id, revision: f.revision },
+				text: "Reduced waiting time.",
+			}),
+		);
+		expect(await history()).toMatchObject([{ state: "succeeded", unansweredQuestionCount: 0, answeredCount: 1 }]);
+	});
+
 	it("accepts and undoes each repeated block using its original position", async () => {
 		const before = "<p>Built services.</p>";
 		const repeated = before + before;
@@ -438,6 +469,18 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("atomic review deci
 		const rejected = await database.run(() => decideReview("alice", { ...f.input, decision: "reject" }));
 		expect(rejected.updatedAt).toBe(f.revision);
 		expect(rejected.data.summary.content).toBe("<p>Built services.</p>");
+		expect((await database.run(() => getReview("alice", f.operationId))).undoable).toEqual([
+			{ decisionId: rejected.decisionId, proposalIds: f.input.proposalIds, changes: [], userSupplied: false },
+		]);
+		const restored = await database.run(() =>
+			decideReview("alice", {
+				...f.input,
+				requestKey: `${f.input.requestKey}-undo-reject`,
+				decision: "undo",
+				undoDecisionId: rejected.decisionId,
+			}),
+		);
+		expect(restored).toMatchObject({ updatedAt: f.revision, data: rejected.data, statuses: { p1: "pending" } });
 		expect((await database.admin().query("SELECT id FROM resume_version WHERE resume_id=$1", [f.id])).rows).toEqual([]);
 	});
 	it("undo survives refresh and preserves intervening manual edits, with idempotent replay", async () => {

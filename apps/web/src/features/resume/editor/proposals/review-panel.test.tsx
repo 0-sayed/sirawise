@@ -1,7 +1,7 @@
 import type { ReviewView } from "@reactive-resume/schema/resume/ai-review";
 // @vitest-environment happy-dom
 import type { ResumeData } from "@reactive-resume/schema/resume/data";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vite-plus/test";
 import { i18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
@@ -116,6 +116,26 @@ function mount(children = <ReviewResultPanel operationId="op" />) {
 		</I18nProvider>,
 	);
 }
+function historyEntry(
+	operationId: string,
+	targets: { target: Record<string, string>; pendingCount: number }[],
+	unansweredQuestionCount = 0,
+) {
+	return {
+		operationId,
+		targets,
+		unansweredQuestionCount,
+		kind: "review.wording",
+		state: "waiting_review",
+		createdAt: "2026-01-01T00:00:00.000Z",
+		pendingCount: targets.reduce((count, entry) => count + entry.pendingCount, 0),
+		continuationAvailable: false,
+		answeredCount: 0,
+		acceptedCount: 0,
+		rejectedCount: 0,
+	};
+}
+
 beforeEach(() => {
 	vi.resetAllMocks();
 	i18n.loadAndActivate({ locale: "en-US", messages: {} });
@@ -176,7 +196,7 @@ beforeEach(() => {
 		undoable: [],
 	};
 	mocks.views = {};
-	mocks.history.mockResolvedValue([{ operationId: "op", targets: [{ target, pendingCount: 1 }] }]);
+	mocks.history.mockResolvedValue([historyEntry("op", [{ target, pendingCount: 1 }])]);
 	mocks.read.mockImplementation(async ({ queryKey }: { queryKey: string[] }) =>
 		structuredClone(mocks.views[queryKey[1] ?? ""] ?? mocks.view),
 	);
@@ -202,30 +222,37 @@ it("restores pending suggestions per field after switching fields and reopening 
 	other.result.proposals = other.result.proposals.map((proposal) => ({
 		...proposal,
 		target,
+		after: "<p>Created services.</p>",
 		why: "Experience suggestion",
 	}));
 	mocks.views.experience = other;
 	mocks.history.mockResolvedValue([
-		{ operationId: "experience", targets: [{ target, pendingCount: 1 }] },
-		{ operationId: "op", targets: [{ target: { sectionId: "summary", field: "content" }, pendingCount: 1 }] },
+		historyEntry("experience", [{ target, pendingCount: 1 }]),
+		historyEntry("op", [{ target: { sectionId: "summary", field: "content" }, pendingCount: 1 }]),
 	]);
 	const view = mount(<ResumeReviewWorkspace />);
-	await screen.findByText("Clearer wording");
-	const select = screen.getByRole("combobox", { name: "Text to review" });
-	expect(screen.getByRole("option", { name: /Summary.*Pending suggestions: 1/u })).toBeDefined();
-	expect(screen.getByRole("option", { name: /Engineer.*Pending suggestions: 1/u })).toBeDefined();
-	fireEvent.change(select, { target: { value: JSON.stringify(target) } });
-	await screen.findByText("Experience suggestion");
+	await screen.findByText("Developed");
 	expect(screen.queryByText("Clearer wording")).toBeNull();
+	const select = screen.getByRole("combobox", { name: "Text to review" });
+	expect(within(select).getByRole("option", { name: /Summary/u })).toBeDefined();
+	expect(within(select).getByRole("option", { name: /Engineer/u })).toBeDefined();
+	fireEvent.change(select, { target: { value: JSON.stringify(target) } });
+	await screen.findByText("Created");
+	expect(screen.queryByText("Experience suggestion")).toBeNull();
+	expect(screen.getByText("Developed")).toBeDefined();
 	fireEvent.change(select, { target: { value: JSON.stringify({ sectionId: "summary", field: "content" }) } });
-	await screen.findByText("Clearer wording");
-	fireEvent.click(screen.getByRole("button", { name: "Keep original" }));
+	await screen.findByText("Developed");
+	expect(screen.queryByText("Clearer wording")).toBeNull();
+	const summaryReview = screen.getByText("Developed").closest<HTMLElement>("[data-testid=durable-review]");
+	if (!summaryReview) throw new Error("Missing summary review");
+	fireEvent.click(within(summaryReview).getByRole("button", { name: "Keep original" }));
 	await waitFor(() =>
 		expect(mocks.decide).toHaveBeenCalledWith(expect.objectContaining({ operationId: "op", decision: "reject" })),
 	);
 	view.unmount();
 	mount(<ResumeReviewWorkspace target={target} />);
-	await screen.findByText("Experience suggestion");
+	await screen.findByText("Created");
+	expect(screen.queryByText("Experience suggestion")).toBeNull();
 	expect(screen.getByRole("button", { name: "Accept" })).toBeEnabled();
 	expect(mocks.start).not.toHaveBeenCalled();
 });
@@ -233,18 +260,21 @@ it("keeps older pending reviews accessible when the same field is reviewed again
 	if (!mocks.view || mocks.view.result.kind !== "wording") throw new Error("Missing fixture");
 	const older = structuredClone(mocks.view);
 	if (older.result.kind !== "wording") throw new Error("Missing fixture");
-	older.result.proposals = older.result.proposals.map((proposal) => ({ ...proposal, why: "Older pending suggestion" }));
+	older.result.proposals = older.result.proposals.map((proposal) => ({
+		...proposal,
+		after: "<p>Delivered services.</p>",
+		why: "Older pending suggestion",
+	}));
 	mocks.views.older = older;
 	const targets = [{ target: { sectionId: "summary", field: "content" }, pendingCount: 1 }];
-	mocks.history.mockResolvedValue([
-		{ operationId: "op", targets },
-		{ operationId: "older", targets },
-	]);
+	mocks.history.mockResolvedValue([historyEntry("op", targets), historyEntry("older", targets)]);
 	mount(<ResumeReviewWorkspace />);
-	await screen.findByText("Clearer wording");
-	fireEvent.change(screen.getByRole("combobox", { name: "Saved reviews" }), { target: { value: "older" } });
-	await screen.findByText("Older pending suggestion");
-	fireEvent.click(screen.getByRole("button", { name: "Accept" }));
+	await screen.findByText("Developed");
+	expect(screen.queryByText("Clearer wording")).toBeNull();
+	const olderReview = (await screen.findByText("Delivered")).closest<HTMLElement>("[data-testid=durable-review]");
+	if (!olderReview) throw new Error("Missing older review");
+	expect(screen.queryByText("Older pending suggestion")).toBeNull();
+	fireEvent.click(within(olderReview).getByRole("button", { name: "Accept" }));
 	await waitFor(() =>
 		expect(mocks.decide).toHaveBeenCalledWith(expect.objectContaining({ operationId: "older", decision: "accept" })),
 	);
@@ -272,15 +302,41 @@ afterEach(() => {
 	cleanup();
 	vi.useRealTimers();
 });
-it("shows original, proposed wording, reason and evidence with source focus", async () => {
+it("shows changed wording and evidence without the AI reason with source focus", async () => {
 	const { container } = mount();
-	await screen.findByText("Clearer wording");
-	expect(container.querySelector(".review-wording ins")).toHaveAttribute("dir", "auto");
-	expect(container.querySelector(".review-wording ins")).toHaveTextContent("Developed services.");
+	await screen.findByText("Developed");
+	expect(screen.queryByText("Clearer wording")).toBeNull();
+	expect(container.querySelector(".review-wording p")).toHaveAttribute("dir", "auto");
+	expect(container.querySelector(".review-wording ins")).toHaveTextContent("Developed");
+	expect(container.querySelector(".review-wording del")).toHaveTextContent("Built");
 	fireEvent.click(screen.getByText("Evidence"));
 	expect(screen.getByRole("blockquote")).toHaveTextContent("Built services.");
 	fireEvent.click(screen.getByRole("button", { name: "Show source" }));
 	expect(mocks.select).toHaveBeenCalledWith({ kind: "section", sectionId: "summary" });
+});
+
+it("describes shortcuts on the focused edit without a visible hint or a proposal ID", async () => {
+	const proposalId = "01a213fd-3d4a-7401-b946-75736fe7286c";
+	const view = mocks.view;
+	if (!view || view.result.kind !== "wording" || !view.result.proposals[0]) throw new Error("Missing wording proposal");
+	view.result.proposals[0].id = proposalId;
+	view.statuses = { [proposalId]: "pending" };
+	const { container } = mount();
+	await screen.findByText("Developed");
+	const list = screen.getByRole("list", { name: "Proposed edits" });
+	const edit = within(list)
+		.getAllByRole("listitem")
+		.find((item) => item.tabIndex === 0);
+	if (!edit) throw new Error("Expected a focusable edit");
+	expect(edit).toHaveAccessibleDescription(/A.*accepts.*R.*rejects/u);
+	expect(screen.getByText(/rejects the focused edit/u)).not.toBeVisible();
+	expect(container.textContent ?? "").not.toMatch(/[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}/iu);
+	fireEvent.keyDown(edit, { key: "r" });
+	await waitFor(() =>
+		expect(mocks.decide).toHaveBeenCalledWith(
+			expect.objectContaining({ decision: "reject", proposalIds: [proposalId] }),
+		),
+	);
 });
 it("keeps edited text on Cancel and leaves pending status after a failed server decision", async () => {
 	mount();
@@ -310,6 +366,28 @@ it("shows durable Undo after reload and sends the accepting event ID", async () 
 	await waitFor(() =>
 		expect(mocks.decide).toHaveBeenCalledWith(
 			expect.objectContaining({ decision: "undo", undoDecisionId: "accepted-event" }),
+		),
+	);
+});
+it("shows rejection in the edit header and keeps Evidence and Undo in one action group", async () => {
+	if (!mocks.view) throw new Error("Missing fixture view");
+	mocks.view.statuses.p = "rejected";
+	mocks.view.undoable = [{ decisionId: "rejected-event", proposalIds: ["p"], changes: [], userSupplied: false }];
+	mount();
+	const status = await screen.findByText("Rejected");
+	expect(status.closest('[data-slot="badge"]')).toBeInTheDocument();
+	const evidence = screen.getByRole("button", { name: "Evidence" });
+	const undo = screen.getByRole("button", { name: "Undo" });
+	const actions = undo.closest('[data-slot="action-group"]');
+	expect(actions).toContainElement(evidence);
+	expect(evidence).toHaveAttribute("aria-expanded", "false");
+	fireEvent.click(evidence);
+	expect(evidence).toHaveAttribute("aria-expanded", "true");
+	expect(screen.getByRole("blockquote")).toHaveTextContent("Built services.");
+	fireEvent.click(undo);
+	await waitFor(() =>
+		expect(mocks.decide).toHaveBeenCalledWith(
+			expect.objectContaining({ decision: "undo", undoDecisionId: "rejected-event" }),
 		),
 	);
 });
@@ -479,7 +557,7 @@ it("counts actual pending statuses and updates after an acknowledged refetch", a
 	mount(<SummaryProjection />);
 	expect(await screen.findByText("available:1")).toBeDefined();
 	mocks.history.mockResolvedValue([
-		{ operationId: "op", targets: [{ target: { sectionId: "summary", field: "content" }, pendingCount: 0 }] },
+		historyEntry("op", [{ target: { sectionId: "summary", field: "content" }, pendingCount: 0 }]),
 	]);
 	fireEvent.click(screen.getByRole("button", { name: "Refresh summary" }));
 	expect(await screen.findByText("available:0")).toBeDefined();
@@ -497,16 +575,21 @@ it("keeps counts unknown while history is loading or unavailable", async () => {
 });
 it("counts pending proposals across all saved fields", async () => {
 	mocks.history.mockResolvedValue([
-		{ operationId: "op", targets: [{ target: { sectionId: "summary", field: "content" }, pendingCount: 1 }] },
-		{
-			operationId: "experience",
-			targets: [{ target: { sectionId: "experience", itemId: "entry", field: "description" }, pendingCount: 2 }],
-		},
+		historyEntry("op", [{ target: { sectionId: "summary", field: "content" }, pendingCount: 1 }]),
+		historyEntry("experience", [
+			{ target: { sectionId: "experience", itemId: "entry", field: "description" }, pendingCount: 2 },
+		]),
 	]);
 	mount(<SummaryProjection />);
 	expect(await screen.findByText("available:3")).toBeDefined();
 	expect(mocks.read).not.toHaveBeenCalled();
 });
+it("counts a question when there is no proposed change", async () => {
+	mocks.history.mockResolvedValue([historyEntry("question", [], 1)]);
+	mount(<SummaryProjection />);
+	expect(await screen.findByText("available:1")).toBeDefined();
+});
+
 it("reports zero only after history confirms no saved review", async () => {
 	mocks.history.mockResolvedValue([]);
 	mount(<SummaryProjection />);
@@ -523,7 +606,8 @@ it("does not accept a locked proposal or change saved content", async () => {
 	if (mocks.current) mocks.current.resume.isLocked = true;
 	const before = structuredClone(mocks.current?.resume.data);
 	mount();
-	await screen.findByText("Clearer wording");
+	await screen.findByText("Developed");
+	expect(screen.queryByText("Clearer wording")).toBeNull();
 	expect(screen.getByRole("button", { name: "Accept" })).toBeDisabled();
 	expect(mocks.current?.resume.data).toEqual(before);
 	expect(mocks.decide).not.toHaveBeenCalled();

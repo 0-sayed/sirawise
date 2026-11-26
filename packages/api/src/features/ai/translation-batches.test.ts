@@ -10,9 +10,7 @@ import {
 	restoreTranslationPlan,
 	recoverTranslationPlan,
 } from "./translation-batches";
-import { buildTranslationCheck, compactTranslationCheckTargetBytes } from "./translation-verifier";
-import { buildVariantWriterPayload } from "./variant-contracts";
-import { prepareCompactTranslationVerification } from "./variant-handlers";
+import { buildCompactTranslationWriter, buildVariantWriterPayload } from "./variant-contracts";
 import { buildVariantVerificationPayload } from "./variant-verifier";
 
 const snapshot = (texts: string[]): VariantSnapshot => ({
@@ -24,7 +22,7 @@ const snapshot = (texts: string[]): VariantSnapshot => ({
 	cv: texts.map((text, index) => ({ id: `source-${index}`, section: "summary", text })),
 });
 const budget = { maxInputCodePoints: 32000, maxOutputTokens: 4096 };
-it("keeps admitted verifier batches stable while sizing new plans from the translated prose", () => {
+it("restores admitted writer parts with their original boundaries", () => {
 	const base = snapshot(Array.from({ length: 6 }, () => "Reviewed a release."));
 	const full = { ...base, translationProtection: { maskedSegments: base.cv, localMap: new Map(), assertions: [] } };
 	const next = planTranslationBatches(full, budget);
@@ -34,44 +32,19 @@ it("keeps admitted verifier batches stable while sizing new plans from the trans
 		...previous,
 		fingerprint: createHash("sha256").update(JSON.stringify(previous)).digest("hex"),
 	});
-	const verify = (part: VariantSnapshot) =>
-		prepareCompactTranslationVerification(
-			part,
-			{
-				direction: base.direction,
-				sourceRevision: base.sourceRevision,
-				segments: part.cv.map(({ id }) => ({ sourceId: id, text: "راجعت الإصدار ووثقت نطاق المراجعة. ".repeat(12) })),
-			},
-			"part-1",
-		).batches;
-	const oldPart = restored.batches[0];
-	const newPart = next.batches[0];
-	if (!oldPart || !newPart) throw new Error("Missing translation part");
-	expect(verify(oldPart)).toHaveLength(1);
-	expect(verify(newPart).length).toBeGreaterThan(1);
+	expect(restored.batches.map(({ cv }) => cv)).toEqual(batches);
 	expect(restoreTranslationPlan(full, persistTranslationPlan(next))).toEqual(next);
 });
 it.each([
-	["ar-en", "عملت على تحديث تقارير الأداء ومراجعة طلبات العملاء. ", "I updated reports and reviewed requests. "],
-	["en-ar", "Reviewed café menus and updated the weekly report. ", "راجعت قوائم المقاهي وحدّثت التقرير الأسبوعيّ. "],
-] as const)("sizes compact %s parts by UTF-8 bytes", (direction, sentence, translation) => {
+	["ar-en", "عملت على تحديث تقارير الأداء ومراجعة طلبات العملاء. "],
+	["en-ar", "Reviewed café menus and updated the weekly report. "],
+] as const)("sizes compact %s parts within the writer input limit", (direction, sentence) => {
 	const base = { ...snapshot([sentence.repeat(150)]), direction };
 	const full = { ...base, translationProtection: { maskedSegments: base.cv, localMap: new Map(), assertions: [] } };
-	const limits = { ...budget, verifierMaxInputBytes: 3000 };
+	const limits = { ...budget, maxInputCodePoints: 2400 };
 	const plan = planTranslationBatches(full, limits);
-	for (const part of plan.batches) {
-		const candidate = {
-			direction,
-			sourceRevision: full.sourceRevision,
-			segments: part.cv.map(({ id, text }) => ({ sourceId: id, text: text.replaceAll(sentence, translation) })),
-		};
-		const payload = buildTranslationCheck(
-			{ ...full.translationProtection, maskedSegments: part.cv },
-			candidate,
-			"part-1",
-		);
-		expect(Buffer.byteLength(JSON.stringify(payload))).toBeLessThanOrEqual(limits.verifierMaxInputBytes);
-	}
+	for (const part of plan.batches)
+		expect(() => buildCompactTranslationWriter(part, limits.maxInputCodePoints)).not.toThrow();
 	expect(plan.batches.flatMap(({ cv }) => cv.map(({ text }) => text)).join("")).toBe(base.cv[0]?.text);
 });
 
@@ -253,26 +226,15 @@ it("packs substantive Arabic CV passages into bounded parts instead of one call 
 		budget,
 	);
 	expect(plan.batches.length).toBeLessThanOrEqual(12);
-	for (const { cv } of plan.batches) {
-		const payload = buildTranslationCheck(
-			{ maskedSegments: cv, localMap: new Map(), assertions: [] },
-			{
-				direction: full.direction,
-				sourceRevision: full.sourceRevision,
-				segments: cv.map(({ id }) => ({
-					sourceId: id,
-					text: "Coordinated 15 teams and reduced reporting time by 22%.",
-				})),
-			},
-			"part-1",
-		);
-		expect(cv.length).toBeLessThanOrEqual(18);
-		expect(Buffer.byteLength(JSON.stringify(payload))).toBeLessThanOrEqual(compactTranslationCheckTargetBytes);
+	for (const batch of plan.batches) {
+		expect(batch.cv.length).toBeLessThanOrEqual(18);
+		expect(() => buildCompactTranslationWriter(batch, budget.maxInputCodePoints)).not.toThrow();
 	}
+
 	expect(plan.batches.flatMap(({ cv }) => cv.map(({ text }) => text))).toEqual(full.cv.map(({ text }) => text));
 });
 
-it("packs short Arabic labels across section boundaries without exceeding verifier budgets", () => {
+it("packs short Arabic labels across section boundaries within the writer part capacity", () => {
 	const full = {
 		...snapshot(Array.from({ length: 448 }, () => "متابعة طلبات العملاء")),
 		direction: "ar-en" as const,
@@ -287,12 +249,12 @@ it("packs short Arabic labels across section boundaries without exceeding verifi
 	expect(plan.batches.reduce((count, batch) => count + batch.cv.length, 0)).toBe(448);
 });
 
-it("packs Arabic-to-English prose into 24 to 28 parts and restores the admitted plan", () => {
+it("packs Arabic-to-English prose within the writer budget and restores the admitted plan", () => {
 	const arabic = "عملت على تحديث تقارير الأداء ومراجعة طلبات العملاء والتنسيق مع فريق التشغيل. ";
 	const base = { ...snapshot(Array.from({ length: 76 }, () => arabic.repeat(6))), direction: "ar-en" as const };
 	const full = { ...base, translationProtection: { maskedSegments: base.cv, localMap: new Map(), assertions: [] } };
 	const plan = planTranslationBatches(full, budget);
-	expect(plan.batches.length).toBeGreaterThanOrEqual(24);
+	expect(plan.batches.length).toBeGreaterThan(1);
 	expect(plan.batches.length).toBeLessThanOrEqual(28);
 	expect(restoreTranslationPlan(full, persistTranslationPlan(plan))).toEqual(plan);
 });

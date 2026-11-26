@@ -40,6 +40,14 @@ export async function captureReviewDirection(page: Page, info: TestInfo, name: s
 	await page.screenshot({ path: evidence ? resolve(evidence, filename) : info.outputPath(filename) });
 }
 
+export async function captureReviewFooter(page: Page, info: TestInfo, name: string, primary: Locator) {
+	const group = primary.locator("xpath=ancestor::*[@data-slot='action-group'][1]");
+	await expect(group.getByRole("button").first()).toHaveText(await primary.innerText());
+	expect(await group.getByRole("button").count()).toBeGreaterThan(1);
+	await group.scrollIntoViewIfNeeded();
+	await captureReviewDirection(page, info, name);
+}
+
 export async function seedReview(
 	page: Page,
 	testInfo: TestInfo,
@@ -93,11 +101,20 @@ export async function openReview(page: Page, width = 1440, tab: ReviewTab = "ats
 export async function openWriting(page: Page, width = 1440) {
 	await openReview(page, width, "ai");
 }
-export async function startReview(page: Page) {
+export async function startReview(page: Page, alreadyConsented = false) {
+	const opened = await page
+		.getByTestId("durable-review")
+		.evaluateAll((elements) => elements.map((element) => element.getAttribute("data-review-operation")));
+	const start = page.waitForResponse((response) =>
+		/^\/api\/rpc\/ai\/operations\/start(?:\/__batch__)?$/u.test(new URL(response.url()).pathname),
+	);
 	await page.getByRole("button", { name: /^(Review wording|مراجعة الصياغة)$/u }).click();
-	await page
-		.getByRole("dialog")
-		.getByRole("button", { name: /^(Start review|بدء المراجعة)$/u })
-		.click();
-	await expect(page.getByTestId("durable-review")).toBeVisible({ timeout: 25_000 });
+	const dialog = page.getByRole("dialog");
+	if (!alreadyConsented) await dialog.getByRole("button", { name: /^(Start review|بدء المراجعة)$/u }).click();
+	expect((await start).ok()).toBe(true);
+	await expect(dialog).toHaveCount(0);
+	const previous = opened.map((id) => `:not([data-review-operation="${id}"])`).join("");
+	const next = page.locator(`[data-review-operation]${previous}`);
+	await expect(next).toBeVisible({ timeout: 25_000 });
+	return page.locator(`[data-review-operation="${await next.getAttribute("data-review-operation")}"]`);
 }

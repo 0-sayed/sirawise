@@ -1,11 +1,14 @@
 import { beforeAll, expect, it } from "vite-plus/test";
 import { withDatabaseOwner } from "@reactive-resume/db/owner-scope";
 import { defaultResumeData } from "@reactive-resume/schema/resume/default";
+import { variantOperationParameters } from "@reactive-resume/schema/resume/variants";
 import { saveJobTarget, selectResumeJob } from "../career/job-targets";
 import { resumeService } from "../resume/service";
 import { createVariant } from "../resume/variants";
 import { runAiOperations } from "./operation-worker";
 import { operationService } from "./operations";
+import { prepareReviewContinuation } from "./review-continuation";
+import { recordReviewAnswer } from "./review-decisions";
 import { withAiRuntime } from "./route-policy";
 import { aiTestDatabase } from "./testing/database";
 import { syntheticReviewRuntime } from "./testing/runtime";
@@ -17,7 +20,7 @@ let cv: string;
 let revision: string;
 let job: Awaited<ReturnType<typeof saveJobTarget>>;
 let selection: Awaited<ReturnType<typeof selectResumeJob>>;
-let mode: "supported" | "missing" | "unavailable" | "changed" | "fabricated" = "supported";
+let mode: "supported" | "missing" | "unavailable" | "changed" | "fabricated" | "partial" = "supported";
 let calls: Record<string, unknown>[] = [];
 const runtime = {
 	...syntheticReviewRuntime,
@@ -111,7 +114,7 @@ const runtime = {
 									id: "react",
 									spanIds: [jobContext.segments[0].id],
 									importance: "essential",
-									verdict: "supported",
+									verdict: mode === "partial" ? "partial" : "supported",
 									evidenceIds: [cvEvidence[0].id],
 									explanation: mode === "fabricated" ? "Used React and SAP and increased revenue 30%." : "Used React.",
 								},
@@ -176,7 +179,7 @@ beforeAll(async () => {
 		);
 });
 
-async function start(requestKey: string) {
+async function start(requestKey: string, includeSpanVersion = true) {
 	const prepared = await run(() =>
 		prepareVariantReview("alice", {
 			kind: "review.job-evidence",
@@ -187,10 +190,13 @@ async function start(requestKey: string) {
 			expectedSelectionRevision: selection.revision,
 		}),
 	);
+	const { jobSpanVersion, ...legacyParameters } = variantOperationParameters["review.job-evidence"].parse(
+		prepared.parameters,
+	);
 	return run(() =>
 		operationService.start("alice", {
 			kind: prepared.kind,
-			parameters: prepared.parameters,
+			parameters: includeSpanVersion ? { ...legacyParameters, jobSpanVersion } : legacyParameters,
 			sources: prepared.sources,
 			requestKey,
 			route: { routeId: "synthetic", routeRevision: "1", configRevision: "1" },
@@ -201,7 +207,9 @@ async function start(requestKey: string) {
 
 it("delivers complete independently verified evidence once without changing the CV", async () => {
 	calls = [];
-	const operation = await start("complete");
+	const operation = await start("complete", false);
+	const stored = await database.admin().query("SELECT parameters FROM ai_operation WHERE id = $1", [operation.id]);
+	expect(stored.rows[0]?.parameters.jobSpanVersion).toBe("requirements-v2");
 	await run(() => runAiOperations());
 	expect(await run(() => operationService.get("alice", operation.id))).toMatchObject({
 		state: "waiting_review",
@@ -265,6 +273,53 @@ it.each(["missing", "unavailable", "fabricated", "changed"] as const)(
 		mode = "supported";
 	},
 );
+
+it("attaches a saved answer to the same job evidence review without a second charge", async () => {
+	mode = "partial";
+	const operation = await start("clarify-job");
+	await run(() => runAiOperations());
+	mode = "supported";
+	const answer = await run(() =>
+		recordReviewAnswer("alice", {
+			operationId: operation.id,
+			questionId: "react",
+			requestKey: "answer-job",
+			expectedSource: { kind: "resume", id: cv, revision },
+			text: "Used React for a reporting project.",
+		}),
+	);
+	const prepared = await run(() => prepareReviewContinuation("alice", operation.id, answer.id));
+	calls = [];
+	const follow = await run(() =>
+		operationService.start("alice", {
+			...prepared,
+			kind: "review.job-evidence",
+			requestKey: "continue-job",
+			route: { routeId: "synthetic", routeRevision: "1", configRevision: "1" },
+			consentVersion: "1",
+		}),
+	);
+	await run(() => runAiOperations());
+	const input = writerInput();
+	const evidence = JSON.parse(
+		input.selections.find((entry: { id: string }) => entry.id === "variant-cv-evidence").text,
+	);
+	expect(evidence).toContainEqual(
+		expect.objectContaining({
+			id: answer.id,
+			text: answer.quote,
+			confirmation: "user_supplied",
+		}),
+	);
+	expect(await run(() => operationService.get("alice", follow.id))).toMatchObject({ state: "waiting_review" });
+	const ledger = await database
+		.admin()
+		.query("SELECT operation_id FROM ai_usage_ledger WHERE operation_id IN ($1,$2) AND kind='settle'", [
+			operation.id,
+			follow.id,
+		]);
+	expect(ledger.rows).toEqual([{ operation_id: operation.id }]);
+});
 
 it("saves accepted wording only to the reopened tailored CV and uses two calls for a full CV", async () => {
 	const source = (await database.admin().query("SELECT data,updated_at FROM resume WHERE id=$1", [cv])).rows[0];

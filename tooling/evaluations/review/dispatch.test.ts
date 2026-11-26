@@ -144,10 +144,12 @@ it("reserves catalog bounds before transport and buys retry capacity only when n
 			if (!r.key.endsWith(":verify")) reservations.push(r.reservedMicros);
 		},
 	});
-	// The frozen fixture costs 61,111 micros per catalog-bounded attempt.
-	// The public worst-case forecast still includes all five transport attempts.
-	expect(reservations).toEqual([61_111]);
-	expect(worst.upperBoundUsd).toBe(0.305555);
+	// The revised wording prompts and schema cost 51,720 OpenRouter and 9,794 OpenAI micros per attempt.
+	// The public worst-case forecast includes all five transport attempts.
+	expect(reservations).toEqual([61_514]);
+	expect(worst.openRouterUpperBoundUsd).toBe(0.2586);
+	expect(worst.openaiUpperBoundUsd).toBe(0.04897);
+	expect(worst.upperBoundUsd).toBe(0.30757);
 });
 
 it("parses explicit session, provider and backlog limits", () => {

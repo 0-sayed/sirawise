@@ -3,11 +3,13 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, expect, it, vi } from "vite-plus/test";
 import { i18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Profiler } from "react";
 import { defaultResumeData } from "@reactive-resume/schema/resume/default";
 import { SummaryReview } from "./summary-review";
 
 const state = vi.hoisted(() => ({ resume: {} as { id: string; data: unknown } }));
+const history = vi.hoisted(() => vi.fn().mockResolvedValue([]));
 vi.mock("../builder/draft", () => ({
 	useResumeStore: (select: (value: typeof state) => unknown) => select(state),
 	savePendingChanges: vi.fn(),
@@ -16,10 +18,13 @@ vi.mock("../editor/proposals/review-operation", () => ({
 	ReviewLaunch: ({ disabled, children }: { disabled: boolean; children: React.ReactNode }) => (
 		<button disabled={disabled}>{children}</button>
 	),
-	ReviewOperationPanel: () => null,
+	ReviewOperationPanel: ({ operationId }: { operationId: string }) => <output>{operationId}</output>,
 }));
 vi.mock("./translation-review", () => ({ TranslationReview: () => null }));
-vi.mock("@/libs/orpc/client", () => ({ client: {} }));
+vi.mock("@/libs/orpc/client", () => ({
+	client: {},
+	orpc: { ai: { review: { list: { queryOptions: () => ({ queryKey: ["history"], queryFn: history }) } } } },
+}));
 vi.mock("@reactive-resume/ui/components/checkbox", () => ({
 	// The selection limit belongs to SummaryReview. A button avoids flushing a
 	// controlled native input on each event while filling the 49 slots.
@@ -44,6 +49,28 @@ vi.mock("@reactive-resume/ui/components/checkbox", () => ({
 }));
 afterEach(cleanup);
 
+function mount(children: React.ReactNode) {
+	return render(
+		<I18nProvider i18n={i18n}>
+			<QueryClientProvider client={new QueryClient()}>{children}</QueryClientProvider>
+		</I18nProvider>,
+	);
+}
+
+it("restores an older pending summary even when a newer review completed", async () => {
+	i18n.loadAndActivate({ locale: "en-US", messages: {} });
+	state.resume = { id: "cv", data: structuredClone(defaultResumeData) };
+	history.mockResolvedValue([
+		{ kind: "review.summary", operationId: "completed-summary", pendingCount: 0 },
+		{ kind: "review.summary", operationId: "pending-summary", pendingCount: 1 },
+	]);
+	const view = mount(<SummaryReview locked={false} />);
+	expect(await screen.findByText("pending-summary")).toBeVisible();
+	view.unmount();
+	mount(<SummaryReview locked={false} />);
+	expect(await screen.findByText("pending-summary")).toBeVisible();
+});
+
 it("limits summary facts to the payload capacity and lets users replace a selection", () => {
 	i18n.loadAndActivate({ locale: "en-US", messages: {} });
 	const data = structuredClone(defaultResumeData);
@@ -59,12 +86,10 @@ it("limits summary facts to the payload capacity and lets users replace a select
 	}));
 	state.resume = { id: "cv", data };
 	const onRender = vi.fn();
-	render(
-		<I18nProvider i18n={i18n}>
-			<Profiler id="summary" onRender={onRender}>
-				<SummaryReview locked={false} />
-			</Profiler>
-		</I18nProvider>,
+	mount(
+		<Profiler id="summary" onRender={onRender}>
+			<SummaryReview locked={false} launchOnly />
+		</Profiler>,
 	);
 	fireEvent.click(screen.getByText("Select facts for the summary"));
 	const boxes = screen.getAllByRole("checkbox");

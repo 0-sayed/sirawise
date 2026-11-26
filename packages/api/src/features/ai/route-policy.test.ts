@@ -11,7 +11,7 @@ import {
 	withMeasuredReviewExecution,
 	completionTokenLimit,
 } from "./route-policy";
-import { syntheticRoute } from "./testing/runtime";
+import { syntheticRoute, syntheticRuntime } from "./testing/runtime";
 import { resolveReviewVerifierRoute } from "./verifier-policy";
 
 vi.mock("@reactive-resume/db/owner-scope", () => ({
@@ -48,7 +48,7 @@ const route: ApprovedRoute = {
 		},
 	],
 };
-const runtime: AiRuntime = { routes: [route], handlers: reviewHandlers, workerAvailable: true };
+const runtime: AiRuntime = { ...syntheticRuntime, routes: [route], handlers: reviewHandlers };
 const request = (kind = "review.wording"): OperationRequest => ({
 	requestKey: "test",
 	kind,

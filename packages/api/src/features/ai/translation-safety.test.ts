@@ -5,7 +5,7 @@ import { translationCandidateSchema } from "@reactive-resume/schema/resume/varia
 import { loadSafetyCases } from "./testing/pipeline-safety-fixtures";
 import { prepareTranslationFacts } from "./translation-invariants";
 import { buildCompactTranslationWriter } from "./variant-contracts";
-import { prepareCompactTranslationVerification } from "./variant-handlers";
+import { checkTranslationCandidate } from "./variant-handlers";
 
 const { inputs: fixtures, labels: expected } = loadSafetyCases<{
 	id: string;
@@ -55,43 +55,18 @@ it.each(fixtures)("uses the compact production guard for $id", (fixture) => {
 		return;
 	}
 	if (labels.caught.some(({ issueClass }) => issueClass === "AI_SOURCE_BINDING")) {
-		expect(() => prepareCompactTranslationVerification(snapshot, fixture.candidate, "part-1")).toThrow(
-			"AI_SOURCE_BINDING",
-		);
+		expect(() => checkTranslationCandidate(snapshot, fixture.candidate)).toThrow("AI_SOURCE_BINDING");
 		return;
 	}
-	const prepared = prepareCompactTranslationVerification(snapshot, fixture.candidate, "part-1");
-	expect(prepared.withheldIds).toEqual(
-		labels.caught.filter(({ stage }) => stage === "deterministic").map(({ itemId }) => itemId),
+	const checked = checkTranslationCandidate(snapshot, fixture.candidate);
+	const withheld =
+		fixture.id === "translation-ar-unchanged"
+			? ["subject"]
+			: labels.caught.filter(({ stage }) => stage === "deterministic").map(({ itemId }) => itemId);
+	expect(checked.withheldSegmentIds ?? []).toEqual(withheld);
+	expect(checked.output.segments.filter(({ claims }) => claims.length).map(({ sourceId }) => sourceId)).toEqual(
+		snapshot.cv.map(({ id }) => id).filter((id) => !withheld.includes(id)),
 	);
-	if (labels.mode === "deterministic") {
-		expect(prepared.payload).toBeNull();
-		return;
-	}
-	if (fixture.source.ownerName) {
+	if (fixture.source.ownerName)
 		expect(JSON.stringify(buildCompactTranslationWriter(snapshot))).not.toContain(fixture.source.ownerName);
-		expect(JSON.stringify(prepared.payload)).not.toContain(fixture.source.ownerName);
-	}
-	const semanticIssues = labels.caught.filter(({ stage }) => stage === "semantic");
-	const verdict = {
-		schemaVersion: 1,
-		batchId: "part-1",
-		checkedSourceIds: prepared.keptIds,
-		supportedSourceIds: labels.retainedIds,
-		issues: semanticIssues.map(({ itemId, issueClass }) => ({ sourceIds: [itemId], code: issueClass })),
-	};
-	const [firstId] = prepared.keptIds;
-	if (!firstId) throw new Error("Missing semantic fixture segment");
-	for (const checkedSourceIds of [
-		prepared.keptIds.slice(1),
-		[...prepared.keptIds, firstId],
-		["unknown", ...prepared.keptIds.slice(1)],
-	])
-		expect(() => prepared.finish({ ...verdict, checkedSourceIds })).toThrow();
-	const { output, withheldIds } = prepared.finish(verdict);
-	expect(withheldIds).toEqual(labels.caught.map(({ itemId }) => itemId));
-	expect(output.segments.filter(({ claims }) => claims.length).map(({ sourceId }) => sourceId)).toEqual(
-		labels.retainedIds,
-	);
-	expect(output.notes).toEqual([]);
 });

@@ -1,10 +1,10 @@
 import type { VariantSnapshot } from "@reactive-resume/api/features/ai/variant-types";
 
 const translationVerificationAttempts = new Map<string, number>();
-const compactVerificationAttempts = new Map<string, number>();
+const compactWriterAttempts = new Map<string, number>();
 
 function compactRetryMarker(text: string) {
-	return /Compact retry [0-9a-f-]{36}/u.exec(text)?.[0];
+	return /Compact retry [a-p]{32}/u.exec(text)?.[0];
 }
 export const translationAlignmentSentences = {
 	"en-US": "I built reliable services.",
@@ -25,40 +25,19 @@ export function scriptedVariantResponse(selections: Array<{ id: string; text: st
 			sourceRevision,
 			segments: segments.map(({ id, text }) => {
 				const marker = compactRetryMarker(text);
-				const retrying = marker && (compactVerificationAttempts.get(marker) ?? 0) >= 2;
+				const attempts = marker ? (compactWriterAttempts.get(marker) ?? 0) : 0;
+				if (marker) compactWriterAttempts.set(marker, attempts + 1);
 				return {
 					sourceId: id,
 					text: text
 						.replace("Documented the QA flow.", "وثقت خطوات الاختبار.")
-						.replace("Supported the release lead.", retrying ? "ساندت مسؤول الإصدار." : "قدت الإصدار.")
+						.replace(
+							/Supported the release lead on 22% of releases\. Compact retry [a-p]{32}/u,
+							attempts ? "ساندت مسؤول الإصدار في 22% من الإصدارات." : "ساندت مسؤول الإصدار في 23% من الإصدارات.",
+						)
 						.replace("Engineer", "مهندس"),
 				};
 			}),
-		};
-	}
-	const compactCheck = selections.find(({ id }) => id === "translation-check");
-	if (compactCheck) {
-		const { batchId, pairs } = JSON.parse(compactCheck.text) as {
-			batchId: string;
-			pairs: Array<{ sourceId: string; target: string }>;
-		};
-		const shiftedResponsibility = pairs
-			.filter(({ target }) => {
-				if (!target.includes("قدت الإصدار.")) return false;
-				const marker = compactRetryMarker(target);
-				if (marker) compactVerificationAttempts.set(marker, (compactVerificationAttempts.get(marker) ?? 0) + 1);
-				return true;
-			})
-			.map(({ sourceId }) => sourceId);
-		return {
-			schemaVersion: 1,
-			batchId,
-			checkedSourceIds: pairs.map(({ sourceId }) => sourceId),
-			supportedSourceIds: pairs
-				.filter(({ sourceId }) => !shiftedResponsibility.includes(sourceId))
-				.map(({ sourceId }) => sourceId),
-			quality: { status: "appropriate", reason: '{"mqm":[]}' },
-			issues: shiftedResponsibility.length ? [{ sourceIds: shiftedResponsibility, code: "responsibility" }] : [],
 		};
 	}
 	const task = selections.find((item) => item.id === "variant-task");
@@ -154,7 +133,11 @@ export function scriptedVariantResponse(selections: Array<{ id: string; text: st
 						},
 					];
 				}),
-				order: [],
+				order: source.jobAd?.segments.some((span) => span.text.includes("Synthetic project reorder"))
+					? source.variant.order
+							.filter(({ sectionId, itemIds }) => sectionId === "projects" && itemIds.length > 1)
+							.map(({ sectionId, itemIds }) => ({ sectionId, itemIds: [...itemIds].reverse() }))
+					: [],
 				notes: [],
 			};
 	}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vite-plus/test";
 import { createRouterClient } from "@orpc/server";
 import { getProcessingNotices, processingConsentService } from "./consent";
+import { processingPurposes } from "./processing-scope";
 import { resolveApprovedRoute, withAiRuntime } from "./route-policy";
 import { aiRouter } from "./router";
 import { aiTestDatabase } from "./testing/database";
@@ -8,6 +9,50 @@ import { syntheticReviewRuntime, syntheticRoute, syntheticRuntime } from "./test
 
 describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("processing consent configuration binding", () => {
 	const database = aiTestDatabase();
+	it("honors matching local feature grants in the notice and at dispatch until withdrawal or a new notice", async () => {
+		const [original] = syntheticReviewRuntime.routes;
+		if (!original) throw new Error("Missing synthetic review route");
+		const route = { ...original, routeId: "local-legacy-consent" };
+		const { fetch: _transport, ...composition } = syntheticReviewRuntime;
+		const runtime = { ...composition, routes: [route], legacyFeatureConsentVersion: route.noticeVersion };
+		await database.run(() =>
+			withAiRuntime(runtime, async () => {
+				for (const purpose of processingPurposes) {
+					const input = { purpose, locale: "ar-SA" } as const;
+					const [notice] = await getProcessingNotices("alice", input);
+					if (!notice) throw new Error(`Missing notice for ${purpose}`);
+					expect(notice.alreadyGranted).toBe(false);
+					const request = {
+						kind: purpose,
+						requestKey: "legacy-consent",
+						sources: [{ kind: "resume" as const, id: "cv", revision: "1" }],
+						parameters: {},
+						route: notice.route,
+						consentVersion: notice.noticeVersion,
+					};
+					await database.admin().query(
+						`INSERT INTO ai_processing_consent
+						(id, user_id, route_id, route_revision, config_revision, notice_version, purpose)
+						VALUES ($1, 'alice', $2, $3, $4, $5, $6)`,
+						[purpose, route.routeId, route.routeRevision, route.configRevision, route.noticeVersion, purpose],
+					);
+					expect((await getProcessingNotices("alice", input))[0]?.alreadyGranted).toBe(true);
+					expect((await getProcessingNotices("bob", input))[0]?.alreadyGranted).toBe(false);
+					await expect(resolveApprovedRoute("alice", request)).resolves.toMatchObject(notice.route);
+					await withAiRuntime({ ...runtime, routes: [{ ...route, noticeVersion: "next" }] }, async () => {
+						expect((await getProcessingNotices("alice", input))[0]?.alreadyGranted).toBe(false);
+						await expect(resolveApprovedRoute("alice", { ...request, consentVersion: "next" })).rejects.toMatchObject({
+							data: { reason: "AI_CONSENT_REQUIRED" },
+						});
+					});
+				}
+				await processingConsentService.revoke("alice", route.routeId);
+				expect(
+					(await getProcessingNotices("alice", { purpose: "review.translation", locale: "ar-SA" }))[0]?.alreadyGranted,
+				).toBe(false);
+			}),
+		);
+	});
 	it.each(["ar-SA", "en-US"] as const)(
 		"rejects a stale or altered %s notice before creating a grant",
 		async (locale) => {
@@ -58,7 +103,7 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("processing consent
 		},
 	);
 
-	it("shows the expanded notice only for eligible purposes and requires fresh localized acceptance", async () => {
+	it("discloses the expanded processor only for eligible work in the shared account notice", async () => {
 		const [original] = syntheticReviewRuntime.routes;
 		if (!original?.verifier) throw new Error("Missing synthetic review route");
 		const proof = "synthetic";
@@ -115,7 +160,9 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("processing consent
 						locale,
 					});
 					expect(notice?.content).toContain("Parasail");
-					expect(other?.content).not.toContain("Parasail");
+					expect(notice?.content).toContain(locale === "ar-SA" ? "في ترجمة السيرة" : "for CV translation.");
+					expect(other?.content).toBe(notice?.content);
+					expect(other?.alreadyGranted).toBe(false);
 				}
 			});
 		});
@@ -156,6 +203,79 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("processing consent
 		await database.run(() =>
 			withAiRuntime(syntheticRuntime, async () => {
 				await expect(resolveApprovedRoute("alice", request)).rejects.toMatchObject({
+					data: { reason: "AI_CONSENT_REQUIRED" },
+				});
+			}),
+		);
+	});
+
+	it("shares a current notice grant across features and languages for its owner until withdrawal", async () => {
+		const [original] = syntheticReviewRuntime.routes;
+		if (!original) throw new Error("Missing synthetic review route");
+		const route = { ...original, routeId: "account-consent" };
+		const runtime = { ...syntheticReviewRuntime, routes: [route] };
+		const request = { purpose: "review.wording", locale: "en-US" } as const;
+		const other = { purpose: "review.summary", locale: "ar-SA" } as const;
+		const client = (id: string) =>
+			createRouterClient(aiRouter, {
+				context: { authentication: { kind: "session", permissions: ["read", "write"], user: { id } } } as never,
+			});
+		const alice = client("alice");
+		const bob = client("bob");
+		await database.run(() =>
+			withAiRuntime(runtime, async () => {
+				const [notice] = await alice.processing.notices(request);
+				if (!notice) throw new Error("Missing displayed notice");
+				const { content: _content, alreadyGranted, ...acceptance } = notice;
+				expect(alreadyGranted).toBe(false);
+				const { id } = await alice.processing.grant(acceptance);
+				const status = await alice.processing.status({ locale: request.locale });
+				expect(status).toEqual({
+					notices: [{ content: notice.content, grantedAt: expect.any(String) }],
+					canWithdraw: true,
+				});
+				expect(await alice.processing.grant(acceptance)).toEqual({ id });
+				expect(await alice.processing.status({ locale: request.locale })).toEqual(status);
+				const operation = {
+					kind: other.purpose,
+					requestKey: "other-feature",
+					sources: [{ kind: "resume" as const, id: "cv", revision: "1" }],
+					parameters: {},
+					route: notice.route,
+					consentVersion: notice.noticeVersion,
+				};
+				expect((await alice.processing.notices(other))[0]?.alreadyGranted).toBe(true);
+				expect((await bob.processing.notices(other))[0]?.alreadyGranted).toBe(false);
+				await expect(resolveApprovedRoute("alice", operation)).resolves.toMatchObject(notice.route);
+				await expect(resolveApprovedRoute("bob", operation)).rejects.toMatchObject({
+					data: { reason: "AI_CONSENT_REQUIRED" },
+				});
+				await database.admin().query(
+					`INSERT INTO ai_processing_consent
+					(id, user_id, route_id, route_revision, config_revision, notice_version, purpose)
+					VALUES ('previous-consent', 'bob', $1, $2, $3, $4, $5)`,
+					[route.routeId, route.routeRevision, route.configRevision, route.noticeVersion, other.purpose],
+				);
+				const { fetch: _transport, ...production } = runtime;
+				await withAiRuntime(production, async () => {
+					await expect(resolveApprovedRoute("alice", operation)).resolves.toMatchObject(notice.route);
+					await expect(resolveApprovedRoute("bob", operation)).rejects.toMatchObject({
+						data: { reason: "AI_CONSENT_REQUIRED" },
+					});
+				});
+				await withAiRuntime({ ...runtime, routes: [{ ...route, noticeVersion: "next" }] }, async () => {
+					expect((await alice.processing.notices(other))[0]?.alreadyGranted).toBe(false);
+					await expect(resolveApprovedRoute("alice", { ...operation, consentVersion: "next" })).rejects.toMatchObject({
+						data: { reason: "AI_CONSENT_REQUIRED" },
+					});
+				});
+				await alice.processing.revoke({});
+				expect(await alice.processing.status({ locale: request.locale })).toEqual({
+					notices: [{ content: notice.content, grantedAt: null }],
+					canWithdraw: false,
+				});
+				expect((await alice.processing.notices(request))[0]?.alreadyGranted).toBe(false);
+				await expect(resolveApprovedRoute("alice", operation)).rejects.toMatchObject({
 					data: { reason: "AI_CONSENT_REQUIRED" },
 				});
 			}),

@@ -2,7 +2,141 @@
 import { msg } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 const messages = {
-	"language.terms.keepAllNames": msg({ message: "Keep all names as they are", context: "language.terms.keepAllNames" }),
+	"language.translation.originalArabic": msg({
+		message: "Arabic · Original",
+		context: "language.translation.originalArabic",
+	}),
+	"language.translation.originalEnglish": msg({
+		message: "English · Original",
+		context: "language.translation.originalEnglish",
+	}),
+	"language.translation.readyArabic": msg({ message: "Arabic · Ready", context: "language.translation.readyArabic" }),
+	"language.translation.readyEnglish": msg({
+		message: "English · Ready",
+		context: "language.translation.readyEnglish",
+	}),
+	"language.translation.copyArabic": msg({ message: "Arabic copy", context: "language.translation.copyArabic" }),
+	"language.translation.copyEnglish": msg({ message: "English copy", context: "language.translation.copyEnglish" }),
+	"language.translation.copyHint": msg({
+		message: "Creates a separate copy. Your original stays unchanged.",
+		context: "language.translation.copyHint",
+	}),
+	"language.translation.reviewDraft": msg({ message: "Review draft", context: "language.translation.reviewDraft" }),
+	"language.translation.viewProgress": msg({ message: "View progress", context: "language.translation.viewProgress" }),
+	"language.translation.openSavedCopy": msg({
+		message: "Open saved copy",
+		context: "language.translation.openSavedCopy",
+	}),
+	"language.translation.openArabic": msg({ message: "Open Arabic copy", context: "language.translation.openArabic" }),
+	"language.translation.openEnglish": msg({
+		message: "Open English copy",
+		context: "language.translation.openEnglish",
+	}),
+	"language.translation.openOriginal": msg({ message: "Open", context: "language.translation.openOriginal" }),
+	"language.translation.retranslate": msg({ message: "Re-translate", context: "language.translation.retranslate" }),
+	"language.translation.updateCopy": msg({ message: "Update copy", context: "language.translation.updateCopy" }),
+	"language.translation.sourceChanged": msg({
+		message: "The source changed after you saved this copy.",
+		context: "language.translation.sourceChanged",
+	}),
+	"language.translation.sourceUnavailable": msg({
+		message: "The source CV is unavailable.",
+		context: "language.translation.sourceUnavailable",
+	}),
+	"language.translation.reviewArabic": msg({
+		message: "Review Arabic copy",
+		context: "language.translation.reviewArabic",
+	}),
+	"language.translation.reviewEnglish": msg({
+		message: "Review English copy",
+		context: "language.translation.reviewEnglish",
+	}),
+	"language.translation.trustNote": msg({
+		message: "Names, dates, and numbers were checked automatically. Nothing is saved until you approve.",
+		context: "language.translation.trustNote",
+	}),
+	"language.translation.sectionsTranslated": msg({
+		message: "{count, plural, one {# section translated} other {# sections translated}}",
+		context: "language.translation.sectionsTranslated",
+	}),
+	"language.translation.keptArabic": msg({
+		message: "{count} kept in Arabic",
+		context: "language.translation.keptArabic",
+	}),
+	"language.translation.keptEnglish": msg({
+		message: "{count} kept in English",
+		context: "language.translation.keptEnglish",
+	}),
+	"language.translation.keptCount": msg({ message: "{count} kept", context: "language.translation.keptCount" }),
+	"language.translation.approveArabic": msg({
+		message: "Approve & save Arabic copy",
+		context: "language.translation.approveArabic",
+	}),
+	"language.translation.approveEnglish": msg({
+		message: "Approve & save English copy",
+		context: "language.translation.approveEnglish",
+	}),
+	"language.translation.saving": msg({ message: "Saving…", context: "language.translation.saving" }),
+	"language.translation.discard": msg({ message: "Discard draft", context: "language.translation.discard" }),
+	"language.translation.savedArabic": msg({
+		message: "Arabic copy saved",
+		context: "language.translation.savedArabic",
+	}),
+	"language.translation.savedEnglish": msg({
+		message: "English copy saved",
+		context: "language.translation.savedEnglish",
+	}),
+	"language.translation.originalSafe": msg({
+		message: "Your original CV stays unchanged.",
+		context: "language.translation.originalSafe",
+	}),
+	"language.translation.translatingCv": msg({
+		message: "Translating your CV…",
+		context: "language.translation.translatingCv",
+	}),
+	"language.translation.blockedNames": msg({
+		message: "Confirm the official names before saving.",
+		context: "language.translation.blockedNames",
+	}),
+	"language.translation.blockedStale": msg({
+		message: "The source or this copy changed. Start a new translation to save a current copy.",
+		context: "language.translation.blockedStale",
+	}),
+	"language.translation.blockedEmpty": msg({
+		message: "Retry untranslated parts to get a draft you can save.",
+		context: "language.translation.blockedEmpty",
+	}),
+	"language.translation.previewTitle": msg({ message: "Translated CV", context: "language.translation.previewTitle" }),
+	"language.translation.showOriginal": msg({
+		message: "Show original text",
+		context: "language.translation.showOriginal",
+	}),
+	"language.translation.keepOriginal": msg({ message: "Keep original", context: "language.translation.keepOriginal" }),
+	"language.translation.edited": msg({ message: "Edited", context: "language.translation.edited" }),
+	"language.translation.edit": msg({ message: "Edit", context: "language.translation.edit" }),
+	"language.translation.editedText": msg({ message: "Edited text", context: "language.translation.editedText" }),
+	"language.translation.saveWording": msg({ message: "Save wording", context: "language.translation.saveWording" }),
+	"language.translation.cancel": msg({ message: "Cancel", context: "language.translation.cancel" }),
+	"language.translation.undo": msg({ message: "Undo", context: "language.translation.undo" }),
+	"review.translation.gapsTitle": msg({
+		message:
+			"{count, plural, one {# part stayed in its original language} other {# parts stayed in their original language}}",
+		context: "review.translation.gapsTitle",
+	}),
+	"review.translation.gapsBody": msg({
+		message: "Original text was kept to protect accuracy. Retry the untranslated parts or approve as is.",
+		context: "review.translation.gapsBody",
+	}),
+	"review.translation.retryUntranslated": msg({
+		message: "Retry untranslated parts",
+		context: "review.translation.retryUntranslated",
+	}),
+	"review.translation.gapDetails": msg({ message: "Show details ({count})", context: "review.translation.gapDetails" }),
+	"review.translation.factTermValue": msg({
+		message: "The term {value} was changed.",
+		context: "review.translation.factTermValue",
+	}),
+	"language.terms.keepAllNames": msg({ message: "Keep all as written", context: "language.terms.keepAllNames" }),
 	"language.terms.allConfirmed": msg({ message: "All names are confirmed.", context: "language.terms.allConfirmed" }),
 	"language.terms.showConfirmed": msg({
 		message: "{count, plural, one {Show # confirmed name} other {Show # confirmed names}}",
@@ -58,7 +192,7 @@ const messages = {
 		context: "language.translation.errorUnresolvedGeneric",
 	}),
 	"language.translation.errorIncomplete": msg({
-		message: "Could not approve yet. Confirm all names and accept all segments before approving.",
+		message: "Could not save the draft. Reload the review and resolve any remaining items.",
 		context: "language.translation.errorIncomplete",
 	}),
 	"language.translation.errorStructureChanged": msg({
@@ -84,7 +218,7 @@ const messages = {
 		context: "language.translation.hideComparison",
 	}),
 	"language.translation.needsAttentionNotice": msg({
-		message: "Resolve the items below to finish and save your language copy automatically.",
+		message: "Resolve the items below, then review and approve your language copy.",
 		context: "language.translation.needsAttentionNotice",
 	}),
 	"language.translation.openCopy": msg({ message: "Open", context: "language.translation.openCopy" }),
@@ -125,10 +259,100 @@ const messages = {
 		message: "Confirm the imported sections before creating the CV.",
 		context: "review.import.confirmBeforeCreate",
 	}),
-	"review.translation.notTranslated": msg({ message: "Not translated", context: "review.translation.notTranslated" }),
+	"review.translation.notTranslated": msg({
+		message: "Not translated yet",
+		context: "review.translation.notTranslated",
+	}),
+	"language.translation.running": msg({ message: "Translating…", context: "language.translation.running" }),
+	"language.translation.staleReview": msg({
+		message: "The CV changed after this translation, so this review is out of date. Start a new translation.",
+		context: "language.translation.staleReview",
+	}),
+	"review.translation.retryAll": msg({ message: "Retry all", context: "review.translation.retryAll" }),
+	"review.translation.partLabel": msg({ message: "Part {part}", context: "review.translation.partLabel" }),
+	"review.translation.heldParts": msg({
+		message:
+			"{count, plural, one {# part was left untranslated. Its original text is kept.} other {# parts were left untranslated. Their original text is kept.}}",
+		context: "review.translation.heldParts",
+	}),
+	"review.translation.heldSegments": msg({
+		message:
+			"{count, plural, one {# segment was left untranslated. Its original text is kept.} other {# segments were left untranslated. Their original text is kept.}}",
+		context: "review.translation.heldSegments",
+	}),
+	"review.clarification.wording": msg({
+		message: "What result or detail can you confirm for this passage?",
+		context: "review.clarification.wording",
+	}),
+	"review.clarification.summary": msg({
+		message: "What experience, study or skill can you confirm for your summary?",
+		context: "review.clarification.summary",
+	}),
+	"review.clarification.requirement": msg({
+		message: "What experience, study or project can you confirm for this requirement?",
+		context: "review.clarification.requirement",
+	}),
+	"review.clarification.import": msg({
+		message: "What information can you confirm from the original CV?",
+		context: "review.clarification.import",
+	}),
+	"review.explanation.checkEvidence": msg({
+		message: "Check this finding against the source information.",
+		context: "review.explanation.checkEvidence",
+	}),
+	"review.tailoring.section.basics": msg({ message: "Basics", context: "review.tailoring.section.basics" }),
+	"review.tailoring.order.title": msg({ message: "Reorder proposal", context: "review.tailoring.order.title" }),
+	"review.tailoring.order.current": msg({ message: "Current order", context: "review.tailoring.order.current" }),
+	"review.tailoring.order.proposed": msg({ message: "Proposed order", context: "review.tailoring.order.proposed" }),
+	"review.tailoring.order.move": msg({
+		message: "Move {moved} above {above}.",
+		context: "review.tailoring.order.move",
+	}),
 	"review.translation.retryThisPart": msg({ message: "Retry this part", context: "review.translation.retryThisPart" }),
+	"review.translation.retryThisSegment": msg({
+		message: "Retry this segment",
+		context: "review.translation.retryThisSegment",
+	}),
+	"review.translation.factNumberValue": msg({
+		message: "The number {value} changed.",
+		context: "review.translation.factNumberValue",
+	}),
+	"review.translation.factNumber": msg({ message: "A number changed.", context: "review.translation.factNumber" }),
+	"review.translation.factDate": msg({
+		message: "The date was not preserved.",
+		context: "review.translation.factDate",
+	}),
+	"review.translation.factName": msg({
+		message: "The name was not preserved.",
+		context: "review.translation.factName",
+	}),
+	"review.translation.factOrganization": msg({
+		message: "The organization name was not preserved.",
+		context: "review.translation.factOrganization",
+	}),
+	"review.translation.factContact": msg({
+		message: "A contact detail changed.",
+		context: "review.translation.factContact",
+	}),
+	"review.translation.factTerm": msg({ message: "A protected term changed.", context: "review.translation.factTerm" }),
+	"review.translation.factLanguage": msg({
+		message: "This segment is not in the requested language.",
+		context: "review.translation.factLanguage",
+	}),
+	"review.translation.factMissing": msg({
+		message: "The translation omitted this segment.",
+		context: "review.translation.factMissing",
+	}),
+	"review.translation.factNegation": msg({
+		message: "The meaning of a negative statement changed.",
+		context: "review.translation.factNegation",
+	}),
+	"review.translation.factReview": msg({
+		message: "We checked the translation for names, dates and numbers. Review it before approving.",
+		context: "review.translation.factReview",
+	}),
 	"review.withheldReason.translation": msg({
-		message: "Could not be verified as an accurate translation.",
+		message: "This segment did not pass the translation checks.",
 		context: "review.withheldReason.translation",
 	}),
 	"review.withheldReason.extraction": msg({
@@ -144,6 +368,40 @@ const messages = {
 	"language.switch.arabic": msg({ message: "Arabic", context: "language.switch.arabic" }),
 	"jobs.copy.type": msg({ message: "Tailored copy", context: "jobs.copy.type" }),
 	"jobs.copy.open": msg({ message: "Open copy", context: "jobs.copy.open" }),
+	"jobs.tailoring.copyHint": msg({
+		message: "Your original CV stays unchanged. You review and approve every edit before saving.",
+		context: "jobs.tailoring.copyHint",
+	}),
+	"jobs.tailoring.acceptedForCopy": msg({
+		message: "Accepted for the tailored copy",
+		context: "jobs.tailoring.acceptedForCopy",
+	}),
+	"jobs.tailoring.openCopy": msg({ message: "Open tailored CV", context: "jobs.tailoring.openCopy" }),
+	"jobs.tailoring.savedCopies": msg({ message: "Tailored copies for this job", context: "jobs.tailoring.savedCopies" }),
+	"review.tailoring.section.summary": msg({ message: "Summary", context: "review.tailoring.section.summary" }),
+	"review.tailoring.section.profiles": msg({ message: "Profiles", context: "review.tailoring.section.profiles" }),
+	"review.tailoring.section.experience": msg({ message: "Experience", context: "review.tailoring.section.experience" }),
+	"review.tailoring.section.education": msg({ message: "Education", context: "review.tailoring.section.education" }),
+	"review.tailoring.section.projects": msg({ message: "Projects", context: "review.tailoring.section.projects" }),
+	"review.tailoring.section.skills": msg({ message: "Skills", context: "review.tailoring.section.skills" }),
+	"review.tailoring.section.languages": msg({ message: "Languages", context: "review.tailoring.section.languages" }),
+	"review.tailoring.section.interests": msg({ message: "Interests", context: "review.tailoring.section.interests" }),
+	"review.tailoring.section.awards": msg({ message: "Awards", context: "review.tailoring.section.awards" }),
+	"review.tailoring.section.certifications": msg({
+		message: "Certifications",
+		context: "review.tailoring.section.certifications",
+	}),
+	"review.tailoring.section.publications": msg({
+		message: "Publications",
+		context: "review.tailoring.section.publications",
+	}),
+	"review.tailoring.section.volunteer": msg({ message: "Volunteer", context: "review.tailoring.section.volunteer" }),
+	"review.tailoring.section.references": msg({ message: "References", context: "review.tailoring.section.references" }),
+	"review.tailoring.section.cover-letter": msg({
+		message: "Cover Letter",
+		context: "review.tailoring.section.cover-letter",
+	}),
+	"review.tailoring.section.custom": msg({ message: "Custom Sections", context: "review.tailoring.section.custom" }),
 	"jobs.copy.toast.created": msg({ message: "Tailored copy created", context: "jobs.copy.toast.created" }),
 	"jobs.copy.toast.originalPreserved": msg({
 		message: "Your original CV is unchanged. Edit or delete the new copy any time.",
@@ -168,8 +426,57 @@ const messages = {
 	"language.document.arabicLabel": msg({ message: "Arabic", context: "language.document.arabicLabel" }),
 	"jobs.evidence.status.found": msg({ message: "Evidence found", context: "jobs.evidence.status.found" }),
 	"jobs.evidence.showInCv": msg({ message: "Show in CV", context: "jobs.evidence.showInCv" }),
+	"jobs.coverage.title": msg({ message: "Key terms from the job ad", context: "jobs.coverage.title" }),
+	"jobs.coverage.description": msg({
+		message: "Terms from the job ad — missing words aren't written in your CV yet, not proof you lack the skill.",
+		context: "jobs.coverage.description",
+	}),
+	"jobs.coverage.empty": msg({ message: "No phrases stood out in this job ad.", context: "jobs.coverage.empty" }),
+	"jobs.coverage.foundGroup": msg({ message: "Already in your CV ({count})", context: "jobs.coverage.foundGroup" }),
+	"jobs.coverage.missingGroup": msg({ message: "Not in your CV yet ({count})", context: "jobs.coverage.missingGroup" }),
+	"jobs.coverage.more": msg({ message: "Show all", context: "jobs.coverage.more" }),
+	"jobs.coverage.less": msg({ message: "Show fewer", context: "jobs.coverage.less" }),
 	"jobs.coverage.occurrences": msg({ message: "Occurrences: {total}", context: "jobs.coverage.occurrences" }),
-	"jobs.coverage.excluded": msg({ message: "Show additional phrases ({total})", context: "jobs.coverage.excluded" }),
+	"jobs.coverage.truncated": msg({
+		message: "Showing the highest-signal terms from the job ad.",
+		context: "jobs.coverage.truncated",
+	}),
+	"jobs.context.subtitle": msg({
+		message: "Create a tailored copy for this job while keeping your original CV intact.",
+		context: "jobs.context.subtitle",
+	}),
+	"jobs.context.change": msg({ message: "Change job", context: "jobs.context.change" }),
+	"jobs.context.compare": msg({ message: "Compare with job", context: "jobs.context.compare" }),
+	"jobs.context.tailorSelected": msg({ message: "Tailor CV for this job", context: "jobs.context.tailorSelected" }),
+	"jobs.tailoring.copyTitle": msg({
+		message: "Create a tailored copy for this job",
+		context: "jobs.tailoring.copyTitle",
+	}),
+	"jobs.tailoring.suggest": msg({ message: "Suggest edits for this job", context: "jobs.tailoring.suggest" }),
+	"jobs.tailoring.saveCopy": msg({ message: "Save tailored copy", context: "jobs.tailoring.saveCopy" }),
+	"jobs.tailoring.acceptHint": msg({
+		message: "Accept at least one edit to save a tailored copy.",
+		context: "jobs.tailoring.acceptHint",
+	}),
+	"jobs.evidence.detailsTitle": msg({ message: "Detailed requirement check", context: "jobs.evidence.detailsTitle" }),
+	"jobs.evidence.detailsHint": msg({
+		message: "The assistant compares job requirements against your CV and cites supporting passages. Beta feature.",
+		context: "jobs.evidence.detailsHint",
+	}),
+	"jobs.evidence.check": msg({ message: "Check job requirements", context: "jobs.evidence.check" }),
+	"jobs.evidence.withheldSummary": msg({
+		message:
+			"{count, plural, one {# requirement could not be checked. Retry or check it yourself.} other {# requirements could not be checked. Retry or check them yourself.}}",
+		context: "jobs.evidence.withheldSummary",
+	}),
+	"jobs.evidence.withheldTitles": msg({
+		message: "Show unchecked requirements",
+		context: "jobs.evidence.withheldTitles",
+	}),
+	"jobs.evidence.withheldNotes": msg({
+		message: "Some review notes could not be checked.",
+		context: "jobs.evidence.withheldNotes",
+	}),
 	"jobs.evidence.status.partial": msg({ message: "Partial evidence", context: "jobs.evidence.status.partial" }),
 	"jobs.evidence.clarify": msg({ message: "Clarify", context: "jobs.evidence.clarify" }),
 	"jobs.evidence.status.absent": msg({ message: "No evidence found", context: "jobs.evidence.status.absent" }),
@@ -391,7 +698,7 @@ const messages = {
 		context: "language.translation.approvalHint",
 	}),
 	"language.translation.status.pending": msg({
-		message: "Awaiting your confirmation",
+		message: "Draft ready to review",
 		context: "language.translation.status.pending",
 	}),
 	"language.translation.backWithoutApproval": msg({

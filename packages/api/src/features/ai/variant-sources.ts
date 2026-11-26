@@ -29,7 +29,7 @@ import { readJobRevision } from "../career/job-targets";
 import { lockDocumentOwner } from "../documents/ownership";
 import { isUneditedAiLanguageCopy } from "../resume/variants";
 import { buildModelPayload, minimizeModelText, resumeContactValues } from "./payload";
-import { lockReviewProfile } from "./review-sources";
+import { loadReviewSource, lockReviewProfile } from "./review-sources";
 import { getAiRuntime } from "./route-policy";
 import {
 	planTranslationBatches,
@@ -37,7 +37,7 @@ import {
 	restoreTranslationPlan,
 	recoverTranslationPlan,
 } from "./translation-batches";
-import { prepareTranslationFacts } from "./translation-invariants";
+import { bindTranslationPart, prepareTranslationFacts } from "./translation-invariants";
 import { selectVariantEvidence, variantOperationContracts } from "./variant-contracts";
 import { resolveWriterRoute } from "./writer-policy";
 
@@ -75,11 +75,46 @@ export async function loadTranslationPlan(
 	return plan;
 }
 
-export function buildJobAdSegments(jobId: string, revision: string, text: string): Array<{ id: string; text: string }> {
+const jobSentenceBoundaries = new Intl.Segmenter(undefined, { granularity: "sentence" });
+const jobHeading =
+	/^(?:about (?:the job|us)|what (?:we offer|you[’']ll (?:do|bring|need))|how we hire|(?:minimum |required |preferred )?(?:requirements|qualifications|skills)|responsibilities|(?:nice|good) to have|must haves?|المتطلبات|المؤهلات|المهام|المسؤوليات|المزايا|المؤهلات المفضلة|يفضل)\s*:?$/iu;
+
+export function buildJobAdSegments(
+	jobId: string,
+	revision: string,
+	text: string,
+	version?: "requirements-v2",
+): NonNullable<VariantSnapshot["jobAd"]>["segments"] {
 	const lines = text
 		.split(/\r?\n/u)
 		.map((line) => line.trim())
 		.filter(Boolean);
+	if (version && lines.length) {
+		const spanId = `job:${jobId}:${revision}`;
+		const seen = new Set<string>();
+		const segments: NonNullable<VariantSnapshot["jobAd"]>["segments"] = [];
+		let heading: string | undefined;
+		for (const line of lines) {
+			if (jobHeading.test(line) || (line.length <= 80 && line.endsWith(":"))) {
+				heading = line;
+				segments.push({ id: `${spanId}:${segments.length}`, text: line });
+				continue;
+			}
+			const item = line.replace(/^(?:[-*•▪]|\d+[.)])\s+/u, "");
+			for (const boundary of jobSentenceBoundaries.segment(item)) {
+				const sentence = boundary.segment.trim();
+				const key = sentence.normalize("NFC").replace(/\s+/gu, " ");
+				if (!key || seen.has(key)) continue;
+				seen.add(key);
+				segments.push({
+					id: `${spanId}:${segments.length}`,
+					text: sentence,
+					...(heading ? { heading } : {}),
+				});
+			}
+		}
+		return segments.length === 1 ? segments.map((segment) => ({ ...segment, id: spanId })) : segments;
+	}
 	if (lines.length > 1) {
 		return lines.map((line, index) => ({ id: `job:${jobId}:${revision}:${index}`, text: line }));
 	}
@@ -101,7 +136,12 @@ async function loadSourceSnapshot(
 	tx: OwnerTransaction,
 	ownerId: string,
 	request: Pick<OperationRequest, "kind" | "parameters" | "sources"> & Partial<Pick<OperationRequest, "route">>,
-	options?: { fullTranslation?: boolean; compactTranslation?: boolean },
+	options?: {
+		fullTranslation?: boolean;
+		compactTranslation?: boolean;
+		includeTranslationPlan?: boolean;
+		reviewChanges?: Parameters<typeof loadReviewSource>[4];
+	},
 ): Promise<VariantSnapshot> {
 	const kind = request.kind as VariantOperationKind;
 	if (!Object.hasOwn(variantOperationContracts, kind)) throw new ORPCError("BAD_REQUEST");
@@ -170,7 +210,7 @@ async function loadSourceSnapshot(
 		.from(resumeVariantSource)
 		.where(and(eq(resumeVariantSource.userId, ownerId), eq(resumeVariantSource.resumeId, cv.id)));
 	let translationSource: typeof resume.$inferSelect | undefined;
-	if (kind === "review.tailoring" || kind === "review.translation") {
+	if (kind === "review.translation" || (kind === "review.tailoring" && cv.variantKind === "job")) {
 		const sourceResumeId = provenance?.sourceResumeId ?? (kind === "review.tailoring" ? cv.baseResumeId : null);
 		if (!sourceResumeId || cv.variantKind !== (kind === "review.translation" ? "language" : "job")) conflict();
 		const [source] = await tx
@@ -217,13 +257,33 @@ async function loadSourceSnapshot(
 			conflict();
 		const job = await readJobRevision(tx, ownerId, jobParameters.jobId, jobParameters.jobRevision);
 		expected.push({ kind: "job", id: job.jobId, revision: job.revision });
-		snapshot.jobAd = { segments: buildJobAdSegments(job.jobId, job.revision, job.text) };
+		const version =
+			kind === "review.job-evidence"
+				? variantOperationContracts[kind].parameters.parse(request.parameters).jobSpanVersion
+				: undefined;
+		snapshot.jobAd = {
+			segments: buildJobAdSegments(job.jobId, job.revision, job.text, version),
+			...(version ? { version } : {}),
+		};
 	}
 	if (kind === "review.summary") {
 		const summaryParameters = variantOperationContracts[kind].parameters.parse(request.parameters);
 		if (summaryParameters.selectedEvidenceIds.some((id) => !snapshot.cv.some((fact) => fact.id === id))) conflict();
 		snapshot.cv = snapshot.cv.filter((fact) => summaryParameters.selectedEvidenceIds.includes(fact.id));
 	}
+	if (kind === "review.summary" || kind === "review.job-evidence") {
+		const { continuationOf, answerIds } = variantOperationContracts[kind].parameters.parse(request.parameters);
+		if (Boolean(continuationOf) !== Boolean(answerIds?.length)) conflict();
+		for (const id of answerIds ?? []) {
+			const source = request.sources.find((entry) => entry.kind === "answer" && entry.id === id);
+			if (!source) conflict();
+			const answer = (await loadReviewSource(tx, ownerId, source, [], options?.reviewChanges)).evidence[0];
+			if (!answer) conflict();
+			expected.push(source);
+			snapshot.cv.push({ id, section: "summary", text: answer.quote, confirmation: "user_supplied" });
+		}
+	}
+
 	if (kind === "review.tailoring") {
 		snapshot.variant = {
 			resumeId: cv.id,
@@ -317,7 +377,17 @@ async function loadSourceSnapshot(
 			const batch = variantOperationContracts[kind].parameters.parse(request.parameters).translationBatch;
 			const part = plan.batches[batch?.index ?? 0];
 			if (!part) conflict();
-			return { ...part, translationBatchCount: plan.batches.length, translationPlanHash: plan.fingerprint };
+			if (batch?.retrySegmentIds) {
+				const ids = new Set(batch.retrySegmentIds);
+				const cv = part.cv.filter(({ id }) => ids.has(id));
+				if (!part.translationProtection || cv.length !== ids.size) conflict();
+				return {
+					...part,
+					cv,
+					translationProtection: bindTranslationPart(part.translationProtection, cv),
+				};
+			}
+			return options?.includeTranslationPlan ? { ...part, translationPlan: plan } : part;
 		}
 		const selected = selectVariantEvidence(snapshot, limit);
 		return selectVariantEvidence(
@@ -325,7 +395,14 @@ async function loadSourceSnapshot(
 				...selected,
 				cv: selected.cv.map((fact) => ({ ...fact, text: clean(fact.text) })),
 				jobAd: selected.jobAd
-					? { segments: selected.jobAd.segments.map((segment) => ({ ...segment, text: clean(segment.text) })) }
+					? {
+							...selected.jobAd,
+							segments: selected.jobAd.segments.map(({ heading, ...segment }) => ({
+								...segment,
+								text: clean(segment.text),
+								...(heading ? { heading: clean(heading) } : {}),
+							})),
+						}
 					: null,
 				...(selected.variant
 					? {
@@ -372,7 +449,9 @@ export function prepareVariantReview(ownerId: string, input: { kind: VariantOper
 	return withOwnerDatabase(ownerId, async (tx) => {
 		const { kind, ...raw } = input;
 		if (!Object.hasOwn(variantOperationContracts, kind)) throw new ORPCError("BAD_REQUEST");
-		const parameters = variantOperationContracts[kind].parameters.parse(raw);
+		const parameters = variantOperationContracts[kind].parameters.parse(
+			kind === "review.job-evidence" ? { ...raw, jobSpanVersion: "requirements-v2" } : raw,
+		);
 		const sources: SourceRevision[] = [
 			{ kind: "resume", id: parameters.resumeId, revision: parameters.expectedUpdatedAt },
 		];
@@ -381,30 +460,32 @@ export function prepareVariantReview(ownerId: string, input: { kind: VariantOper
 			sources.push({ kind: "job", id: jobParameters.jobId, revision: jobParameters.jobRevision });
 		}
 		if (kind === "review.tailoring" || kind === "review.translation") {
-			const [provenance] = await tx
-				.select()
-				.from(resumeVariantSource)
-				.where(and(eq(resumeVariantSource.userId, ownerId), eq(resumeVariantSource.resumeId, parameters.resumeId)));
-			if (provenance?.sourceResumeId) {
-				const sourceRevision =
-					kind === "review.translation"
-						? variantOperationContracts[kind].parameters.parse(raw).expectedSourceRevision
-						: (provenance.acceptedSourceRevision ?? provenance.sourceRevision);
-				sources.push({ kind: "resume", id: provenance.sourceResumeId, revision: sourceRevision });
-			} else if (kind === "review.tailoring") {
-				const [cv] = await tx
-					.select({ baseResumeId: resume.baseResumeId, variantKind: resume.variantKind })
-					.from(resume)
-					.where(and(eq(resume.userId, ownerId), eq(resume.id, parameters.resumeId), isNull(resume.trashedAt)));
-				if (!cv?.baseResumeId || cv.variantKind !== "job") throw new ORPCError("NOT_FOUND");
-				const [base] = await tx
-					.select({ id: resume.id, updatedAt: resume.updatedAt, isLocked: resume.isLocked })
-					.from(resume)
-					.where(and(eq(resume.userId, ownerId), eq(resume.id, cv.baseResumeId), isNull(resume.trashedAt)));
-				if (!base) throw new ORPCError("NOT_FOUND");
-				sources.push({ kind: "resume", id: base.id, revision: base.updatedAt.toISOString() });
-			} else {
-				throw new ORPCError("NOT_FOUND");
+			const [cv] = await tx
+				.select({ baseResumeId: resume.baseResumeId, variantKind: resume.variantKind })
+				.from(resume)
+				.where(and(eq(resume.userId, ownerId), eq(resume.id, parameters.resumeId), isNull(resume.trashedAt)));
+			if (!cv) throw new ORPCError("NOT_FOUND");
+			if (kind === "review.translation" || cv.variantKind === "job") {
+				const [provenance] = await tx
+					.select()
+					.from(resumeVariantSource)
+					.where(and(eq(resumeVariantSource.userId, ownerId), eq(resumeVariantSource.resumeId, parameters.resumeId)));
+				if (provenance?.sourceResumeId) {
+					const sourceRevision =
+						kind === "review.translation"
+							? variantOperationContracts[kind].parameters.parse(raw).expectedSourceRevision
+							: (provenance.acceptedSourceRevision ?? provenance.sourceRevision);
+					sources.push({ kind: "resume", id: provenance.sourceResumeId, revision: sourceRevision });
+				} else if (kind === "review.tailoring" && cv.baseResumeId) {
+					const [base] = await tx
+						.select({ id: resume.id, updatedAt: resume.updatedAt })
+						.from(resume)
+						.where(and(eq(resume.userId, ownerId), eq(resume.id, cv.baseResumeId), isNull(resume.trashedAt)));
+					if (!base) throw new ORPCError("NOT_FOUND");
+					sources.push({ kind: "resume", id: base.id, revision: base.updatedAt.toISOString() });
+				} else {
+					throw new ORPCError("NOT_FOUND");
+				}
 			}
 		}
 		const translationHandler = kind === "review.translation" ? getAiRuntime().handlers[kind] : undefined;

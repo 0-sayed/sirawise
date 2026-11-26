@@ -6,6 +6,7 @@ import { sql } from "drizzle-orm";
 import { lockAccountForAccounting } from "@reactive-resume/db/account-state";
 import { withOwnerDatabase } from "@reactive-resume/db/owner-scope";
 import { aiOperation, aiOperationAttempt } from "@reactive-resume/db/schema";
+import { isUiLocale } from "@reactive-resume/utils/locale";
 import { executeApprovedStep, translationWriterCallBound, verificationCallBound, type AttemptFailure } from "./adapter";
 import { fitVerificationWave } from "./attempt-budget";
 import { CONTENT_RETRY_STEP, currentContentAttempts, isContentRejection } from "./content-retry";
@@ -51,6 +52,17 @@ import { canFailOverVerifier, resolveReviewVerifierRoute, resolveReviewVerifierR
 export const PRE_RESPONSE_TRANSIENT_MIN_DEADLINE_MS = 1000;
 export const PRE_RESPONSE_TRANSIENT_DELAY_MIN_MS = 1000;
 export const PRE_RESPONSE_TRANSIENT_DELAY_MAX_MS = 3000;
+
+// Writer and verifier p95 in milliseconds from Planning/context/technical/ai.md.
+const measuredCallP95: Readonly<Record<string, readonly [number, number]>> = {
+	"review.cover-letter": [12400, 25800],
+	"review.extraction": [23000, 22700],
+	"review.job-evidence": [21000, 60200],
+	"review.summary": [5700, 15600],
+	"review.tailoring": [11200, 31500],
+	"review.translation": [14200, 34900],
+	"review.wording": [11800, 9800],
+};
 
 export function computePreResponseRetryDelayMs(
 	nowMs: number,
@@ -209,6 +221,11 @@ export async function executeLease(lease: OperationLease, shutdown?: AbortSignal
 		const signal = AbortSignal.any([controller.signal, AbortSignal.timeout(Math.max(1, deadlineAt - Date.now()))]);
 		const request = operationRequest(operation);
 		const handler = getOperationHandler(operation.kind, operation);
+		const interfaceLocale = request.parameters.interfaceLocale;
+		const writerPrompt =
+			handler.systemPrompt && isUiLocale(interfaceLocale)
+				? `${handler.systemPrompt}\nWrite questions, explanations and notes addressed to the user in ${interfaceLocale === "ar-SA" ? "Arabic (ar-SA)" : "English (en-US)"}. Keep CV text, letter text, extracted values and evidence in their required document or source language.`
+				: handler.systemPrompt;
 		const withDispatch = (send: () => Promise<void>) =>
 			withOperationLease(lease, async (tx, current) => {
 				if (current.state === "cancel_requested") throw new Error("AI_CANCELLED");
@@ -345,6 +362,15 @@ export async function executeLease(lease: OperationLease, shutdown?: AbortSignal
 		);
 		const preResponseCallAllowance = () => (preResponseRetried ? 1 : 0);
 		const lastAttempt = currentAttempts.at(-1);
+		let writerTimedOut = previous.some((attempt) => attempt.output?._writerCallTimedOut === true);
+		const timing = measuredCallP95[request.kind];
+		const hasTimeForTimeoutRetry = (step: "writer" | "verify") =>
+			timing !== undefined && operation.deadlineAt.getTime() - Date.now() >= timing[step === "verify" ? 1 : 0];
+		const recoveredWriterTimeout =
+			lastAttempt?.outcome === "unknown" &&
+			lastAttempt.output?._writerTimeoutRetryPending === true &&
+			transientRetryLimit > 0 &&
+			hasTimeForTimeoutRetry("writer");
 		const recoveredTransient = !!(
 			transientRetryLimit &&
 			lastAttempt?.outcome === "transient" &&
@@ -518,8 +544,14 @@ export async function executeLease(lease: OperationLease, shutdown?: AbortSignal
 			}
 		}
 		const last = currentAttempts.at(-1);
-		if (!retryRequested && last && !generated && !["invalid", "transient"].includes(last.outcome ?? "")) {
-			await failOperation(lease, "AI_RECOVERED_TERMINAL");
+		if (
+			!retryRequested &&
+			last &&
+			!generated &&
+			!recoveredWriterTimeout &&
+			!["invalid", "transient"].includes(last.outcome ?? "")
+		) {
+			await failOperation(lease, last.output?._writerCallTimedOut ? "AI_TIMEOUT" : "AI_RECOVERED_TERMINAL");
 			return;
 		}
 		let repairs = previous.filter((a) => a.stepId === "repair").length;
@@ -542,15 +574,12 @@ export async function executeLease(lease: OperationLease, shutdown?: AbortSignal
 			const verifierRoutes = nextStep === "verify" ? resolveReviewVerifierRoutes(writerRoute, request.kind) : null;
 			const route = verifierRoutes?.primary ?? writerRoute;
 			if (Date.now() >= operation.deadlineAt.getTime()) throw new Error("AI_DEADLINE");
-			if (
-				!resumable &&
-				logicalCalls >=
-					route.maxCalls +
-						(contentRetried ? (handler.verifier ? 2 : 1) : 0) +
-						transientCallAllowance() +
-						preResponseCallAllowance()
-			)
-				break;
+			const callLimit =
+				route.maxCalls +
+				(contentRetried ? (handler.verifier ? 2 : 1) : 0) +
+				transientCallAllowance() +
+				preResponseCallAllowance();
+			if (!resumable && logicalCalls >= callLimit) break;
 			if (!resumable) logicalCalls++;
 			retryRequested = false;
 			if (route.requestCapMicros !== requestBudget) {
@@ -683,6 +712,15 @@ export async function executeLease(lease: OperationLease, shutdown?: AbortSignal
 					const nowMs = Date.now();
 					const deadlineAtMs = operation.deadlineAt.getTime();
 					if (
+						transientRetryLimit > 0 &&
+						call.dispatchIndex === 0 &&
+						call.outcome === "unknown" &&
+						call.failure?.abortCause === "call_timeout" &&
+						hasTimeForTimeoutRetry("verify") &&
+						spent + boundMicros <= requestBudget
+					)
+						return "timeout";
+					if (
 						call.dispatchIndex === 0 &&
 						(call.outcome === "transient" || call.outcome === "unknown") &&
 						call.failure &&
@@ -726,6 +764,7 @@ export async function executeLease(lease: OperationLease, shutdown?: AbortSignal
 					wave: Dispatch[],
 					dispatchRoute = route,
 					endpointSlot: BoundVerificationCall["endpointSlot"] = "primary",
+					timeoutRetry = false,
 				) => {
 					const start = passCalls.length;
 					passCalls.push(
@@ -750,7 +789,8 @@ export async function executeLease(lease: OperationLease, shutdown?: AbortSignal
 						wave.map(async ({ input, batchIndex }, offset) => {
 							const call = passCalls[start + offset];
 							if (!call) throw new Error("AI_ATTEMPT_UNAVAILABLE");
-							const allowMissingDecisions = call.dispatchIndex === 1 && call.endpointSlot === "primary";
+							const allowMissingDecisions =
+								call.dispatchIndex === 1 && call.endpointSlot === "primary" && !timeoutRetry;
 							const outputSchema = allowMissingDecisions
 								? (verifier.outputForPayload?.(input.payload, { allowMissingDecisions }) ?? input.outputSchema)
 								: input.outputSchema;
@@ -862,6 +902,11 @@ export async function executeLease(lease: OperationLease, shutdown?: AbortSignal
 								({ call, recovery }) =>
 									!recovery && !(call.dispatchIndex === 0 && transientRetryLimit && isVerificationTruncation(call)),
 							);
+						const timedOut = failures.find(({ recovery }) => recovery === "timeout");
+						if (!terminal && timedOut) {
+							await dispatchWave([{ ...timedOut.batch, dispatchIndex: 1 }], route, "primary", true);
+							continue;
+						}
 						if (!terminal && transientRetryLimit) {
 							const truncated = planned
 								.filter(({ batchKey }) => {
@@ -990,7 +1035,7 @@ export async function executeLease(lease: OperationLease, shutdown?: AbortSignal
 				? await translationWriterCallBound(route, {
 						payload,
 						outputSchema: handler.output,
-						...(handler.systemPrompt ? { systemPrompt: handler.systemPrompt } : {}),
+						...(writerPrompt ? { systemPrompt: writerPrompt } : {}),
 					})
 				: route.maxCallCostMicros;
 			if (consumedMicros + callBoundMicros > requestBudget) {
@@ -1016,7 +1061,7 @@ export async function executeLease(lease: OperationLease, shutdown?: AbortSignal
 					stepId,
 					payload,
 					outputSchema: handler.output,
-					...(handler.systemPrompt ? { systemPrompt: handler.systemPrompt } : {}),
+					...(writerPrompt ? { systemPrompt: writerPrompt } : {}),
 					...(sharesTranslationBudget ? { verificationBoundMicros: callBoundMicros } : {}),
 					signal,
 					withDispatch,
@@ -1027,6 +1072,16 @@ export async function executeLease(lease: OperationLease, shutdown?: AbortSignal
 					...(translationRootId ? { operationGroupId: translationRootId } : {}),
 				},
 			);
+			const writerCallTimedOut =
+				stepId !== "repair" && outcome.outcome === "unknown" && outcome.failure?.abortCause === "call_timeout";
+			const retryWriterTimeout =
+				writerCallTimedOut &&
+				!writerTimedOut &&
+				transientRetryLimit > 0 &&
+				hasTimeForTimeoutRetry("writer") &&
+				logicalCalls + (handler.verifier ? 1 : 0) < callLimit &&
+				ordinal + (handler.verifier ? 1 : 0) < maxAttempts &&
+				consumedMicros + (outcome.costMicros ?? callBoundMicros) + callBoundMicros <= requestBudget;
 			// Late accounting may finish after cancellation/lease loss, but may never publish a result.
 			await withOwnerDatabase(lease.ownerId, async (tx) => {
 				const account = await lockAccountForAccounting(tx, lease.ownerId);
@@ -1044,7 +1099,13 @@ export async function executeLease(lease: OperationLease, shutdown?: AbortSignal
 									cachedTokens: outcome.cachedTokens,
 									finishedAt: new Date(),
 								}
-							: { ...outcome, finishedAt: new Date() },
+							: {
+									...outcome,
+									output: writerCallTimedOut
+										? { _writerCallTimedOut: true, _writerTimeoutRetryPending: retryWriterTimeout }
+										: outcome.output,
+									finishedAt: new Date(),
+								},
 					)
 					.where(and(eq(aiOperationAttempt.id, attempt.id), eq(aiOperationAttempt.leaseToken, lease.token)));
 				const [current] = await tx
@@ -1113,6 +1174,10 @@ export async function executeLease(lease: OperationLease, shutdown?: AbortSignal
 				return;
 			}
 			if (outcome.failure?.timedOut) {
+				if (retryWriterTimeout) {
+					writerTimedOut = true;
+					continue;
+				}
 				await failOperation(lease, "AI_TIMEOUT");
 				return;
 			}

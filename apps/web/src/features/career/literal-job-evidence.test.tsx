@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import type { JobTermReport } from "@reactive-resume/schema/job-evidence";
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, expect, it } from "vite-plus/test";
 import { i18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
@@ -17,7 +17,7 @@ import { getUiLocaleMessages } from "@/libs/locale";
 afterEach(cleanup);
 
 it.each(["ar-SA", "en-US"] as const)(
-	"groups repeated phrases with counts, linked context and collapsed exclusions in %s",
+	"groups repeated phrases with counts, linked context and a short truncation caption in %s",
 	async (locale) => {
 		const text = Array.from({ length: 12 }, (_, index) => `Built AI tools for team ${index}.`).join(" ");
 		const target = { sectionId: "summary", field: "content" } as const;
@@ -40,20 +40,27 @@ it.each(["ar-SA", "en-US"] as const)(
 				normalizationVersion: "matching-v2",
 			},
 			state: "complete",
-			denominator: 1,
+			denominator: 8,
 			matchedCount: 1,
-			unmatchedCount: 0,
+			unmatchedCount: 7,
 			selection: { limit: 35, truncated: true },
 			exclusions: [],
 			excludedTerms: ["client", "planning", "client"],
 			terms: [
 				{
-					term: "AI",
+					term: "artificial-intelligence",
 					matched: true,
 					surfaceForms: ["AI"],
 					jobSpans: [{ id: "job-ai", start: 0, end: 2, quote: "AI" }],
-					cvSpans,
+					cvSpans: [...cvSpans, ...cvSpans.slice(0, 1).map((span) => ({ ...span, id: "duplicate" }))],
 				},
+				...["data-pipelines", "kubernetes", "postgresql", "ci/cd", "node.js", "c++", "cloud-security"].map((term) => ({
+					term,
+					matched: false,
+					surfaceForms: [],
+					jobSpans: [],
+					cvSpans: [],
+				})),
 			],
 		};
 		i18n.loadAndActivate(await getUiLocaleMessages(locale));
@@ -75,13 +82,24 @@ it.each(["ar-SA", "en-US"] as const)(
 				<RouterProvider router={router} />
 			</I18nProvider>,
 		);
-		expect(screen.getByText(locale === "ar-SA" ? "موجود في السيرة: 1" : "Found in CV: 1")).toBeTruthy();
-		expect(screen.getByText(locale === "ar-SA" ? "غير موجود في السيرة: 0" : "Not found in CV: 0")).toBeTruthy();
-		const summary = await screen.findByText(/AI ·/u);
-		expect(summary.textContent).toContain("12");
-		const details = summary.closest("details");
-		if (!details) throw new Error("Missing phrase details");
-		const examples = within(details).getAllByRole("link", { hidden: true });
+		const ar = locale === "ar-SA";
+		const found = screen.getByRole("region", { name: ar ? "مذكورة في سيرتك (1)" : "Already in your CV (1)" });
+		const missing = screen.getByRole("region", {
+			name: ar ? "غير مكتوبة في سيرتك (7)" : "Not in your CV yet (7)",
+		});
+		const chip = within(found).getByRole("button", { name: /artificial intelligence.*12/u });
+		expect(within(chip).getByText("artificial intelligence")).toHaveAttribute("dir", "auto");
+		expect(within(chip).getByText("12")).toBeTruthy();
+		expect(within(missing).getByText("data pipelines")).toHaveAttribute("dir", "auto");
+		expect(within(missing).queryByRole("button", { name: /data pipelines/u })).toBeNull();
+		expect(within(missing).getByRole("list").children).toHaveLength(6);
+		fireEvent.click(within(missing).getByRole("button", { name: ar ? "عرض الكل" : "Show all" }));
+		expect(within(missing).getByRole("list").children).toHaveLength(7);
+		expect(within(missing).getByText("cloud security")).toBeTruthy();
+		expect(within(missing).getByText("node.js")).toBeTruthy();
+		expect(screen.queryByRole("link", { name: /Built AI tools/u })).toBeNull();
+		fireEvent.click(chip);
+		const examples = await within(screen.getByRole("dialog")).findAllByRole("link");
 		expect(examples).toHaveLength(2);
 		for (const example of examples) {
 			expect(example.textContent).toContain("Built AI tools");
@@ -89,9 +107,12 @@ it.each(["ar-SA", "en-US"] as const)(
 			expect(example.getAttribute("href")).toContain("/builder/cv");
 			expect(example.getAttribute("href")).toContain("source=");
 		}
-		const excluded = screen.getByText("client").closest("details");
-		expect(excluded).not.toHaveAttribute("open");
-		expect(screen.getAllByText("client")).toHaveLength(1);
-		expect(excluded?.querySelector("summary")?.textContent).toMatch(locale === "ar-SA" ? /عرض/u : /Show/u);
+		expect(missing.compareDocumentPosition(found) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+		expect(screen.queryByText("client")).toBeNull();
+		expect(
+			screen.getByText(
+				ar ? "نعرض أهم الكلمات المتكررة في الإعلان." : "Showing the highest-signal terms from the job ad.",
+			),
+		).toBeVisible();
 	},
 );

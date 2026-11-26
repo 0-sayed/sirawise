@@ -26,6 +26,7 @@ export type ProtectedTranslation = {
 	maskedSegments: readonly MaskedSegment[];
 	localMap: ReadonlyMap<string, ProtectedFact>;
 	assertions: readonly TranslationFactAssertion[];
+	latinLabels?: ReadonlySet<string>;
 	continuations?: ReadonlyMap<string, Continuation>;
 	compactProseSizing?: CompactProseSizing;
 	binding?: Pick<TranslationCandidate, "direction" | "sourceRevision">;
@@ -53,7 +54,7 @@ const currencyPrefix = `${currencyCodes.filter((code) => code !== "ALL").join("|
 const currency = `(?:\\p{Sc}|(?:${currencyWord})(?![\\p{L}\\p{M}]))`;
 const unit = `(?:${currency}|%|(?:[Kk][Gg]|[Kk][Mm]|[Mm][Ss]|كغ|كم|مللي ثانية)(?![\\p{L}\\p{M}]))`;
 const measure = new RegExp(
-	`(?:(?<leadingSign>[+-])?\\s*(?<prefix>\\p{Sc}|(?<![\\p{L}\\p{M}])(?:${currencyPrefix})(?![\\p{L}\\p{M}]))\\s*)?(?:(?<amountSign>[+-])\\s*)?(?<amount>\\d+(?:[.,:/-]\\d+)*)(?:\\s*(?<suffix>${unit})(?!\\s*[+-]?\\d))?`,
+	`(?:(?<leadingSign>[+-])?\\s*(?<prefix>%|\\p{Sc}|(?<![\\p{L}\\p{M}])(?:${currencyPrefix})(?![\\p{L}\\p{M}]))\\s*)?(?:(?<amountSign>[+-])\\s*)?(?<amount>\\d+(?:[.,:/-]\\d+)*)(?:\\s*(?<suffix>${unit})(?!\\s*[+-]?\\d))?`,
 	"gu",
 );
 const normalizeUnit = (unit: string) =>
@@ -67,6 +68,36 @@ const normalizeUnit = (unit: string) =>
 		.replace(/^كم$/u, "km")
 		.replace(/^مللي ثانية$/u, "ms");
 
+const hijriMonths = [
+	["muharram", "محرم"],
+	["safar", "صفر"],
+	["rabi al-awwal", "ربيع الاول"],
+	["rabi al-thani", "rabi al-akhir", "ربيع الثاني", "ربيع الاخر"],
+	["jumada al-awwal", "jumada al-ula", "جمادى الاولى"],
+	["jumada al-thani", "jumada al-akhir", "جمادى الثانية", "جمادى الاخرة"],
+	["rajab", "رجب"],
+	["shaban", "sha'ban", "شعبان"],
+	["ramadan", "رمضان"],
+	["shawwal", "شوال"],
+	["dhu al-qidah", "dhu al-qadah", "ذو القعدة", "ذي القعدة"],
+	["dhu al-hijjah", "ذو الحجة", "ذي الحجة"],
+].flatMap((names, index) => names.map((name) => [name, String(index + 1).padStart(2, "0")] as const));
+const hijriMonthNumber = new Map<string, string>(hijriMonths);
+const namedHijriDate = new RegExp(
+	String.raw`(?<![\p{L}\p{N}./-])(?:(0?[1-9]|[12]\d|30)\s+)?(${[...hijriMonthNumber.keys()].join("|")})\s+(\d{4})(?![\p{L}\p{N}]|[./-]\d)`,
+	"giu",
+);
+
+function normalizeHijriDates(text: string, dates: string[] = []) {
+	return text.replace(namedHijriDate, (match, day: string | undefined, month: string, year: string) => {
+		const number = hijriMonthNumber.get(month.toLowerCase());
+		if (!number) return match;
+		const date = day ? `${year}-${number}-${day.padStart(2, "0")}` : `${year}-${number}`;
+		dates.push(`hijri:${date}`);
+		return date;
+	});
+}
+
 function factAssertions(sourceId: string, text: string): TranslationFactAssertion[] {
 	const normalized = normalizeFact(stripPlaceholders(text), { preserveCase: true })
 		.replace(/[−﹣]/gu, "-")
@@ -78,12 +109,11 @@ function factAssertions(sourceId: string, text: string): TranslationFactAssertio
 		.replace(/(?<!\p{L})(?:اثنا عشر|اثني عشر|اثنتا عشرة|اثنتي عشرة)(?!\p{L})/gu, "12")
 		.replace(/(?<!\p{L})(?:يومان|يومين|اسبوعان|اسبوعين|شهران|شهرين|سنتان|سنتين)(?!\p{L})/gu, "2");
 	const ranges =
-		/(?<![\d./-])(\d{4}(?:-(?:0[1-9]|1[0-2]))?)\s*(?:[–—-]|to|الى|حتى)\s*(\d{4}(?:-(?:0[1-9]|1[0-2]))?)(?!\d|[./-]\d)/giu;
-	const canonicalDates = normalizeTranslationFactDates(normalized);
+		/(?<![\d./-])(\d{4}(?:-\d{2}){0,2})\s*(?:[–—-]|to|until|الى|حتى)\s*(\d{4}(?:-\d{2}){0,2}|present|now|الان|الحاضر|اليوم)(?![\p{L}\d]|[./-]\d)/giu;
 	const dates: string[] = [];
-	const withoutRanges = canonicalDates.replace(ranges, (match, start: string, end: string) => {
-		if (start.length !== end.length) return match;
-		dates.push(`${start}-${end}`);
+	const canonicalDates = normalizeTranslationFactDates(normalizeHijriDates(normalized, dates));
+	const withoutRanges = canonicalDates.replace(ranges, (_match, start: string, end: string) => {
+		dates.push(start + "-" + (/^\d/u.test(end) ? end : "present"));
 		return " ";
 	});
 	const digits = normalizeNumberWords(withoutRanges).replace(
@@ -185,6 +215,7 @@ export function prepareTranslationFacts(
 	const officialNames = [...new Set(segments.filter(({ official }) => official).map(({ text }) => text))]
 		.filter(Boolean)
 		.sort((a, b) => b.length - a.length);
+	const latinLabels = new Set<string>();
 	let nextLocalId = 1;
 	const maskedSegments = segments.map((segment) => {
 		const ranges = protectedRanges(segment, data, officialNames);
@@ -199,6 +230,12 @@ export function prepareTranslationFacts(
 		const masked = normalizeProtectedText(text + segment.text.slice(from));
 		if (redactModelText(masked, resumeContactValues(data), { plainText: true }).redactedValues.length)
 			throw new Error("AI_SOURCE_BINDING");
+		const { sectionId, field } = segment.target;
+		if (
+			((sectionId === "skills" && field === "keywords") || (sectionId === "projects" && field === "name")) &&
+			isLatinLabel(masked.trim())
+		)
+			latinLabels.add(masked.trim());
 		return { id: segment.id, section: segment.target.sectionId, text: masked };
 	});
 	const continuations = new Map<string, Continuation>();
@@ -230,6 +267,7 @@ export function prepareTranslationFacts(
 		maskedSegments,
 		localMap,
 		assertions: maskedSegments.flatMap(({ id, text }) => factAssertions(id, text)),
+		latinLabels,
 		...(continuations.size ? { continuations } : {}),
 	};
 }
@@ -254,15 +292,177 @@ export function bindTranslationPart(
 	};
 }
 
-const same = (left: string[], right: string[]) => JSON.stringify(left.sort()) === JSON.stringify(right.sort());
+const same = (left: string[], right: string[]) =>
+	JSON.stringify([...left].sort()) === JSON.stringify([...right].sort());
 
-export function classifyTranslationFacts(prepared: ProtectedTranslation, raw: TranslationCandidate) {
+function changedValue(before: string[], after: string[]) {
+	const remaining = [...after];
+	return (
+		before.find((value) => {
+			const index = remaining.indexOf(value);
+			if (index === -1) return true;
+			remaining.splice(index, 1);
+			return false;
+		}) ?? remaining[0]
+	);
+}
+
+const termAliases = [
+	["Excel", "إكسل", "إكسيل", "اكسيل"],
+	["SAP", "ساب"],
+	["Word", "وورد"],
+] as const;
+// Acronyms in ordinary prose can be translated. Explicit aliases are matched separately.
+const genericAcronym = /^(?:AI|APIs?|UI|UX|CVs?|FAQs?|QA|IT|HR|ML|LLMs?|NLP|KPIs?|POCs?|MVPs?)$/u;
+const technicalTerm =
+	/(?<![\p{L}\p{N}])(?:[A-Za-z]+[./+#][A-Za-z][A-Za-z0-9+#.]*|[A-Z][A-Za-z]*\+\+|[A-Z]#|SQL|Oracle|PowerBI|Tableau|Workday|Salesforce|Jira|Docker|Kubernetes|GitHub|GitLab|PostgreSQL)(?![\p{L}\p{N}])/gu;
+
+function translationTerms(text: string, aliases: readonly { source: string; target: string }[]) {
+	let prose = stripPlaceholders(text);
+	const terms: string[] = [];
+	for (const [name, ...forms] of [...aliases.map(({ source, target }) => [source, target] as const), ...termAliases]) {
+		const alternatives = [name, ...forms].filter(Boolean).map(escaped).join("|");
+		if (!alternatives) continue;
+		const boundary = "[\\p{L}\\p{M}\\p{N}]";
+		const pattern = new RegExp(`(?<!${boundary})[وف]?(?:${alternatives})(?!${boundary})`, "gu");
+		prose = prose.replace(pattern, () => {
+			terms.push(name);
+			return " ";
+		});
+	}
+	prose = prose.replace(/(?<![\p{L}\p{N}])[وف](?=[A-Za-z])/gu, "").replace(technicalTerm, (term) => {
+		const name = term.replace(/\.+$/u, "");
+		if (name.split("/").every((part) => genericAcronym.test(part))) return term;
+		terms.push(name);
+		return " ";
+	});
+	return { terms, prose };
+}
+
+const englishProseWords = new Set(
+	(
+		"a an and are as at be been being but by can did do does for from had has have he her his how i in is it its may " +
+		"my no not of on or our she so than that the their them then there these they this to us was we were what when " +
+		"where which who will with without would you your " +
+		"added applied built checked completed contact created delivered designed developed drove enabled implemented improved " +
+		"including increased led made maintained managed moved operated provided reduced reported reviewed saved " +
+		"supported tested trained used using worked working wrote"
+	).split(" "),
+);
+const ordinaryEnglishWords = new Set(
+	(
+		"about actions advanced analysis applications basic better change company content dark data description development " +
+		"education engineer engineering english example experience factory field information language management manager " +
+		"name overview products professional profile project projects report reports responsibilities results section senior " +
+		"service services skills software summary system systems team technical technology tools work"
+	).split(" "),
+);
+const latinLabel =
+	/^[a-z][a-z0-9]*(?:[._/+-][a-z0-9]+|[+#]+)*(?:[ \t]+[a-z][a-z0-9]*(?:[._/+-][a-z0-9]+|[+#]+)*){0,3}$/iu;
+const latinNameRun =
+	/(?<![\p{L}\p{M}\p{N}_])(?:[وف])?((?:[A-Z][A-Za-z0-9]*(?:[._/+-][A-Za-z0-9]+|[+#]+)*|[a-z]+[A-Z_][A-Za-z0-9_]+)(?:[ \t]+[A-Z][A-Za-z0-9]*(?:[._/+-][A-Za-z0-9]+|[+#]+)*)*)(?![\p{L}\p{M}\p{N}_])/gu;
+const isEnglishProseWord = (word: string) =>
+	englishProseWords.has(word.toLowerCase()) || /^[A-Z][a-z]{3,}(?:ed|ing)$/u.test(word);
+
+function isLatinLabel(text: string) {
+	return latinLabel.test(text) && !text.split(/\s+/u).some(isEnglishProseWord);
+}
+
+function possibleLatinNames(text: string) {
+	return [...stripPlaceholders(text).matchAll(latinNameRun)].flatMap(([, run = ""]) => {
+		const words = run.split(/\s+/u);
+		const names = words.filter((word) => !isEnglishProseWord(word) && !ordinaryEnglishWords.has(word.toLowerCase()));
+		if (!names.length || words.length > 4) return [];
+		return words.some(isEnglishProseWord) ? names : [run, ...names];
+	});
+}
+
+function languageText(prose: string) {
+	return normalizeTranslationFactDates(normalizeHijriDates(normalizeFact(prose)))
+		.replace(/(?<!\p{L})(?:gregorian|ميلادي(?:ة)?|hijri|هجري(?:ة)?|ce|ad|ah)(?!\p{L})/giu, "")
+		.replace(/(?<!\p{L})(?:from|من) (?=\d)/gu, "")
+		.replace(/(?<=\d) (?:to|until|الى|حتى) (?=\d)/gu, "-");
+}
+
+function wrongTranslationLanguage(
+	source: { text: string; prose: string },
+	target: { text: string; prose: string },
+	direction: TranslationCandidate["direction"],
+	aliases: Parameters<typeof translationTerms>[1],
+	latinLabels: ProtectedTranslation["latinLabels"],
+) {
+	const unchanged = source.text.trim() === target.text.trim();
+	if (unchanged && latinLabels?.has(source.text.trim())) return false;
+
+	// An unchanged Latin name is neutral in either direction. Use only names shared with this slot.
+	const names = new Set(possibleLatinNames(source.text));
+	for (const label of latinLabels ?? []) {
+		if (source.text.includes(label)) names.add(label);
+	}
+	let { prose: sourceProse } = source;
+	let { prose: targetProse } = target;
+	let hasArabicConjunction = false;
+	if (names.size) {
+		const boundary = "[\\p{L}\\p{M}\\p{N}_]";
+		const alternatives = [...names].sort((a, b) => b.length - a.length).map(escaped);
+		const pattern = new RegExp(`(?<!${boundary})([وف])?(${alternatives.join("|")})(?!${boundary})`, "gu");
+		const retained = new Set<string>();
+		for (const [, conjunction, name] of stripPlaceholders(target.text).matchAll(pattern)) {
+			if (name) retained.add(name);
+			hasArabicConjunction ||= conjunction === "و";
+		}
+		const withoutNames = (value: string, keepConjunction = false) =>
+			stripPlaceholders(value).replace(pattern, (match, conjunction: string | undefined, name: string) =>
+				retained.has(name) ? ` ${keepConjunction ? (conjunction ?? "") : ""} ` : match,
+			);
+		sourceProse = translationTerms(withoutNames(source.text, direction === "ar-en"), aliases).prose;
+		targetProse = translationTerms(withoutNames(target.text), aliases).prose;
+	}
+
+	const sourceText = languageText(sourceProse);
+	const targetText = languageText(targetProse);
+	const letters = targetText.match(/\p{L}/gu) ?? [];
+	const targetScript = direction === "en-ar" ? /\p{Script=Arabic}/u : /\p{Script=Latin}/u;
+	const targetLetters = letters.filter((letter) => targetScript.test(letter)).length;
+	// In a list of names, Arabic can express the entire connector with a single attached letter.
+	if (
+		direction === "en-ar" &&
+		!letters.length &&
+		hasArabicConjunction &&
+		/^(?:\s*and)+\s*$/u.test(sourceText.replace(/\p{P}/gu, " "))
+	)
+		return false;
+	const sourceHasProse = /\p{L}/u.test(sourceText) || (!unchanged && /\p{L}/u.test(languageText(source.prose)));
+	return targetLetters < letters.length - targetLetters || (!targetLetters && (letters.length > 0 || sourceHasProse));
+}
+
+type FactIssue = {
+	id: string;
+	kind: TranslationFactAssertion["kind"] | "name" | "organization" | "contact" | "term" | "language" | "missing";
+	value?: string;
+};
+
+function changedAssertion(expected: TranslationFactAssertion[], actual: TranslationFactAssertion[]) {
+	for (const kind of ["date", "calendar", "number", "negation"] as const) {
+		const before = expected.filter((fact) => fact.kind === kind).map((fact) => fact.normalizedValue);
+		const after = actual.filter((fact) => fact.kind === kind).map((fact) => fact.normalizedValue);
+		if (kind === "negation" && (!before.length || !after.length)) continue;
+		if (same(before, after)) continue;
+		const value = changedValue(before, after);
+		return { kind, ...(value && value.length <= 50 ? { value } : {}) };
+	}
+}
+
+export function classifyTranslationFacts(
+	prepared: ProtectedTranslation,
+	raw: TranslationCandidate,
+	aliases: readonly { source: string; target: string }[] = [],
+) {
 	const candidate = translationCandidateSchema.parse(raw);
 	const sources = new Set(prepared.maskedSegments.map(({ id }) => id));
 	if (
 		sources.size !== prepared.maskedSegments.length ||
-		sources.size !== candidate.segments.length ||
-		new Set(candidate.segments.map(({ sourceId }) => sourceId)).size !== sources.size ||
+		new Set(candidate.segments.map(({ sourceId }) => sourceId)).size !== candidate.segments.length ||
 		candidate.segments.some(({ sourceId }) => !sources.has(sourceId)) ||
 		(prepared.binding &&
 			(candidate.direction !== prepared.binding.direction ||
@@ -271,28 +471,46 @@ export function classifyTranslationFacts(prepared: ProtectedTranslation, raw: Tr
 		throw new Error("AI_SOURCE_BINDING");
 
 	const keptIds: string[] = [];
-	const withheldIds: string[] = [];
-	const factKeys = (assertions: readonly TranslationFactAssertion[], includePolarity: boolean) =>
-		assertions
-			.filter(({ kind }) => kind !== "negation" || includePolarity)
-			.map(({ kind, normalizedValue }) => `${kind}:${normalizedValue}`);
-	const sourceSegments = new Map(prepared.maskedSegments.map((segment) => [segment.id, segment.text]));
-	for (const { sourceId, text } of candidate.segments) {
+	const issues: FactIssue[] = [];
+	const output = new Map(candidate.segments.map(({ sourceId, text }) => [sourceId, text]));
+	for (const { id: sourceId, text: source } of prepared.maskedSegments) {
+		const text = output.get(sourceId);
+		if (text === undefined) {
+			issues.push({ id: sourceId, kind: "missing" });
+			continue;
+		}
 		const received = translationPlaceholderOccurrences(text).map(({ token }) => token);
-		const expected = translationPlaceholderOccurrences(sourceSegments.get(sourceId) ?? "").map(({ token }) => token);
+		const expected = translationPlaceholderOccurrences(source).map(({ token }) => token);
 		const actual = factAssertions(sourceId, text);
 		const expectedAssertions = prepared.assertions.filter((entry) => entry.sourceId === sourceId);
-		const boundedPolarity =
-			actual.some(({ kind }) => kind === "negation") && expectedAssertions.some(({ kind }) => kind === "negation");
-		const actualFacts = factKeys(actual, boundedPolarity);
-		const expectedFacts = factKeys(expectedAssertions, boundedPolarity);
+		const changed = changedAssertion(expectedAssertions, actual);
 		const plain = stripPlaceholders(text).trim();
 		const hasContact = plain && redactModelText(plain, [], { plainText: true }).redactedValues.length > 0;
-		(same(received, expected) && same(actualFacts, expectedFacts) && !hasContact ? keptIds : withheldIds).push(
-			sourceId,
-		);
+		const before = translationTerms(source, aliases);
+		const after = translationTerms(text, aliases);
+
+		if (!same(received, expected)) {
+			const missing = expected.find((token) => !received.includes(token));
+			const kind = missing ? prepared.localMap.get(missing)?.kind : undefined;
+			issues.push({ id: sourceId, kind: kind === "official" ? "organization" : (kind ?? "term") });
+		} else if (hasContact) issues.push({ id: sourceId, kind: "contact" });
+		else if (!same(before.terms, after.terms)) {
+			const value = changedValue(before.terms, after.terms);
+			issues.push({ id: sourceId, kind: "term", ...(value ? { value } : {}) });
+		} else if (changed) issues.push({ id: sourceId, ...changed });
+		else if (
+			wrongTranslationLanguage(
+				{ text: source, prose: before.prose },
+				{ text, prose: after.prose },
+				candidate.direction,
+				aliases,
+				prepared.latinLabels,
+			)
+		)
+			issues.push({ id: sourceId, kind: "language" });
+		else keptIds.push(sourceId);
 	}
-	return { keptIds, withheldIds };
+	return { keptIds, withheldIds: issues.map(({ id }) => id), issues };
 }
 
 export function restoreTranslationFacts(

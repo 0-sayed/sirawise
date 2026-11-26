@@ -274,7 +274,6 @@ it("releases a dead writer's lock without taking it from a live writer", async (
 });
 
 it.each([
-	["translation", translation, translationLabels],
 	["job-evidence", jobs, jobLabels],
 	["extraction", extraction, extractionLabels],
 ] as const)("prepares all 16 frozen %s cases through their production contracts", (_feature, fixtures, labels) => {
@@ -297,4 +296,12 @@ it.each([
 		expect(submitted, input.id).toEqual([...label.retainedIds, ...semanticIds].sort());
 		for (const batch of prepared.batches) expect(batchHashes(batch).schemaSha256).toMatch(/^[a-f0-9]{64}$/u);
 	}
+});
+
+it("rejects historical translation cases before any qualification dispatch", () => {
+	const [input] = translation;
+	if (!input) throw new Error("Missing historical translation fixture");
+	expect(() =>
+		prepareFixedCase(input as SafetyInput, { feature: "translation" } as QualificationRoute, fixtureIdentifierSeed),
+	).toThrow("QUALIFICATION_FEATURE_RETIRED");
 });

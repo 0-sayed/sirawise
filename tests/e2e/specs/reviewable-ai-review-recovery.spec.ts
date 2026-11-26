@@ -139,7 +139,7 @@ for (const locale of ["en-US", "ar-SA"] as const)
 			await settleScreen(page);
 			const arabic = locale === "ar-SA";
 			await expect(page.locator("html")).toHaveAttribute("dir", arabic ? "rtl" : "ltr");
-			await page.getByRole("button", { name: /^(Review tailored wording|مراجعة الصياغة المخصصة)$/u }).click();
+			await page.getByRole("button", { name: /^(Suggest edits for this job|اقتراح تعديلات لهذه الوظيفة)$/u }).click();
 			const dialog = page.getByRole("dialog");
 			await dialog.getByRole("button", { name: /^(Start review|بدء المراجعة)$/u }).click();
 			const notice = dialog.getByRole("alert");
@@ -162,8 +162,6 @@ for (const locale of ["en-US", "ar-SA"] as const)
 test("copy allowance denial keeps the CV, family and operation balance unchanged", async ({ authPage: page }, info) => {
 	const { sourceId, original } = await seedTailoringReview(page, info);
 	const api = variantClient(page);
-	const before = await api.ai.usage.get();
-	const family = await api.resume.variants.list({ resumeId: sourceId });
 	await page.goto(`/dashboard/resumes/${sourceId}/job`);
 	// Select the exact same ad on the original without creating another copy.
 	const job = await api.career.jobTargets.save({ role: "Engineer", employer: "", text: "TypeScript required." });
@@ -174,8 +172,13 @@ test("copy allowance denial keeps the CV, family and operation balance unchanged
 		jobRevision: job.revision,
 		expectedSelectionRevision: null,
 	});
-	await page.reload();
-	await page.getByRole("button", { name: "Create tailored copy", exact: true }).click();
+	await launchTailoringReview(page, sourceId);
+	const proposal = page.locator("[data-proposal-index]").first();
+	await proposal.getByRole("button", { name: "Accept", exact: true }).click();
+	await expect(proposal.getByText("Accepted for the tailored copy", { exact: true })).toBeVisible();
+	const before = await api.ai.usage.get();
+	const family = await api.resume.variants.list({ resumeId: sourceId });
+	await page.getByRole("button", { name: "Save tailored copy", exact: true }).click();
 	const notice = await noticeFor(page, "1 of 1 job copies used for this base CV. 0 being created.");
 	await expect(notice.locator('[data-slot="alert-title"]')).toHaveText("Job copy limit reached");
 	await expect(notice.getByRole("button", { name: "Open saved CV", exact: true })).toBeVisible();
@@ -229,8 +232,9 @@ test("exhausted operation allowance denies a new review without reserving or ded
 	await expect(recovery.locator('[data-slot="alert-description"]')).toContainText(
 		"This allowance does not reset automatically. Continue editing manually or contact support. Your draft is kept.",
 	);
-	await expect(page.getByRole("button", { name: "Review job evidence", exact: true })).toBeDisabled();
-	await expect(page.getByRole("button", { name: "Review tailored wording", exact: true })).toBeDisabled();
+	await page.getByRole("button", { name: /Detailed requirement check|فحص متطلبات الوظيفة بالتفصيل/u }).click();
+	await expect(page.getByRole("button", { name: "Check job requirements", exact: true })).toBeDisabled();
+	await expect(page.getByRole("button", { name: "Suggest edits for this job", exact: true })).toHaveCount(0);
 	expect(await api.ai.usage.get()).toEqual(before);
 	expect((await api.resume.getById({ id: copyId })).data).toEqual(original.data);
 });
@@ -257,9 +261,12 @@ test("editing the CV after preparing tailoring makes proposals stale and preserv
 	).toHaveCount(3);
 	await expect(page.getByRole("button", { name: "Suggest again", exact: true })).toHaveCount(0);
 	await expect(page.getByRole("button", { name: "Accept", exact: true })).toHaveCount(0);
+	const retry = page.waitForResponse((response) =>
+		/^\/api\/rpc\/ai\/operations\/start(?:\/__batch__)?$/u.test(new URL(response.url()).pathname),
+	);
 	await stale.getByRole("button", { name: "Retry", exact: true }).click();
-	await expect(stale).toBeVisible();
-	await launchTailoringReview(page, copyId);
+	expect((await retry).ok()).toBe(true);
+	await expect(stale).toHaveCount(0);
 	await expect(page.locator("[data-proposal-index]").getByRole("button", { name: "Accept", exact: true })).toHaveCount(
 		3,
 		{ timeout: 30000 },
@@ -268,7 +275,7 @@ test("editing the CV after preparing tailoring makes proposals stale and preserv
 	expect((await api.resume.getById({ id: sourceId })).data).toEqual(original.data);
 });
 
-test("partial job evidence has a complete recovery notice and retains the literal result and CV", async ({
+test("partial job evidence has actionable evidence and retains the literal result and CV", async ({
 	authPage: page,
 }, info) => {
 	const id = await seedVariantReview(page, info);
@@ -277,17 +284,20 @@ test("partial job evidence has a complete recovery notice and retains the litera
 	await page.goto(`/dashboard/resumes/${id}/job`);
 	await page.getByLabel("Job title", { exact: true }).fill("Engineer");
 	await page.getByLabel("Job ad", { exact: true }).fill("TypeScript and SAP required");
-	await page.getByRole("button", { name: "Compare", exact: true }).click();
+	await page.getByRole("button", { name: "Compare with job", exact: true }).click();
 	await expect.poll(async () => (await api.career.jobTargets.evidence({ resumeId: id })).literal).not.toBeNull();
 	const literal = await api.career.jobTargets.evidence({ resumeId: id });
-	await page.getByRole("button", { name: "Review job evidence", exact: true }).click();
+	await page.getByRole("button", { name: /Detailed requirement check|فحص متطلبات الوظيفة بالتفصيل/u }).click();
+	await page.getByRole("button", { name: "Check job requirements", exact: true }).click();
 	await page.getByRole("dialog").getByRole("button", { name: "Start review", exact: true }).click();
-	const recovery = await noticeFor(
-		page,
-		"Only part of the job requirement is supported by this CV. Add confirmed information or request a new review.",
-	);
-	await recovery.getByRole("button", { name: "Retry", exact: true }).click();
-	await expect(page.getByRole("button", { name: "Add information", exact: true })).toBeEnabled();
+	const report = page.getByRole("region", { name: "Detailed requirement check", exact: true });
+	await expect(report.getByText("Partial evidence", { exact: true })).toBeVisible({ timeout: 30000 });
+	await report.getByText("Evidence", { exact: true }).click();
+	const source = report.getByRole("link", { name: "Show in CV", exact: true });
+	await expect(source).toBeVisible();
+	await expect(source).toHaveAttribute("href", /\/builder\/[^?]+\?source=/u);
+	await expect(page.getByRole("button", { name: "Add a fact", exact: true })).toBeEnabled();
+	await expect(page.getByRole("button", { name: "Check job requirements", exact: true })).toBeEnabled();
 	expect((await api.career.jobTargets.evidence({ resumeId: id })).literal).toEqual(literal.literal);
 	expect((await api.resume.getById({ id })).data).toEqual(original.data);
 });
@@ -302,9 +312,13 @@ test("failed tailoring releases its reservation and offers recovery without chan
 		page,
 		"The AI service did not finish this review. Your draft is kept. Retry can help after a temporary service failure.",
 	);
-	await recovery.getByRole("button", { name: "Retry", exact: true }).click();
-	await expect(page.getByRole("dialog").getByRole("button", { name: "Start review", exact: true })).toBeEnabled();
 	expect((await api.ai.usage.get()).operations).toMatchObject({ used: 0, reserved: 0 });
+	const retry = page.waitForResponse((response) =>
+		/^\/api\/rpc\/ai\/operations\/start(?:\/__batch__)?$/u.test(new URL(response.url()).pathname),
+	);
+	await recovery.getByRole("button", { name: "Retry", exact: true }).click();
+	expect((await retry).ok()).toBe(true);
+	await expect(page.getByRole("dialog")).toHaveCount(0);
 	expect((await api.resume.getById({ id: copyId })).data).toEqual(original.data);
 });
 
@@ -331,7 +345,7 @@ test("unavailable processing can recover in the browser without a deduction or d
 	);
 	await page.unroute(endpoint);
 	await recovery.getByRole("button", { name: "Retry", exact: true }).click();
-	await expect(page.getByRole("button", { name: "Review tailored wording", exact: true })).toBeEnabled();
+	await expect(page.getByRole("button", { name: "Suggest edits for this job", exact: true })).toBeEnabled();
 	expect((await api.ai.usage.get()).operations).toMatchObject({ used: 0, reserved: 0 });
 	expect((await api.resume.getById({ id: copyId })).data).toEqual(original.data);
 });

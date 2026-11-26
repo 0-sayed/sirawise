@@ -30,12 +30,7 @@ import {
 	type ApprovedRoute,
 } from "@reactive-resume/api/features/ai/route-policy";
 import { jobEvidenceCandidateContract } from "@reactive-resume/api/features/ai/variant-contracts";
-import {
-	createTranslationCandidateHandler,
-	prepareCompactTranslationVerification,
-	prepareJobEvidenceCandidate,
-	prepareTranslationFacts,
-} from "@reactive-resume/api/features/ai/variant-handlers";
+import { prepareJobEvidenceCandidate } from "@reactive-resume/api/features/ai/variant-handlers";
 import {
 	buildVariantVerifierSchema,
 	filterVariantVerification,
@@ -46,8 +41,7 @@ import {
 	resolveReviewVerifierRoute,
 } from "@reactive-resume/api/features/ai/verifier-policy";
 import { resolveWriterRoute } from "@reactive-resume/api/features/ai/writer-policy";
-import { defaultResumeData } from "@reactive-resume/schema/resume/default";
-import { jobEvidenceSchema, translationCandidateSchema } from "@reactive-resume/schema/resume/variant-outputs";
+import { jobEvidenceSchema } from "@reactive-resume/schema/resume/variant-outputs";
 import { opaqueFixture, qualificationSelectionId } from "./fixture-identifiers";
 import { sha256 } from "./run";
 import { plannedVerifier } from "./types";
@@ -196,13 +190,6 @@ const fixtureText = z.object({
 	contactValues: z.array(z.string()).default([]),
 	partial: z.boolean().default(false),
 });
-const translationFixture = z.object({
-	direction: z.enum(["ar-en", "en-ar"]),
-	sourceRevision: z.string(),
-	ownerName: z.string().optional(),
-	segments: z.array(z.object({ id: z.string(), section: z.literal("summary"), text: z.string() })).min(1),
-});
-
 function deterministic(itemIds: readonly string[], issueClass: string): FixedCase {
 	return {
 		batches: [],
@@ -221,70 +208,7 @@ function verdictsFromWithheld(
 export function prepareFixedCase(fixture: SafetyInput, route: QualificationRoute, seed: string): FixedCase {
 	const { input } = opaqueFixture(fixture, seed);
 	if (input.feature !== route.feature) throw new Error("QUALIFICATION_FEATURE_CHANGED");
-	if (input.feature === "translation") {
-		const { ownerName, direction, sourceRevision, segments } = translationFixture.parse(input.source);
-		const data = structuredClone(defaultResumeData);
-		data.basics.name = ownerName ?? "";
-		const local = prepareTranslationFacts(
-			data,
-			segments.map(({ id, text }) => ({
-				id,
-				text,
-				source: text,
-				official: false,
-				target: { sectionId: "summary", field: "content" },
-			})),
-		);
-		const snapshot: VariantSnapshot = {
-			category: "translation",
-			resumeId: "qualification",
-			sourceRevision,
-			direction,
-			jobAd: null,
-			cv: [...local.maskedSegments],
-			translationProtection: { ...local, binding: { direction, sourceRevision } },
-		};
-		const verifier = createTranslationCandidateHandler().verifier;
-		if (!verifier) throw new Error("QUALIFICATION_CONTRACT_REQUIRED");
-		const key = "part-1";
-		try {
-			const candidate = translationCandidateSchema.parse(input.candidate);
-			const prepared = prepareCompactTranslationVerification(
-				snapshot,
-				{ ...candidate, segments: candidate.segments.toSorted((a, b) => a.sourceId.localeCompare(b.sourceId)) },
-				key,
-			);
-			return {
-				localIssues: deterministic(prepared.withheldIds, "AI_UNSUPPORTED_CLAIM").localIssues,
-				batches: prepared.batches.map(({ batchId, itemIds, payload, schema }) => {
-					return {
-						key: batchId,
-						itemIds,
-						payload,
-						schema,
-						prompt: verifier.systemPrompt,
-						validate: (raw) => {
-							const verdict = schema.parse(raw);
-							return [
-								...verdict.issues.flatMap(({ sourceIds, code }) =>
-									sourceIds.map((itemId) => ({ itemId, issueClass: code })),
-								),
-								...verdict.supportedSourceIds.map((itemId) => ({ itemId, issueClass: null })),
-							];
-						},
-					};
-				}),
-			};
-		} catch (error) {
-			if (!(error instanceof ZodError) && !(error instanceof Error && error.message === "AI_SOURCE_BINDING"))
-				throw error;
-			const ids = z
-				.array(z.object({ sourceId: z.string() }))
-				.parse(input.candidate.segments)
-				.map(({ sourceId }) => sourceId);
-			return deterministic(ids, error instanceof ZodError ? "AI_CANDIDATE_SCHEMA" : error.message);
-		}
-	}
+	if (input.feature === "translation") throw new Error("QUALIFICATION_FEATURE_RETIRED");
 	if (input.feature === "job-evidence") {
 		const candidate = jobEvidenceSchema.parse(input.candidate);
 		const original = {

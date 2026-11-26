@@ -1,4 +1,5 @@
 import { Trans } from "@lingui/react/macro";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { buildJobPassages } from "@reactive-resume/resume/ats";
 import { Checkbox } from "@reactive-resume/ui/components/checkbox";
@@ -7,14 +8,49 @@ import { savePendingChanges, useResumeStore } from "../builder/draft";
 import { ReviewLaunch, ReviewOperationPanel } from "../editor/proposals/review-operation";
 import { useVariantsCopy } from "./copy.generated";
 import { TranslationReview } from "./translation-review";
-import { client } from "@/libs/orpc/client";
+import { client, orpc } from "@/libs/orpc/client";
 const MAX_SELECTED_FACTS = 49;
-export function SummaryReview({ locked }: { locked: boolean }) {
+export function SummaryReview({
+	locked,
+	launchOnly = false,
+	onStarted,
+}: {
+	locked: boolean;
+	launchOnly?: boolean;
+	onStarted?: (id: string) => void;
+}) {
 	const copy = useVariantsCopy();
 	const document = useResumeStore((state) => state.resume);
 	const [selected, setSelected] = useState<string[]>([]);
 	const [retryRequest, setRetryRequest] = useState(0);
-	const [operationId, setOperationId] = useState<string | null>(null);
+	const [launched, setLaunched] = useState<string | null>(null);
+	const [closed, setClosed] = useState<string | null>(null);
+	const cache = useQueryClient();
+	const history = useQuery({
+		...orpc.ai.review.list.queryOptions({ input: { resumeId: document?.id ?? "" } }),
+		enabled: Boolean(document) && !launchOnly,
+	});
+	const summaries = history.data?.filter(({ kind }) => kind === "review.summary") ?? [];
+	const latest =
+		summaries.find((entry) => entry.pendingCount || entry.unansweredQuestionCount || entry.continuationAvailable) ??
+		summaries[0];
+	const operationId = launchOnly ? null : (launched ?? latest?.operationId);
+	const [continuationParent, setContinuationParent] = useState<string | null>(null);
+	const retry = () => {
+		const parent = continuationParent ?? summaries.find((entry) => entry.operationId === operationId)?.continuationOf;
+		if (parent) {
+			setLaunched(parent);
+			setContinuationParent(null);
+			return;
+		}
+		setRetryRequest((n) => n + 1);
+	};
+	const start = (id: string) => {
+		setClosed(null);
+		setLaunched(id);
+		onStarted?.(id);
+		void cache.invalidateQueries({ queryKey: orpc.ai.review.list.key() });
+	};
 	if (!document) return null;
 	const facts = buildJobPassages(document.data);
 	const selectedEvidenceIds = selected.filter((id) => facts.some((fact) => fact.id === id));
@@ -66,17 +102,28 @@ export function SummaryReview({ locked }: { locked: boolean }) {
 						selectedEvidenceIds,
 					});
 				}}
-				onStarted={setOperationId}
+				onStarted={(id) => {
+					setContinuationParent(null);
+					start(id);
+				}}
 			>
 				<Trans>Review summary</Trans>
 			</ReviewLaunch>
-			{operationId && (
-				<ReviewOperationPanel
-					kind="review.summary"
-					onRetry={() => setRetryRequest((n) => n + 1)}
-					operationId={operationId}
-				>
-					<TranslationReview operationId={operationId} onClose={() => setOperationId(null)} />
+			{operationId && operationId !== closed && (
+				<ReviewOperationPanel kind="review.summary" onRetry={retry} operationId={operationId}>
+					<TranslationReview
+						key={operationId}
+						operationId={operationId}
+						onClose={() => {
+							setLaunched(null);
+							setClosed(operationId);
+						}}
+						onContinued={(id) => {
+							setContinuationParent(operationId);
+							start(id);
+						}}
+						continued={summaries.find((entry) => entry.operationId === operationId)?.continued}
+					/>
 				</ReviewOperationPanel>
 			)}
 		</div>

@@ -1,16 +1,13 @@
 import type { OperationHandler } from "./route-policy";
 import type { VariantSnapshot } from "./variant-types";
 import type { VariantOperationKind } from "@reactive-resume/schema/resume/variants";
+import { and, eq } from "drizzle-orm";
 import { withOwnerDatabase } from "@reactive-resume/db/client";
+import { resume } from "@reactive-resume/db/schema";
+import { readTarget } from "@reactive-resume/resume/proposals";
 import { translationCandidateSchema } from "@reactive-resume/schema/resume/variant-outputs";
+import { escapeHtml } from "@reactive-resume/utils/string";
 import { classifyTranslationFacts } from "./translation-invariants";
-import {
-	adaptVerifiedTranslation,
-	assertTranslationCheck,
-	buildTranslationVerifierSchema,
-	planCompactTranslationChecks,
-	translationVerifierCheckSchema,
-} from "./translation-verifier";
 import {
 	buildCompactTranslationWriter,
 	buildVariantWriterPayload,
@@ -18,10 +15,14 @@ import {
 	jobEvidenceCandidateContract,
 	translationCandidateContract,
 } from "./variant-contracts";
-import { VerificationGateError } from "./verification-failure";
 export { prepareTranslationFacts } from "./translation-invariants";
+import { hasOverbroadJobAbsence } from "./variant-guard";
 import { loadVariantSnapshot } from "./variant-sources";
-import { validateAndFilterVariantOutput, validateCompactTranslationDelivery } from "./variant-validation";
+import {
+	dominantScript,
+	validateAndFilterVariantOutput,
+	validateCompactTranslationDelivery,
+} from "./variant-validation";
 import {
 	buildVariantVerificationPayload,
 	buildVariantVerifierSchema,
@@ -73,9 +74,25 @@ export function prepareJobEvidenceCandidate(
 	if (filtered.kind !== "review.job-evidence") throw new Error("AI_SOURCE_BINDING");
 	const rejected = new Set(filtered.withheld?.items?.map((item) => item.id));
 	const noteIds = Array.isArray(output.notes) ? output.notes.map((_, index) => `note:${index}`) : [];
+	const requirements = filtered.output.requirements.map((requirement) => {
+		if (
+			snapshot.jobAd?.version !== "requirements-v2" ||
+			requirement.verdict !== "no_evidence" ||
+			requirement.evidenceIds.length !== 0 ||
+			!hasOverbroadJobAbsence(requirement.explanation)
+		)
+			return requirement;
+		// Replace the whole unsupported explanation before verification. The verifier still
+		// checks absence against the selected CV and independently verifies this new wording.
+		const explanation =
+			dominantScript(requirement.explanation) === "arabic"
+				? "لا تثبت المقاطع المختارة من السيرة الذاتية هذا المتطلب."
+				: "The selected CV passages do not establish this requirement.";
+		return { ...requirement, explanation };
+	});
 	return {
 		snapshot: { ...bound, jobNoteIds: noteIds.filter((id) => !rejected.has(id)) },
-		output: filtered.output,
+		output: { ...filtered.output, requirements },
 		guardWithheld: filtered.withheld,
 	};
 }
@@ -112,7 +129,9 @@ function makeHandler(
 		...contract,
 		resultState: "waiting_review",
 		validateRequest: async (tx, ownerId, request) => {
-			await loadVariantSnapshot(tx, ownerId, request);
+			// Root translation admission validates the source while building the plan it persists.
+			if (kind !== "review.translation" || request.parameters.translationBatch)
+				await loadVariantSnapshot(tx, ownerId, request);
 		},
 		buildInput: () => {
 			throw new Error("AI_PREPARED_PAYLOAD_REQUIRED");
@@ -122,8 +141,33 @@ function makeHandler(
 				const snapshot = await loadVariantSnapshot(tx, ownerId, request);
 				return buildVariantWriterPayload(snapshot);
 			}),
-		validateResult: async (tx, ownerId, request, output, options) =>
-			validateAndFilterVariantOutput(await loadSnapshot(tx, ownerId, request), output, options),
+		validateResult: async (tx, ownerId, request, output, options) => {
+			const result = validateAndFilterVariantOutput(await loadSnapshot(tx, ownerId, request), output, options);
+			if (result.kind !== "review.summary" && result.kind !== "review.tailoring") return result;
+
+			const [source] = await tx
+				.select({ data: resume.data })
+				.from(resume)
+				.where(and(eq(resume.userId, ownerId), eq(resume.id, result.sourceRevision.id)));
+			if (!source) throw new Error("AI_SOURCE_CHANGED");
+			if (result.kind === "review.summary") {
+				const text = result.output.summary.text.replaceAll("[NAME_1]", () => source.data.basics.name);
+				if (text && source.data.summary.content === `<p>${escapeHtml(text)}</p>`)
+					result.output.summary = { text: "", claims: [] };
+			} else {
+				result.output.patches = result.output.patches.filter(({ target, after }) => {
+					const { sectionId, field, itemId, roleId } = target;
+					const original = readTarget(source.data, {
+						sectionId,
+						field,
+						itemId: itemId ?? undefined,
+						roleId: roleId ?? undefined,
+					});
+					return original !== `<p>${escapeHtml(after)}</p>`;
+				});
+			}
+			return result;
+		},
 		verifier: {
 			output: jobEvidenceContract
 				? jobEvidenceVerifierSchema
@@ -210,41 +254,40 @@ export const variantReviewHandlers = Object.fromEntries(
 export const createJobEvidenceCandidateHandler = (limits: { maxInputCodePoints: number; maxOutputTokens: number }) =>
 	makeHandler("review.job-evidence", limits);
 
-export function prepareCompactTranslationVerification(snapshot: VariantSnapshot, raw: unknown, batchId: string) {
+export function checkTranslationCandidate(snapshot: VariantSnapshot, raw: unknown) {
 	const candidate = translationCandidateSchema.parse(raw);
 	const prepared = snapshot.translationProtection;
 	if (!prepared) throw new Error("AI_SOURCE_BINDING");
-	const { keptIds, withheldIds } = classifyTranslationFacts(prepared, candidate);
+	const { keptIds, issues, withheldIds } = classifyTranslationFacts(prepared, candidate, snapshot.translationAliases);
 	const kept = new Set(keptIds);
-	const surviving = { ...candidate, segments: candidate.segments.filter(({ sourceId }) => kept.has(sourceId)) };
-	// A saved plan keeps its original grouping and verifier journal across a restart.
-	const batches = planCompactTranslationChecks(prepared, surviving, batchId, prepared.compactProseSizing ?? false).map(
-		(batch) => ({ ...batch, schema: buildTranslationVerifierSchema(batch.payload) }),
-	);
-	const adapt = (check: ReturnType<typeof assertTranslationCheck>) => ({
-		...adaptVerifiedTranslation(prepared, candidate, check, withheldIds),
-		issues: check.issues,
+	const translations = new Map(candidate.segments.map(({ sourceId, text }) => [sourceId, text]));
+	const result = validateCompactTranslationDelivery(snapshot, {
+		direction: candidate.direction,
+		sourceRevision: candidate.sourceRevision,
+		notes: [],
+		segments: snapshot.cv.map(({ id, text: original }) => {
+			const text = kept.has(id) ? translations.get(id) : undefined;
+			return text === undefined
+				? { sourceId: id, text: original.trim(), claims: [] }
+				: { sourceId: id, text, claims: [{ id: "checked", text, kind: "translation", evidenceIds: [id] }] };
+		}),
 	});
-	const finishBatches = (verdicts: unknown[]) => {
-		if (!batches.length || verdicts.length !== batches.length) throw new Error("AI_VERIFICATION_REQUIRED");
-		const checks = batches.map((batch, index) =>
-			assertTranslationCheck(batch.candidate, batch.batchId, batch.schema.parse(verdicts[index])),
-		);
-		return adapt({
-			schemaVersion: 1,
-			batchId,
-			checkedSourceIds: checks.flatMap((entry) => entry.checkedSourceIds),
-			supportedSourceIds: checks.flatMap((entry) => entry.supportedSourceIds),
-			issues: checks.flatMap((entry) => entry.issues),
-		});
-	};
+	const rule = (kind: string) => "TRANSLATION_FACT_" + kind.toUpperCase();
 	return {
-		keptIds,
-		withheldIds,
-		batches,
-		payload: batches[0]?.payload ?? null,
-		finish: (verdict: unknown) => adapt(assertTranslationCheck(surviving, batchId, verdict)),
-		finishBatches,
+		...result,
+		...(withheldIds.length
+			? {
+					withheldSegmentIds: withheldIds,
+					withheld: {
+						count: withheldIds.length,
+						rules: [...new Set(issues.map(({ kind }) => rule(kind)))],
+						items: issues.slice(0, 50).map(({ id, kind, value }) => ({
+							id,
+							reason: rule(kind) + ((kind === "number" || kind === "term") && value ? ":" + value.slice(0, 75) : ""),
+						})),
+					},
+				}
+			: {}),
 	};
 }
 
@@ -252,103 +295,18 @@ export function createTranslationCandidateHandler(): OperationHandler {
 	const contract = { ...variantOperationContracts["review.translation"], ...translationCandidateContract };
 	const loadSnapshot: typeof loadVariantSnapshot = (tx, ownerId, request) =>
 		loadVariantSnapshot(tx, ownerId, request, { compactTranslation: true });
-	const prepare = async (
-		tx: Parameters<typeof loadSnapshot>[0],
-		ownerId: string,
-		request: Parameters<typeof loadSnapshot>[2],
-		output: Record<string, unknown>,
-	) => {
-		const snapshot = await loadSnapshot(tx, ownerId, request);
-		const batch = contract.parameters.parse(request.parameters).translationBatch;
-		return prepareCompactTranslationVerification(snapshot, output, `part-${(batch?.index ?? 0) + 1}`);
-	};
-	const deliver = (
-		adapted: ReturnType<Awaited<ReturnType<typeof prepare>>["finishBatches"]>,
-		allowSegmentWithholding?: boolean,
-	) => {
-		if (
-			adapted.withheldIds.length &&
-			((!allowSegmentWithholding && adapted.withheldIds.length !== adapted.unverifiedIds.length) ||
-				!adapted.output.segments.some(({ claims }) => claims.length))
-		)
-			throw new VerificationGateError(
-				adapted.unverifiedIds.length ? "AI_VERIFICATION_CLAIM_IDS" : "AI_VERIFICATION_CLAIM_SUPPORT",
-			);
-		const unverified = new Set(adapted.unverifiedIds);
-		const reasonFor = (id: string) =>
-			unverified.has(id) ? "AI_VERIFICATION_CLAIM_IDS" : "AI_VERIFICATION_CLAIM_SUPPORT";
-		return {
-			output: { ...adapted.output, withheldSegmentIds: adapted.withheldIds },
-			...(adapted.withheldIds.length
-				? {
-						withheld: {
-							count: adapted.withheldIds.length,
-							rules: [...new Set(adapted.withheldIds.map(reasonFor))],
-							items: adapted.withheldIds.map((id) => ({ id, reason: reasonFor(id) })),
-						},
-					}
-				: {}),
-		};
-	};
 	return {
 		...contract,
 		resultState: "waiting_review",
 		validateRequest: async (tx, ownerId, request) => {
-			await loadSnapshot(tx, ownerId, request);
+			if (request.parameters.translationBatch) await loadSnapshot(tx, ownerId, request);
 		},
 		buildInput: () => {
 			throw new Error("AI_PREPARED_PAYLOAD_REQUIRED");
 		},
 		buildPayload: (ownerId, request) =>
 			withOwnerDatabase(ownerId, async (tx) => buildCompactTranslationWriter(await loadSnapshot(tx, ownerId, request))),
-		validateCandidate: async (tx, ownerId, request, raw) => {
-			const snapshot = await loadSnapshot(tx, ownerId, request);
-			const candidate = translationCandidateSchema.parse(raw);
-			if (!snapshot.translationProtection) throw new Error("AI_SOURCE_BINDING");
-			classifyTranslationFacts(snapshot.translationProtection, candidate);
-			return candidate;
-		},
-		validateDelivery: async (tx, ownerId, request, raw) =>
-			validateCompactTranslationDelivery(await loadSnapshot(tx, ownerId, request), raw),
-		verifier: {
-			output: translationVerifierCheckSchema,
-			outputForPayload: buildTranslationVerifierSchema,
-			systemPrompt: contract.verifierPrompt,
-			buildInput: () => {
-				throw new Error("AI_VERIFICATION_CONTEXT_REQUIRED");
-			},
-			validate: () => {
-				throw new Error("AI_VERIFICATION_CONTEXT_REQUIRED");
-			},
-			buildBatchesInContext: async (tx, ownerId, request, output, options) => {
-				const plan = await prepare(tx, ownerId, request, output);
-				if (!plan.batches.length || (plan.withheldIds.length && !options?.allowSegmentWithholding))
-					throw new Error("AI_UNSUPPORTED_CLAIM");
-				return {
-					batches: plan.batches.map(({ candidate, payload, itemIds }) => ({ output: candidate, payload, itemIds })),
-				};
-			},
-			validateBatchInContext: async (tx, ownerId, request, output, batchIndex, verdict, options) => {
-				const plan = await prepare(tx, ownerId, request, output);
-				const batch = plan.batches[batchIndex];
-				if (!batch) throw new Error("AI_VERIFICATION_REQUIRED");
-				const check = assertTranslationCheck(batch.candidate, batch.batchId, verdict);
-				const decisionCount =
-					check.supportedSourceIds.length + check.issues.flatMap(({ sourceIds }) => sourceIds).length;
-				if (decisionCount < batch.itemIds.length && !options?.allowMissingDecisions)
-					throw new VerificationGateError("AI_VERIFICATION_CLAIM_IDS", "AI_VERIFICATION_INCOMPLETE");
-			},
-			validateBatchesInContext: async (tx, ownerId, request, output, verdicts, options) => {
-				const plan = await prepare(tx, ownerId, request, output);
-				return {
-					...deliver(plan.finishBatches(verdicts), options?.allowSegmentWithholding),
-					batchCount: plan.batches.length,
-				};
-			},
-			validateInContext: async (tx, ownerId, request, output, verdict, options) => {
-				const plan = await prepare(tx, ownerId, request, output);
-				return deliver(plan.finish(verdict), options?.allowSegmentWithholding);
-			},
-		},
+		validateResult: async (tx, ownerId, request, raw) =>
+			checkTranslationCandidate(await loadSnapshot(tx, ownerId, request), raw),
 	};
 }

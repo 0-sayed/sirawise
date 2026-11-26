@@ -1,8 +1,10 @@
 import type { OwnerTransaction } from "@reactive-resume/db/client";
 import type {
+	CreateVariantInput,
 	VariantDecisionInput,
 	VariantDecisionPayload,
 	VariantReviewResult,
+	VariantReviewView,
 } from "@reactive-resume/schema/resume/variants";
 import { createHash } from "node:crypto";
 import { ORPCError } from "@orpc/client";
@@ -27,20 +29,22 @@ import { parseResumeDataForWrite } from "@reactive-resume/schema/resume/write";
 import { escapeHtml, generateId } from "@reactive-resume/utils/string";
 import { lockDocumentOwner } from "../documents/ownership";
 import { notifyResumeUpdated, updateResumeTx } from "../resume/service";
-import { applyReviewedTranslation } from "../resume/variants";
+import { applyReviewedTranslation, createVariant } from "../resume/variants";
 import { writeVersion } from "../resume/version-history";
 import { assembleTranslationBatchResult } from "./operations";
 import { resumeContactValues } from "./payload";
+import { hasReviewContinuation } from "./review-continuation";
+import { savedQuestionAnswers } from "./review-decisions";
 import { canonicalJson } from "./route-policy";
 import { evaluateTranslationAutoApply } from "./translation-auto-apply";
 import { prepareTranslationFacts } from "./translation-invariants";
-import { hasUnresolvedTranslationPlaceholder, resolveTranslationText } from "./translation-placeholders";
+import { resolveTranslationText } from "./translation-placeholders";
+import { translationCandidateContract } from "./variant-contracts";
 import { loadVariantSnapshot } from "./variant-sources";
 
 function conflict(reason = "AI_SOURCE_CHANGED"): never {
 	throw new ORPCError("CONFLICT", { data: { reason } });
 }
-type Decision = typeof aiReviewDecision.$inferSelect;
 async function context(tx: OwnerTransaction, ownerId: string, operationId: string) {
 	await lockDocumentOwner(tx, ownerId);
 	let [operation] = await tx
@@ -68,8 +72,18 @@ async function context(tx: OwnerTransaction, ownerId: string, operationId: strin
 	}
 	if (!operation.result || !operation.deliveredAt || !["waiting_review", "succeeded"].includes(operation.state))
 		throw new ORPCError("NOT_FOUND");
-	const { withheldSegmentIds: storedIds, withholdingIdsComplete, ...publicResult } = operation.result;
+	const {
+		withheldSegmentIds: storedIds,
+		withheldSegmentParts,
+		withholdingIdsComplete,
+		...publicResult
+	} = operation.result;
 	const result = variantReviewResultSchema.parse(publicResult);
+	const withheldParts = new Map<string, { partIndex?: number | undefined; reason?: string | undefined }>(
+		(Array.isArray(withheldSegmentParts) ? withheldSegmentParts : (result.withheld?.items ?? [])).map(
+			({ id, partIndex, reason }) => [id, { partIndex, reason }],
+		),
+	);
 	const withheldSegmentIds = new Set<string>();
 	if (result.kind === "review.translation") {
 		for (const id of Array.isArray(storedIds) ? storedIds : (result.withheld?.items ?? []).map(({ id }) => id))
@@ -104,11 +118,37 @@ async function context(tx: OwnerTransaction, ownerId: string, operationId: strin
 		decisions,
 		provenance,
 		withheldSegmentIds,
+		withheldParts,
 		incompleteWithholding,
 		compactTranslation,
 	};
 }
 type Context = Awaited<ReturnType<typeof context>>;
+const stagesTailoring = (ctx: Context) => ctx.result.kind === "review.tailoring" && ctx.document.variantKind !== "job";
+const workingSnapshot = (ctx: Context) =>
+	stagesTailoring(ctx)
+		? ctx.decisions.findLast((event) => event.variantPayload?.after)?.variantPayload?.after
+		: undefined;
+
+export function createReviewedJobVariant(ownerId: string, input: Extract<CreateVariantInput, { variantKind: "job" }>) {
+	const review = input.review;
+	if (!review) throw new ORPCError("BAD_REQUEST");
+	return createVariant(ownerId, input, async (tx) => {
+		const ctx = await context(tx, ownerId, review.operationId);
+		if (
+			!stagesTailoring(ctx) ||
+			ctx.document.id !== input.sourceResumeId ||
+			ctx.operation.parameters.jobId !== input.jobId ||
+			ctx.operation.parameters.jobRevision !== input.jobRevision ||
+			ctx.decisions.at(-1)?.id !== review.decisionId
+		)
+			conflict();
+		await assertCurrent(tx, ownerId, ctx);
+		const snapshot = workingSnapshot(ctx);
+		if (!snapshot || !Object.values(statuses(ctx)).includes("accepted")) conflict();
+		return snapshot.data;
+	});
+}
 const restoreSummaryNames = (text: string, ctx: Context) =>
 	text.replaceAll("[NAME_1]", () => ctx.document.data.basics.name);
 const subjectIds = (result: VariantReviewResult): string[] =>
@@ -121,7 +161,7 @@ const subjectIds = (result: VariantReviewResult): string[] =>
 					? ["summary"]
 					: []
 				: ["report"];
-function statuses(result: VariantReviewResult, decisions: Decision[], withheldIds: ReadonlySet<string>) {
+function statuses({ result, decisions, withheldSegmentIds: withheldIds, operation }: Context) {
 	const value: Record<string, "pending" | "accepted" | "rejected"> = Object.fromEntries(
 		subjectIds(result)
 			.filter((id) => !withheldIds.has(id))
@@ -135,6 +175,18 @@ function statuses(result: VariantReviewResult, decisions: Decision[], withheldId
 	if (result.kind === "review.translation")
 		for (const [id, segment] of Object.entries(decisions.at(-1)?.variantPayload?.segments ?? {}))
 			if (!withheldIds.has(id)) value[id] = segment.status;
+	if (
+		result.kind === "review.translation" &&
+		operation.promptVersion === translationCandidateContract.promptVersion &&
+		value.translation === "accepted"
+	) {
+		const approval = decisions.findLast(
+			(event) => event.event === "accept" && event.subjectIds.includes("translation"),
+		);
+		const approvedSegments = approval?.variantPayload?.segments ?? {};
+		if (Object.keys(value).some((id) => id !== "translation" && !Object.hasOwn(approvedSegments, id)))
+			value.translation = "pending";
+	}
 	return value;
 }
 function previousPayload(ctx: Context) {
@@ -173,17 +225,27 @@ async function initialPayload(tx: OwnerTransaction, ownerId: string, ctx: Contex
 		throw new ORPCError("PRECONDITION_FAILED", {
 			data: { reason: "TRANSLATION_PARTIAL_COVERAGE", sections: inventory.blockingSections },
 		});
+	const approvedTerms = new Map(
+		ctx.operation.promptVersion === translationCandidateContract.promptVersion
+			? ctx.provenance?.terminology.terms.filter(({ status }) => status === "confirmed").map((term) => [term.id, term])
+			: [],
+	);
 	payload.terms.terms = inventory.segments
 		.filter((segment) => segment.official && !ctx.withheldSegmentIds.has(segment.id))
-		.map((segment) => ({
-			id: `term:${segment.id}`,
-			sourceRevision: ctx.result.sourceRevision.revision,
-			target: segment.target,
-			source: segment.text,
-			value: segment.text,
-			status: "pending",
-			author: "source",
-		}));
+		.map((segment) => {
+			const id = `term:${segment.id}`;
+			const prior = approvedTerms.get(id);
+			const approved = prior?.source === segment.text ? prior : undefined;
+			return {
+				id,
+				sourceRevision: ctx.result.sourceRevision.revision,
+				target: segment.target,
+				source: segment.text,
+				value: approved?.value ?? segment.text,
+				status: approved?.status ?? "pending",
+				author: approved?.author ?? "source",
+			};
+		});
 	payload.segments = Object.fromEntries(
 		ctx.result.output.segments
 			.filter(({ sourceId }) => !ctx.withheldSegmentIds.has(sourceId))
@@ -231,13 +293,18 @@ async function assertCurrent(tx: OwnerTransaction, ownerId: string, ctx: Context
 		return;
 	}
 	const revision = ctx.document.updatedAt.toISOString();
-	await loadVariantSnapshot(tx, ownerId, {
-		kind: ctx.operation.kind,
-		parameters: { ...ctx.operation.parameters, expectedUpdatedAt: revision },
-		sources: ctx.operation.sources.map((source) =>
-			source.kind === "resume" && source.id === ctx.document.id ? { ...source, revision } : source,
-		),
-	});
+	await loadVariantSnapshot(
+		tx,
+		ownerId,
+		{
+			kind: ctx.operation.kind,
+			parameters: { ...ctx.operation.parameters, expectedUpdatedAt: revision },
+			sources: ctx.operation.sources.map((source) =>
+				source.kind === "resume" && source.id === ctx.document.id ? { ...source, revision } : source,
+			),
+		},
+		{ reviewChanges: ctx.decisions },
+	);
 }
 
 export function getVariantReview(ownerId: string, operationId: string) {
@@ -255,18 +322,32 @@ export function getVariantReview(ownerId: string, operationId: string) {
 			segments: {},
 		};
 		const payload = stale ? (previousPayload(ctx) ?? empty) : await reviewPayload(tx, ownerId, ctx);
-		const sourceSegments =
+		const sourceSegments: VariantReviewView["sourceSegments"] =
 			ctx.result.kind === "review.translation" && !stale
 				? buildTranslationInventory((await translationSource(tx, ownerId, ctx)).data).segments.map((segment) => ({
 						id: segment.id,
 						text: segment.text,
+						...(ctx.withheldSegmentIds.has(segment.id)
+							? { untranslated: ctx.withheldParts.get(segment.id) ?? {} }
+							: {}),
 					}))
 				: ctx.result.kind === "review.job-evidence" && !stale
-					? ((await loadVariantSnapshot(tx, ownerId, ctx.operation)).jobAd?.segments ?? [])
+					? ((await loadVariantSnapshot(tx, ownerId, ctx.operation)).jobAd?.segments ?? []).map(({ id, text }) => ({
+							id,
+							text,
+						}))
 					: [];
 		// Inference tokens stay in the operation ledger. Resolve them only in this owner-scoped view.
 		const result = structuredClone(ctx.result);
 		const segments = structuredClone(payload.segments);
+		const decisions = statuses(ctx);
+		const accepted = (id: string) =>
+			decisions[id] === "accepted"
+				? ctx.decisions.findLast(
+						(event) => (event.event === "accept" || event.event === "accept_edited") && event.subjectIds.includes(id),
+					)
+				: undefined;
+		let beforeSummary = ctx.document.data.summary.content;
 		if (result.kind === "review.translation") {
 			if (stale) {
 				// A stale source cannot safely reconstruct the token registry. Keep the recovery notice, withhold comparisons.
@@ -321,9 +402,54 @@ export function getVariantReview(ownerId: string, operationId: string) {
 			for (const claim of result.output.summary.claims) claim.text = restoreSummaryNames(claim.text, ctx);
 			for (const question of result.output.questions) question.prompt = restoreSummaryNames(question.prompt, ctx);
 			result.output.notes = result.output.notes.map((note) => restoreSummaryNames(note, ctx));
+			const saved = accepted("summary");
+			if (saved?.variantPayload?.after) {
+				beforeSummary = saved.variantPayload.before?.data.summary.content ?? beforeSummary;
+				segments.summary = {
+					text: blockText(saved.variantPayload.after.data.summary.content),
+					status: "accepted",
+					author: saved.event === "accept_edited" ? "user" : "model",
+				};
+			}
+		} else if (result.kind === "review.tailoring") {
+			for (const { id, target } of result.output.patches) {
+				const saved = accepted(id);
+				if (!saved?.variantPayload?.after) continue;
+				const { sectionId, field, itemId, roleId } = target;
+				const html = readTarget(saved.variantPayload.after.data, {
+					sectionId,
+					field,
+					itemId: itemId ?? undefined,
+					roleId: roleId ?? undefined,
+				});
+				if (html !== undefined)
+					segments[id] = {
+						text: blockText(html),
+						status: "accepted",
+						author: saved.event === "accept_edited" ? "user" : "model",
+					};
+			}
 		}
+		const questionAnswers = savedQuestionAnswers(ctx.decisions);
+		const beforeTailoring = result.kind === "review.tailoring" ? accepted("order")?.variantPayload?.before : null;
+		const beforeOrder =
+			result.kind === "review.tailoring" && beforeTailoring
+				? result.output.order.flatMap(({ sectionId }) => {
+						const { sections } = beforeTailoring.data;
+						const section = sections[sectionId as keyof typeof sections];
+						return section ? [{ sectionId, itemIds: section.items.map(({ id }) => id) }] : [];
+					})
+				: undefined;
 		return {
-			beforeSummary: ctx.document.data.summary.content,
+			beforeSummary,
+			...(beforeOrder && { beforeOrder }),
+			...(["review.summary", "review.job-evidence"].includes(result.kind)
+				? {
+						questionAnswers,
+						remainingAnswerSlots: Math.max(0, 10 - ctx.operation.sources.length - questionAnswers.length),
+						continued: await hasReviewContinuation(tx, ownerId, operationId),
+					}
+				: {}),
 			answeredQuestionIds: ctx.decisions
 				.filter((event) => event.event === "answer")
 				.flatMap((event) => event.subjectIds),
@@ -332,7 +458,7 @@ export function getVariantReview(ownerId: string, operationId: string) {
 				.flatMap((event) => event.subjectIds),
 			sourceSegments,
 			result,
-			statuses: statuses(ctx.result, ctx.decisions, ctx.withheldSegmentIds),
+			statuses: decisions,
 			terms: payload.terms,
 			segments,
 			updatedAt: ctx.document.updatedAt.toISOString(),
@@ -387,11 +513,12 @@ export async function decideVariantReview(ownerId: string, raw: VariantDecisionI
 		const payload = structuredClone(await reviewPayload(tx, ownerId, ctx));
 		payload.before = null;
 		payload.after = null;
-		const currentStatuses = statuses(ctx.result, ctx.decisions, ctx.withheldSegmentIds);
+		const currentStatuses = statuses(ctx);
 		const terms = new Set(payload.terms.terms.map((term) => term.id));
 		if (input.subjectIds.some((id) => !Object.hasOwn(currentStatuses, id) && !terms.has(id)))
 			throw new ORPCError("NOT_FOUND");
-		let data = structuredClone(ctx.document.data);
+		const originalData = workingSnapshot(ctx)?.data ?? ctx.document.data;
+		let data = structuredClone(originalData);
 		let nextProvenance = snapshotProvenance(ctx.provenance);
 		let save = false;
 		if (input.decision === "undo") {
@@ -431,7 +558,7 @@ export async function decideVariantReview(ownerId: string, raw: VariantDecisionI
 					(!isLegacyTranslationAutoApply &&
 						canonicalJson([...input.subjectIds].sort()) !== canonicalJson([...accepted.subjectIds].sort())) ||
 					accepted.afterRevision !== ctx.document.updatedAt.toISOString() ||
-					canonicalJson(accepted.variantPayload.after.data) !== canonicalJson(ctx.document.data) ||
+					canonicalJson(accepted.variantPayload.after.data) !== canonicalJson(originalData) ||
 					canonicalJson(accepted.variantPayload.after.provenance) !== canonicalJson(snapshotProvenance(ctx.provenance))
 				)
 					conflict("AI_UNDO_CHANGED");
@@ -450,6 +577,7 @@ export async function decideVariantReview(ownerId: string, raw: VariantDecisionI
 						);
 					});
 				}
+				if (stagesTailoring(ctx)) for (const id of input.subjectIds) delete payload.segments[id];
 				data = structuredClone(accepted.variantPayload.before.data);
 				nextProvenance = structuredClone(accepted.variantPayload.before.provenance);
 				save = true;
@@ -468,19 +596,18 @@ export async function decideVariantReview(ownerId: string, raw: VariantDecisionI
 				if (payload.segments[segmentId]) payload.segments[segmentId].status = "pending";
 			}
 		} else {
-			const canRejectAcceptedTranslationSegment =
-				ctx.result.kind === "review.translation" &&
-				currentStatuses.translation === "pending" &&
-				input.decision === "reject";
+			const editingTranslationDraft =
+				ctx.result.kind === "review.translation" && currentStatuses.translation === "pending";
 			if (
 				input.subjectIds.some(
 					(id) =>
 						currentStatuses[id] !== "pending" &&
-						!(canRejectAcceptedTranslationSegment && currentStatuses[id] === "accepted") &&
 						!(
-							ctx.result.kind === "review.translation" &&
-							input.decision === "accept_edited" &&
-							hasUnresolvedTranslationPlaceholder(payload.segments[id]?.text ?? "")
+							editingTranslationDraft &&
+							payload.segments[id] &&
+							(input.decision === "accept_edited" ||
+								(input.decision === "reject" && currentStatuses[id] === "accepted") ||
+								(input.decision === "accept" && currentStatuses[id] === "rejected"))
 						),
 				)
 			)
@@ -491,6 +618,8 @@ export async function decideVariantReview(ownerId: string, raw: VariantDecisionI
 					if (input.decision === "accept") {
 						if (
 							ctx.incompleteWithholding ||
+							(ctx.operation.promptVersion === translationCandidateContract.promptVersion &&
+								!Object.keys(payload.segments).length) ||
 							Object.values(payload.segments).some((segment) => segment.status !== "accepted") ||
 							payload.terms.terms.some((term) => term.status !== "confirmed")
 						)
@@ -543,7 +672,10 @@ export async function decideVariantReview(ownerId: string, raw: VariantDecisionI
 						/\[(?:redacted|NAME_\d+)\]/iu.test(patch.before)
 					)
 						conflict();
-					writeTarget(data, target, `<p>${escapeHtml(input.editedText ?? patch.after)}</p>`);
+					const text = input.editedText ?? patch.after;
+					writeTarget(data, target, `<p>${escapeHtml(text)}</p>`);
+					if (stagesTailoring(ctx) && input.decision === "accept_edited")
+						payload.segments[patch.id] = { text, status: "accepted", author: "user" };
 				}
 				if (input.subjectIds.includes("order"))
 					for (const order of ctx.result.output.order) {
@@ -565,8 +697,10 @@ export async function decideVariantReview(ownerId: string, raw: VariantDecisionI
 		let historyVersionId: string | null = null;
 		if (save) {
 			data = parseResumeDataForWrite(data);
-			payload.before = { data: ctx.document.data, provenance: snapshotProvenance(ctx.provenance) };
+			payload.before = { data: originalData, provenance: snapshotProvenance(ctx.provenance) };
 			payload.after = { data, provenance: nextProvenance };
+		}
+		if (save && !stagesTailoring(ctx)) {
 			const saved = await updateResumeTx(tx, {
 				id: ctx.document.id,
 				userId: ownerId,
@@ -594,7 +728,7 @@ export async function decideVariantReview(ownerId: string, raw: VariantDecisionI
 			statuses: currentStatuses,
 			resumeId: ctx.document.id,
 			updatedAt,
-			data,
+			data: stagesTailoring(ctx) ? ctx.document.data : data,
 		};
 		await tx.insert(aiReviewDecision).values({
 			id: response.decisionId,
@@ -613,16 +747,17 @@ export async function decideVariantReview(ownerId: string, raw: VariantDecisionI
 			variantPayload: variantDecisionPayloadSchema.parse(payload),
 			createdAt: new Date(Math.max(Date.now(), (ctx.decisions.at(-1)?.createdAt.getTime() ?? 0) + 1)),
 		});
+		const reviewComplete =
+			(ctx.result.kind === "review.translation" && currentStatuses.translation === "rejected") ||
+			Object.values(currentStatuses).every((status) => status !== "pending");
 		if (ctx.operation.parameters.translationBatch) {
 			await tx
 				.update(aiTranslationBatch)
 				.set({
-					reviewState: Object.values(currentStatuses).every((status) => status !== "pending")
-						? "succeeded"
-						: "waiting_review",
+					reviewState: reviewComplete ? "succeeded" : "waiting_review",
 				})
 				.where(eq(aiTranslationBatch.rootOperationId, ctx.operation.id));
-		} else if (Object.values(currentStatuses).every((status) => status !== "pending"))
+		} else if (reviewComplete)
 			await tx.update(aiOperation).set({ state: "succeeded" }).where(eq(aiOperation.id, ctx.operation.id));
 		if (
 			ctx.result.kind === "review.translation" &&
@@ -668,8 +803,14 @@ export async function tryAutoApplyTranslationInTx(
 	options?: { previousWithheldIds: ReadonlySet<string> | undefined },
 ) {
 	const ctx = await context(tx, ownerId, operationId);
-	if (ctx.result.kind !== "review.translation" || ctx.document.isLocked || ctx.incompleteWithholding) return null;
-	const currentStatuses = statuses(ctx.result, ctx.decisions, ctx.withheldSegmentIds);
+	if (
+		ctx.result.kind !== "review.translation" ||
+		ctx.operation.promptVersion === translationCandidateContract.promptVersion ||
+		ctx.document.isLocked ||
+		ctx.incompleteWithholding
+	)
+		return null;
+	const currentStatuses = statuses(ctx);
 	if (currentStatuses.translation === "rejected" || (!options && currentStatuses.translation !== "pending"))
 		return null;
 	try {

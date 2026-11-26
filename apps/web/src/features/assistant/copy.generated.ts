@@ -2,6 +2,19 @@
 import { msg } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 const messages = {
+	"review.diff.view": msg({ message: "Suggestion view", context: "review.diff.view" }),
+	"review.diff.showChanges": msg({ message: "Show changes", context: "review.diff.showChanges" }),
+	"review.diff.showFinal": msg({ message: "Show final", context: "review.diff.showFinal" }),
+	"review.diff.formatting": msg({ message: "Formatting only", context: "review.diff.formatting" }),
+	"review.diff.showSpacing": msg({ message: "Show spacing", context: "review.diff.showSpacing" }),
+	"review.diff.punctuation": msg({ message: "Punctuation only", context: "review.diff.punctuation" }),
+	"review.diff.rewrite": msg({ message: "Full rewrite", context: "review.diff.rewrite" }),
+	"review.diff.original": msg({ message: "Original", context: "review.diff.original" }),
+	"review.diff.proposed": msg({ message: "Proposed", context: "review.diff.proposed" }),
+	"review.diff.shortcuts": msg({
+		message: "A accepts and R rejects the focused edit. ↑ and ↓ move between edits.",
+		context: "review.diff.shortcuts",
+	}),
 	"review.translation.failedParts": msg({
 		message:
 			"{count, plural, one {# part failed. Completed parts are kept.} other {# parts failed. Completed parts are kept.}}",
@@ -45,7 +58,7 @@ const messages = {
 	}),
 	"review.translation.batchCost": msg({
 		message:
-			"This translation has {total} parts. Starting it uses one AI use in total. Retrying parts uses no extra AI uses. Verified parts are applied automatically to the translated copy. Parts that fail verification keep their original text.",
+			"This translation has {total} parts. It uses one AI use, including retries. Review and approve the translation before it is saved. Segments that fail the checks keep their original text.",
 		context: "review.translation.batchCost",
 	}),
 	"review.translation.startChargedFailure": msg({
@@ -54,7 +67,7 @@ const messages = {
 	}),
 	"review.translation.partialFailure": msg({
 		message:
-			"Part {part} of {total} stopped. Verified parts are saved. Retry this part to continue. Nothing is applied until every part passes.",
+			"Part {part} of {total} stopped. Retry this part to continue. Review and approve the translation before saving it.",
 		context: "review.translation.partialFailure",
 	}),
 	"review.translation.retryPart": msg({ message: "Retry this part", context: "review.translation.retryPart" }),
@@ -96,8 +109,26 @@ const messages = {
 	}),
 	"privacy.ai.overseasNotice": msg({
 		message:
-			"AI is optional. You must consent before first use. We send only necessary CV text without contact details through OpenRouter. OpenRouter sends requests to Microsoft Azure for OpenAI Luna and Terra. It sends requests to Together AI for the DeepSeek checker. Both services process requests outside Saudi Arabia. Requests use zero data retention (ZDR) routing and deny data collection for training. Provider terms govern actual handling.",
+			"AI is optional. Give consent once for this processing notice. If the notice changes, we ask again. For CV review, import, translation and cover letters, we send only the necessary text. This can include CV passages, job descriptions, your answers, and language or length choices. We exclude contact details and original files. OpenRouter routes requests to Microsoft Azure and Together AI for processing outside Saudi Arabia. We request zero data retention and block data collection for training. Provider terms govern how they handle data. You can withdraw consent in Settings.",
 		context: "privacy.ai.overseasNotice",
+	}),
+	"privacy.ai.title": msg({ message: "AI and privacy", context: "privacy.ai.title" }),
+	"privacy.ai.details": msg({ message: "AI details", context: "privacy.ai.details" }),
+	"privacy.ai.startConsent": msg({
+		message: "By selecting Start review, you agree to this processing notice.",
+		context: "privacy.ai.startConsent",
+	}),
+	"privacy.ai.retryConsent": msg({
+		message: "By selecting the retry button, you agree to this processing notice.",
+		context: "privacy.ai.retryConsent",
+	}),
+	"privacy.ai.grantedAt": msg({ message: "Consent given on {date}", context: "privacy.ai.grantedAt" }),
+	"privacy.ai.noConsent": msg({ message: "No active consent.", context: "privacy.ai.noConsent" }),
+	"privacy.ai.withdraw": msg({ message: "Withdraw consent", context: "privacy.ai.withdraw" }),
+	"privacy.ai.withdrawFailed": msg({ message: "Could not withdraw consent.", context: "privacy.ai.withdrawFailed" }),
+	"privacy.ai.statusUnavailable": msg({
+		message: "Could not load your AI consent.",
+		context: "privacy.ai.statusUnavailable",
 	}),
 	"review.launch.loadingConsent": msg({
 		message: "Loading the processing notice…",

@@ -16,21 +16,25 @@ export function createRealAiRuntime(environment: Record<string, string | undefin
 	const route = withMeasuredReviewExecution(config.route);
 	const runtime: AiRuntime = {
 		routes: [route],
-		handlers: { ...reviewHandlers, ...variantReviewHandlers, "review.cover-letter": letterReviewHandler },
+		handlers: {
+			...reviewHandlers,
+			...variantReviewHandlers,
+			"review.translation": createTranslationCandidateHandler(),
+			"review.cover-letter": letterReviewHandler,
+		},
 		workerAvailable: true,
+		legacyFeatureConsentVersion: "1",
 		localOwnerAllowance: config.allowance,
 	};
 	if (config.candidatePipelines) {
 		const jobKind = "review.job-evidence";
 		const jobWriter = resolveWriterRoute(route, { kind: jobKind, parameters: {} });
 		const candidates = {
-			"review.translation": createTranslationCandidateHandler(),
 			[jobKind]: createJobEvidenceCandidateHandler(resolveReviewVerifierRoute(jobWriter)),
 			"review.extraction": extractionCandidateHandler,
 		};
 		// Both selected passages and saved jobs use the same job-evidence operation kind.
 		runtime.historicalHandlers = {
-			"review.translation": [variantReviewHandlers["review.translation"]],
 			[jobKind]: [variantReviewHandlers[jobKind]],
 			"review.extraction": [reviewHandlers["review.extraction"]],
 		};

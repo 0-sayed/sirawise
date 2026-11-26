@@ -4252,6 +4252,889 @@
 			}
 		},
 		{
+			"key": "jobs.tailoring.copyHint",
+			"messages": {
+				"en-US": "Your original CV stays unchanged. You review and approve every edit before saving.",
+				"ar-SA": "تبقى سيرتك الأصلية كما هي. ستراجع كل تعديل وتوافق عليه قبل الحفظ."
+			},
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Your original CV stays unchanged. You review and approve every edit before saving.",
+				"msgctxt": "jobs.tailoring.copyHint",
+				"runtimeId": "NbzEbI",
+				"mappingStatus": "extracted current source",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Lingui extraction; pending owner review."
+			},
+			"review": {
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				},
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				}
+			}
+		},
+		{
+			"key": "jobs.tailoring.acceptedForCopy",
+			"messages": {
+				"en-US": "Accepted for the tailored copy",
+				"ar-SA": "مقبول للنسخة المخصصة"
+			},
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Accepted for the tailored copy",
+				"msgctxt": "jobs.tailoring.acceptedForCopy",
+				"runtimeId": "fLjfb9",
+				"mappingStatus": "extracted current source",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Lingui extraction; pending owner review."
+			},
+			"review": {
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				},
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				}
+			}
+		},
+		{
+			"key": "jobs.tailoring.openCopy",
+			"messages": {
+				"en-US": "Open tailored CV",
+				"ar-SA": "فتح النسخة المخصصة"
+			},
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Open tailored CV",
+				"msgctxt": "jobs.tailoring.openCopy",
+				"runtimeId": "_GRtxT",
+				"mappingStatus": "extracted current source",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Lingui extraction; pending owner review."
+			},
+			"review": {
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				},
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				}
+			}
+		},
+		{
+			"key": "jobs.tailoring.savedCopies",
+			"messages": {
+				"en-US": "Tailored copies for this job",
+				"ar-SA": "النسخ المخصصة لهذه الوظيفة"
+			},
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Tailored copies for this job",
+				"msgctxt": "jobs.tailoring.savedCopies",
+				"runtimeId": "x2kyuo",
+				"mappingStatus": "extracted current source",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Lingui extraction; pending owner review."
+			},
+			"review": {
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				},
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				}
+			}
+		},
+		{
+			"key": "review.tailoring.section.summary",
+			"messages": {
+				"en-US": "Summary",
+				"ar-SA": "الملخّص"
+			},
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Summary",
+				"msgctxt": "review.tailoring.section.summary",
+				"runtimeId": "k-ruhk",
+				"mappingStatus": "extracted current source",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Lingui extraction; pending owner review."
+			},
+			"review": {
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				},
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				}
+			}
+		},
+		{
+			"key": "review.tailoring.section.profiles",
+			"messages": {
+				"en-US": "Profiles",
+				"ar-SA": "الملفات الشخصية"
+			},
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Profiles",
+				"msgctxt": "review.tailoring.section.profiles",
+				"runtimeId": "Ie66Bh",
+				"mappingStatus": "extracted current source",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Lingui extraction; pending owner review."
+			},
+			"review": {
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				},
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				}
+			}
+		},
+		{
+			"key": "review.tailoring.section.experience",
+			"messages": {
+				"en-US": "Experience",
+				"ar-SA": "الخبرة المهنية"
+			},
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Experience",
+				"msgctxt": "review.tailoring.section.experience",
+				"runtimeId": "MeQQGQ",
+				"mappingStatus": "extracted current source",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Lingui extraction; pending owner review."
+			},
+			"review": {
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				},
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				}
+			}
+		},
+		{
+			"key": "review.tailoring.section.education",
+			"messages": {
+				"en-US": "Education",
+				"ar-SA": "التعليم"
+			},
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Education",
+				"msgctxt": "review.tailoring.section.education",
+				"runtimeId": "_Ihx29",
+				"mappingStatus": "extracted current source",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Lingui extraction; pending owner review."
+			},
+			"review": {
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				},
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				}
+			}
+		},
+		{
+			"key": "review.tailoring.order.title",
+			"messages": {
+				"en-US": "Reorder proposal",
+				"ar-SA": "اقتراح تغيير الترتيب"
+			},
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Reorder proposal",
+				"msgctxt": "review.tailoring.order.title",
+				"runtimeId": "bMX7_e",
+				"mappingStatus": "extracted current source",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Lingui extraction; pending owner review."
+			},
+			"review": {
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				},
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				}
+			}
+		},
+		{
+			"key": "review.tailoring.order.current",
+			"messages": {
+				"en-US": "Current order",
+				"ar-SA": "الترتيب الحالي"
+			},
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Current order",
+				"msgctxt": "review.tailoring.order.current",
+				"runtimeId": "Z8K-We",
+				"mappingStatus": "extracted current source",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Lingui extraction; pending owner review."
+			},
+			"review": {
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				},
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				}
+			}
+		},
+		{
+			"key": "review.tailoring.order.proposed",
+			"messages": {
+				"en-US": "Proposed order",
+				"ar-SA": "الترتيب المقترح"
+			},
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Proposed order",
+				"msgctxt": "review.tailoring.order.proposed",
+				"runtimeId": "zBoqUp",
+				"mappingStatus": "extracted current source",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Lingui extraction; pending owner review."
+			},
+			"review": {
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				},
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				}
+			}
+		},
+		{
+			"key": "review.tailoring.order.move",
+			"messages": {
+				"en-US": "Move {moved} above {above}.",
+				"ar-SA": "انقل {moved} فوق {above}."
+			},
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [],
+			"interpolations": [
+				{
+					"name": "moved",
+					"type": "string"
+				},
+				{
+					"name": "above",
+					"type": "string"
+				}
+			],
+			"variants": [],
+			"lingui": {
+				"msgid": "Move {moved} above {above}.",
+				"msgctxt": "review.tailoring.order.move",
+				"runtimeId": "rGA3kZ",
+				"mappingStatus": "extracted current source",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Lingui extraction; pending owner review."
+			},
+			"review": {
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				},
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				}
+			}
+		},
+		{
+			"key": "review.tailoring.section.projects",
+			"messages": {
+				"en-US": "Projects",
+				"ar-SA": "المشاريع"
+			},
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Projects",
+				"msgctxt": "review.tailoring.section.projects",
+				"runtimeId": "Npsqfg",
+				"mappingStatus": "extracted current source",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Lingui extraction; pending owner review."
+			},
+			"review": {
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				},
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				}
+			}
+		},
+		{
+			"key": "review.tailoring.section.skills",
+			"messages": {
+				"en-US": "Skills",
+				"ar-SA": "المهارات"
+			},
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Skills",
+				"msgctxt": "review.tailoring.section.skills",
+				"runtimeId": "J2V0Hk",
+				"mappingStatus": "extracted current source",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Lingui extraction; pending owner review."
+			},
+			"review": {
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				},
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				}
+			}
+		},
+		{
+			"key": "review.tailoring.section.languages",
+			"messages": {
+				"en-US": "Languages",
+				"ar-SA": "اللغات"
+			},
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Languages",
+				"msgctxt": "review.tailoring.section.languages",
+				"runtimeId": "9gEXXY",
+				"mappingStatus": "extracted current source",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Lingui extraction; pending owner review."
+			},
+			"review": {
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				},
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				}
+			}
+		},
+		{
+			"key": "review.tailoring.section.interests",
+			"messages": {
+				"en-US": "Interests",
+				"ar-SA": "الاهتمامات"
+			},
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Interests",
+				"msgctxt": "review.tailoring.section.interests",
+				"runtimeId": "xf_gj-",
+				"mappingStatus": "extracted current source",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Lingui extraction; pending owner review."
+			},
+			"review": {
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				},
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				}
+			}
+		},
+		{
+			"key": "review.tailoring.section.awards",
+			"messages": {
+				"en-US": "Awards",
+				"ar-SA": "الجوائز"
+			},
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Awards",
+				"msgctxt": "review.tailoring.section.awards",
+				"runtimeId": "ODvlIR",
+				"mappingStatus": "extracted current source",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Lingui extraction; pending owner review."
+			},
+			"review": {
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				},
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				}
+			}
+		},
+		{
+			"key": "review.tailoring.section.certifications",
+			"messages": {
+				"en-US": "Certifications",
+				"ar-SA": "الشهادات"
+			},
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Certifications",
+				"msgctxt": "review.tailoring.section.certifications",
+				"runtimeId": "StgM3_",
+				"mappingStatus": "extracted current source",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Lingui extraction; pending owner review."
+			},
+			"review": {
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				},
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				}
+			}
+		},
+		{
+			"key": "review.tailoring.section.publications",
+			"messages": {
+				"en-US": "Publications",
+				"ar-SA": "المنشورات"
+			},
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Publications",
+				"msgctxt": "review.tailoring.section.publications",
+				"runtimeId": "JwOPgo",
+				"mappingStatus": "extracted current source",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Lingui extraction; pending owner review."
+			},
+			"review": {
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				},
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				}
+			}
+		},
+		{
+			"key": "review.tailoring.section.volunteer",
+			"messages": {
+				"en-US": "Volunteer",
+				"ar-SA": "التطوع"
+			},
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Volunteer",
+				"msgctxt": "review.tailoring.section.volunteer",
+				"runtimeId": "phg7AV",
+				"mappingStatus": "extracted current source",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Lingui extraction; pending owner review."
+			},
+			"review": {
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				},
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				}
+			}
+		},
+		{
+			"key": "review.tailoring.section.references",
+			"messages": {
+				"en-US": "References",
+				"ar-SA": "المراجعون"
+			},
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "References",
+				"msgctxt": "review.tailoring.section.references",
+				"runtimeId": "FzT_1b",
+				"mappingStatus": "extracted current source",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Lingui extraction; pending owner review."
+			},
+			"review": {
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				},
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				}
+			}
+		},
+		{
+			"key": "review.tailoring.section.cover-letter",
+			"messages": {
+				"en-US": "Cover Letter",
+				"ar-SA": "خطاب التقديم"
+			},
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Cover Letter",
+				"msgctxt": "review.tailoring.section.cover-letter",
+				"runtimeId": "GTz2uE",
+				"mappingStatus": "extracted current source",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Lingui extraction; pending owner review."
+			},
+			"review": {
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				},
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				}
+			}
+		},
+		{
+			"key": "review.tailoring.section.custom",
+			"messages": {
+				"en-US": "Custom Sections",
+				"ar-SA": "أقسام مخصصة"
+			},
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Custom Sections",
+				"msgctxt": "review.tailoring.section.custom",
+				"runtimeId": "mmcd8O",
+				"mappingStatus": "extracted current source",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Lingui extraction; pending owner review."
+			},
+			"review": {
+				"en-US": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				},
+				"ar-SA": {
+					"status": "pending owner review",
+					"owner": "product owner",
+					"version": "S20 D36 / 2026-11-25"
+				}
+			}
+		},
+		{
 			"key": "jobs.copy.open",
 			"messages": {
 				"ar-SA": "فتح النسخة",
@@ -36968,8 +37851,8 @@
 		{
 			"key": "privacy.storage.aiDescription",
 			"messages": {
-				"ar-SA": "الذكاء الاصطناعي اختياري ويتطلب موافقتك. يمر النص اللازم فقط، دون بيانات الاتصال، عبر OpenRouter. تستخدم نماذج OpenAI Luna وTerra خدمة Microsoft Azure، ويستخدم مدقق DeepSeek خدمة Together AI. تستخدم الطلبات توجيهًا مؤهلًا لانعدام الاحتفاظ بالبيانات (ZDR) وترفض جمع البيانات للتدريب. تخضع المعالجة الفعلية لشروط مزودي الخدمة.",
-				"en-US": "AI is optional and needs your consent. Only necessary text, without contact details, goes through OpenRouter. OpenAI Luna and Terra use Microsoft Azure. The DeepSeek checker uses Together AI. Requests use zero data retention (ZDR) routing and deny data collection for training. Provider terms govern actual handling."
+				"ar-SA": "الذكاء الاصطناعي اختياري ويتطلب موافقتك. يوجّه OpenRouter الطلبات إلى Microsoft Azure وTogether AI للمعالجة خارج السعودية. نطلب عدم الاحتفاظ بالبيانات ونمنع جمعها للتدريب. تخضع معالجة البيانات لشروط المزوّدين.",
+				"en-US": "AI is optional and needs your consent. OpenRouter routes requests to Microsoft Azure and Together AI for processing outside Saudi Arabia. We request zero data retention and block data collection for training. Provider terms govern how they handle data."
 			},
 			"context": {
 				"surfaces": ["screens:S29", "states:s29.privacy.data.re.authentication.required", "messages:privacy"],
@@ -36985,9 +37868,9 @@
 			"interpolations": [],
 			"variants": [],
 			"lingui": {
-				"msgid": "AI is optional and needs your consent. Only necessary text, without contact details, goes through OpenRouter. OpenAI Luna and Terra use Microsoft Azure. The DeepSeek checker uses Together AI. Requests use zero data retention (ZDR) routing and deny data collection for training. Provider terms govern actual handling.",
+				"msgid": "AI is optional and needs your consent. OpenRouter routes requests to Microsoft Azure and Together AI for processing outside Saudi Arabia. We request zero data retention and block data collection for training. Provider terms govern how they handle data.",
 				"msgctxt": "privacy.storage.aiDescription",
-				"runtimeId": "x_Eq5-",
+				"runtimeId": "AX7gcB",
 				"mappingStatus": "active runtime binding",
 				"sourceLocale": "en-US",
 				"sourcePath": "src/features/settings/privacy/page.tsx",
@@ -38282,8 +39165,8 @@
 		{
 			"key": "privacy.policy.purposeDescription",
 			"messages": {
-				"ar-SA": "نستخدم بيانات حسابك لتشغيل الحساب، وبيانات سيرتك لإنشائها وتصديرها. خلال المرحلة التجريبية، يُخزّن التطبيق وقاعدة البيانات والملفات والنسخ الاحتياطية على خادم Contabo الافتراضي في بورتسموث بالمملكة المتحدة. نخطط لنقل الاستضافة إلى السعودية لاحقًا. الذكاء الاصطناعي اختياري ويتطلب موافقتك الصريحة قبل أول استخدام. نرسل نص السيرة اللازم فقط، دون بيانات الاتصال، عبر OpenRouter إلى Microsoft Azure لنماذج OpenAI Luna وTerra، وإلى Together AI لمدقق DeepSeek. تتم معالجة الذكاء الاصطناعي خارج السعودية. نضبط توجيه الطلبات على انعدام الاحتفاظ بالبيانات (ZDR) ورفض جمع البيانات للتدريب. تخضع المعالجة الفعلية لشروط مزوّدي الخدمة.",
-				"en-US": "We use account data to run your account. We use CV data to create and export your CV. During the pilot, we store the app, database, files and backups on a Contabo VPS in Portsmouth, United Kingdom. We plan to move hosting to Saudi Arabia later. AI is optional. You must consent before first use. We send only necessary CV text without contact details through OpenRouter. OpenRouter sends requests to Microsoft Azure for OpenAI Luna and Terra. It sends requests to Together AI for the DeepSeek checker. Both services process requests outside Saudi Arabia. Requests use zero data retention (ZDR) routing and deny data collection for training. Provider terms govern actual handling."
+				"ar-SA": "نستخدم بيانات حسابك لتشغيل الحساب، وبيانات سيرتك لإنشائها وتصديرها. خلال المرحلة التجريبية، يُخزّن التطبيق وقاعدة البيانات والملفات والنسخ الاحتياطية على خادم Contabo الافتراضي في بورتسموث بالمملكة المتحدة. نخطط لنقل الاستضافة إلى السعودية لاحقًا. الذكاء الاصطناعي اختياري. تكفي موافقتك مرة واحدة على إشعار المعالجة هذا. إذا تغيّر الإشعار، نطلب موافقتك من جديد. نرسل النص اللازم فقط لمراجعة السيرة واستيرادها وترجمتها وإعداد خطابات التقديم. قد يشمل ذلك مقاطع من السيرة، وأوصاف الوظائف، وإجاباتك، وخيارات اللغة أو الطول. نستبعد بيانات الاتصال والملفات الأصلية. يوجّه OpenRouter الطلبات إلى Microsoft Azure وTogether AI للمعالجة خارج السعودية. نطلب عدم الاحتفاظ بالبيانات ونمنع جمعها للتدريب. تخضع معالجة البيانات لشروط المزوّدين. يمكنك سحب موافقتك من الإعدادات.",
+				"en-US": "We use account data to run your account. We use CV data to create and export your CV. During the pilot, we store the app, database, files and backups on a Contabo VPS in Portsmouth, United Kingdom. We plan to move hosting to Saudi Arabia later. AI is optional. Give consent once for this processing notice. If the notice changes, we ask again. For CV review, import, translation and cover letters, we send only the necessary text. This can include CV passages, job descriptions, your answers, and language or length choices. We exclude contact details and original files. OpenRouter routes requests to Microsoft Azure and Together AI for processing outside Saudi Arabia. We request zero data retention and block data collection for training. Provider terms govern how they handle data. You can withdraw consent in Settings."
 			},
 			"context": {
 				"surfaces": ["screens:S35"],
@@ -38299,9 +39182,9 @@
 			"interpolations": [],
 			"variants": [],
 			"lingui": {
-				"msgid": "We use account data to run your account. We use CV data to create and export your CV. During the pilot, we store the app, database, files and backups on a Contabo VPS in Portsmouth, United Kingdom. We plan to move hosting to Saudi Arabia later. AI is optional. You must consent before first use. We send only necessary CV text without contact details through OpenRouter. OpenRouter sends requests to Microsoft Azure for OpenAI Luna and Terra. It sends requests to Together AI for the DeepSeek checker. Both services process requests outside Saudi Arabia. Requests use zero data retention (ZDR) routing and deny data collection for training. Provider terms govern actual handling.",
+				"msgid": "We use account data to run your account. We use CV data to create and export your CV. During the pilot, we store the app, database, files and backups on a Contabo VPS in Portsmouth, United Kingdom. We plan to move hosting to Saudi Arabia later. AI is optional. Give consent once for this processing notice. If the notice changes, we ask again. For CV review, import, translation and cover letters, we send only the necessary text. This can include CV passages, job descriptions, your answers, and language or length choices. We exclude contact details and original files. OpenRouter routes requests to Microsoft Azure and Together AI for processing outside Saudi Arabia. We request zero data retention and block data collection for training. Provider terms govern how they handle data. You can withdraw consent in Settings.",
 				"msgctxt": "privacy.policy.purposeDescription",
-				"runtimeId": "nJRpY9",
+				"runtimeId": "_qxqtF",
 				"mappingStatus": "verified temporary extraction and compilation",
 				"sourceLocale": "en-US",
 				"sourcePath": "apps/web/src (planned; metadata only, not a second runtime catalog)",
@@ -43994,8 +44877,8 @@
 		{
 			"key": "privacy.storage.aiHint.compact",
 			"messages": {
-				"ar-SA": "الذكاء الاصطناعي اختياري ويتطلب موافقتك. يمر النص اللازم فقط، دون بيانات الاتصال، عبر OpenRouter. تستخدم نماذج OpenAI Luna وTerra خدمة Microsoft Azure، ويستخدم مدقق DeepSeek خدمة Together AI. تستخدم الطلبات توجيه ZDR وترفض جمع البيانات للتدريب. تطبق شروط مزودي الخدمة.",
-				"en-US": "AI is optional and needs consent. Necessary text, without contact details, goes through OpenRouter. OpenAI Luna and Terra use Microsoft Azure; the DeepSeek checker uses Together AI. Requests use ZDR routing and deny training data collection. Provider terms apply."
+				"ar-SA": "الذكاء الاصطناعي اختياري ويتطلب موافقتك. يوجّه OpenRouter النص اللازم فقط، دون بيانات الاتصال، إلى Microsoft Azure وTogether AI للمعالجة خارج السعودية. نطلب عدم الاحتفاظ بالبيانات ونمنع جمعها للتدريب. تطبق شروط المزوّدين.",
+				"en-US": "AI is optional and requires consent. OpenRouter routes only necessary text, without contact details, to Microsoft Azure and Together AI for processing outside Saudi Arabia. We request zero data retention and block data collection for training. Provider terms apply."
 			},
 			"context": {
 				"surfaces": [
@@ -44016,7 +44899,7 @@
 			"interpolations": [],
 			"variants": [],
 			"lingui": {
-				"msgid": "AI is optional and needs consent. Necessary text, without contact details, goes through OpenRouter. OpenAI Luna and Terra use Microsoft Azure; the DeepSeek checker uses Together AI. Requests use ZDR routing and deny training data collection. Provider terms apply.",
+				"msgid": "AI is optional and requires consent. OpenRouter routes only necessary text, without contact details, to Microsoft Azure and Together AI for processing outside Saudi Arabia. We request zero data retention and block data collection for training. Provider terms apply.",
 				"msgctxt": "privacy.storage.aiHint.compact",
 				"runtimeId": "qi5Flg",
 				"mappingStatus": "verified temporary extraction and compilation",
@@ -47883,8 +48766,8 @@
 		{
 			"key": "language.translation.status.pending",
 			"messages": {
-				"ar-SA": "بانتظار تأكيدك",
-				"en-US": "Awaiting your confirmation"
+				"en-US": "Draft ready to review",
+				"ar-SA": "مسودة جاهزة للمراجعة"
 			},
 			"context": {
 				"surfaces": ["states:s21.language.versions.reviewing.translation"],
@@ -47897,13 +48780,13 @@
 			"interpolations": [],
 			"variants": [],
 			"lingui": {
-				"msgid": "Awaiting your confirmation",
+				"msgid": "Draft ready to review",
 				"msgctxt": "language.translation.status.pending",
-				"runtimeId": "JzRiag",
-				"mappingStatus": "verified temporary extraction and compilation",
+				"runtimeId": "ME1TeE",
 				"sourceLocale": "en-US",
-				"sourcePath": "apps/web/src (planned; metadata only, not a second runtime catalog)",
-				"verification": "Saved temporary Lingui extraction and compilation evidence; owner locale review remains pending."
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
 			},
 			"review": {
 				"ar-SA": {
@@ -57123,8 +58006,8 @@
 		{
 			"key": "privacy.ai.overseasNotice",
 			"messages": {
-				"en-US": "AI is optional. You must consent before first use. We send only necessary CV text without contact details through OpenRouter. OpenRouter sends requests to Microsoft Azure for OpenAI Luna and Terra. It sends requests to Together AI for the DeepSeek checker. Both services process requests outside Saudi Arabia. Requests use zero data retention (ZDR) routing and deny data collection for training. Provider terms govern actual handling.",
-				"ar-SA": "ميزات الذكاء الاصطناعي اختيارية وتتطلب موافقتك الصريحة قبل أول استخدام. نرسل نص السيرة اللازم فقط، دون بيانات الاتصال، عبر OpenRouter إلى Microsoft Azure لنماذج OpenAI Luna وTerra، وإلى Together AI لمدقق DeepSeek. تتم هذه المعالجة خارج السعودية. نضبط توجيه الطلبات على انعدام الاحتفاظ بالبيانات (ZDR) ورفض جمع البيانات للتدريب. تخضع المعالجة الفعلية لشروط مزوّدي الخدمة."
+				"en-US": "AI is optional. Give consent once for this processing notice. If the notice changes, we ask again. For CV review, import, translation and cover letters, we send only the necessary text. This can include CV passages, job descriptions, your answers, and language or length choices. We exclude contact details and original files. OpenRouter routes requests to Microsoft Azure and Together AI for processing outside Saudi Arabia. We request zero data retention and block data collection for training. Provider terms govern how they handle data. You can withdraw consent in Settings.",
+				"ar-SA": "الذكاء الاصطناعي اختياري. تكفي موافقتك مرة واحدة على إشعار المعالجة هذا. إذا تغيّر الإشعار، نطلب موافقتك من جديد. نرسل النص اللازم فقط لمراجعة السيرة واستيرادها وترجمتها وإعداد خطابات التقديم. قد يشمل ذلك مقاطع من السيرة، وأوصاف الوظائف، وإجاباتك، وخيارات اللغة أو الطول. نستبعد بيانات الاتصال والملفات الأصلية. يوجّه OpenRouter الطلبات إلى Microsoft Azure وTogether AI للمعالجة خارج السعودية. نطلب عدم الاحتفاظ بالبيانات ونمنع جمعها للتدريب. تخضع معالجة البيانات لشروط المزوّدين. يمكنك سحب موافقتك من الإعدادات."
 			},
 			"context": {
 				"surfaces": ["screens:S04", "screens:S11", "screens:S19", "screens:S29", "messages:workspace"],
@@ -57140,9 +58023,9 @@
 			"interpolations": [],
 			"variants": [],
 			"lingui": {
-				"msgid": "AI is optional. You must consent before first use. We send only necessary CV text without contact details through OpenRouter. OpenRouter sends requests to Microsoft Azure for OpenAI Luna and Terra. It sends requests to Together AI for the DeepSeek checker. Both services process requests outside Saudi Arabia. Requests use zero data retention (ZDR) routing and deny data collection for training. Provider terms govern actual handling.",
+				"msgid": "AI is optional. Give consent once for this processing notice. If the notice changes, we ask again. For CV review, import, translation and cover letters, we send only the necessary text. This can include CV passages, job descriptions, your answers, and language or length choices. We exclude contact details and original files. OpenRouter routes requests to Microsoft Azure and Together AI for processing outside Saudi Arabia. We request zero data retention and block data collection for training. Provider terms govern how they handle data. You can withdraw consent in Settings.",
 				"msgctxt": "privacy.ai.overseasNotice",
-				"runtimeId": "ZAW_n2",
+				"runtimeId": "i6v6kk",
 				"mappingStatus": "active runtime binding",
 				"sourceLocale": "en-US",
 				"sourcePath": "src/features/assistant/copy.generated.ts",
@@ -57164,8 +58047,8 @@
 		{
 			"key": "privacy.ai.transferConsent",
 			"messages": {
-				"ar-SA": "أوافق على معالجة النص اللازم لسيرتي، دون بيانات الاتصال، خارج السعودية عبر OpenRouter. تستخدم نماذج OpenAI Luna وTerra خدمة Microsoft Azure، ويستخدم مدقق DeepSeek خدمة Together AI. تستخدم الطلبات توجيهًا لانعدام الاحتفاظ بالبيانات (ZDR) وترفض جمع البيانات للتدريب. تخضع المعالجة الفعلية لشروط مزودي الخدمة.",
-				"en-US": "I consent to necessary CV text, without contact details, being processed outside Saudi Arabia through OpenRouter. OpenAI Luna and Terra use Microsoft Azure. The DeepSeek checker uses Together AI. Requests use zero data retention (ZDR) routing and deny data collection for training. Provider terms govern actual handling."
+				"ar-SA": "أوافق على معالجة البيانات بالذكاء الاصطناعي كما يوضح هذا الإشعار.",
+				"en-US": "I consent to AI processing as described in this notice."
 			},
 			"context": {
 				"surfaces": ["screens:S04", "screens:S11", "screens:S19", "screens:S29"],
@@ -57181,9 +58064,9 @@
 			"interpolations": [],
 			"variants": [],
 			"lingui": {
-				"msgid": "I consent to necessary CV text, without contact details, being processed outside Saudi Arabia through OpenRouter. OpenAI Luna and Terra use Microsoft Azure. The DeepSeek checker uses Together AI. Requests use zero data retention (ZDR) routing and deny data collection for training. Provider terms govern actual handling.",
+				"msgid": "I consent to AI processing as described in this notice.",
 				"msgctxt": "privacy.ai.transferConsent",
-				"runtimeId": "jCj9XT",
+				"runtimeId": "-IjRXl",
 				"mappingStatus": "verified temporary extraction and compilation",
 				"sourceLocale": "en-US",
 				"sourcePath": "apps/web/src (planned; metadata only, not a second runtime catalog)",
@@ -98563,28 +99446,325 @@
 			}
 		},
 		{
-			"key": "review.suggestion.newWordingLegend",
+			"key": "review.diff.view",
 			"messages": {
-				"ar-SA": "صياغة جديدة — تحقق من صحتها",
-				"en-US": "New wording — check it is true"
+				"ar-SA": "عرض الاقتراحات",
+				"en-US": "Suggestion view"
 			},
 			"context": {
-				"surfaces": ["screens:S11"],
+				"surfaces": ["screens:S11", "screens:S20"],
 				"audience": "candidate/account owner",
-				"translatorNotes": ["Owner requested A4 safety legend; Arabic approval pending."]
+				"translatorNotes": []
 			},
 			"nodeIds": [],
-			"source": "owner-approved-requirement-A4",
+			"source": "owner-approved-diff-design",
 			"sourceReferences": [],
 			"interpolations": [],
 			"variants": [],
 			"lingui": {
-				"msgid": "New wording — check it is true",
-				"msgctxt": "",
-				"runtimeId": "d4CEl1",
+				"msgid": "Suggestion view",
+				"msgctxt": "review.diff.view",
+				"runtimeId": "igFlo2",
 				"mappingStatus": "runtime binding",
 				"sourceLocale": "en-US",
-				"sourcePath": "apps/web/src/features/resume/editor/proposals/wording-diff.tsx"
+				"sourcePath": "src/features/assistant/copy.generated.ts"
+			},
+			"review": {
+				"ar-SA": {
+					"status": "pending owner review"
+				},
+				"en-US": {
+					"status": "owner requested wording"
+				}
+			}
+		},
+		{
+			"key": "review.diff.showChanges",
+			"messages": {
+				"ar-SA": "عرض التغييرات",
+				"en-US": "Show changes"
+			},
+			"context": {
+				"surfaces": ["screens:S11", "screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "owner-approved-diff-design",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Show changes",
+				"msgctxt": "review.diff.showChanges",
+				"runtimeId": "W9TLQT",
+				"mappingStatus": "runtime binding",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/assistant/copy.generated.ts"
+			},
+			"review": {
+				"ar-SA": {
+					"status": "pending owner review"
+				},
+				"en-US": {
+					"status": "owner requested wording"
+				}
+			}
+		},
+		{
+			"key": "review.diff.showFinal",
+			"messages": {
+				"ar-SA": "عرض النص النهائي",
+				"en-US": "Show final"
+			},
+			"context": {
+				"surfaces": ["screens:S11", "screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "owner-approved-diff-design",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Show final",
+				"msgctxt": "review.diff.showFinal",
+				"runtimeId": "nlDerM",
+				"mappingStatus": "runtime binding",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/assistant/copy.generated.ts"
+			},
+			"review": {
+				"ar-SA": {
+					"status": "pending owner review"
+				},
+				"en-US": {
+					"status": "owner requested wording"
+				}
+			}
+		},
+		{
+			"key": "review.diff.formatting",
+			"messages": {
+				"ar-SA": "تغيير في التنسيق فقط",
+				"en-US": "Formatting only"
+			},
+			"context": {
+				"surfaces": ["screens:S11", "screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "owner-approved-diff-design",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Formatting only",
+				"msgctxt": "review.diff.formatting",
+				"runtimeId": "2DwJhg",
+				"mappingStatus": "runtime binding",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/assistant/copy.generated.ts"
+			},
+			"review": {
+				"ar-SA": {
+					"status": "pending owner review"
+				},
+				"en-US": {
+					"status": "owner requested wording"
+				}
+			}
+		},
+		{
+			"key": "review.diff.showSpacing",
+			"messages": {
+				"ar-SA": "عرض المسافات",
+				"en-US": "Show spacing"
+			},
+			"context": {
+				"surfaces": ["screens:S11", "screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "owner-approved-diff-design",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Show spacing",
+				"msgctxt": "review.diff.showSpacing",
+				"runtimeId": "uIFPGF",
+				"mappingStatus": "runtime binding",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/assistant/copy.generated.ts"
+			},
+			"review": {
+				"ar-SA": {
+					"status": "pending owner review"
+				},
+				"en-US": {
+					"status": "owner requested wording"
+				}
+			}
+		},
+		{
+			"key": "review.diff.punctuation",
+			"messages": {
+				"ar-SA": "تغيير في علامات الترقيم فقط",
+				"en-US": "Punctuation only"
+			},
+			"context": {
+				"surfaces": ["screens:S11", "screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "owner-approved-diff-design",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Punctuation only",
+				"msgctxt": "review.diff.punctuation",
+				"runtimeId": "VSIjwG",
+				"mappingStatus": "runtime binding",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/assistant/copy.generated.ts"
+			},
+			"review": {
+				"ar-SA": {
+					"status": "pending owner review"
+				},
+				"en-US": {
+					"status": "owner requested wording"
+				}
+			}
+		},
+		{
+			"key": "review.diff.rewrite",
+			"messages": {
+				"ar-SA": "إعادة صياغة كاملة",
+				"en-US": "Full rewrite"
+			},
+			"context": {
+				"surfaces": ["screens:S11", "screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "owner-approved-diff-design",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Full rewrite",
+				"msgctxt": "review.diff.rewrite",
+				"runtimeId": "BQfbVY",
+				"mappingStatus": "runtime binding",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/assistant/copy.generated.ts"
+			},
+			"review": {
+				"ar-SA": {
+					"status": "pending owner review"
+				},
+				"en-US": {
+					"status": "owner requested wording"
+				}
+			}
+		},
+		{
+			"key": "review.diff.original",
+			"messages": {
+				"ar-SA": "الأصل",
+				"en-US": "Original"
+			},
+			"context": {
+				"surfaces": ["screens:S11", "screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "owner-approved-diff-design",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Original",
+				"msgctxt": "review.diff.original",
+				"runtimeId": "uUMO0B",
+				"mappingStatus": "runtime binding",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/assistant/copy.generated.ts"
+			},
+			"review": {
+				"ar-SA": {
+					"status": "pending owner review"
+				},
+				"en-US": {
+					"status": "owner requested wording"
+				}
+			}
+		},
+		{
+			"key": "review.diff.shortcuts",
+			"messages": {
+				"en-US": "A accepts and R rejects the focused edit. ↑ and ↓ move between edits.",
+				"ar-SA": "اضغط A لقبول التعديل المحدد أو R لرفضه. استخدم ↑ و ↓ للتنقل بين التعديلات."
+			},
+			"context": {
+				"surfaces": ["screens:S11", "screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "A accepts and R rejects the focused edit. ↑ and ↓ move between edits.",
+				"msgctxt": "review.diff.shortcuts",
+				"runtimeId": "ORW5lF",
+				"mappingStatus": "runtime binding",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/assistant/copy.generated.ts"
+			},
+			"review": {
+				"ar-SA": {
+					"status": "pending owner review"
+				},
+				"en-US": {
+					"status": "owner requested wording"
+				}
+			}
+		},
+		{
+			"key": "review.diff.proposed",
+			"messages": {
+				"ar-SA": "المقترح",
+				"en-US": "Proposed"
+			},
+			"context": {
+				"surfaces": ["screens:S11", "screens:S20"],
+				"audience": "candidate/account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "owner-approved-diff-design",
+			"sourceReferences": [],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Proposed",
+				"msgctxt": "review.diff.proposed",
+				"runtimeId": "5flm_-",
+				"mappingStatus": "runtime binding",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/assistant/copy.generated.ts"
 			},
 			"review": {
 				"ar-SA": {
@@ -135783,8 +136963,8 @@
 		{
 			"key": "privacy.ai.backupNotice",
 			"messages": {
-				"ar-SA": "قد يستخدم مدقق DeepSeek خدمة Parasail لمعالجة هذا الطلب خارج السعودية عند تعذّر استخدام المزوّد الأساسي.",
-				"en-US": "The DeepSeek checker can use Parasail to process this request outside Saudi Arabia when the primary provider is unavailable."
+				"ar-SA": "يمكن للمدقق استخدام Parasail خارج السعودية عند تعذّر استخدام المزوّد الأساسي في مراجعات أدلة الوظيفة.",
+				"en-US": "The DeepSeek checker can use Parasail outside Saudi Arabia when the primary provider is unavailable for job evidence reviews."
 			},
 			"context": {
 				"surfaces": [],
@@ -135797,9 +136977,9 @@
 			"interpolations": [],
 			"variants": [],
 			"lingui": {
-				"msgid": "The DeepSeek checker can use Parasail to process this request outside Saudi Arabia when the primary provider is unavailable.",
+				"msgid": "The DeepSeek checker can use Parasail outside Saudi Arabia when the primary provider is unavailable for job evidence reviews.",
 				"msgctxt": "privacy.ai.backupNotice",
-				"runtimeId": "HMwoY0",
+				"runtimeId": "Ub6_V3",
 				"sourceLocale": "en-US",
 				"mappingStatus": "verified binding",
 				"sourcePath": "packages/api/src/features/ai/processing-copy.generated.ts",
@@ -137361,6 +138541,314 @@
 			}
 		},
 		{
+			"key": "review.ai.needsReview",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved AI tab and clarification redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "بانتظار مراجعتك ({needsCount})",
+				"en-US": "Needs your review ({needsCount})"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Needs your review ({needsCount})",
+				"msgctxt": null,
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/editor/proposals/review-panel.tsx"
+			}
+		},
+		{
+			"key": "review.ai.pastRuns",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved AI tab and clarification redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "المراجعات السابقة ({pastCount})",
+				"en-US": "Past reviews ({pastCount})"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Past reviews ({pastCount})",
+				"msgctxt": null,
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/editor/proposals/review-panel.tsx"
+			}
+		},
+		{
+			"key": "review.ai.emptyTitle",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved AI tab and clarification redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "لا توجد مراجعات بعد",
+				"en-US": "No reviews yet"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "No reviews yet",
+				"msgctxt": null,
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/editor/proposals/review-panel.tsx"
+			}
+		},
+		{
+			"key": "review.ai.emptyBody",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved AI tab and clarification redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "اختر فقرة لطلب تحسين الصياغة أو مراجعة الملخص المهني. ستبقى نتائجك محفوظة هنا.",
+				"en-US": "Choose a section to improve wording or review your summary. Your results stay saved here."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Choose a section to improve wording or review your summary. Your results stay saved here.",
+				"msgctxt": null,
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/editor/proposals/review-panel.tsx"
+			}
+		},
+		{
+			"key": "review.ai.outcome.applied",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved AI tab and clarification redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "طُبّقت التعديلات",
+				"en-US": "Applied"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Applied",
+				"msgctxt": "Review history outcome",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/editor/proposals/review-panel.tsx"
+			}
+		},
+		{
+			"key": "review.ai.outcome.kept",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved AI tab and clarification redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "أُبقي النص الأصلي",
+				"en-US": "Kept original"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Kept original",
+				"msgctxt": null,
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/editor/proposals/review-panel.tsx"
+			}
+		},
+		{
+			"key": "review.ai.outcome.answered",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved AI tab and clarification redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "تم حفظ إجابتك",
+				"en-US": "Answer saved"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Answer saved",
+				"msgctxt": null,
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/editor/proposals/review-panel.tsx"
+			}
+		},
+		{
+			"key": "review.ai.outcome.stale",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved AI tab and clarification redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "تغيّر النص منذ المراجعة",
+				"en-US": "Out of date"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Out of date",
+				"msgctxt": null,
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/editor/proposals/review-panel.tsx"
+			}
+		},
+		{
+			"key": "review.ai.outcome.completed",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved AI tab and clarification redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "اكتملت المراجعة",
+				"en-US": "Completed"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Completed",
+				"msgctxt": null,
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/editor/proposals/review-panel.tsx"
+			}
+		},
+		{
+			"key": "review.ai.outcome.cancelled",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved AI tab and clarification redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "أُلغيت المراجعة",
+				"en-US": "Cancelled"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Cancelled",
+				"msgctxt": null,
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/editor/proposals/review-panel.tsx"
+			}
+		},
+		{
+			"key": "review.ai.question.saved",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved AI tab and clarification redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "حُفظت إجابتك دون تعديل السيرة الذاتية.",
+				"en-US": "Your answer was saved. Your CV is unchanged."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Your answer was saved. Your CV is unchanged.",
+				"msgctxt": null,
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/variants/clarification.tsx"
+			}
+		},
+		{
+			"key": "review.ai.question.continue",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved AI tab and clarification redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "إعادة المراجعة بهذه الإجابة",
+				"en-US": "Review with this answer"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Review with this answer",
+				"msgctxt": null,
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/variants/clarification.tsx"
+			}
+		},
+		{
+			"key": "review.ai.question.answerLabel",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved AI tab and clarification redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "إجابتك",
+				"en-US": "Your answer"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Your answer",
+				"msgctxt": null,
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/variants/clarification.tsx"
+			}
+		},
+		{
+			"key": "review.ai.question.skip",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved AI tab and clarification redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "تخطّي",
+				"en-US": "Skip"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Skip",
+				"msgctxt": "Skip a review question",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/resume/variants/clarification.tsx"
+			}
+		},
+		{
 			"key": "review.summary.factsRequired",
 			"context": {
 				"surfaces": [],
@@ -137402,8 +138890,8 @@
 			"sourceReferences": ["Owner import assistance and single-use translation decisions, 2026-11-21"],
 			"variants": [],
 			"messages": {
-				"en-US": "This translation has {total} parts. Starting it uses one AI use in total. Retrying parts uses no extra AI uses. Verified parts are applied automatically to the translated copy. Parts that fail verification keep their original text.",
-				"ar-SA": "تتكون هذه الترجمة من {total} أجزاء. يستهلك بدء الترجمة استخدامًا واحدًا للمساعد إجمالًا. إعادة محاولة الأجزاء لا تستهلك استخدامات إضافية. تُطبَّق الأجزاء التي تجتاز التحقق تلقائيًا في النسخة المترجمة. وتبقى الأجزاء التي لم تجتز التحقق بالنص الأصلي."
+				"en-US": "This translation has {total} parts. It uses one AI use, including retries. Review and approve the translation before it is saved. Segments that fail the checks keep their original text.",
+				"ar-SA": "تتكون هذه الترجمة من {total} أجزاء. تستهلك استخدامًا واحدًا للمساعد، بما في ذلك إعادة المحاولة. راجع الترجمة واعتمدها قبل حفظها. تحتفظ المقاطع التي لم تجتز الفحص بنصها الأصلي."
 			},
 			"interpolations": [
 				{
@@ -137412,13 +138900,13 @@
 				}
 			],
 			"lingui": {
-				"msgid": "This translation has {total} parts. Starting it uses one AI use in total. Retrying parts uses no extra AI uses. Verified parts are applied automatically to the translated copy. Parts that fail verification keep their original text.",
+				"msgid": "This translation has {total} parts. It uses one AI use, including retries. Review and approve the translation before it is saved. Segments that fail the checks keep their original text.",
 				"msgctxt": "review.translation.batchCost",
 				"sourceLocale": "en-US",
 				"mappingStatus": "verified binding",
 				"sourcePath": "src/features/assistant/copy.generated.ts",
 				"verification": "Delivered-copy bindings and localized behavior tests, 2026-11-21.",
-				"runtimeId": "Z4NB_s"
+				"runtimeId": "0iyo9a"
 			}
 		},
 		{
@@ -137435,8 +138923,8 @@
 			"sourceReferences": ["Owner-approved review progress, saved reviews and batched translation copy, 2026-11-21"],
 			"variants": [],
 			"messages": {
-				"ar-SA": "توقف الجزء {part} من {total}. الأجزاء التي اجتازت التحقق محفوظة. أعد محاولة هذا الجزء للمتابعة. لا تُطبَّق أي تغييرات حتى تجتاز جميع الأجزاء التحقق.",
-				"en-US": "Part {part} of {total} stopped. Verified parts are saved. Retry this part to continue. Nothing is applied until every part passes."
+				"ar-SA": "توقف الجزء {part} من {total}. أعد محاولة هذا الجزء للمتابعة. راجع الترجمة واعتمدها قبل حفظها.",
+				"en-US": "Part {part} of {total} stopped. Retry this part to continue. Review and approve the translation before saving it."
 			},
 			"interpolations": [
 				{
@@ -137449,13 +138937,13 @@
 				}
 			],
 			"lingui": {
-				"msgid": "Part {part} of {total} stopped. Verified parts are saved. Retry this part to continue. Nothing is applied until every part passes.",
+				"msgid": "Part {part} of {total} stopped. Retry this part to continue. Review and approve the translation before saving it.",
 				"msgctxt": "review.translation.partialFailure",
 				"sourceLocale": "en-US",
 				"mappingStatus": "verified binding",
 				"sourcePath": "src/features/assistant/copy.generated.ts",
 				"verification": "Delivered-copy bindings and localized behavior tests, 2026-11-21.",
-				"runtimeId": "Q23cx2"
+				"runtimeId": "HpTemq"
 			}
 		},
 		{
@@ -137925,14 +139413,14 @@
 			],
 			"variants": [],
 			"messages": {
-				"en-US": "Keep all names as they are",
+				"en-US": "Keep all as written",
 				"ar-SA": "إبقاء كل الأسماء كما هي"
 			},
 			"interpolations": [],
 			"lingui": {
-				"msgid": "Keep all names as they are",
+				"msgid": "Keep all as written",
 				"msgctxt": "language.terms.keepAllNames",
-				"runtimeId": "aN5Vaq",
+				"runtimeId": "H3muwu",
 				"sourceLocale": "en-US",
 				"mappingStatus": "verified binding",
 				"sourcePath": "src/features/resume/variants/copy.generated.ts",
@@ -138990,7 +140478,7 @@
 			}
 		},
 		{
-			"key": "allowance.busy.description",
+			"key": "allowance.capacity.description",
 			"context": {
 				"surfaces": [],
 				"audience": "Candidate / account owner",
@@ -139001,14 +140489,40 @@
 			"sourceReferences": ["Owner allowance recovery decision, 2026-11-21"],
 			"variants": [],
 			"messages": {
-				"en-US": "AI is temporarily unavailable.",
-				"ar-SA": "الذكاء الاصطناعي غير متاح مؤقتًا."
+				"en-US": "AI is at capacity.",
+				"ar-SA": "خدمة الذكاء الاصطناعي مشغولة حاليا."
 			},
 			"interpolations": [],
 			"lingui": {
-				"msgid": "AI is temporarily unavailable.",
-				"msgctxt": "allowance.busy.description",
-				"runtimeId": "h3RfmI",
+				"msgid": "AI is at capacity.",
+				"msgctxt": "allowance.capacity.description",
+				"runtimeId": "oJCykW",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/usage/allowance-limit.tsx",
+				"verification": "Delivered copy bindings and allowance recovery unit tests."
+			}
+		},
+		{
+			"key": "allowance.capacity.next",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner allowance recovery decision, 2026-11-21"],
+			"variants": [],
+			"messages": {
+				"en-US": "Try again shortly. Your draft is kept.",
+				"ar-SA": "حاول مرة أخرى بعد قليل. مسودتك محفوظة."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Try again shortly. Your draft is kept.",
+				"msgctxt": "allowance.capacity.next",
+				"runtimeId": "mqWmZ5",
 				"sourceLocale": "en-US",
 				"mappingStatus": "verified binding",
 				"sourcePath": "src/features/usage/allowance-limit.tsx",
@@ -139545,6 +141059,474 @@
 			}
 		},
 		{
+			"key": "jobs.coverage.truncated",
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved job page redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Showing the highest-signal terms from the job ad.",
+				"ar-SA": "نعرض أهم الكلمات المتكررة في الإعلان."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Showing the highest-signal terms from the job ad.",
+				"msgctxt": "jobs.coverage.truncated",
+				"runtimeId": "OXlcag",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Bilingual job page unit and browser tests."
+			}
+		},
+		{
+			"key": "jobs.context.subtitle",
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved job page redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Create a tailored copy for this job while keeping your original CV intact.",
+				"ar-SA": "جهّز نسخة مخصصة لهذا الإعلان مع الحفاظ على سيرتك الأصلية."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Create a tailored copy for this job while keeping your original CV intact.",
+				"msgctxt": "jobs.context.subtitle",
+				"runtimeId": "dAdST0",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Bilingual job page unit and browser tests."
+			}
+		},
+		{
+			"key": "jobs.context.change",
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved job page redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Change job",
+				"ar-SA": "تغيير الوظيفة"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Change job",
+				"msgctxt": "jobs.context.change",
+				"runtimeId": "kcI7wp",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Bilingual job page unit and browser tests."
+			}
+		},
+		{
+			"key": "jobs.context.compare",
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved job page redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Compare with job",
+				"ar-SA": "مقارنة بالوظيفة"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Compare with job",
+				"msgctxt": "jobs.context.compare",
+				"runtimeId": "UDOHFw",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Bilingual job page unit and browser tests."
+			}
+		},
+		{
+			"key": "jobs.context.tailorSelected",
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved job page redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Tailor CV for this job",
+				"ar-SA": "تخصيص سيرة لهذه الوظيفة"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Tailor CV for this job",
+				"msgctxt": "jobs.context.tailorSelected",
+				"runtimeId": "N7PcL1",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Bilingual job page unit and browser tests."
+			}
+		},
+		{
+			"key": "jobs.tailoring.copyTitle",
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved job page redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Create a tailored copy for this job",
+				"ar-SA": "إنشاء نسخة مخصصة لهذه الوظيفة"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Create a tailored copy for this job",
+				"msgctxt": "jobs.tailoring.copyTitle",
+				"runtimeId": "QEiitC",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Bilingual job page unit and browser tests."
+			}
+		},
+		{
+			"key": "jobs.tailoring.suggest",
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved job page redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Suggest edits for this job",
+				"ar-SA": "اقتراح تعديلات لهذه الوظيفة"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Suggest edits for this job",
+				"msgctxt": "jobs.tailoring.suggest",
+				"runtimeId": "YNyB-l",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Bilingual job page unit and browser tests."
+			}
+		},
+		{
+			"key": "jobs.tailoring.saveCopy",
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved job page redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Save tailored copy",
+				"ar-SA": "حفظ النسخة المخصصة"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Save tailored copy",
+				"msgctxt": "jobs.tailoring.saveCopy",
+				"runtimeId": "gvskLI",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Bilingual job page unit and browser tests."
+			}
+		},
+		{
+			"key": "jobs.tailoring.acceptHint",
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved job page redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Accept at least one edit to save a tailored copy.",
+				"ar-SA": "اقبل تعديلًا واحدًا على الأقل لحفظ نسخة مخصصة."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Accept at least one edit to save a tailored copy.",
+				"msgctxt": "jobs.tailoring.acceptHint",
+				"runtimeId": "OX--O6",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Bilingual job page unit and browser tests."
+			}
+		},
+		{
+			"key": "jobs.evidence.detailsTitle",
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved job page redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Detailed requirement check",
+				"ar-SA": "فحص متطلبات الوظيفة بالتفصيل"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Detailed requirement check",
+				"msgctxt": "jobs.evidence.detailsTitle",
+				"runtimeId": "e9TnIE",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Bilingual job page unit and browser tests."
+			}
+		},
+		{
+			"key": "jobs.evidence.detailsHint",
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved job page redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "The assistant compares job requirements against your CV and cites supporting passages. Beta feature.",
+				"ar-SA": "يقارن المساعد متطلبات الإعلان بسيرتك ويبيّن موضع الدليل. الميزة تجريبية."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "The assistant compares job requirements against your CV and cites supporting passages. Beta feature.",
+				"msgctxt": "jobs.evidence.detailsHint",
+				"runtimeId": "BccNt7",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Bilingual job page unit and browser tests."
+			}
+		},
+		{
+			"key": "jobs.evidence.check",
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved job page redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Check job requirements",
+				"ar-SA": "فحص متطلبات الوظيفة"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Check job requirements",
+				"msgctxt": "jobs.evidence.check",
+				"runtimeId": "v1B959",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Bilingual job page unit and browser tests."
+			}
+		},
+		{
+			"key": "jobs.evidence.withheldSummary",
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved job page redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "{count, plural, one {# requirement could not be checked. Retry or check it yourself.} other {# requirements could not be checked. Retry or check them yourself.}}",
+				"ar-SA": "{count, plural, zero {تم فحص جميع المتطلبات.} one {تعذّر فحص متطلب واحد. أعد المحاولة أو افحصه بنفسك.} two {تعذّر فحص متطلبين. أعد المحاولة أو افحصهما بنفسك.} few {تعذّر فحص # متطلبات. أعد المحاولة أو افحصها بنفسك.} many {تعذّر فحص # متطلبًا. أعد المحاولة أو افحصها بنفسك.} other {تعذّر فحص # متطلب. أعد المحاولة أو افحصها بنفسك.}}"
+			},
+			"interpolations": [{ "name": "count", "type": "integer" }],
+			"lingui": {
+				"msgid": "{count, plural, one {# requirement could not be checked. Retry or check it yourself.} other {# requirements could not be checked. Retry or check them yourself.}}",
+				"msgctxt": "jobs.evidence.withheldSummary",
+				"runtimeId": "UgYvqB",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Bilingual job page unit and browser tests."
+			}
+		},
+		{
+			"key": "jobs.evidence.withheldTitles",
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved job page redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Show unchecked requirements",
+				"ar-SA": "عرض المتطلبات التي لم تُفحص"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Show unchecked requirements",
+				"msgctxt": "jobs.evidence.withheldTitles",
+				"runtimeId": "lMD6tl",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Bilingual job page unit and browser tests."
+			}
+		},
+		{
+			"key": "jobs.evidence.withheldNotes",
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner-approved job page redesign, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Some review notes could not be checked.",
+				"ar-SA": "تعذّر التحقق من بعض ملاحظات المراجعة."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Some review notes could not be checked.",
+				"msgctxt": "jobs.evidence.withheldNotes",
+				"runtimeId": "Rc5tvZ",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Bilingual job page unit and browser tests."
+			}
+		},
+		{
+			"key": "jobs.coverage.title",
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner phrase coverage redesign, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"en-US": "Key terms from the job ad",
+				"ar-SA": "الكلمات المهمة في الإعلان"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Key terms from the job ad",
+				"msgctxt": "jobs.coverage.title",
+				"runtimeId": "FC2ebJ",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Bilingual phrase coverage component and browser tests."
+			}
+		},
+		{
+			"key": "jobs.coverage.description",
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner phrase coverage redesign, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"en-US": "Terms from the job ad — missing words aren't written in your CV yet, not proof you lack the skill.",
+				"ar-SA": "كلمات من الإعلان — عدم ظهورها يعني أنها غير مكتوبة في سيرتك، لا أنك لا تتقنها."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Terms from the job ad — missing words aren't written in your CV yet, not proof you lack the skill.",
+				"msgctxt": "jobs.coverage.description",
+				"runtimeId": "mnLrwH",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Bilingual phrase coverage component and browser tests."
+			}
+		},
+		{
+			"key": "jobs.coverage.empty",
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner phrase coverage redesign, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"en-US": "No phrases stood out in this job ad.",
+				"ar-SA": "لم تظهر عبارات بارزة في إعلان الوظيفة."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "No phrases stood out in this job ad.",
+				"msgctxt": "jobs.coverage.empty",
+				"runtimeId": "oW0le_",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Bilingual phrase coverage component and browser tests."
+			}
+		},
+		{
 			"key": "jobs.coverage.foundGroup",
 			"context": {
 				"surfaces": [],
@@ -139556,8 +141538,8 @@
 			"sourceReferences": ["Owner recovery and clarity decision, 2026-11-21"],
 			"variants": [],
 			"messages": {
-				"en-US": "Found in CV: {count}",
-				"ar-SA": "موجود في السيرة: {count}"
+				"en-US": "Already in your CV ({count})",
+				"ar-SA": "مذكورة في سيرتك ({count})"
 			},
 			"interpolations": [
 				{
@@ -139566,13 +141548,13 @@
 				}
 			],
 			"lingui": {
-				"msgid": "Found in CV: {count}",
+				"msgid": "Already in your CV ({count})",
 				"msgctxt": "jobs.coverage.foundGroup",
-				"runtimeId": "tuZew_",
+				"runtimeId": "NMME2G",
 				"sourceLocale": "en-US",
 				"mappingStatus": "verified binding",
-				"sourcePath": "src/features/career/literal-job-evidence.tsx",
-				"verification": "Delivered copy bindings and regression tests."
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Bilingual phrase coverage component and browser tests."
 			}
 		},
 		{
@@ -139587,8 +141569,8 @@
 			"sourceReferences": ["Owner recovery and clarity decision, 2026-11-21"],
 			"variants": [],
 			"messages": {
-				"en-US": "Not found in CV: {count}",
-				"ar-SA": "غير موجود في السيرة: {count}"
+				"en-US": "Not in your CV yet ({count})",
+				"ar-SA": "غير مكتوبة في سيرتك ({count})"
 			},
 			"interpolations": [
 				{
@@ -139597,13 +141579,13 @@
 				}
 			],
 			"lingui": {
-				"msgid": "Not found in CV: {count}",
+				"msgid": "Not in your CV yet ({count})",
 				"msgctxt": "jobs.coverage.missingGroup",
-				"runtimeId": "VMlPIt",
+				"runtimeId": "uXVvRE",
 				"sourceLocale": "en-US",
 				"mappingStatus": "verified binding",
-				"sourcePath": "src/features/career/literal-job-evidence.tsx",
-				"verification": "Delivered copy bindings and regression tests."
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Bilingual phrase coverage component and browser tests."
 			}
 		},
 		{
@@ -139618,23 +141600,44 @@
 			"sourceReferences": ["Owner recovery and clarity decision, 2026-11-21"],
 			"variants": [],
 			"messages": {
-				"en-US": "Show {remaining} more terms",
-				"ar-SA": "عرض {remaining} مصطلحات أخرى"
+				"en-US": "Show all",
+				"ar-SA": "عرض الكل"
 			},
-			"interpolations": [
-				{
-					"name": "remaining",
-					"type": "integer"
-				}
-			],
+			"interpolations": [],
 			"lingui": {
-				"msgid": "Show {remaining} more terms",
+				"msgid": "Show all",
 				"msgctxt": "jobs.coverage.more",
-				"runtimeId": "B8p2qv",
+				"runtimeId": "gSOo86",
 				"sourceLocale": "en-US",
 				"mappingStatus": "verified binding",
-				"sourcePath": "src/features/career/literal-job-evidence.tsx",
-				"verification": "Delivered copy bindings and regression tests."
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Bilingual phrase coverage component and browser tests."
+			}
+		},
+		{
+			"key": "jobs.coverage.less",
+			"context": {
+				"surfaces": ["screens:S20"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner phrase coverage redesign, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"en-US": "Show fewer",
+				"ar-SA": "عرض أقل"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Show fewer",
+				"msgctxt": "jobs.coverage.less",
+				"runtimeId": "piee4E",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Bilingual phrase coverage component and browser tests."
 			}
 		},
 		{
@@ -140694,14 +142697,14 @@
 			"sourceReferences": ["Owner translation placeholder resolution and approve error feedback (item 64), 2026-11-21"],
 			"variants": [],
 			"messages": {
-				"en-US": "Could not approve yet. Confirm all names and accept all segments before approving.",
-				"ar-SA": "تعذّر الاعتماد بعد. أكّد كل الأسماء واقبل كل الفقرات قبل الاعتماد."
+				"en-US": "Could not save the draft. Reload the review and resolve any remaining items.",
+				"ar-SA": "تعذّر حفظ المسودة. أعد تحميل المراجعة وعالج الأجزاء المتبقية."
 			},
 			"interpolations": [],
 			"lingui": {
-				"msgid": "Could not approve yet. Confirm all names and accept all segments before approving.",
+				"msgid": "Could not save the draft. Reload the review and resolve any remaining items.",
 				"msgctxt": "language.translation.errorIncomplete",
-				"runtimeId": "_s_BMu",
+				"runtimeId": "RT1aqc",
 				"sourceLocale": "en-US",
 				"mappingStatus": "verified binding",
 				"sourcePath": "src/features/resume/variants/copy.generated.ts",
@@ -140876,14 +142879,14 @@
 			"sourceReferences": ["Owner one-step plug-and-play translation decision (item 65), 2026-11-21"],
 			"variants": [],
 			"messages": {
-				"en-US": "Resolve the items below to finish and save your language copy automatically.",
-				"ar-SA": "عالج العناصر أدناه لإكمال النسخة اللغوية وحفظها تلقائيًا."
+				"en-US": "Resolve the items below, then review and approve your language copy.",
+				"ar-SA": "عالج العناصر أدناه، ثم راجع النسخة اللغوية واعتمدها."
 			},
 			"interpolations": [],
 			"lingui": {
-				"msgid": "Resolve the items below to finish and save your language copy automatically.",
+				"msgid": "Resolve the items below, then review and approve your language copy.",
 				"msgctxt": "language.translation.needsAttentionNotice",
-				"runtimeId": "0Hz-NJ",
+				"runtimeId": "W-6Wyq",
 				"sourceLocale": "en-US",
 				"mappingStatus": "verified binding",
 				"sourcePath": "src/features/resume/variants/copy.generated.ts",
@@ -141032,14 +143035,341 @@
 			"sourceReferences": ["Per-item translation withholding badge (item 92), 2026-11-24"],
 			"variants": [],
 			"messages": {
-				"en-US": "Not translated",
-				"ar-SA": "تُرك دون ترجمة"
+				"en-US": "Not translated yet",
+				"ar-SA": "لم يُترجم بعد"
 			},
 			"interpolations": [],
 			"lingui": {
-				"msgid": "Not translated",
+				"msgid": "Not translated yet",
 				"msgctxt": "review.translation.notTranslated",
-				"runtimeId": "translationNotTranslated",
+				"runtimeId": "NW-6jo",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.running",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation recovery and interface localization requests, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "جارٍ الترجمة…",
+				"en-US": "Translating…"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Translating…",
+				"msgctxt": "language.translation.running",
+				"runtimeId": "WVS400",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.staleReview",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation recovery report, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "تغيّرت السيرة الذاتية بعد الترجمة، لذا لم تعد هذه المراجعة محدثة. ابدأ ترجمة جديدة.",
+				"en-US": "The CV changed after this translation, so this review is out of date. Start a new translation."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "The CV changed after this translation, so this review is out of date. Start a new translation.",
+				"msgctxt": "language.translation.staleReview",
+				"runtimeId": "I+8woe",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.translation.retryAll",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation recovery and interface localization requests, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "إعادة محاولة الكل",
+				"en-US": "Retry all"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Retry all",
+				"msgctxt": "review.translation.retryAll",
+				"runtimeId": "_2loyr",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.translation.partLabel",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation recovery and interface localization requests, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "الجزء {part}",
+				"en-US": "Part {part}"
+			},
+			"interpolations": [
+				{
+					"name": "part",
+					"type": "number"
+				}
+			],
+			"lingui": {
+				"msgid": "Part {part}",
+				"msgctxt": "review.translation.partLabel",
+				"runtimeId": "vCZL6q",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.translation.heldParts",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation recovery and interface localization requests, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "{count, plural, one {لم يُترجم جزء واحد. بقي نصه الأصلي محفوظًا.} other {عدد الأجزاء التي لم تُترجم: #. بقي نصها الأصلي محفوظًا.}}",
+				"en-US": "{count, plural, one {# part was left untranslated. Its original text is kept.} other {# parts were left untranslated. Their original text is kept.}}"
+			},
+			"interpolations": [
+				{
+					"name": "count",
+					"type": "number"
+				}
+			],
+			"lingui": {
+				"msgid": "{count, plural, one {# part was left untranslated. Its original text is kept.} other {# parts were left untranslated. Their original text is kept.}}",
+				"msgctxt": "review.translation.heldParts",
+				"runtimeId": "kD8sTi",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.translation.heldSegments",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation recovery and interface localization requests, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "{count, plural, one {لم يُترجم مقطع واحد. بقي نصه الأصلي محفوظًا.} other {عدد المقاطع التي لم تُترجم: #. بقي نصها الأصلي محفوظًا.}}",
+				"en-US": "{count, plural, one {# segment was left untranslated. Its original text is kept.} other {# segments were left untranslated. Their original text is kept.}}"
+			},
+			"interpolations": [
+				{
+					"name": "count",
+					"type": "number"
+				}
+			],
+			"lingui": {
+				"msgid": "{count, plural, one {# segment was left untranslated. Its original text is kept.} other {# segments were left untranslated. Their original text is kept.}}",
+				"msgctxt": "review.translation.heldSegments",
+				"runtimeId": "mfOy30",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.clarification.wording",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation recovery and interface localization requests, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "ما النتيجة أو التفصيل الذي يمكنك تأكيده في هذا المقطع؟",
+				"en-US": "What result or detail can you confirm for this passage?"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "What result or detail can you confirm for this passage?",
+				"msgctxt": "review.clarification.wording",
+				"runtimeId": "iiul3B",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.clarification.summary",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation recovery and interface localization requests, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "ما الخبرة أو الدراسة أو المهارة التي يمكنك تأكيدها لإضافتها إلى ملخصك؟",
+				"en-US": "What experience, study or skill can you confirm for your summary?"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "What experience, study or skill can you confirm for your summary?",
+				"msgctxt": "review.clarification.summary",
+				"runtimeId": "Py5pOB",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.clarification.requirement",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation recovery and interface localization requests, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "ما الخبرة أو الدراسة أو المشروع الذي يمكنك تأكيده لهذا المتطلب؟",
+				"en-US": "What experience, study or project can you confirm for this requirement?"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "What experience, study or project can you confirm for this requirement?",
+				"msgctxt": "review.clarification.requirement",
+				"runtimeId": "PVKkHv",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.clarification.import",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation recovery and interface localization requests, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "ما المعلومات التي يمكنك تأكيدها من السيرة الذاتية الأصلية؟",
+				"en-US": "What information can you confirm from the original CV?"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "What information can you confirm from the original CV?",
+				"msgctxt": "review.clarification.import",
+				"runtimeId": "-ZFeJf",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.explanation.checkEvidence",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation recovery and interface localization requests, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "قارن هذه الملاحظة بالمعلومات الواردة في المصدر.",
+				"en-US": "Check this finding against the source information."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Check this finding against the source information.",
+				"msgctxt": "review.explanation.checkEvidence",
+				"runtimeId": "P1RLPc",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.tailoring.section.basics",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation recovery and interface localization requests, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "المعلومات الأساسية",
+				"en-US": "Basics"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Basics",
+				"msgctxt": "review.tailoring.section.basics",
+				"runtimeId": "A9tYGx",
 				"sourceLocale": "en-US",
 				"mappingStatus": "verified binding",
 				"sourcePath": "src/features/resume/variants/copy.generated.ts",
@@ -141073,6 +143403,318 @@
 			}
 		},
 		{
+			"key": "review.translation.retryThisSegment",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation safety decision, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"en-US": "Retry this segment",
+				"ar-SA": "إعادة محاولة هذا المقطع"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Retry this segment",
+				"msgctxt": "review.translation.retryThisSegment",
+				"runtimeId": "QsFeyM",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.translation.factNumberValue",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation safety decision, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"en-US": "The number {value} changed.",
+				"ar-SA": "تغيّر الرقم {value}."
+			},
+			"interpolations": [{ "name": "value", "type": "string" }],
+			"lingui": {
+				"msgid": "The number {value} changed.",
+				"msgctxt": "review.translation.factNumberValue",
+				"runtimeId": "Oywz7U",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.translation.factNumber",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation safety decision, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"en-US": "A number changed.",
+				"ar-SA": "تغيّر أحد الأرقام."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "A number changed.",
+				"msgctxt": "review.translation.factNumber",
+				"runtimeId": "8vvPm1",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.translation.factDate",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation safety decision, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"en-US": "The date was not preserved.",
+				"ar-SA": "لم يُحافَظ على التاريخ."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "The date was not preserved.",
+				"msgctxt": "review.translation.factDate",
+				"runtimeId": "4tVtcr",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.translation.factName",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation safety decision, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"en-US": "The name was not preserved.",
+				"ar-SA": "لم يُحافَظ على الاسم."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "The name was not preserved.",
+				"msgctxt": "review.translation.factName",
+				"runtimeId": "y58xLw",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.translation.factOrganization",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation safety decision, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"en-US": "The organization name was not preserved.",
+				"ar-SA": "لم يُحافَظ على اسم الجهة."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "The organization name was not preserved.",
+				"msgctxt": "review.translation.factOrganization",
+				"runtimeId": "IxGu9n",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.translation.factContact",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation safety decision, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"en-US": "A contact detail changed.",
+				"ar-SA": "تغيّرت إحدى بيانات الاتصال."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "A contact detail changed.",
+				"msgctxt": "review.translation.factContact",
+				"runtimeId": "An-qXk",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.translation.factTerm",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation safety decision, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"en-US": "A protected term changed.",
+				"ar-SA": "تغيّر أحد المصطلحات المحمية."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "A protected term changed.",
+				"msgctxt": "review.translation.factTerm",
+				"runtimeId": "syHYX0",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.translation.factLanguage",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation safety decision, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"en-US": "This segment is not in the requested language.",
+				"ar-SA": "هذا المقطع ليس باللغة المطلوبة."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "This segment is not in the requested language.",
+				"msgctxt": "review.translation.factLanguage",
+				"runtimeId": "WQQ3fm",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.translation.factMissing",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation safety decision, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"en-US": "The translation omitted this segment.",
+				"ar-SA": "لم تتضمن الترجمة هذا المقطع."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "The translation omitted this segment.",
+				"msgctxt": "review.translation.factMissing",
+				"runtimeId": "fMLJFo",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.translation.factNegation",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation safety decision, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"en-US": "The meaning of a negative statement changed.",
+				"ar-SA": "تغيّر معنى عبارة منفية."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "The meaning of a negative statement changed.",
+				"msgctxt": "review.translation.factNegation",
+				"runtimeId": "ANlkgH",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.translation.factReview",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation safety decision, 2026-11-25"],
+			"variants": [],
+			"messages": {
+				"en-US": "We checked the translation for names, dates and numbers. Review it before approving.",
+				"ar-SA": "فحصنا الترجمة للتأكد من الأسماء والتواريخ والأرقام. راجعها قبل اعتمادها."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "We checked the translation for names, dates and numbers. Review it before approving.",
+				"msgctxt": "review.translation.factReview",
+				"runtimeId": "eY0SRS",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
 			"key": "review.withheldReason.translation",
 			"context": {
 				"surfaces": [],
@@ -141084,14 +143726,14 @@
 			"sourceReferences": ["Per-item translation withholding reason (item 92), 2026-11-24"],
 			"variants": [],
 			"messages": {
-				"en-US": "Could not be verified as an accurate translation.",
-				"ar-SA": "تعذّر التحقق من دقة ترجمة هذا المقطع."
+				"en-US": "This segment did not pass the translation checks.",
+				"ar-SA": "لم يجتز هذا المقطع فحوص الترجمة."
 			},
 			"interpolations": [],
 			"lingui": {
-				"msgid": "Could not be verified as an accurate translation.",
+				"msgid": "This segment did not pass the translation checks.",
 				"msgctxt": "review.withheldReason.translation",
-				"runtimeId": "withheldReasonTranslation",
+				"runtimeId": "5f5FBf",
 				"sourceLocale": "en-US",
 				"mappingStatus": "verified binding",
 				"sourcePath": "src/features/resume/variants/copy.generated.ts",
@@ -141269,7 +143911,12 @@
 				"en-US": "Part {part}:",
 				"ar-SA": "الجزء {part}:"
 			},
-			"interpolations": [{ "name": "part", "type": "integer" }],
+			"interpolations": [
+				{
+					"name": "part",
+					"type": "integer"
+				}
+			],
 			"lingui": {
 				"msgid": "Part {part}:",
 				"msgctxt": "review.translation.partFailure",
@@ -141346,18 +143993,1587 @@
 			"sourceReferences": ["Item 94c translation recovery"],
 			"variants": [],
 			"messages": {
-				"en-US": "Could not be verified as an accurate translation. The original text is kept.",
-				"ar-SA": "تعذر التحقق من دقة ترجمة هذا الجزء. بقي النص الأصلي محفوظًا."
+				"en-US": "This segment did not pass the translation checks. The original text is kept.",
+				"ar-SA": "لم يجتز هذا المقطع فحوص الترجمة. بقي النص الأصلي محفوظًا."
 			},
 			"interpolations": [],
 			"lingui": {
-				"msgid": "Could not be verified as an accurate translation. The original text is kept.",
+				"msgid": "This segment did not pass the translation checks. The original text is kept.",
 				"msgctxt": "review.translation.partSafety",
-				"runtimeId": "RTQAhS",
+				"runtimeId": "xTdfsY",
 				"sourceLocale": "en-US",
 				"mappingStatus": "verified binding",
 				"sourcePath": "src/features/resume/editor/proposals/review-failure.tsx",
 				"verification": "Localized part recovery tests."
+			}
+		},
+		{
+			"key": "privacy.ai.backupTranslationNotice",
+			"messages": {
+				"en-US": "The DeepSeek checker can use Parasail outside Saudi Arabia when the primary provider is unavailable for CV translation.",
+				"ar-SA": "يمكن للمدقق استخدام Parasail خارج السعودية عند تعذّر استخدام المزوّد الأساسي في ترجمة السيرة."
+			},
+			"context": {
+				"surfaces": ["screens:S29"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["B-C12, D09 and D16"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "The DeepSeek checker can use Parasail outside Saudi Arabia when the primary provider is unavailable for CV translation.",
+				"msgctxt": "privacy.ai.backupTranslationNotice",
+				"runtimeId": "6u_Bwl",
+				"sourceLocale": "en-US",
+				"sourcePath": "packages/api/src/features/ai/processing-copy.generated.ts",
+				"mappingStatus": "verified binding",
+				"verification": "Localized AI processing consent."
+			}
+		},
+		{
+			"key": "privacy.ai.title",
+			"messages": {
+				"en-US": "AI and privacy",
+				"ar-SA": "الذكاء الاصطناعي والخصوصية"
+			},
+			"context": {
+				"surfaces": ["screens:S29"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["B-C12, D09 and D16"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "AI and privacy",
+				"msgctxt": "privacy.ai.title",
+				"runtimeId": "zmqhW2",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"mappingStatus": "verified binding",
+				"verification": "Localized AI processing consent."
+			}
+		},
+		{
+			"key": "privacy.ai.details",
+			"messages": {
+				"en-US": "AI details",
+				"ar-SA": "تفاصيل الذكاء الاصطناعي"
+			},
+			"context": {
+				"surfaces": ["screens:S29"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["B-C12, D09 and D16"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "AI details",
+				"msgctxt": "privacy.ai.details",
+				"runtimeId": "Hjhmlx",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"mappingStatus": "verified binding",
+				"verification": "Localized AI processing consent."
+			}
+		},
+		{
+			"key": "privacy.ai.startConsent",
+			"messages": {
+				"en-US": "By selecting Start review, you agree to this processing notice.",
+				"ar-SA": "باختيار «بدء المراجعة»، فإنك توافق على إشعار المعالجة هذا."
+			},
+			"context": {
+				"surfaces": ["screens:S29"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["B-C12, D09 and D16"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "By selecting Start review, you agree to this processing notice.",
+				"msgctxt": "privacy.ai.startConsent",
+				"runtimeId": "pxky5b",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"mappingStatus": "verified binding",
+				"verification": "Localized AI processing consent."
+			}
+		},
+		{
+			"key": "privacy.ai.retryConsent",
+			"messages": {
+				"en-US": "By selecting the retry button, you agree to this processing notice.",
+				"ar-SA": "باختيار زر إعادة المحاولة، فإنك توافق على إشعار المعالجة هذا."
+			},
+			"context": {
+				"surfaces": ["screens:S29"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["B-C12, D09 and D16"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "By selecting the retry button, you agree to this processing notice.",
+				"msgctxt": "privacy.ai.retryConsent",
+				"runtimeId": "X5901v",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"mappingStatus": "verified binding",
+				"verification": "Localized AI processing consent."
+			}
+		},
+		{
+			"key": "privacy.ai.grantedAt",
+			"messages": {
+				"en-US": "Consent given on {date}",
+				"ar-SA": "تاريخ الموافقة: {date}"
+			},
+			"context": {
+				"surfaces": ["screens:S29"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["B-C12, D09 and D16"],
+			"interpolations": ["date"],
+			"variants": [],
+			"lingui": {
+				"msgid": "Consent given on {date}",
+				"msgctxt": "privacy.ai.grantedAt",
+				"runtimeId": "BdERTX",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"mappingStatus": "verified binding",
+				"verification": "Localized AI processing consent."
+			}
+		},
+		{
+			"key": "privacy.ai.noConsent",
+			"messages": {
+				"en-US": "No active consent.",
+				"ar-SA": "لا توجد موافقة سارية."
+			},
+			"context": {
+				"surfaces": ["screens:S29"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["B-C12, D09 and D16"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "No active consent.",
+				"msgctxt": "privacy.ai.noConsent",
+				"runtimeId": "mVi68G",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"mappingStatus": "verified binding",
+				"verification": "Localized AI processing consent."
+			}
+		},
+		{
+			"key": "privacy.ai.withdraw",
+			"messages": {
+				"en-US": "Withdraw consent",
+				"ar-SA": "سحب الموافقة"
+			},
+			"context": {
+				"surfaces": ["screens:S29"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["B-C12, D09 and D16"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Withdraw consent",
+				"msgctxt": "privacy.ai.withdraw",
+				"runtimeId": "s9qw4i",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"mappingStatus": "verified binding",
+				"verification": "Localized AI processing consent."
+			}
+		},
+		{
+			"key": "privacy.ai.withdrawFailed",
+			"messages": {
+				"en-US": "Could not withdraw consent.",
+				"ar-SA": "تعذّر سحب الموافقة."
+			},
+			"context": {
+				"surfaces": ["screens:S29"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["B-C12, D09 and D16"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Could not withdraw consent.",
+				"msgctxt": "privacy.ai.withdrawFailed",
+				"runtimeId": "PT2xYi",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"mappingStatus": "verified binding",
+				"verification": "Localized AI processing consent."
+			}
+		},
+		{
+			"key": "privacy.ai.statusUnavailable",
+			"messages": {
+				"en-US": "Could not load your AI consent.",
+				"ar-SA": "تعذّر تحميل حالة موافقتك على الذكاء الاصطناعي."
+			},
+			"context": {
+				"surfaces": ["screens:S29"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["B-C12, D09 and D16"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Could not load your AI consent.",
+				"msgctxt": "privacy.ai.statusUnavailable",
+				"runtimeId": "V9BIE8",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/assistant/copy.generated.ts",
+				"mappingStatus": "verified binding",
+				"verification": "Localized AI processing consent."
+			}
+		},
+		{
+			"key": "language.translation.originalArabic",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Arabic · Original",
+				"ar-SA": "العربية · الأصل"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Arabic · Original",
+				"msgctxt": "language.translation.originalArabic",
+				"runtimeId": "kozhkP",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.originalEnglish",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "English · Original",
+				"ar-SA": "الإنجليزية · الأصل"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "English · Original",
+				"msgctxt": "language.translation.originalEnglish",
+				"runtimeId": "2H_7VB",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.readyArabic",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Arabic · Ready",
+				"ar-SA": "العربية · جاهزة"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Arabic · Ready",
+				"msgctxt": "language.translation.readyArabic",
+				"runtimeId": "A4gN8l",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.readyEnglish",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "English · Ready",
+				"ar-SA": "الإنجليزية · جاهزة"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "English · Ready",
+				"msgctxt": "language.translation.readyEnglish",
+				"runtimeId": "1Lty05",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.copyArabic",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Arabic copy",
+				"ar-SA": "النسخة العربية"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Arabic copy",
+				"msgctxt": "language.translation.copyArabic",
+				"runtimeId": "1MB3MO",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.copyEnglish",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "English copy",
+				"ar-SA": "النسخة الإنجليزية"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "English copy",
+				"msgctxt": "language.translation.copyEnglish",
+				"runtimeId": "9TgiXP",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.copyHint",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Creates a separate copy. Your original stays unchanged.",
+				"ar-SA": "تُنشئ الترجمة نسخة منفصلة. تبقى سيرتك الأصلية كما هي."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Creates a separate copy. Your original stays unchanged.",
+				"msgctxt": "language.translation.copyHint",
+				"runtimeId": "2P1yhh",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.reviewDraft",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Review draft",
+				"ar-SA": "مراجعة المسودة"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Review draft",
+				"msgctxt": "language.translation.reviewDraft",
+				"runtimeId": "-w8boD",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.viewProgress",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "View progress",
+				"ar-SA": "عرض التقدم"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "View progress",
+				"msgctxt": "language.translation.viewProgress",
+				"runtimeId": "Bc9AG0",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.openSavedCopy",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Open saved copy",
+				"ar-SA": "فتح النسخة المحفوظة"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Open saved copy",
+				"msgctxt": "language.translation.openSavedCopy",
+				"runtimeId": "HAiAcw",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.openArabic",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Open Arabic copy",
+				"ar-SA": "فتح النسخة العربية"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Open Arabic copy",
+				"msgctxt": "language.translation.openArabic",
+				"runtimeId": "tG5-7I",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.openEnglish",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Open English copy",
+				"ar-SA": "فتح النسخة الإنجليزية"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Open English copy",
+				"msgctxt": "language.translation.openEnglish",
+				"runtimeId": "TUzpN9",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.openOriginal",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Open",
+				"ar-SA": "فتح"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Open",
+				"msgctxt": "language.translation.openOriginal",
+				"runtimeId": "s6NdYn",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.retranslate",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Re-translate",
+				"ar-SA": "إعادة الترجمة"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Re-translate",
+				"msgctxt": "language.translation.retranslate",
+				"runtimeId": "M1H9cg",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.updateCopy",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Update copy",
+				"ar-SA": "تحديث النسخة"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Update copy",
+				"msgctxt": "language.translation.updateCopy",
+				"runtimeId": "QnoDEe",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.sourceChanged",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "The source changed after you saved this copy.",
+				"ar-SA": "تغيّرت السيرة الأصلية بعد حفظ هذه النسخة."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "The source changed after you saved this copy.",
+				"msgctxt": "language.translation.sourceChanged",
+				"runtimeId": "q-hFqC",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.sourceUnavailable",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "The source CV is unavailable.",
+				"ar-SA": "السيرة الأصلية غير متاحة."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "The source CV is unavailable.",
+				"msgctxt": "language.translation.sourceUnavailable",
+				"runtimeId": "KUXBnh",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.reviewArabic",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Review Arabic copy",
+				"ar-SA": "مراجعة النسخة العربية"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Review Arabic copy",
+				"msgctxt": "language.translation.reviewArabic",
+				"runtimeId": "7P6GFR",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.reviewEnglish",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Review English copy",
+				"ar-SA": "مراجعة النسخة الإنجليزية"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Review English copy",
+				"msgctxt": "language.translation.reviewEnglish",
+				"runtimeId": "_rrVNM",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.trustNote",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Names, dates, and numbers were checked automatically. Nothing is saved until you approve.",
+				"ar-SA": "تحققنا تلقائيًا من الأسماء والتواريخ والأرقام. لن يُحفظ شيء قبل اعتمادك."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Names, dates, and numbers were checked automatically. Nothing is saved until you approve.",
+				"msgctxt": "language.translation.trustNote",
+				"runtimeId": "22Sg5v",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.sectionsTranslated",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "{count, plural, one {# section translated} other {# sections translated}}",
+				"ar-SA": "{count, plural, zero {لم يُترجم أي قسم} one {تُرجم قسم واحد} two {تُرجم قسمان} few {تُرجمت # أقسام} many {تُرجم # قسمًا} other {تُرجم # قسم}}"
+			},
+			"interpolations": [
+				{
+					"name": "count",
+					"type": "integer"
+				}
+			],
+			"lingui": {
+				"msgid": "{count, plural, one {# section translated} other {# sections translated}}",
+				"msgctxt": "language.translation.sectionsTranslated",
+				"runtimeId": "MBRigF",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.keptArabic",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "{count} kept in Arabic",
+				"ar-SA": "أُبقي {count} بالعربية"
+			},
+			"interpolations": [
+				{
+					"name": "count",
+					"type": "integer"
+				}
+			],
+			"lingui": {
+				"msgid": "{count} kept in Arabic",
+				"msgctxt": "language.translation.keptArabic",
+				"runtimeId": "ZBD0oY",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.keptEnglish",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "{count} kept in English",
+				"ar-SA": "أُبقي {count} بالإنجليزية"
+			},
+			"interpolations": [
+				{
+					"name": "count",
+					"type": "integer"
+				}
+			],
+			"lingui": {
+				"msgid": "{count} kept in English",
+				"msgctxt": "language.translation.keptEnglish",
+				"runtimeId": "eNqKI9",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.keptCount",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "{count} kept",
+				"ar-SA": "أُبقي {count}"
+			},
+			"interpolations": [
+				{
+					"name": "count",
+					"type": "integer"
+				}
+			],
+			"lingui": {
+				"msgid": "{count} kept",
+				"msgctxt": "language.translation.keptCount",
+				"runtimeId": "-H-mxI",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.approveArabic",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Approve & save Arabic copy",
+				"ar-SA": "اعتماد وحفظ النسخة العربية"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Approve & save Arabic copy",
+				"msgctxt": "language.translation.approveArabic",
+				"runtimeId": "2vqhS8",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.approveEnglish",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Approve & save English copy",
+				"ar-SA": "اعتماد وحفظ النسخة الإنجليزية"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Approve & save English copy",
+				"msgctxt": "language.translation.approveEnglish",
+				"runtimeId": "JMJIa7",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.saving",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Saving…",
+				"ar-SA": "جارٍ الحفظ…"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Saving…",
+				"msgctxt": "language.translation.saving",
+				"runtimeId": "Q28A34",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.discard",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Discard draft",
+				"ar-SA": "تجاهل المسودة"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Discard draft",
+				"msgctxt": "language.translation.discard",
+				"runtimeId": "WupooF",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.savedArabic",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Arabic copy saved",
+				"ar-SA": "تم حفظ النسخة العربية"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Arabic copy saved",
+				"msgctxt": "language.translation.savedArabic",
+				"runtimeId": "QY6CCQ",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.savedEnglish",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "English copy saved",
+				"ar-SA": "تم حفظ النسخة الإنجليزية"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "English copy saved",
+				"msgctxt": "language.translation.savedEnglish",
+				"runtimeId": "tXSorE",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.originalSafe",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Your original CV stays unchanged.",
+				"ar-SA": "سيرتك الأصلية محفوظة كما هي."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Your original CV stays unchanged.",
+				"msgctxt": "language.translation.originalSafe",
+				"runtimeId": "vWazqq",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.translatingCv",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Translating your CV…",
+				"ar-SA": "جارٍ ترجمة السيرة…"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Translating your CV…",
+				"msgctxt": "language.translation.translatingCv",
+				"runtimeId": "9r1WfP",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.blockedNames",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Confirm the official names before saving.",
+				"ar-SA": "أكد الأسماء الرسمية قبل الحفظ."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Confirm the official names before saving.",
+				"msgctxt": "language.translation.blockedNames",
+				"runtimeId": "5qoFG2",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.blockedStale",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "The source or this copy changed. Start a new translation to save a current copy.",
+				"ar-SA": "تغيّرت السيرة الأصلية أو هذه النسخة. ابدأ ترجمة جديدة لحفظ نسخة محدثة."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "The source or this copy changed. Start a new translation to save a current copy.",
+				"msgctxt": "language.translation.blockedStale",
+				"runtimeId": "BcuW60",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.blockedEmpty",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Retry untranslated parts to get a draft you can save.",
+				"ar-SA": "أعد محاولة ترجمة الأجزاء غير المترجمة للحصول على مسودة يمكنك حفظها."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Retry untranslated parts to get a draft you can save.",
+				"msgctxt": "language.translation.blockedEmpty",
+				"runtimeId": "lUafxo",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.previewTitle",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Translated CV",
+				"ar-SA": "السيرة المترجمة"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Translated CV",
+				"msgctxt": "language.translation.previewTitle",
+				"runtimeId": "KsRTy8",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.showOriginal",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Show original text",
+				"ar-SA": "إظهار النص الأصلي"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Show original text",
+				"msgctxt": "language.translation.showOriginal",
+				"runtimeId": "x1_wUq",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.keepOriginal",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Keep original",
+				"ar-SA": "إبقاء الأصل"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Keep original",
+				"msgctxt": "language.translation.keepOriginal",
+				"runtimeId": "ttHcrV",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.edited",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Edited",
+				"ar-SA": "عُدّل"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Edited",
+				"msgctxt": "language.translation.edited",
+				"runtimeId": "Lm_jWE",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.edit",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Edit",
+				"ar-SA": "تعديل"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Edit",
+				"msgctxt": "language.translation.edit",
+				"runtimeId": "nQEXFb",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.editedText",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Edited text",
+				"ar-SA": "النص المعدّل"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Edited text",
+				"msgctxt": "language.translation.editedText",
+				"runtimeId": "XrbDix",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.saveWording",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Save wording",
+				"ar-SA": "حفظ الصياغة"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Save wording",
+				"msgctxt": "language.translation.saveWording",
+				"runtimeId": "RKrwOx",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.cancel",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Cancel",
+				"ar-SA": "إلغاء"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Cancel",
+				"msgctxt": "language.translation.cancel",
+				"runtimeId": "R3_A80",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "language.translation.undo",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Undo",
+				"ar-SA": "تراجع"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Undo",
+				"msgctxt": "language.translation.undo",
+				"runtimeId": "Tq30SD",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.translation.gapsTitle",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "{count, plural, one {# part stayed in its original language} other {# parts stayed in their original language}}",
+				"ar-SA": "{count, plural, zero {لم تبقَ أجزاء بلغتها الأصلية} one {أُبقي مقطع واحد بلغته الأصلية} two {أُبقي مقطعان بلغتهما الأصلية} few {أُبقيت # مقاطع بلغتها الأصلية} many {أُبقي # مقطعًا بلغته الأصلية} other {أُبقي # مقطع بلغته الأصلية}}"
+			},
+			"interpolations": [
+				{
+					"name": "count",
+					"type": "integer"
+				}
+			],
+			"lingui": {
+				"msgid": "{count, plural, one {# part stayed in its original language} other {# parts stayed in their original language}}",
+				"msgctxt": "review.translation.gapsTitle",
+				"runtimeId": "JRGqJW",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.translation.gapsBody",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Original text was kept to protect accuracy. Retry the untranslated parts or approve as is.",
+				"ar-SA": "أبقينا النص الأصلي للحفاظ على الدقة. يمكنك إعادة المحاولة أو الاعتماد كما هي."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Original text was kept to protect accuracy. Retry the untranslated parts or approve as is.",
+				"msgctxt": "review.translation.gapsBody",
+				"runtimeId": "UqKajs",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.translation.retryUntranslated",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Retry untranslated parts",
+				"ar-SA": "إعادة محاولة الأجزاء غير المترجمة"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Retry untranslated parts",
+				"msgctxt": "review.translation.retryUntranslated",
+				"runtimeId": "Bslq-3",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.translation.gapDetails",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "Show details ({count})",
+				"ar-SA": "عرض التفاصيل ({count})"
+			},
+			"interpolations": [
+				{
+					"name": "count",
+					"type": "integer"
+				}
+			],
+			"lingui": {
+				"msgid": "Show details ({count})",
+				"msgctxt": "review.translation.gapDetails",
+				"runtimeId": "5GwC4c",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
+			}
+		},
+		{
+			"key": "review.translation.factTermValue",
+			"context": {
+				"surfaces": ["S21"],
+				"audience": "Candidate / account owner",
+				"translatorNotes": []
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner translation review decision, 2026-11-26"],
+			"variants": [],
+			"messages": {
+				"en-US": "The term {value} was changed.",
+				"ar-SA": "تغيّر المصطلح {value}."
+			},
+			"interpolations": [
+				{
+					"name": "value",
+					"type": "string"
+				}
+			],
+			"lingui": {
+				"msgid": "The term {value} was changed.",
+				"msgctxt": "review.translation.factTermValue",
+				"runtimeId": "DA9tmF",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy bindings and localized behavior tests."
 			}
 		}
 	],
@@ -142103,6 +146319,16 @@
 			"title": "Review a suggestion",
 			"nodeIds": ["30:1445", "44:1084"],
 			"strings": [
+				"review.diff.view",
+				"review.diff.showChanges",
+				"review.diff.showFinal",
+				"review.diff.formatting",
+				"review.diff.showSpacing",
+				"review.diff.punctuation",
+				"review.diff.rewrite",
+				"review.diff.original",
+				"review.diff.shortcuts",
+				"review.diff.proposed",
 				"editor.mode.write",
 				"editor.save.status.recent",
 				"review.navigation.open",
@@ -142126,8 +146352,7 @@
 				"review.wording.open.compact",
 				"privacy.ai.paragraphScopeHint.compact",
 				"privacy.ai.overseasNotice",
-				"privacy.ai.transferConsent",
-				"review.suggestion.newWordingLegend"
+				"privacy.ai.transferConsent"
 			]
 		},
 		"S12": {
@@ -142465,6 +146690,16 @@
 			"title": "Job evidence",
 			"nodeIds": ["33:1997", "47:1425"],
 			"strings": [
+				"review.diff.view",
+				"review.diff.showChanges",
+				"review.diff.showFinal",
+				"review.diff.formatting",
+				"review.diff.showSpacing",
+				"review.diff.punctuation",
+				"review.diff.rewrite",
+				"review.diff.original",
+				"review.diff.shortcuts",
+				"review.diff.proposed",
 				"common.brand.name",
 				"language.switch.english",
 				"editor.navigation.documentsTitle",
@@ -142500,8 +146735,34 @@
 				"jobs.requirements.partialTotal",
 				"jobs.evidence.requiredMissingHint",
 				"jobs.requirements.showAll",
+				"jobs.coverage.title",
+				"jobs.coverage.description",
+				"jobs.coverage.empty",
+				"jobs.coverage.foundGroup",
+				"jobs.coverage.missingGroup",
+				"jobs.coverage.more",
+				"jobs.coverage.less",
 				"jobs.coverage.occurrences",
-				"jobs.coverage.excluded"
+				"jobs.coverage.excluded",
+				"jobs.coverage.truncated",
+				"jobs.context.subtitle",
+				"jobs.context.change",
+				"jobs.context.compare",
+				"jobs.context.tailorSelected",
+				"jobs.tailoring.copyTitle",
+				"jobs.tailoring.suggest",
+				"jobs.tailoring.saveCopy",
+				"jobs.tailoring.acceptHint",
+				"review.tailoring.order.title",
+				"review.tailoring.order.current",
+				"review.tailoring.order.proposed",
+				"review.tailoring.order.move",
+				"jobs.evidence.detailsTitle",
+				"jobs.evidence.detailsHint",
+				"jobs.evidence.check",
+				"jobs.evidence.withheldSummary",
+				"jobs.evidence.withheldTitles",
+				"jobs.evidence.withheldNotes"
 			]
 		},
 		"S21": {

@@ -31,7 +31,7 @@ export function validateCompactTranslationDelivery(snapshot: VariantSnapshot, ra
 			source === undefined ||
 			(claim
 				? claims.length !== 1 ||
-					claim.id !== "verified" ||
+					claim.id !== "checked" ||
 					claim.kind !== "translation" ||
 					claim.text !== text ||
 					claim.evidenceIds.length !== 1 ||
@@ -54,7 +54,7 @@ function fail(reason: string): never {
 const compact = (text: string) => text.normalize("NFC").replace(/\s+/gu, " ").trim();
 const key = (target: { sectionId: string; itemId?: string | null; roleId?: string | null; field: string }) =>
 	JSON.stringify([target.sectionId, target.itemId ?? null, target.roleId ?? null, target.field]);
-function dominantScript(text: string): "arabic" | "latin" | null {
+export function dominantScript(text: string): "arabic" | "latin" | null {
 	const arabic = (text.match(/\p{Script=Arabic}/gu) ?? []).length;
 	const latin = (text.match(/\p{Script=Latin}/gu) ?? []).length;
 	if (!arabic && !latin) return null;

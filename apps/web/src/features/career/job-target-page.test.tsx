@@ -45,10 +45,10 @@ it("requires a role and exact ad, submits unchanged whitespace, and cancels with
 			<JobTargetForm sourceName="Synthetic CV" initial={null} pending={false} onCompare={compare} onCancel={cancel} />
 		</I18nProvider>,
 	);
-	expect(screen.getByRole("button", { name: "Compare" }).hasAttribute("disabled")).toBe(true);
+	expect(screen.getByRole("button", { name: "Compare with job" }).hasAttribute("disabled")).toBe(true);
 	fireEvent.change(screen.getByLabelText("Job title"), { target: { value: "Engineer" } });
 	fireEvent.change(screen.getByLabelText("Job ad"), { target: { value: "  React\nArabic عربي  " } });
-	fireEvent.click(screen.getByRole("button", { name: "Compare" }));
+	fireEvent.click(screen.getByRole("button", { name: "Compare with job" }));
 	expect(compare).toHaveBeenCalledWith({ role: "Engineer", employer: "", text: "  React\nArabic عربي  " });
 	fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
 	expect(cancel).toHaveBeenCalledOnce();
@@ -58,7 +58,10 @@ it("saves and selects the comparison through one atomic request before leaving t
 	i18n.loadAndActivate({ locale: "en-US", messages: {} });
 	const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
 	evidenceRead.mockResolvedValueOnce({ selection: null, job: null });
-	evidenceRead.mockResolvedValue({ selection: { revision: "selected" }, job: { text: "Exact ad" } });
+	evidenceRead.mockResolvedValue({
+		selection: { revision: "selected" },
+		job: { role: "Engineer", employer: "Example Co", text: "Exact ad" },
+	});
 	saveAndSelect.mockResolvedValue({ revision: "selected" });
 	render(
 		<QueryClientProvider client={queryClient}>
@@ -69,8 +72,8 @@ it("saves and selects the comparison through one atomic request before leaving t
 	);
 	fireEvent.change(await screen.findByLabelText("Job title"), { target: { value: "Engineer" } });
 	fireEvent.change(screen.getByLabelText("Job ad"), { target: { value: "  Exact ad\n" } });
-	fireEvent.click(screen.getByRole("button", { name: "Compare" }));
-	await waitFor(() => expect(screen.queryByRole("button", { name: "Compare" })).toBeNull());
+	fireEvent.click(screen.getByRole("button", { name: "Compare with job" }));
+	await waitFor(() => expect(screen.queryByRole("button", { name: "Compare with job" })).toBeNull());
 	expect(saveAndSelect).toHaveBeenCalledExactlyOnceWith({
 		resumeId: "cv",
 		expectedUpdatedAt: "2026-11-14T00:00:00.000Z",
@@ -80,5 +83,10 @@ it("saves and selects the comparison through one atomic request before leaving t
 		text: "  Exact ad\n",
 	});
 	expect(screen.queryByRole("alert")).toBeNull();
+	const change = screen.getByRole("button", { name: "Change job" });
+	expect(screen.getByText("Engineer").closest("bdi")).toHaveAttribute("dir", "auto");
+	expect(change.closest("section")).toContainElement(screen.getByRole("combobox", { name: "Base CV" }));
+	fireEvent.click(change);
+	expect(screen.getByLabelText("Job ad")).toHaveValue("Exact ad");
 	queryClient.clear();
 });

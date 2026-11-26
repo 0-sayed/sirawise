@@ -84,7 +84,7 @@ export function JobTargetForm({
 				<p className="type-body text-ink-2">{copy("jobs.tailoring.askAboutGaps")}</p>
 				<div className="flex flex-wrap gap-2">
 					<Button type="submit" disabled={pending || !role.trim() || !text.trim()}>
-						<Trans>Compare</Trans>
+						{copy("jobs.context.compare")}
 					</Button>
 					<Button variant="secondary" disabled={pending} onClick={onCancel}>
 						<Trans>Cancel</Trans>
@@ -121,7 +121,7 @@ export function JobTargetPage({ resumeId }: { resumeId: string }) {
 		<>
 			<PageHeader
 				title={copy("jobs.tailoring.title.compact")}
-				description={copy("jobs.comparison.resultHint")}
+				description={copy("jobs.context.subtitle")}
 				back={
 					<BackNavigation render={<Link to="/dashboard" />}>
 						<Trans>Back to documents</Trans>
@@ -141,20 +141,44 @@ export function JobTargetPage({ resumeId }: { resumeId: string }) {
 				</ReviewNotice>
 			) : cv.data ? (
 				<>
-					<Label htmlFor="job-source">{copy("jobs.baseCv.label")}</Label>
-					<NativeSelect
-						id="job-source"
-						value={resumeId}
-						onChange={(event) =>
-							void navigate({ to: "/dashboard/resumes/$resumeId/job", params: { resumeId: event.target.value } })
-						}
-					>
-						{(documents.data ?? [cv.data]).map((document) => (
-							<option key={document.id} value={document.id}>
-								{document.name}
-							</option>
-						))}
-					</NativeSelect>
+					<SectionCard variant="compact" className="sm:grid-cols-2">
+						<div className="grid min-w-0 content-start gap-2">
+							<Label htmlFor="job-source">{copy("jobs.baseCv.label")}</Label>
+							<NativeSelect
+								id="job-source"
+								directionText={cv.data.name}
+								value={resumeId}
+								onChange={(event) =>
+									void navigate({ to: "/dashboard/resumes/$resumeId/job", params: { resumeId: event.target.value } })
+								}
+							>
+								{(documents.data ?? [cv.data]).map((document) => (
+									<option key={document.id} value={document.id} dir="auto">
+										{document.name}
+									</option>
+								))}
+							</NativeSelect>
+						</div>
+						{evidence.data?.job && !editing && (
+							<div className="grid min-w-0 gap-2">
+								<p className="type-label">
+									<Trans>Job title</Trans>
+								</p>
+								<p className="type-body wrap-anywhere">
+									<bdi dir="auto">{evidence.data.job.role}</bdi>
+									{evidence.data.job.employer && (
+										<>
+											{" "}
+											· <bdi dir="auto">{evidence.data.job.employer}</bdi>
+										</>
+									)}
+								</p>
+								<Button variant="secondary" className="justify-self-start" onClick={() => setEditing(true)}>
+									{copy("jobs.context.change")}
+								</Button>
+							</div>
+						)}
+					</SectionCard>
 					{save.error && (
 						<ReviewNotice retry={() => save.reset()}>
 							<Trans>Could not save the comparison. Your paste is kept. Reload the source if it changed.</Trans>
@@ -174,9 +198,9 @@ export function JobTargetPage({ resumeId }: { resumeId: string }) {
 						/>
 					) : (
 						<JobEvidencePage
+							key={`${resumeId}:${evidence.data.selection.revision}`}
 							resumeId={resumeId}
 							data={evidence.data}
-							onChange={() => setEditing(true)}
 							onRefresh={() => void evidence.refetch()}
 						/>
 					)}

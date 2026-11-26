@@ -102,6 +102,42 @@ async function clickStart(name: string) {
 	fireEvent.click(button);
 }
 
+it("requires one acceptance, then starts another AI feature without opening the consent dialog", async () => {
+	state.remaining = 5;
+	state.reserved = 0;
+	i18n.loadAndActivate({ locale: "en-US", messages: {} });
+	let granted = false;
+	state.grant.mockImplementation(() => {
+		granted = true;
+	});
+	state.notices.mockImplementation(({ purpose, locale }) => [syntheticNotice(purpose, locale, granted)]);
+	const cache = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+	const prepare = async () => ({ sources: [{ kind: "resume" as const, id: "cv", revision: "1" }], parameters: {} });
+	const onStarted = vi.fn();
+	render(
+		<I18nProvider i18n={i18n}>
+			<QueryClientProvider client={cache}>
+				<ReviewLaunch kind="review.wording" prepare={prepare} onStarted={onStarted}>
+					Wording
+				</ReviewLaunch>
+				<ReviewLaunch kind="review.summary" prepare={prepare} onStarted={onStarted}>
+					Summary
+				</ReviewLaunch>
+			</QueryClientProvider>
+		</I18nProvider>,
+	);
+	fireEvent.click(await screen.findByRole("button", { name: "Wording" }));
+	await screen.findByRole("dialog");
+	expect(state.started).not.toHaveBeenCalled();
+	await clickStart("Start review");
+	await waitFor(() => expect(onStarted).toHaveBeenCalledOnce());
+	fireEvent.click(screen.getByRole("button", { name: "Summary" }));
+	await waitFor(() => expect(onStarted).toHaveBeenCalledTimes(2));
+	expect(screen.queryByRole("dialog")).toBeNull();
+	expect(state.grant).toHaveBeenCalledOnce();
+	cache.clear();
+});
+
 it.each([
 	["SAVE_REQUIRED", "saveRequired"],
 	["AI_REVIEW_SAVE_REQUIRED", "saveRequired"],
@@ -155,7 +191,7 @@ it.each(["en-US", "ar-SA"] as const)("names unsupported translation sections and
 		</I18nProvider>,
 	);
 	fireEvent.click(await screen.findByRole("button", { name: "Launch" }));
-	await clickStart(locale === "ar-SA" ? "مراجعة أجزاء الترجمة" : "Review translation parts");
+	await clickStart(locale === "ar-SA" ? "بدء المراجعة" : "Start review");
 	await screen.findByText(
 		locale === "ar-SA"
 			? "لا يمكن ترجمة هذه الأقسام بعد: محتوى قديم, Legacy content. أخفِ هذه الأقسام من السيرة الأصلية والنسخة اللغوية، أو انقل نصها إلى قسم مدعوم في كلتيهما، ثم أعد المحاولة. مسودتك محفوظة."
@@ -238,41 +274,46 @@ it.each(["failed", "cancelled", "waiting_review", "succeeded"])(
 	},
 );
 
-it.each(["review.summary", "review.job-evidence"] as const)(
-	"starts %s through the consent UI with preparation metadata",
-	async (kind) => {
-		state.remaining = 5;
-		state.reserved = 0;
-		i18n.loadAndActivate({ locale: "en-US", messages: {} });
-		const cache = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-		const onStarted = vi.fn();
-		const view = render(
-			<I18nProvider i18n={i18n}>
-				<QueryClientProvider client={cache}>
-					<ReviewLaunch
-						kind={kind}
-						prepare={async () => ({
-							kind,
-							sources: [{ kind: "resume", id: "cv", revision: "revision" }],
-							parameters: {},
-							evidenceIds: ["fact"],
-							contractVersion: "v2",
-						})}
-						onStarted={onStarted}
-					>
-						Launch
-					</ReviewLaunch>
-				</QueryClientProvider>
-			</I18nProvider>,
-		);
-		fireEvent.click(await screen.findByRole("button", { name: "Launch" }));
-		await screen.findByText(/outside Saudi Arabia/);
-		await clickStart("Start review");
-		await waitFor(() => expect(onStarted).toHaveBeenCalledWith("started"));
-		view.unmount();
-		cache.clear();
-	},
-);
+it.each([
+	["review.wording", "ar-SA"],
+	["review.summary", "en-US"],
+	["review.job-evidence", "ar-SA"],
+	["review.tailoring", "en-US"],
+	["review.cover-letter", "ar-SA"],
+	["review.extraction", "en-US"],
+] as const)("starts %s through the consent UI with the %s interface locale", async (kind, locale) => {
+	state.remaining = 5;
+	state.reserved = 0;
+	i18n.loadAndActivate({ locale, messages: locale === "ar-SA" ? arabicMessages : {} });
+	const cache = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+	const onStarted = vi.fn();
+	const view = render(
+		<I18nProvider i18n={i18n}>
+			<QueryClientProvider client={cache}>
+				<ReviewLaunch
+					kind={kind}
+					prepare={async () => ({
+						kind,
+						sources: [{ kind: "resume", id: "cv", revision: "revision" }],
+						parameters: {},
+						evidenceIds: ["fact"],
+						contractVersion: "v2",
+					})}
+					onStarted={onStarted}
+				>
+					Launch
+				</ReviewLaunch>
+			</QueryClientProvider>
+		</I18nProvider>,
+	);
+	fireEvent.click(await screen.findByRole("button", { name: "Launch" }));
+	await screen.findByText(locale === "ar-SA" ? /OpenRouter/ : /outside Saudi Arabia/);
+	await clickStart(locale === "ar-SA" ? "بدء المراجعة" : "Start review");
+	await waitFor(() => expect(onStarted).toHaveBeenCalledWith("started"));
+	expect(state.started).toHaveBeenCalledWith(expect.objectContaining({ parameters: { interfaceLocale: locale } }));
+	view.unmount();
+	cache.clear();
+});
 
 it.each(["failed", "cancelled"])("provides a complete recoverable notice when a review is %s", async (terminal) => {
 	i18n.loadAndActivate({ locale: "en-US", messages: {} });
@@ -318,7 +359,7 @@ it("explains how to recover when independent copy structure prevents translation
 		</I18nProvider>,
 	);
 	fireEvent.click(await screen.findByRole("button", { name: "Translate copy" }));
-	await clickStart("Review translation parts");
+	await clickStart("Start review");
 	expect(
 		await screen.findByText(
 			"The source and language copy have different sections or text blocks. Open the saved CV and align its structure with the source before requesting a translation.",
@@ -479,7 +520,7 @@ it("blocks confirmation and offers recovery when no processing notice loads", as
 	fireEvent.click(await screen.findByRole("button", { name: "Launch" }));
 	expect(await screen.findByText("AI is not available in this environment.")).toBeTruthy();
 	expect(screen.getByRole("button", { name: "Retry" })).toBeEnabled();
-	expect(screen.getByRole("button", { name: "Start review" })).toBeDisabled();
+	expect(screen.queryByRole("button", { name: "Start review" })).not.toBeInTheDocument();
 	expect(prepare).not.toHaveBeenCalled();
 	cache.clear();
 });
@@ -498,6 +539,7 @@ it.each([null, 2, 49])("shows the real allowance for remaining %s", async (remai
 		</I18nProvider>,
 	);
 	fireEvent.click(await screen.findByRole("button", { name: "Launch" }));
+	await screen.findByRole("dialog");
 	expect(screen.queryByText(/5 free operations/)).toBeNull();
 	if (remaining !== null) expect(screen.getByText(`Remaining assistant operations: ${remaining}`)).toBeTruthy();
 	else expect(screen.queryByText(/Remaining assistant operations:/)).toBeNull();
@@ -595,7 +637,7 @@ it.each(["en-US", "ar-SA"] as const)(
 			</I18nProvider>,
 		);
 		fireEvent.click(await screen.findByRole("button", { name: "Launch" }));
-		await clickStart(locale === "ar-SA" ? "مراجعة أجزاء الترجمة" : "Review translation parts");
+		await clickStart(locale === "ar-SA" ? "بدء المراجعة" : "Start review");
 		await screen.findByText(
 			locale === "ar-SA"
 				? "اختصر إعلان الوظيفة أو أطول وصف في سيرتك الذاتية، ثم حاول مرة أخرى. لم تتغير سيرتك الذاتية."
@@ -655,9 +697,7 @@ it.each(["en-US", "ar-SA"] as const)("announces the server's actual review step 
 	expect(screen.getByRole("status")).toHaveTextContent(
 		locale === "ar-SA" ? "الترتيب في قائمة الانتظار: 2" : "Position in queue: 2",
 	);
-	const spinner = view.container.querySelector('[data-slot="alert"] > [data-slot="icon"]');
-	expect(spinner).toHaveClass("animate-spin", "motion-reduce:animate-none");
-	expect(spinner).toHaveAttribute("aria-hidden", "true");
+	expect(view.container.querySelector('[data-slot="review-progress"] > [data-slot="icon"]')).toBeNull();
 	for (const [step, english, arabic] of [
 		["drafting", "Drafting suggestions…", "جارٍ إعداد الاقتراحات…"],
 		["checking", "Checking facts against your CV…", "جارٍ التحقق من المعلومات بمقارنتها بسيرتك الذاتية…"],
@@ -667,11 +707,13 @@ it.each(["en-US", "ar-SA"] as const)("announces the server's actual review step 
 			cache.setQueryData(["operation", "op"], {
 				state: step === "cancelling" ? "cancel_requested" : "running",
 				resultId: null,
-				progress: { step, startedAt, part: 2, total: 3 },
+				progress: { step, startedAt, part: 2, total: 3, completedParts: 1 },
 			});
 		});
 		await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent(locale === "ar-SA" ? arabic : english));
-		expect(screen.getByRole("status")).toHaveTextContent(locale === "ar-SA" ? "الجزء 2 من 3" : "Part 2 of 3");
+		expect(screen.getByRole("progressbar")).toHaveAttribute("value", "1");
+		expect(screen.getByRole("progressbar")).toHaveAttribute("max", "3");
+		expect(screen.getByRole("status").textContent).not.toMatch(/Part 2 of 3|الجزء 2 من 3/u);
 	}
 	expect(screen.getByRole("button", { name: locale === "ar-SA" ? "إلغاء" : "Cancel" })).toBeDisabled();
 	expect(screen.queryByText("Delivered")).toBeNull();
@@ -710,9 +752,10 @@ it.each(["en-US", "ar-SA"] as const)(
 		expect(screen.getByText(locale === "ar-SA" ? "الوقت المنقضي: 5 ث" : "Elapsed: 5s")).toBeTruthy();
 		act(() => vi.advanceTimersByTime(2000));
 		expect(screen.getByText(locale === "ar-SA" ? "الوقت المنقضي: 7 ث" : "Elapsed: 7s")).toBeTruthy();
-		expect(screen.getByRole("status")).toHaveTextContent(
+		expect(screen.getByRole("progressbar")).toHaveAccessibleName(
 			locale === "ar-SA" ? "اكتمل 0 من 3 أجزاء" : "0 of 3 parts complete",
 		);
+		expect(screen.getByText(elapsed)).toHaveAttribute("aria-live", "off");
 		expect(screen.getByRole("status")).toHaveTextContent(
 			locale === "ar-SA" ? "جارٍ إعداد الاقتراحات…" : "Drafting suggestions…",
 		);
@@ -751,9 +794,7 @@ it("uses the operation start time on reload and never invents a batch or step", 
 	expect(screen.getByRole("status")).toHaveTextContent("Checking facts against your CV…");
 	expect(screen.queryByText(/Part \d/)).toBeNull();
 	act(() => cache.setQueryData(["operation", "op"], { state: "running", resultId: null }));
-	await waitFor(() =>
-		expect(screen.getByRole("status")).toHaveTextContent("Your draft is kept while the assistant works."),
-	);
+	await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Review in progress"));
 	expect(screen.queryByText(/Elapsed:/)).toBeNull();
 	expect(screen.queryByText("Drafting suggestions…")).toBeNull();
 	view.unmount();
@@ -761,7 +802,7 @@ it("uses the operation start time on reload and never invents a batch or step", 
 });
 
 it.each(["en-US", "ar-SA"] as const)(
-	"shows nineteen translation parts costing one use to a user with one use left in %s",
+	"admits a nineteen-part translation once after consent with one use left in %s",
 	async (locale) => {
 		state.remaining = 1;
 		state.reserved = 0;
@@ -792,23 +833,12 @@ it.each(["en-US", "ar-SA"] as const)(
 		expect(state.grant).not.toHaveBeenCalled();
 		expect(prepare).not.toHaveBeenCalled();
 		const startLabel = locale === "ar-SA" ? "بدء المراجعة" : "Start review";
-		expect(screen.queryByRole("button", { name: startLabel })).toBeNull();
-		await clickStart(locale === "ar-SA" ? "مراجعة أجزاء الترجمة" : "Review translation parts");
-		await screen.findByText(
-			locale === "ar-SA"
-				? "تتكون هذه الترجمة من 19 أجزاء. يستهلك بدء الترجمة استخدامًا واحدًا للمساعد إجمالًا. إعادة محاولة الأجزاء لا تستهلك استخدامات إضافية. تُطبَّق الأجزاء التي تجتاز التحقق تلقائيًا في النسخة المترجمة. وتبقى الأجزاء التي لم تجتز التحقق بالنص الأصلي."
-				: "This translation has 19 parts. Starting it uses one AI use in total. Retrying parts uses no extra AI uses. Verified parts are applied automatically to the translated copy. Parts that fail verification keep their original text.",
-		);
-		expect(state.preflight).toHaveBeenCalledOnce();
-		expect(state.started).not.toHaveBeenCalled();
-		expect(onStarted).not.toHaveBeenCalled();
 		const start = await screen.findByRole("button", { name: startLabel });
 		fireEvent.click(start);
 		fireEvent.click(start);
 		await waitFor(() => expect(onStarted).toHaveBeenCalledExactlyOnceWith("started"));
 		expect(state.started).toHaveBeenCalledExactlyOnceWith(state.preflight.mock.calls[0]?.[0]);
-		expect(state.preflight).toHaveBeenCalledTimes(2);
-		expect(state.preflight.mock.calls[1]?.[0]).toEqual(state.preflight.mock.calls[0]?.[0]);
+		expect(state.preflight).toHaveBeenCalledOnce();
 		expect(state.grant).toHaveBeenCalledOnce();
 		expect(prepare).toHaveBeenCalledOnce();
 		view.unmount();
@@ -889,7 +919,9 @@ it.each(["en-US", "ar-SA"] as const)(
 		expect(state.preflight).not.toHaveBeenCalled();
 		expect(state.grant).not.toHaveBeenCalled();
 		await waitFor(() =>
-			expect(screen.getByRole("status")).toHaveTextContent(locale === "ar-SA" ? "الجزء 2 من 4" : "Part 2 of 4"),
+			expect(screen.getByRole("progressbar")).toHaveAccessibleName(
+				locale === "ar-SA" ? "اكتمل 0 من 4 أجزاء" : "0 of 4 parts complete",
+			),
 		);
 		expect(screen.queryByText("Delivered")).toBeNull();
 		view.unmount();
@@ -1098,7 +1130,7 @@ it("disables the dialog start when another tab consumes the last use before cons
 			baseCvs: { limit: 1, used: 1 },
 		}),
 	);
-	const start = screen.getByRole("button", { name: "Start review" });
+	const start = await screen.findByRole("button", { name: "Start review" });
 	await waitFor(() => expect(start).toBeDisabled());
 	expect(screen.getByRole("button", { name: "Cancel" })).toBeEnabled();
 	expect(screen.getByRole("dialog")).toHaveTextContent("5 of 5 AI uses used.");

@@ -77,6 +77,18 @@ describe("semantic delivery boundary", () => {
 		).toBe("wording");
 		expect(validateReviewResult(snapshot, { ...wording("unused"), proposals: [] })).toMatchObject({ proposals: [] });
 	});
+	it("drops identical replacements and retains changes to formatting", () => {
+		const output = wording(evidence.quote);
+		expect(validateReviewResult(snapshot, output)).toMatchObject({ proposals: [] });
+		const formatted = {
+			...output,
+			proposals: output.proposals.map((proposal) => ({
+				...proposal,
+				before: `<p><strong>${evidence.quote}</strong></p>`,
+			})),
+		};
+		expect(validateReviewResult(snapshot, formatted)).toMatchObject({ proposals: formatted.proposals });
+	});
 	it("accepts a clarification in either language of a mixed-language passage", () => {
 		const mixedEvidence = {
 			...evidence,
@@ -123,6 +135,13 @@ describe("semantic delivery boundary", () => {
 			questions: [{ id: "q1", target, prompt: "Can you quantify the operational improvement?", evidenceIds: ["e1"] }],
 		};
 		expect(() => validateReviewResult(arabicSnapshot, englishQuestion)).toThrow("AI_WRONG_LANGUAGE");
+		expect(validateReviewResult(arabicSnapshot, englishQuestion, true).questions).toEqual(englishQuestion.questions);
+		const arabicQuestion = {
+			...englishQuestion,
+			evidence: [evidence],
+			questions: [{ id: "q1", target, prompt: "ما التحسن الذي يمكنك قياسه؟", evidenceIds: ["e1"] }],
+		};
+		expect(validateReviewResult(snapshot, arabicQuestion, true).questions).toEqual(arabicQuestion.questions);
 		const englishReason = wording(arabicEvidence.quote);
 		englishReason.evidence = [arabicEvidence];
 		englishReason.proposals = englishReason.proposals.map((proposal) => ({

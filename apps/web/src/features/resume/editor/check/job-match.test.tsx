@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vite-plus/test";
 import { i18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
@@ -29,7 +29,7 @@ afterEach(() => {
 	cleanup();
 	useEditorStore.getState().reset();
 });
-it("keeps matched and unmatched selected-job evidence readable in the editor", () => {
+it("keeps matched and unmatched selected-job evidence readable in the editor", async () => {
 	i18n.load("en", {});
 	i18n.activate("en");
 	useEditorStore.getState().setIdentity({ ownerId: "owner", resumeId: "cv", baseRevision: "v1", editGeneration: 0 });
@@ -57,16 +57,20 @@ it("keeps matched and unmatched selected-job evidence readable in the editor", (
 			<JobMatchTab />
 		</I18nProvider>,
 	);
-	expect(screen.getByText(/1 of 2 selected terms/)).toBeVisible();
-	expect(screen.getByText(/react · Found in CV/)).toBeVisible();
-	expect(screen.getByText(/postgresql · Not found in CV/)).toBeVisible();
-	expect(screen.getByRole("link", { name: /Show in CV:/, hidden: true })).toHaveTextContent("Built React services");
-	expect(screen.getByRole("link", { name: "Compare with a job" })).toBeVisible();
+	const found = screen.getByRole("region", { name: "Already in your CV (1)" });
+	const missing = screen.getByRole("region", { name: "Not in your CV yet (1)" });
+	expect(within(missing).getByText("postgresql")).toBeVisible();
+	const react = within(found).getByRole("button", { name: "react Occurrences: 1" });
+	expect(react).toBeVisible();
+	expect(screen.queryByRole("link", { name: /Show in CV:/ })).not.toBeInTheDocument();
+	fireEvent.click(react);
+	expect(await screen.findByRole("link", { name: /Show in CV:/ })).toHaveTextContent("Built React services");
+	expect(screen.getByRole("link", { name: "Tailor CV for this job" })).toBeVisible();
 	state.current = false;
 	view.rerender(
 		<I18nProvider i18n={i18n}>
 			<JobMatchTab />
 		</I18nProvider>,
 	);
-	expect(screen.queryByText(/1 of 2 selected terms/)).not.toBeInTheDocument();
+	expect(screen.queryByRole("region", { name: "Key terms from the job ad" })).not.toBeInTheDocument();
 });

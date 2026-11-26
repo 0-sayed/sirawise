@@ -6,6 +6,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useId, useRef, useState } from "react";
 import { z } from "zod";
 import { coverLetterOutputSchema } from "@reactive-resume/schema/cover-letter/review";
+import { ActionGroup } from "@reactive-resume/ui/components/action-group";
 import { Button, buttonVariants } from "@reactive-resume/ui/components/button";
 import { Label } from "@reactive-resume/ui/components/label";
 import { NativeSelect } from "@reactive-resume/ui/components/native-select";
@@ -15,6 +16,7 @@ import { useLetterEditorStore } from "./store";
 import { QuerySkeleton } from "@/components/query-skeleton";
 import { useAssistantCopy } from "@/features/assistant/copy.generated";
 import { ReviewLaunch, ReviewNotice, ReviewOperationPanel } from "@/features/resume/editor/proposals/review-operation";
+import { useReviewInterfaceText } from "@/features/resume/variants/review-interface-copy";
 import { AllowanceLimitNotice, getAllowanceReason } from "@/features/usage/allowance-limit";
 import { client } from "@/libs/orpc/client";
 
@@ -33,6 +35,7 @@ export function LetterReview({
 	expectedRevision: number;
 }) {
 	const letter = useLetterEditorStore((state) => state.letter);
+	const interfaceText = useReviewInterfaceText();
 	const review = useQuery({
 		queryKey: ["letter-review", letterId, operationId],
 		queryFn: () => client.coverLetters.getReview({ letterId, operationId }),
@@ -105,7 +108,7 @@ export function LetterReview({
 				))}
 				{result.data.output.notes.map((note) => (
 					<p key={note} dir="auto">
-						{note}
+						{interfaceText(note, "finding")}
 					</p>
 				))}
 			</SectionCard>
@@ -129,14 +132,14 @@ export function LetterReview({
 					</Trans>
 				</ReviewNotice>
 			)}
-			<div className="flex flex-wrap justify-end gap-2">
-				<Button variant="secondary" disabled={decision.isPending} onClick={() => decision.mutate("reject")}>
-					<Trans>Reject proposal</Trans>
-				</Button>
+			<ActionGroup responsive="stack">
 				<Button disabled={decision.isPending || letter?.id !== letterId} onClick={() => decision.mutate("accept")}>
 					<Trans>Accept proposal</Trans>
 				</Button>
-			</div>
+				<Button variant="secondary" disabled={decision.isPending} onClick={() => decision.mutate("reject")}>
+					<Trans>Reject proposal</Trans>
+				</Button>
+			</ActionGroup>
 		</div>
 	);
 }

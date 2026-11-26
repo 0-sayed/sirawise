@@ -100,12 +100,12 @@ export function CheckPanel({ phone = false, active = true }: { phone?: boolean; 
 						</TabsTrigger>
 						<TabsTrigger
 							data-review-tab="ai"
-							aria-label={`${i18n._(reviewTabs[2].label)} ${ai.pendingCount ?? t`AI unavailable`}`}
+							aria-label={`${i18n._(reviewTabs[2].label)}${ai.pendingCount === 0 ? "" : ` ${ai.pendingCount ?? t`AI unavailable`}`}`}
 							value="ai"
 						>
 							<Icon name={reviewTabs[2].icon} />
 							<span data-review-label>{i18n._(reviewTabs[2].label)}</span>{" "}
-							{typeof ai.pendingCount === "number" ? <TabsCount>{ai.pendingCount}</TabsCount> : null}
+							{ai.pendingCount ? <TabsCount>{ai.pendingCount}</TabsCount> : null}
 						</TabsTrigger>
 					</TabsList>
 					{tab !== "ai" && (

@@ -4,7 +4,7 @@ import { expect, it } from "vite-plus/test";
 import { z } from "zod";
 import fixture from "./testing/fixtures/job-evidence-redundant-verdicts.json";
 import { loadSafetyCases } from "./testing/pipeline-safety-fixtures";
-import { variantReviewHandlers } from "./variant-handlers";
+import { prepareJobEvidenceCandidate, variantReviewHandlers } from "./variant-handlers";
 import { buildJobAdSegments } from "./variant-sources";
 import { validateAndFilterVariantOutput, validateVariantOutput } from "./variant-validation";
 import {
@@ -349,4 +349,83 @@ it("prevents a checker from attaching a rejection class to a supported absence p
 		false,
 	);
 	expect(JSON.stringify(z.toJSONSchema(schema))).toContain('"anyOf"');
+});
+
+it("keeps distinct qualifications from one pasted line, drops exact repeats and binds preference to its heading", () => {
+	const ad = [
+		"What you’ll bring",
+		"At least 5 years building production software. You’ve launched one application from scratch.",
+		"At least 5 years building production software.",
+		"Nice to have",
+		"Published to an app store.",
+		"What we offer",
+		"Flexible hours.",
+	].join("\n");
+	const segments = buildJobAdSegments("j1", "r1", ad, "requirements-v2");
+	expect(segments.map(({ text }) => text)).toEqual([
+		"What you’ll bring",
+		"At least 5 years building production software.",
+		"You’ve launched one application from scratch.",
+		"Nice to have",
+		"Published to an app store.",
+		"What we offer",
+		"Flexible hours.",
+	]);
+	expect(segments.find(({ text }) => text === "Published to an app store.")).toMatchObject({ heading: "Nice to have" });
+	expect(segments.find(({ text }) => text === "Flexible hours.")).toMatchObject({ heading: "What we offer" });
+	const legacy = buildJobAdSegments("j1", "r1", ad);
+	expect(legacy[1]?.text).toBe(
+		"At least 5 years building production software. You’ve launched one application from scratch.",
+	);
+	expect(legacy[2]?.text).toBe("At least 5 years building production software.");
+});
+
+it("sends a scoped absence to the verifier and preserves the cited job heading", () => {
+	const ad = "Nice to have\nPublished to an app store.";
+	const segments = buildJobAdSegments("j1", "r1", ad, "requirements-v2");
+	const span = segments.find(({ heading }) => heading === "Nice to have");
+	if (!span) throw new Error("Missing job requirement");
+	const source: VariantSnapshot = {
+		category: "job-evidence",
+		resumeId: "cv",
+		sourceRevision: "r1",
+		cv: [],
+		jobAd: { segments, version: "requirements-v2" },
+	};
+	const prepared = prepareJobEvidenceCandidate(
+		source,
+		{
+			requirements: [
+				{
+					id: "req-01",
+					spanIds: [span.id],
+					importance: "preferred",
+					verdict: "no_evidence",
+					evidenceIds: [],
+					explanation: "لا يوجد في هذه السيرة الذاتية دليل على نشر تطبيق في متجر تطبيقات.",
+				},
+			],
+			notes: [],
+		},
+		{ maxInputCodePoints: 32000, maxOutputTokens: 4096 },
+	);
+	expect(prepared.output.requirements[0]?.explanation).toBe("لا تثبت المقاطع المختارة من السيرة الذاتية هذا المتطلب.");
+	const { batches } = planVariantVerificationBatches(prepared.snapshot, prepared.output);
+	const context = batches[0]?.payload.selections.find(
+		(selection) => "id" in selection && selection.id === "variant-job-context",
+	);
+	expect(JSON.parse(context?.text ?? "null").segments).toEqual([
+		expect.objectContaining({ id: span.id, text: "Nice to have: Published to an app store." }),
+	]);
+	expect(() =>
+		filterVariantVerification(prepared.snapshot, prepared.output, {
+			schemaVersion: 2,
+			retention: null,
+			verdicts: [],
+			premises: [{ id: "requirement:req-01", verdict: "supported", issueClass: null, reason: "Scoped wording" }],
+			absence: [],
+			coverage: { status: "complete", reason: "All assertions checked" },
+			quality: { status: "appropriate", reason: "Correct scope" },
+		}),
+	).toThrow("AI_VERIFICATION_INCOMPLETE");
 });

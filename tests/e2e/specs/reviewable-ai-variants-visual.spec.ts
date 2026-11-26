@@ -72,11 +72,19 @@ for (const locale of ["ar-SA", "en-US"] as const)
 			).toBeOK();
 			await page.goto(`/dashboard/resumes/${id}/languages`);
 			await page.getByRole("button", { name: /^(Compare with original|مقارنة بالأصل)$/u }).click();
-			await page.getByRole("button", { name: /^(Summary|الملخّص)\s/u }).click();
-			const before = page.locator("blockquote").and(page.getByText(original, { exact: true }));
-			const after = page.locator('p[dir="auto"]').and(page.getByText(translated, { exact: true }));
-			await expectReviewTextDirection(before, ar ? "ltr" : "rtl");
-			await expectReviewTextDirection(after, ar ? "rtl" : "ltr");
+			const previewSummary = page.locator("details").filter({
+				has: page.locator("summary").filter({ hasText: /^(Summary|الملخّص)/u }),
+			});
+			await expect(previewSummary).toHaveAttribute("open", "");
+			const before = previewSummary.locator("blockquote").filter({ has: page.getByText(original, { exact: true }) });
+			const after = previewSummary
+				.locator(ar ? 'p[dir="rtl"]' : 'p[dir="ltr"]')
+				.filter({ has: page.getByText(translated, { exact: true }) });
+			await expect(before).toHaveAttribute("dir", "auto");
+			await expect(before).toHaveCSS("text-align", "start");
+			await expect(before.locator("bdi")).toHaveCSS("direction", ar ? "ltr" : "rtl");
+			await expect(after).toHaveCSS("direction", ar ? "rtl" : "ltr");
+			await expect(after).toHaveCSS("text-align", "start");
 			await before.scrollIntoViewIfNeeded();
 			await captureReviewDirection(page, info, "translation");
 		});
@@ -98,9 +106,21 @@ for (const locale of ["en-US", "ar-SA"] as const)
 			await launchTailoringReview(page, copyId);
 			const proposals = page.locator("[data-proposal-index]");
 			await expect(proposals).toHaveCount(3, { timeout: 30000 });
-			const passages = proposals.first().locator('.review-wording > [dir="auto"]');
-			await expect(passages).toHaveCount(3);
-			for (const passage of await passages.all()) await expectReviewTextDirection(passage, ar ? "ltr" : "rtl");
+			const passages = proposals.first().locator('.review-wording p[dir="auto"]');
+			await expect(passages).toHaveCount(1);
+			await expectReviewTextDirection(passages, ar ? "ltr" : "rtl");
+			const changes = page.getByRole("radio", { name: ar ? "عرض التغييرات" : "Show changes", exact: true });
+			const final = page.getByRole("radio", { name: ar ? "عرض النص النهائي" : "Show final", exact: true });
+			await expect(changes).toBeChecked();
+			await final.click();
+			await expect(proposals.locator(".review-wording ins, .review-wording del")).toHaveCount(0);
+			await changes.click();
+			await expect(proposals.first().locator(".review-wording ins")).toBeVisible();
+			await proposals.first().focus();
+			await page.keyboard.press("ArrowDown");
+			await expect(proposals.nth(1)).toBeFocused();
+			await page.keyboard.press("ArrowUp");
+			await expect(proposals.first()).toBeFocused();
 			await proposals.first().scrollIntoViewIfNeeded();
 			await settleScreen(page);
 			await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar-SA" ? "rtl" : "ltr");
@@ -142,7 +162,7 @@ for (const locale of ["en-US", "ar-SA"] as const)
 				jobRevision: job.revision,
 				expectedSelectionRevision: selected.revision,
 			});
-			await launchTailoringReview(page, copyId);
+			await launchTailoringReview(page, copyId, true);
 			const failureDescription = ar
 				? "لم تُكمل خدمة الذكاء الاصطناعي هذه المراجعة. مسودتك محفوظة. قد تنجح إعادة المحاولة بعد عطل مؤقت في الخدمة."
 				: "The AI service did not finish this review. Your draft is kept. Retry can help after a temporary service failure.";
@@ -157,7 +177,11 @@ for (const locale of ["en-US", "ar-SA"] as const)
 			await settleScreen(page);
 			expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 			await page.screenshot({ path: info.outputPath("failed-review.png"), fullPage: true });
+			const retry = page.waitForResponse((response) =>
+				/^\/api\/rpc\/ai\/operations\/start(?:\/__batch__)?$/u.test(new URL(response.url()).pathname),
+			);
 			await notice.getByRole("button", { name: /^(Retry|إعادة المحاولة)$/u }).click();
-			expect((await api.ai.usage.get()).operations).toMatchObject({ used: 1, reserved: 0 });
+			expect((await retry).ok()).toBe(true);
+			await expect.poll(async () => (await api.ai.usage.get()).operations).toMatchObject({ used: 1, reserved: 0 });
 			expect((await api.resume.getById({ id: sourceId })).data).toEqual(original.data);
 		});

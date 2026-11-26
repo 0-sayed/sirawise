@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { sourceRevisionSchema } from "../ai-operation";
-import { reviewDecisionViewSchema } from "./ai-review";
+import { questionAnswersSchema, reviewDecisionViewSchema } from "./ai-review";
 import { resumeDataSchema } from "./data";
 import {
 	jobEvidenceSchema,
@@ -26,10 +26,29 @@ export const variantOperationKindSchema = z.enum([
 	"review.summary",
 ]);
 export type VariantOperationKind = z.infer<typeof variantOperationKindSchema>;
+const clarificationContinuation = {
+	continuationOf: id.optional(),
+	answerIds: z
+		.array(id)
+		.min(1)
+		.max(9)
+		.refine((ids) => new Set(ids).size === ids.length)
+		.optional(),
+};
 const operationCommon = { resumeId: id, expectedUpdatedAt: z.iso.datetime() };
-const operationJob = { ...operationCommon, jobId: id, jobRevision: id, expectedSelectionRevision: z.iso.datetime() };
+const operationJob = {
+	...operationCommon,
+	jobId: id,
+	jobRevision: id,
+	expectedSelectionRevision: z.iso.datetime(),
+	interfaceLocale: documentLocaleSchema.optional(),
+};
 export const variantOperationParameters = {
-	"review.job-evidence": z.strictObject(operationJob),
+	"review.job-evidence": z.strictObject({
+		...operationJob,
+		...clarificationContinuation,
+		jobSpanVersion: z.literal("requirements-v2").optional(),
+	}),
 	"review.tailoring": z.strictObject(operationJob),
 	"review.translation": z.strictObject({
 		...operationCommon,
@@ -41,11 +60,14 @@ export const variantOperationParameters = {
 				total: z.number().int().positive(),
 				planVersion: z.literal("compact-v1").optional(),
 				planHash: z.string().regex(/^[a-f0-9]{64}$/u),
+				retrySegmentIds: z.array(id).min(1).max(49).optional(),
 			})
 			.optional(),
 	}),
 	"review.summary": z.strictObject({
 		...operationCommon,
+		...clarificationContinuation,
+		interfaceLocale: documentLocaleSchema.optional(),
 		selectedEvidenceIds: z
 			.array(id)
 			.min(1)
@@ -54,16 +76,26 @@ export const variantOperationParameters = {
 	}),
 } as const;
 export const prepareVariantReviewInputSchema = z.discriminatedUnion("kind", [
-	variantOperationParameters["review.job-evidence"].extend({ kind: z.literal("review.job-evidence") }),
+	variantOperationParameters["review.job-evidence"]
+		.omit({ jobSpanVersion: true, continuationOf: true, answerIds: true })
+		.extend({ kind: z.literal("review.job-evidence") }),
 	variantOperationParameters["review.tailoring"].extend({ kind: z.literal("review.tailoring") }),
 	variantOperationParameters["review.translation"]
 		.omit({ translationBatch: true })
 		.extend({ kind: z.literal("review.translation") }),
-	variantOperationParameters["review.summary"].extend({ kind: z.literal("review.summary") }),
+	variantOperationParameters["review.summary"]
+		.omit({ continuationOf: true, answerIds: true })
+		.extend({ kind: z.literal("review.summary") }),
 ]);
 const copyFields = { sourceResumeId: id, expectedUpdatedAt: z.iso.datetime(), requestKey: id };
 export const createVariantInputSchema = z.discriminatedUnion("variantKind", [
-	z.strictObject({ ...copyFields, variantKind: z.literal("job"), jobId: id, jobRevision: id }),
+	z.strictObject({
+		...copyFields,
+		variantKind: z.literal("job"),
+		jobId: id,
+		jobRevision: id,
+		review: z.strictObject({ operationId: id, decisionId: id }).optional(),
+	}),
 	z.strictObject({ ...copyFields, variantKind: z.literal("language"), targetLocale: documentLocaleSchema }),
 ]);
 export type CreateVariantInput = z.infer<typeof createVariantInputSchema>;
@@ -318,13 +350,25 @@ export type VariantDecisionPayload = z.infer<typeof variantDecisionPayloadSchema
 export const variantReviewViewSchema = z
 	.strictObject({
 		beforeSummary: z.string().max(32000),
+		beforeOrder: tailoringOutputSchema.shape.order.optional(),
 		answeredQuestionIds: z.array(id).max(100),
+		questionAnswers: questionAnswersSchema.optional(),
+		remainingAnswerSlots: z.number().int().nonnegative().optional(),
+		continued: z.boolean().optional(),
 		dismissedQuestionIds: z.array(id).max(100),
 		result: variantReviewResultSchema,
 		statuses: variantDecisionViewSchema.shape.statuses,
 		terms: variantTerminologySchema,
 		segments: variantDecisionPayloadSchema.shape.segments,
-		sourceSegments: z.array(z.strictObject({ id, text: z.string() })),
+		sourceSegments: z.array(
+			z.strictObject({
+				id,
+				text: z.string(),
+				untranslated: z
+					.strictObject({ partIndex: z.number().int().nonnegative().optional(), reason: z.string().optional() })
+					.optional(),
+			}),
+		),
 		updatedAt: z.iso.datetime(),
 		latestDecisionId: id.nullable(),
 		stale: z.boolean(),
@@ -341,3 +385,4 @@ export const variantReviewViewSchema = z
 				});
 		});
 	});
+export type VariantReviewView = z.infer<typeof variantReviewViewSchema>;

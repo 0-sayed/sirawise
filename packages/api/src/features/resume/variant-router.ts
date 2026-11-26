@@ -6,6 +6,7 @@ import {
 } from "@reactive-resume/schema/resume/variants";
 import { protectedProcedure } from "../../context";
 import { resumeMutationRateLimit } from "../../middleware/rate-limit";
+import { createReviewedJobVariant } from "../ai/variant-decisions";
 import { createVariant, getVariantFreshness, listVariants } from "./variants";
 
 export const variantsRouter = {
@@ -16,12 +17,19 @@ export const variantsRouter = {
 			tags: ["Internal"],
 			operationId: "listResumeVariants",
 		})
-		.input(z.strictObject({ resumeId: z.string().min(1).max(200) }))
+		.input(
+			z.strictObject({
+				resumeId: z.string().min(1).max(200),
+				job: z.strictObject({ jobId: z.string().min(1).max(200), jobRevision: z.string().min(1).max(200) }).optional(),
+			}),
+		)
 		.output(
 			z.array(
 				z.strictObject({
 					resumeId: z.string(),
 					name: z.string(),
+					jobId: z.string().nullable(),
+					tailoringDecisionId: z.string().nullable(),
 					variantKind: z.enum(["base", "job", "language"]),
 					sourceResumeId: z.string().nullable(),
 					documentLocale: z.string(),
@@ -31,13 +39,17 @@ export const variantsRouter = {
 				}),
 			),
 		)
-		.handler(({ context, input }) => listVariants(context.user.id, input.resumeId)),
+		.handler(({ context, input }) => listVariants(context.user.id, input.resumeId, input.job)),
 	create: protectedProcedure
 		.use(resumeMutationRateLimit)
 		.route({ method: "POST", path: "/resumes/variants", tags: ["Internal"], operationId: "createResumeVariant" })
 		.input(createVariantInputSchema)
 		.output(variantViewSchema)
-		.handler(({ context, input }) => createVariant(context.user.id, input)),
+		.handler(({ context, input }) =>
+			input.variantKind === "job" && input.review
+				? createReviewedJobVariant(context.user.id, input)
+				: createVariant(context.user.id, input),
+		),
 	freshness: protectedProcedure
 		.route({
 			method: "GET",

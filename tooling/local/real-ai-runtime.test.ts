@@ -9,10 +9,7 @@ import {
 	getOperationHandler,
 	withAiRuntime,
 } from "@reactive-resume/api/features/ai/route-policy";
-import {
-	jobEvidenceCandidateContract,
-	translationCandidateContract,
-} from "@reactive-resume/api/features/ai/variant-contracts";
+import { jobEvidenceCandidateContract } from "@reactive-resume/api/features/ai/variant-contracts";
 import {
 	resolveReviewVerifierRoute,
 	resolveReviewVerifierRoutes,
@@ -24,10 +21,15 @@ it("selects the candidate contracts and approved verifier limits for local reque
 	const environment = { NODE_ENV: "development", OPENROUTER_API_KEY: "fake-local-only" };
 	const baseline = createRealAiRuntime(environment);
 	const runtime = createRealAiRuntime({ ...environment, LOCAL_REAL_AI_PIPELINES: "candidates" });
+	expect(baseline.handlers["review.translation"]).toMatchObject({ translationPlanVersion: "compact-v1" });
+	expect(baseline.handlers["review.translation"]?.verifier).toBeUndefined();
+	expect(runtime.handlers["review.translation"]?.promptVersion).toBe(
+		baseline.handlers["review.translation"]?.promptVersion,
+	);
+	expect(runtime.handlers["review.translation"]?.verifier).toBeUndefined();
 	const route = runtime.routes[0];
 	if (!route) throw new Error("Missing local route");
 	for (const [kind, contract] of [
-		["review.translation", translationCandidateContract],
 		["review.job-evidence", jobEvidenceCandidateContract],
 		["review.extraction", extractionCandidateHandler],
 	] as const) {
@@ -43,8 +45,11 @@ it("selects the candidate contracts and approved verifier limits for local reque
 		});
 		const writer = resolveWriterRoute(route, { kind, parameters: {} });
 		const { primary, backup } = resolveReviewVerifierRoutes(writer, kind);
-		expect(primary).toMatchObject({ maxOutputTokens: 16384, maxCallCostMicros: 100000 });
-		expect(completionTokenLimit(primary)).toBe(20480);
+		expect(primary).toMatchObject({
+			maxOutputTokens: kind === "review.job-evidence" ? 9830 : 16384,
+			maxCallCostMicros: 100000,
+		});
+		expect(completionTokenLimit(primary)).toBe(kind === "review.job-evidence" ? 12288 : 20480);
 		expect(backup).toBeUndefined();
 	}
 });
@@ -95,8 +100,9 @@ it("registers every implemented local review task without enabling benchmark-onl
 		model: "openai/gpt-6.1-terra",
 		reasoningEffort: "medium",
 	});
-	for (const kind of ["review.summary", "review.tailoring", "review.translation", "review.cover-letter"])
+	for (const kind of ["review.summary", "review.tailoring", "review.cover-letter"])
 		expect(runtime.handlers[kind]?.verifier).toBeDefined();
+	expect(runtime.handlers["review.translation"]?.verifier).toBeUndefined();
 });
 
 it.each([

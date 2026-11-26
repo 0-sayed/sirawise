@@ -240,10 +240,14 @@ export const reviewAnswerInputSchema = z.strictObject({
 export type ReviewAnswerInput = z.infer<typeof reviewAnswerInputSchema>;
 
 export const reviewQuestionDismissalSchema = z.strictObject({ operationId: id, questionId: id, requestKey: id });
+export const questionAnswersSchema = z.array(z.strictObject({ questionId: id, evidence: reviewEvidenceSchema }));
+
 export const reviewViewSchema = z.strictObject({
 	result: reviewResultSchema,
 	statuses: z.record(z.string(), z.enum(["pending", "accepted", "rejected"])),
 	answers: z.array(reviewEvidenceSchema),
+	questionAnswers: questionAnswersSchema.optional(),
+	remainingAnswerSlots: z.number().int().nonnegative().optional(),
 	dismissedQuestionIds: z.array(id),
 	answeredQuestionIds: z.array(id),
 	undoable: z.array(

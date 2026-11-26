@@ -54,15 +54,27 @@ async function variantView(tx: OwnerTransaction, ownerId: string, resumeId: stri
 	};
 }
 
-export function createVariant(ownerId: string, raw: CreateVariantInput) {
+const tailoringCopyPrefix = "tailoring-copy:";
+
+export function createVariant(
+	ownerId: string,
+	raw: CreateVariantInput,
+	resolveReviewedData?: (tx: OwnerTransaction) => Promise<ResumeData>,
+) {
 	const input = createVariantInputSchema.parse(raw);
-	const requestHash = createHash("sha256").update(JSON.stringify(input)).digest("hex");
+	const review = input.variantKind === "job" ? input.review : undefined;
+	if (Boolean(review) !== Boolean(resolveReviewedData)) throw new ORPCError("BAD_REQUEST");
+	const requestKey = review ? tailoringCopyPrefix + review.decisionId : input.requestKey;
+	if (!review && requestKey.startsWith(tailoringCopyPrefix)) throw new ORPCError("BAD_REQUEST");
+	const requestHash = createHash("sha256")
+		.update(JSON.stringify({ ...input, requestKey }))
+		.digest("hex");
 	return withOwnerDatabase(ownerId, async (tx) => {
 		await lockDocumentOwner(tx, ownerId);
 		const [replay] = await tx
 			.select()
 			.from(resumeVariantSource)
-			.where(and(eq(resumeVariantSource.userId, ownerId), eq(resumeVariantSource.requestKey, input.requestKey)));
+			.where(and(eq(resumeVariantSource.userId, ownerId), eq(resumeVariantSource.requestKey, requestKey)));
 		if (replay) {
 			if (replay.requestHash !== requestHash)
 				throw new ORPCError("CONFLICT", { data: { reason: "REQUEST_KEY_REUSED" } });
@@ -84,7 +96,7 @@ export function createVariant(ownerId: string, raw: CreateVariantInput) {
 			userId: ownerId,
 			name: source.name,
 			tags: source.tags,
-			data: structuredClone(source.data),
+			data: resolveReviewedData ? await resolveReviewedData(tx) : structuredClone(source.data),
 			locale: source.data.metadata.page.locale as "en-US" | "ar-SA",
 			creation: { variantKind: input.variantKind, baseResumeId: source.id },
 		});
@@ -98,8 +110,9 @@ export function createVariant(ownerId: string, raw: CreateVariantInput) {
 			resumeId: id,
 			sourceResumeId: source.id,
 			sourceRevision: source.updatedAt.toISOString(),
-			requestKey: input.requestKey,
+			requestKey,
 			requestHash,
+			...(review ? { acceptedSourceRevision: source.updatedAt.toISOString() } : {}),
 			targetLocale: input.variantKind === "language" ? input.targetLocale : null,
 			jobId: input.variantKind === "job" ? input.jobId : null,
 			jobRevision: input.variantKind === "job" ? input.jobRevision : null,
@@ -166,7 +179,7 @@ export function getVariantFreshness(ownerId: string, resumeId: string) {
 }
 
 /** One owner-scoped family; a language switch never changes the selected document. */
-export function listVariants(ownerId: string, resumeId: string) {
+export function listVariants(ownerId: string, resumeId: string, job?: { jobId: string; jobRevision: string }) {
 	return withOwnerDatabase(ownerId, async (tx) => {
 		const [selected] = await tx
 			.select()
@@ -188,14 +201,31 @@ export function listVariants(ownerId: string, resumeId: string) {
 					.select()
 					.from(resumeVariantSource)
 					.where(and(eq(resumeVariantSource.userId, ownerId), eq(resumeVariantSource.resumeId, cv.id)));
+				const [selection] =
+					cv.variantKind === "job"
+						? await tx
+								.select({ jobId: resumeJobSelection.jobId })
+								.from(resumeJobSelection)
+								.where(and(eq(resumeJobSelection.userId, ownerId), eq(resumeJobSelection.resumeId, cv.id)))
+						: [];
 				const [operation] = await tx
 					.select()
 					.from(aiOperation)
 					.where(
 						and(
 							eq(aiOperation.userId, ownerId),
-							eq(aiOperation.kind, cv.variantKind === "language" ? "review.translation" : "review.tailoring"),
-							sql`${aiOperation.sources} @> ${JSON.stringify([{ kind: "resume", id: cv.id }])}::jsonb`,
+							eq(
+								aiOperation.kind,
+								cv.variantKind === "language" && !(job && cv.id === resumeId)
+									? "review.translation"
+									: "review.tailoring",
+							),
+							cv.variantKind === "language" && !(job && cv.id === resumeId)
+								? sql`${aiOperation.sources} @> ${JSON.stringify([{ kind: "resume", id: cv.id }])}::jsonb`
+								: sql`${aiOperation.parameters}->>'resumeId' = ${cv.id}`,
+							job && cv.id === resumeId
+								? sql`${aiOperation.parameters}->>'jobId' = ${job.jobId} and ${aiOperation.parameters}->>'jobRevision' = ${job.jobRevision}`
+								: undefined,
 						),
 					)
 					.orderBy(desc(aiOperation.createdAt), desc(aiOperation.id))
@@ -203,6 +233,10 @@ export function listVariants(ownerId: string, resumeId: string) {
 				return {
 					resumeId: cv.id,
 					name: cv.name,
+					jobId: selection?.jobId ?? provenance?.jobId ?? null,
+					tailoringDecisionId: provenance?.requestKey.startsWith(tailoringCopyPrefix)
+						? provenance.requestKey.slice(tailoringCopyPrefix.length)
+						: null,
 					variantKind: cv.variantKind,
 					sourceResumeId: provenance?.sourceResumeId ?? null,
 					documentLocale: cv.data.metadata.page.locale,

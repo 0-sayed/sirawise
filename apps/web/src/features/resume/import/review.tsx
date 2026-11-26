@@ -12,6 +12,7 @@ import { Alert, AlertTitle, AlertDescription, AlertActions } from "@reactive-res
 import { Button } from "@reactive-resume/ui/components/button";
 import { Icon } from "@reactive-resume/ui/components/icon";
 import { SectionCard, SectionCardHeader, SectionCardRow } from "@reactive-resume/ui/components/section-card";
+import { StickyActions } from "@reactive-resume/ui/components/sticky-actions";
 import { Tabs, TabsList, TabsTrigger } from "@reactive-resume/ui/components/tabs";
 import { cn } from "@reactive-resume/utils/style";
 import { EntryFields } from "../editor/write/entries";
@@ -562,7 +563,36 @@ export function ImportReview({
 			</Button>
 		) : null;
 	return (
-		<div className="grid min-w-0 gap-4">
+		<StickyActions
+			hint={reviewRequired && <p className="type-metadata text-ink-2">{copy("review.import.confirmBeforeCreate")}</p>}
+			actions={
+				<>
+					<Button
+						loading={busy}
+						disabled={!!baseCvLimit || needsReconciliation || reviewRequired}
+						onClick={() => void confirm()}
+					>
+						{savingCareer ? (
+							<Trans context="review.import.saveAndContinue">Create CV and save career information</Trans>
+						) : (
+							<Trans context="review.import.createOnly">Create CV only</Trans>
+						)}
+					</Button>
+					{pdfReview && !reviewRequired && !submitted && savingCareer && (
+						<Button
+							variant="secondary"
+							disabled={busy || !!baseCvLimit || needsReconciliation}
+							onClick={() => void confirm(undefined, false)}
+						>
+							<Trans context="review.import.createOnly">Create CV only</Trans>
+						</Button>
+					)}
+					<Button variant="secondary" disabled={busy} onClick={onBack}>
+						<Trans>Cancel</Trans>
+					</Button>
+				</>
+			}
+		>
 			{pages && (
 				<fieldset disabled={busy || submitted} className="min-w-0">
 					<ImportAssistance
@@ -1080,34 +1110,7 @@ export function ImportReview({
 					</AlertActions>
 				</Alert>
 			)}
-
-			<footer className="flex flex-wrap justify-end gap-3 border-t border-line pt-4">
-				{reviewRequired && <p className="type-meta w-full text-ink-2">{copy("review.import.confirmBeforeCreate")}</p>}
-				<Button variant="secondary" disabled={busy} onClick={onBack}>
-					<Trans>Cancel</Trans>
-				</Button>
-				{pdfReview && !reviewRequired && !submitted && savingCareer && (
-					<Button
-						variant="secondary"
-						disabled={busy || !!baseCvLimit || needsReconciliation}
-						onClick={() => void confirm(undefined, false)}
-					>
-						<Trans context="review.import.createOnly">Create CV only</Trans>
-					</Button>
-				)}
-				<Button
-					loading={busy}
-					disabled={!!baseCvLimit || needsReconciliation || reviewRequired}
-					onClick={() => void confirm()}
-				>
-					{savingCareer ? (
-						<Trans context="review.import.saveAndContinue">Create CV and save career information</Trans>
-					) : (
-						<Trans context="review.import.createOnly">Create CV only</Trans>
-					)}
-				</Button>
-			</footer>
-		</div>
+		</StickyActions>
 	);
 }
 

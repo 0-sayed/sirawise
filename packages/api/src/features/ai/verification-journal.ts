@@ -143,6 +143,7 @@ export function readVerificationJournal(raw: Record<string, unknown> | null) {
 		const canRetryPrimary =
 			prior &&
 			(isVerificationTruncation(prior) ||
+				(prior.outcome === "unknown" && prior.failure?.abortCause === "call_timeout") ||
 				(prior.outcome === "transient" &&
 					(prior.costMicros !== null || typeof prior.output?._verificationFailureRule === "string")));
 		const canUseBackup =

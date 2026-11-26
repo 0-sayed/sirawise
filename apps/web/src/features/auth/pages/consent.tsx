@@ -83,12 +83,9 @@ export function OAuthConsentPage({ oauthQuery, email }: OAuthConsentPageProps) {
 				<QuerySkeleton shape="form" label={<Trans>Loading connection request...</Trans>} />
 			) : client ? (
 				<div className={cn(ENTER_CLASS, "space-y-4")}>
-					<div className="space-y-1 wrap-anywhere">
-						<p className="font-medium">{client.client_name || clientId}</p>
-						<p className="type-metadata text-ink-3">
-							<Trans>Client ID</Trans>: {clientId}
-						</p>
-					</div>
+					<p className="font-medium wrap-anywhere">
+						<bdi dir="auto">{client.client_name?.trim() || t`Unknown application`}</bdi>
+					</p>
 					<p className="type-body">
 						<Trans>Only allow applications you trust. This application will be able to:</Trans>
 					</p>

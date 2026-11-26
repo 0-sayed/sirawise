@@ -257,6 +257,7 @@ export async function loadBoundReviewAnswer(
 	answer: SourceRevision,
 	resumeSource: SourceRevision,
 	targets: ProposalTarget[],
+	allowReviewScope = false,
 ): Promise<ReviewSourceSnapshot> {
 	const loaded = await loadReviewSource(tx, ownerId, answer);
 	const [parent] = await tx
@@ -279,7 +280,7 @@ export async function loadBoundReviewAnswer(
 		loaded.evidence.length !== 1 ||
 		!loaded.evidence.every((entry) => {
 			const answerTarget = entry.target;
-			return answerTarget && targets.some((target) => sameReviewTarget(answerTarget, target));
+			return answerTarget ? targets.some((target) => sameReviewTarget(answerTarget, target)) : allowReviewScope;
 		})
 	)
 		throw new Error("AI_SOURCE_BINDING");

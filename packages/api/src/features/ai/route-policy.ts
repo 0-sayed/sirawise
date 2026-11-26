@@ -9,9 +9,10 @@ import type { z } from "zod";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { createHash } from "node:crypto";
 import { ORPCError } from "@orpc/client";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import { withOwnerDatabase } from "@reactive-resume/db/owner-scope";
 import { aiProcessingConsent } from "@reactive-resume/db/schema";
+import { accountProcessingNotice } from "./processing-scope";
 import { resolveReviewVerifierRoutes } from "./verifier-policy";
 import { resolveWriterRoute } from "./writer-policy";
 
@@ -202,6 +203,8 @@ export type AiRuntime = {
 	writerConfig?: unknown;
 	/** Local composition only; ignored in production. Never configured by a public request. */
 	localOwnerAllowance?: { ownerId: string; limit: number } | undefined;
+	/** Local compatibility for per-feature grants issued before the shared notice. */
+	legacyFeatureConsentVersion?: string;
 	routes: readonly ApprovedRoute[];
 	handlers: Readonly<Record<string, OperationHandler>>;
 	historicalHandlers?: Readonly<Record<string, readonly OperationHandler[]>>;
@@ -257,6 +260,8 @@ export async function resolveApprovedRoute(
 			r.configRevision === request.route.configRevision,
 	);
 	if (!route || route.noticeVersion !== request.consentVersion || !route.evidenceVersion) denyAiProcessing();
+	const consentPurposes = accountProcessingNotice(route, runtime).grantPurposes(request.kind);
+	if (!consentPurposes.length) denyAiProcessing();
 	if (
 		!Number.isSafeInteger(route.callTimeoutMs) ||
 		route.callTimeoutMs <= 0 ||
@@ -332,7 +337,7 @@ export async function resolveApprovedRoute(
 					eq(aiProcessingConsent.routeRevision, request.route.routeRevision),
 					eq(aiProcessingConsent.configRevision, request.route.configRevision),
 					eq(aiProcessingConsent.noticeVersion, request.consentVersion),
-					eq(aiProcessingConsent.purpose, request.kind),
+					inArray(aiProcessingConsent.purpose, consentPurposes),
 					isNull(aiProcessingConsent.revokedAt),
 				),
 			);

@@ -1,5 +1,5 @@
 import { canonicalize, SKILL_SURFACE_FORMS } from "./aliases";
-import { JD_STOPWORDS } from "./stopwords";
+import { isEnglishContraction, isGenericJobWord, isGenericSkillQualifier, JD_STOPWORDS } from "./stopwords";
 
 /** Windows this wide are scanned, but only a known skill form is kept at the longer lengths. */
 export const MAX_NGRAM_LENGTH = 4;
@@ -29,6 +29,9 @@ export function buildNgrams(tokens: readonly string[], maxLength = MAX_NGRAM_LEN
 			}
 
 			if (size > MAX_FREE_PHRASE_LENGTH) continue;
+			if (window.every(isGenericJobWord)) continue;
+			if (size > 1 && window.every(isKnownSkillForm)) continue;
+			if (size === 2 && window.some(isKnownSkillForm) && window.some(isGenericSkillQualifier)) continue;
 			if (window.some(isNoise)) continue;
 
 			ngrams.push(phrase);
@@ -47,5 +50,5 @@ function isNoise(token: string): boolean {
 	// A lone number is noise; a number attached to a word ("soc2", "s3") is not.
 	if (/^\d+([.,]\d+)?$/.test(token)) return true;
 	if (token.length < 2) return true;
-	return JD_STOPWORDS.has(token);
+	return JD_STOPWORDS.has(token) || token.split("-").some(isEnglishContraction);
 }

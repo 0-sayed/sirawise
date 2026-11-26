@@ -125,7 +125,7 @@ export function translationBlockOnlyDivergence(source: ResumeData, copy: ResumeD
 		const parents = new Set(
 			inventory.segments.map((segment) => {
 				const target = segment.target as Record<string, unknown>;
-				if (!("blockIndex" in target)) return segment.id;
+				if (target.field !== "description" && target.field !== "content") return segment.id;
 				const { blockIndex: _ignored, ...parent } = target;
 				return `field:${JSON.stringify(parent)}`;
 			}),

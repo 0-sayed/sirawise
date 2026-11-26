@@ -41,7 +41,6 @@ it("rejects qualification approvals that would narrow the application route", ()
 	const approved = {
 		campaignId: "synthetic",
 		suiteCaps: {
-			"translation-primary": 436660,
 			"job-evidence-primary": 672401,
 			"extraction-primary": 1091956,
 		} as const,

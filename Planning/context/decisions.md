@@ -315,10 +315,30 @@ Use distinct Arabic and English notices for each denial. Account notices retain 
 ### AI reliability review, owner decision 2026-11-24, recorded 2026-11-25
 
 1. Count split verification as one logical step. Record every physical dispatch and its cost. Expire an unclaimed queue entry separately from the execution deadline.
-2. Use compact factual verification for the translation candidate. Check complete coverage and protected facts. Keep prior text for withheld segments and allow a scoped retry.
+2. Use compact factual verification for the translation candidate. Check complete coverage and protected facts. Keep prior text for withheld segments and allow a scoped retry. The translation safety decision below replaces the second-model check.
 3. Use compact verdict batches for the job evidence candidate. Keep hard guards and require independent semantic verification. Scope absence to the selected evidence.
 4. Use layout-aware PDF recovery and retain source lines when joining paragraphs. Keep the reader active for Forme, Chromium browser print, and LibreOffice. Word and Google Docs coverage is pending.
 5. Bind extraction fields to selected evidence and withhold failed fields. Keep semantic proof for each delivered field and the retention requirement for wording changes.
 6. Support one explicitly consented backup route after qualification. Keep the binding empty until the exact endpoint and its processor pass A11 and D16.
 
-An ordinary operation settles one AI use on success and releases its reservation on failure. Translation retains one admission charge across retries, failure, and cancellation. Starting translation approves changes only to the separate language copy. Existing CV edits and imported fields retain their explicit approval. All release gates remain in force.
+An ordinary operation settles one AI use on success and releases its reservation on failure. Translation retains one charge across retries, failure and cancellation. Existing CV edits and imported fields retain their explicit approval. All release gates remain in force.
+
+### Translation safety, owner decision 2026-11-25, recorded by the tech lead
+
+The second model withheld faithful translations in real use. It also caused timeouts and accounted for most translation latency and cost. Translation re-expresses facts already in the CV.
+
+The writer produces the draft. Code checks each segment against the source for hard facts, structure and target language. A failed segment keeps its original text and shows its reason. The user can retry that segment, then review and explicitly approve the separate copy before it saves.
+
+This replaces the earlier automatic save and the translation verifier qualification. Translation keeps one AI use per operation and all existing money caps. Job evidence and extraction retain their verifier selections and qualification requirements.
+
+### Whole-draft translation approval, owner decision 2026-11-26
+
+The user approves the entire translation draft with one action. This decision replaces per-segment and per-section acceptance.
+The user can still compare the source, edit wording, keep original text, confirm official names, or retry untranslated parts.
+Code checks each segment. The copy saves only after explicit approval. Withheld text stays in its original language and remains visible in review.
+
+### Clarification and review history, owner decision 2026-11-26
+
+B-C11 applies one AI use to a delivered review and its clarification continuation. The user starts a continuation with Review with this answer. It uses the same feature and source scope. The server records provider cost under the existing request and daily caps. Failed continuations can be retried.
+
+S11 desktop 30:1445 and mobile 44:1084 inform the review controls. The edit, accepted, and stale states are 51:155, 51:459, and 51:601. Under D36, the AI tab shows pending work across the CV and separate past reviews so users can find earlier runs. The shared task overlay shows the exact question and keeps the saved answer visible before the next run (B-C04, B-C05).

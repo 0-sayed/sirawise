@@ -8,14 +8,18 @@ import { controlHeights } from "./control-size";
 type NativeSelectProps = Omit<React.ComponentProps<"select">, "size"> & {
 	size?: number | keyof typeof controlHeights | undefined;
 	fit?: "full" | "content";
+	directionText?: string;
 };
 
-function NativeSelect({ className, children, size, fit = "full", ...props }: NativeSelectProps) {
+function NativeSelect({ className, children, size, fit = "full", directionText, ...props }: NativeSelectProps) {
 	return (
 		<div
 			data-slot="native-select"
+			dir={directionText === undefined ? undefined : "auto"}
 			className={cn("relative inline-flex max-w-full", fit === "content" ? "w-fit shrink-0" : "w-full")}
 		>
+			{/* Give the select and its chevron one direction based on the selected label. */}
+			{directionText !== undefined && <span hidden>{directionText}</span>}
 			<select
 				size={typeof size === "number" ? size : undefined}
 				className={cn(

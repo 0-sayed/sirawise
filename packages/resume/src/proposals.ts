@@ -158,13 +158,14 @@ export function additionAfter(value: string, passageHtml: string, text: string) 
 // A paragraph or list item with no paragraph or list item inside it: `<li><p>…</p></li>` yields the `<p>`.
 const LEAF_BLOCK = /<(p|li)(?:\s[^>]*)?>((?:(?!<\/?(?:p|li)[\s>])[\s\S])*?)<\/\1>/gi;
 
-/** The visible text of some HTML, on one line. */
-export const blockText = (html: string) =>
+/** Extract rich-text passages while preserving visible spaces and line breaks. */
+export const passageSpacing = (html: string) =>
 	decodeHtmlEntities(
-		html.replace(/<\/?(?:p|li|ul|ol|div|h[1-6]|blockquote)\b[^>]*>|<br\b[^>]*>/giu, " ").replace(/<[^>]*>/g, ""),
-	)
-		.replace(/\s+/g, " ")
-		.trim();
+		html.replace(/(?:<\/?(?:p|li|ul|ol|div|h[1-6]|blockquote)\b[^>]*>)+|<br\b[^>]*>/giu, "\n").replace(/<[^>]*>/g, ""),
+	);
+
+/** The visible text of some HTML, on one line. */
+export const blockText = (html: string) => passageSpacing(html).replace(/\s+/gu, " ").trim();
 
 export type Block = { html: string; text: string; bullet: boolean };
 

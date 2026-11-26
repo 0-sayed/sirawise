@@ -1,6 +1,6 @@
 import type { PdfAtsReport } from "../ats-pdf/types";
 import { describe, expect, it } from "vite-plus/test";
-import { analyzeJobTerms } from "./job-evidence";
+import { analyzeJobTerms, JOB_NORMALIZATION_VERSION, JOB_RUBRIC_VERSION } from "./job-evidence";
 import { pdfReadiness, jobReadiness, invalidateReadiness, emptyReadiness } from "./readiness";
 const source = {
 	ownerId: "alice",
@@ -26,8 +26,8 @@ describe("independent readiness", () => {
 			...source,
 			jobId: "job",
 			jobRevision: "j1",
-			rubricVersion: "literal-v1",
-			normalizationVersion: "matching-v2",
+			rubricVersion: JOB_RUBRIC_VERSION,
+			normalizationVersion: JOB_NORMALIZATION_VERSION,
 		};
 		const identity = {
 			resumeId: source.resumeId,
@@ -58,8 +58,8 @@ describe("independent readiness", () => {
 			...source,
 			jobId: "job",
 			jobRevision: "j1",
-			rubricVersion: "literal-v1",
-			normalizationVersion: "matching-v2",
+			rubricVersion: JOB_RUBRIC_VERSION,
+			normalizationVersion: JOB_NORMALIZATION_VERSION,
 		};
 		const jobReport = analyzeJobTerms({
 			identity: {
@@ -68,8 +68,8 @@ describe("independent readiness", () => {
 				contentHash: source.contentHash,
 				jobId: "job",
 				jobRevision: "j1",
-				rubricVersion: "literal-v1",
-				normalizationVersion: "matching-v2",
+				rubricVersion: JOB_RUBRIC_VERSION,
+				normalizationVersion: JOB_NORMALIZATION_VERSION,
 			},
 			jobText: Array.from({ length: 70 }, (_, n) => `tech${String(n).padStart(2, "0")}`).join(", "),
 			passages: [],

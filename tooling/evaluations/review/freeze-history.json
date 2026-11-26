@@ -2504,5 +2504,24 @@
 		"freezeHash": "dab2492f62c52fccef809b2de1556b2cf91eae4b00c34f3cb680eb936a070891",
 		"sha256": "18c3bd05f8433cc262df618c603d05c8b6650736640895c9b4c857b23b3e098b",
 		"archivePath": "/tmp/sirawise-fixes/ai-redesign-evidence/tasks-study-history/18c3bd05f8433cc262df618c603d05c8b6650736640895c9b4c857b23b3e098b.json"
+	},
+	{
+		"name": "tasks-study-before-local-translation-checks.json",
+		"date": "2026-11-26",
+		"reason": "Seal the current AI review contracts after the owner retired the translation checker. The offline controls do not grant approval.",
+		"originalName": "tasks-study.json",
+		"studyId": "tasks-v1-personal-career-b565adba3d4d",
+		"studyHash": "c126a7cb3653b52b638c47015d7c19c29372705461a5921d5c96698ffb089370",
+		"sha256": "5cbe94388c720e2a7ffdff9ba31e8fe8c6162a206aa7bebf240c8b2f5a8db197",
+		"gitBlob": "fd558957620c0b3d9916b0d103469c5663a68ac8"
+	},
+	{
+		"name": "guard-controls-before-local-translation-checks.json",
+		"date": "2026-11-26",
+		"reason": "Seal the current AI review contracts after the owner retired the translation checker. The offline controls do not grant approval.",
+		"originalName": "guard-controls-tasks-v1.json",
+		"freezeHash": "c126a7cb3653b52b638c47015d7c19c29372705461a5921d5c96698ffb089370",
+		"sha256": "e8ca8043774d215401c6be981fec59b5ec7648daa5c92dec766a84f0372448c0",
+		"gitBlob": "0f6b9d0cb73a31beb5d984f6c905a2ba178fed14"
 	}
 ]

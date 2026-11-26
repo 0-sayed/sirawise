@@ -35,9 +35,15 @@ import { lockDocumentOwner } from "../documents/ownership";
 import { createResumeInTransaction, notifyResumeUpdated } from "../resume/service";
 import { assertOperationConcurrency } from "./concurrency";
 import { CONTENT_RETRY_STEP, currentContentAttempts } from "./content-retry";
+import { validateReviewContinuation } from "./review-continuation";
 import { loadReviewSource, lockReviewProfile, removeExpiredReviewSources } from "./review-sources";
 import { getOperationHandler, canonicalJson, operationFingerprint, resolveApprovedRoute } from "./route-policy";
-import { mergePartialTranslationBatches, type PartialTranslationPart } from "./translation-batches";
+import {
+	mergePartialTranslationBatches,
+	persistTranslationPlan,
+	type PartialTranslationPart,
+	type TranslationBatchPlan,
+} from "./translation-batches";
 import {
 	admitResumeCreation,
 	resolveResumeCreation,
@@ -46,6 +52,7 @@ import {
 	reserveOperation,
 	settleOperation,
 } from "./usage";
+import { translationCandidateContract, variantOperationContracts } from "./variant-contracts";
 import { tryAutoApplyTranslationInTx } from "./variant-decisions";
 import { loadTranslationPlan, loadVariantSnapshot } from "./variant-sources";
 import { verificationFailureDetail, type OperationFailureDetail } from "./verification-failure";
@@ -78,7 +85,14 @@ const operationView = (o: Operation): OperationView => ({
 	resultId: o.deliveredAt ? o.id : null,
 	failureCode: o.failureCode,
 });
-type Batch = { rootId: string; index: number; total: number; planHash: string; planVersion?: "compact-v1" };
+type Batch = {
+	rootId: string;
+	index: number;
+	total: number;
+	planHash: string;
+	planVersion?: "compact-v1";
+	retrySegmentIds?: string[];
+};
 type TranslationExecution = Pick<OperationRequest, "route" | "consentVersion">;
 export const MAX_TRANSLATION_CONCURRENT_PARTS = 6;
 export const AI_QUEUE_TTL_MS = 5 * 60 * 1000;
@@ -88,6 +102,13 @@ const batchOf = (operation: Operation) =>
 	operation.kind === "review.translation" ? (operation.parameters.translationBatch as Batch | undefined) : undefined;
 const endedBeforeTranslationStarted = (root: Operation) =>
 	!root.executionStartedAt && (root.failureCode === "AI_QUEUE_EXPIRED" || root.failureCode === "AI_CANCELLED");
+
+function isStaleTranslationSource(error: unknown) {
+	return (
+		(error instanceof ORPCError && error.code === "CONFLICT" && error.data?.reason === "AI_SOURCE_CHANGED") ||
+		(error instanceof Error && error.message === "TRANSLATION_BATCH_PLAN_CHANGED")
+	);
+}
 
 function translationPartResult(part: Operation | undefined, failed: Operation | undefined): PartialTranslationPart {
 	if (part?.result) {
@@ -117,13 +138,12 @@ function preserveVerifiedPartSegments(previous: Operation | undefined, latest: O
 	const after = translationPartResult(latest, undefined);
 	if (before.status !== "delivered" || after.status !== "delivered") return latest;
 	const replaceable = new Set(before.withheldSegmentIds ?? []);
-	const replaced = new Set(after.withheldSegmentIds ?? []);
-	const verifiedBefore = new Map(
-		before.output.segments
-			.filter(({ sourceId }) => !replaceable.has(sourceId))
-			.map((segment) => [segment.sourceId, segment]),
+	const afterById = new Map(after.output.segments.map((segment) => [segment.sourceId, segment]));
+	const updatedWithheld = new Set(after.withheldSegmentIds ?? []);
+	const withheldSegmentIds = [...replaceable].filter((id) => !afterById.has(id) || updatedWithheld.has(id));
+	const issues = new Map(
+		[...(before.withheld?.items ?? []), ...(after.withheld?.items ?? [])].map((item) => [item.id, item]),
 	);
-	const withheldSegmentIds = [...replaceable].filter((id) => replaced.has(id));
 	const { withheld: _withheld, withheldSegmentIds: _ids, ...result } = latest.result;
 	return {
 		...latest,
@@ -131,15 +151,17 @@ function preserveVerifiedPartSegments(previous: Operation | undefined, latest: O
 			...result,
 			output: {
 				...after.output,
-				segments: after.output.segments.map((segment) => verifiedBefore.get(segment.sourceId) ?? segment),
+				segments: before.output.segments.map((segment) =>
+					replaceable.has(segment.sourceId) ? (afterById.get(segment.sourceId) ?? segment) : segment,
+				),
 			},
 			...(withheldSegmentIds.length
 				? {
 						withheldSegmentIds,
 						withheld: {
 							count: withheldSegmentIds.length,
-							rules: after.withheld?.rules ?? [],
-							items: after.withheld?.items?.filter(({ id }) => withheldSegmentIds.includes(id)) ?? [],
+							rules: [...new Set([...(before.withheld?.rules ?? []), ...(after.withheld?.rules ?? [])])],
+							items: withheldSegmentIds.flatMap((id) => issues.get(id) ?? []),
 						},
 					}
 				: {}),
@@ -215,6 +237,7 @@ async function translationState(tx: OwnerTransaction, ownerId: string, operation
 	const hasPartialVerifiedResult =
 		session.state === "paused" &&
 		session.failureCode !== "AI_CANCELLED" &&
+		session.failureCode !== "AI_SOURCE_CHANGED" &&
 		active.length === 0 &&
 		pendingRetry.length === 0 &&
 		allPartsAttempted &&
@@ -273,6 +296,7 @@ export async function assembleTranslationBatchResult(
 			? {
 					withheld: merged.withheld,
 					withheldSegmentIds: merged.withheldSegmentIds,
+					withheldSegmentParts: merged.withheldSegmentParts,
 					withholdingIdsComplete: merged.withholdingIdsComplete,
 				}
 			: {}),
@@ -283,8 +307,25 @@ async function publicOperationView(
 	tx: OwnerTransaction,
 	ownerId: string,
 	operation: Operation,
+	checkTranslationSource = false,
 ): Promise<OperationView> {
 	const batch = await translationState(tx, ownerId, operation);
+	let stale = batch?.session.failureCode === "AI_SOURCE_CHANGED";
+	if (
+		checkTranslationSource &&
+		batch &&
+		!stale &&
+		batch.session.failureCode !== "AI_CANCELLED" &&
+		!endedBeforeTranslationStarted(batch.root)
+	) {
+		try {
+			await assertSourceRevisions(tx, ownerId, operationRequest(batch.root));
+			if (batch.hasPartialVerifiedResult) await assembleTranslationBatchResult(tx, ownerId, batch.root);
+		} catch (error) {
+			if (!isStaleTranslationSource(error)) throw error;
+			stale = true;
+		}
+	}
 	const current = batch?.current ?? operation;
 	const queuePosition =
 		current.state === "queued"
@@ -349,6 +390,7 @@ async function publicOperationView(
 						current.failureCode !== "AI_PROVIDER_UNAVAILABLE",
 				}
 			: {}),
+		...(stale ? { state: "failed" as const, resultId: null, failureCode: "AI_SOURCE_CHANGED", retryable: false } : {}),
 		progress: {
 			step:
 				current.state === "cancel_requested"
@@ -622,25 +664,32 @@ async function startOperation(
 		...rawRequest,
 		parameters: handler.parameters.parse({
 			...rawRequest.parameters,
+			...(handler.parameters === variantOperationContracts["review.job-evidence"].parameters
+				? { jobSpanVersion: "requirements-v2" }
+				: {}),
 			...(internalBatch ? { translationBatch: internalBatch } : {}),
 		}),
 	};
+	const continued = await validateReviewContinuation(tx, userId, request);
 	const route = await resolveApprovedRoute(userId, request);
 	await assertSourceRevisions(tx, userId, request);
 	if (handler.validateRequest) await handler.validateRequest(tx, userId, request);
 	const id = generateId();
+	let translationPlan: TranslationBatchPlan | undefined;
 	if (request.kind === "review.translation" && !internalBatch) {
 		const snapshot = await loadVariantSnapshot(tx, userId, request, {
 			compactTranslation: Boolean(handler.translationPlanVersion),
+			includeTranslationPlan: true,
 		});
-		if (!snapshot.translationPlanHash) throw new ORPCError("INTERNAL_SERVER_ERROR");
+		translationPlan = snapshot.translationPlan;
+		if (!translationPlan) throw new ORPCError("INTERNAL_SERVER_ERROR");
 		request.parameters = {
 			...request.parameters,
 			translationBatch: {
 				rootId: id,
 				index: 0,
-				total: snapshot.translationBatchCount ?? 1,
-				planHash: snapshot.translationPlanHash,
+				total: translationPlan.batches.length,
+				planHash: translationPlan.fingerprint,
 				...(handler.translationPlanVersion ? { planVersion: handler.translationPlanVersion } : {}),
 			},
 		};
@@ -693,17 +742,17 @@ async function startOperation(
 		})
 		.returning();
 	if (!created) throw new ORPCError("INTERNAL_SERVER_ERROR");
-	if (request.kind === "review.translation" && !internalBatch) {
-		const batch = batchOf(created);
-		if (!batch) throw new ORPCError("INTERNAL_SERVER_ERROR");
-		await tx
-			.insert(aiTranslationBatch)
-			.values({ userId, rootOperationId: created.id, total: batch.total, state: "running" });
-		// Persist the admitted boundaries before any writer can run or a deployment can change sizing.
-		await loadVariantSnapshot(tx, userId, operationRequest(created));
+	if (translationPlan) {
+		await tx.insert(aiTranslationBatch).values({
+			userId,
+			rootOperationId: created.id,
+			total: translationPlan.batches.length,
+			state: "running",
+			plan: persistTranslationPlan(translationPlan),
+		});
 	}
 	// Queued work holds the allowance but cannot settle it. Internal parts share the request cap.
-	if (!internalBatch) await reserveOperation(tx, userId, created.id);
+	if (!internalBatch && !continued) await reserveOperation(tx, userId, created.id);
 	const admission = await tx.execute<{ status: "admitted" | "AI_PLATFORM_BUSY" | "AI_BUDGET_LIMIT" }>(
 		sql`SELECT master_cv_ai_admit_operation(${created.id}, ${route.requestCapMicros}::bigint, ${route.dayCapMicros}::bigint) AS status`,
 	);
@@ -721,9 +770,47 @@ async function advanceTranslation(
 	requestKey = generateId(),
 	retryFailed = false,
 	partIndex?: number,
+	segmentId?: string,
 ) {
 	const batch = await translationState(tx, ownerId, operation);
-	if (!batch || batch.session.state === "complete" || endedBeforeTranslationStarted(batch.root)) return;
+	if (
+		!batch ||
+		batch.session.state === "complete" ||
+		batch.session.failureCode === "AI_SOURCE_CHANGED" ||
+		endedBeforeTranslationStarted(batch.root)
+	)
+		return;
+	try {
+		await assertSourceRevisions(tx, ownerId, operationRequest(batch.root));
+		return await advanceCurrentTranslation(tx, ownerId, batch, requestKey, retryFailed, partIndex, segmentId);
+	} catch (error) {
+		if (!isStaleTranslationSource(error)) throw error;
+		await tx
+			.update(aiTranslationBatch)
+			.set({
+				state: "paused",
+				failureCode: "AI_SOURCE_CHANGED",
+				result: null,
+				...(batch.session.execution && { execution: { ...batch.session.execution, retryFailedOperationIds: [] } }),
+			})
+			.where(eq(aiTranslationBatch.rootOperationId, batch.root.id));
+		for (const part of batch.active) {
+			if (part.state === "queued") await finishUnsuccessful(tx, part, "AI_SOURCE_CHANGED");
+			else if (part.state === "running")
+				await tx.update(aiOperation).set({ state: "cancel_requested" }).where(eq(aiOperation.id, part.id));
+		}
+	}
+}
+
+async function advanceCurrentTranslation(
+	tx: OwnerTransaction,
+	ownerId: string,
+	batch: NonNullable<Awaited<ReturnType<typeof translationState>>>,
+	requestKey: string,
+	retryFailed: boolean,
+	partIndex?: number,
+	segmentId?: string,
+) {
 	const execution = batch.session.execution ?? { route: batch.root.route, consentVersion: batch.root.consentVersion };
 	const request = { ...operationRequest(batch.root), route: execution.route, consentVersion: execution.consentVersion };
 	const finalizePartialOrCompleteBatch = async () => {
@@ -736,6 +823,10 @@ async function advanceTranslation(
 		const merged = mergePartialTranslationBatches(full, plan, partEntries);
 		const output = translationReviewOutputSchema.parse(merged.output);
 		const previousWithheldIds = execution.reviewWithheldSegmentIds;
+		const recoveredSegment =
+			batch.root.promptVersion === translationCandidateContract.promptVersion &&
+			previousWithheldIds?.some((id) => !merged.withheldSegmentIds?.includes(id));
+		const reviewState = recoveredSegment ? "waiting_review" : batch.session.reviewState;
 		const apply = () =>
 			tryAutoApplyTranslationInTx(tx, ownerId, batch.root.id, {
 				previousWithheldIds: previousWithheldIds ? new Set(previousWithheldIds) : undefined,
@@ -743,7 +834,7 @@ async function advanceTranslation(
 		if (merged.withheld && merged.withheld.count > 0) {
 			await tx
 				.update(aiTranslationBatch)
-				.set({ state: "paused", failureCode: null })
+				.set({ state: "paused", failureCode: null, reviewState })
 				.where(eq(aiTranslationBatch.rootOperationId, batch.root.id));
 			return apply();
 		}
@@ -751,6 +842,7 @@ async function advanceTranslation(
 			.update(aiTranslationBatch)
 			.set({
 				state: "complete",
+				reviewState,
 				failureCode: null,
 				result: {
 					schemaVersion: 1,
@@ -774,6 +866,26 @@ async function advanceTranslation(
 		const pending = batch.pending[index];
 		if (batch.delivered[index] || (pending && isActive(pending))) continue;
 		if (pending && !retryFailed && !execution.retryFailedOperationIds?.includes(pending.id)) continue;
+		let retrySegmentIds: string[] | undefined;
+		if (batch.batch.planVersion && pending) {
+			const prev = batch.parts
+				.filter((part) => batchOf(part)?.index === index && part.deliveredAt && part.result)
+				.reduce<Operation | undefined>(preserveVerifiedPartSegments, undefined);
+			const receipt = translationPartResult(prev, undefined);
+			if (receipt.status === "delivered") {
+				retrySegmentIds = receipt.withheldSegmentIds;
+				if (segmentId) {
+					const full = await loadVariantSnapshot(tx, ownerId, request, { fullTranslation: true });
+					const plan = await loadTranslationPlan(tx, ownerId, request, full, {
+						maxInputCodePoints: 32000,
+						maxOutputTokens: 4096,
+					});
+					const ids = new Set(plan.groups.find(({ id }) => id === segmentId)?.partIds);
+					retrySegmentIds = retrySegmentIds?.filter((id) => ids.has(id));
+					if (!retrySegmentIds?.length) throw new ORPCError("BAD_REQUEST");
+				}
+			}
+		}
 		try {
 			await tx.transaction(async (nested) => {
 				await startOperation(
@@ -787,6 +899,7 @@ async function advanceTranslation(
 						total: batch.batch.total,
 						planHash: batch.batch.planHash,
 						...(batch.batch.planVersion ? { planVersion: batch.batch.planVersion } : {}),
+						...(retrySegmentIds?.length ? { retrySegmentIds } : {}),
 					},
 				);
 			});
@@ -810,6 +923,7 @@ async function advanceTranslation(
 			if (execution.retryFailedOperationIds)
 				execution.retryFailedOperationIds = execution.retryFailedOperationIds.filter((id) => id !== pending?.id);
 		} catch (error) {
+			if (isStaleTranslationSource(error)) throw error;
 			if (!(error instanceof ORPCError)) throw error;
 			// A retry must report admission failure rather than acknowledge a no-op.
 			if (retryFailed && !scheduled) throw error;
@@ -847,7 +961,10 @@ async function advanceTranslation(
 }
 
 class PreflightResult extends Error {
-	constructor(readonly translationParts?: number) {
+	constructor(
+		readonly operationCost: 0 | 1,
+		readonly translationParts?: number,
+	) {
 		super();
 	}
 }
@@ -860,12 +977,25 @@ export const operationService = {
 			// Run the exact admission path in a rolled-back transaction: no shadow quota policy.
 			await withOwnerDatabase(userId, async (tx) => {
 				const view = await startOperation(tx, userId, request);
-				throw new PreflightResult(request.kind === "review.translation" ? view.progress?.total : undefined);
+				const [reservation] = await tx
+					.select({ id: aiUsageLedger.id })
+					.from(aiUsageLedger)
+					.where(
+						and(
+							eq(aiUsageLedger.operationId, view.id),
+							eq(aiUsageLedger.userId, userId),
+							eq(aiUsageLedger.kind, "reserve"),
+						),
+					);
+				throw new PreflightResult(
+					reservation ? 1 : 0,
+					request.kind === "review.translation" ? view.progress?.total : undefined,
+				);
 			});
 		} catch (error) {
 			if (error instanceof PreflightResult)
 				return {
-					operationCost: 1 as const,
+					operationCost: error.operationCost,
 					...(error.translationParts !== undefined ? { translationParts: error.translationParts } : {}),
 					available: true,
 					reason: null,
@@ -906,13 +1036,16 @@ export const operationService = {
 		);
 	},
 	get: (userId: string, id: string) =>
-		withOwnerDatabase(userId, async (tx) => publicOperationView(tx, userId, await getOwned(tx, userId, id))),
+		withOwnerDatabase(userId, async (tx) => {
+			await lockAccountForAccounting(tx, userId);
+			return publicOperationView(tx, userId, await getOwned(tx, userId, id), true);
+		}),
 	retryTranslation: (
 		userId: string,
 		id: string,
 		requestKey: string,
 		execution?: TranslationExecution,
-		scope?: "failed_parts" | { partIndex: number },
+		scope?: "failed_parts" | { partIndex: number; segmentId?: string | undefined },
 	) =>
 		withOwnerDatabase(userId, async (tx) => {
 			await lockDocumentOwner(tx, userId);
@@ -920,6 +1053,9 @@ export const operationService = {
 			const batch = await translationState(tx, userId, operation);
 			if (!batch || batch.root.id !== id) throw new ORPCError("BAD_REQUEST");
 			if (endedBeforeTranslationStarted(batch.root)) return publicOperationView(tx, userId, operation);
+			if (batch.session.failureCode === "AI_SOURCE_CHANGED")
+				throw new ORPCError("CONFLICT", { data: { reason: "AI_SOURCE_CHANGED" } });
+			await assertSourceRevisions(tx, userId, operationRequest(batch.root));
 			const partIndex = typeof scope === "object" ? scope.partIndex : undefined;
 			const [replay] = await tx
 				.select()
@@ -980,7 +1116,15 @@ export const operationService = {
 					})
 					.where(eq(aiTranslationBatch.rootOperationId, id));
 			}
-			await advanceTranslation(tx, userId, batch.root, requestKey, true, partIndex);
+			await advanceTranslation(
+				tx,
+				userId,
+				batch.root,
+				requestKey,
+				true,
+				partIndex,
+				typeof scope === "object" ? scope.segmentId : undefined,
+			);
 			return publicOperationView(tx, userId, await getOwned(tx, userId, id));
 		}),
 	getResult: (userId: string, id: string) =>
@@ -990,7 +1134,12 @@ export const operationService = {
 			if (batch) {
 				const assembled = await assembleTranslationBatchResult(tx, userId, batch.root);
 				if (!assembled) throw new ORPCError("PRECONDITION_FAILED");
-				const { withheldSegmentIds: _withheldIds, withholdingIdsComplete: _complete, ...publicResult } = assembled;
+				const {
+					withheldSegmentIds: _withheldIds,
+					withheldSegmentParts: _withheldParts,
+					withholdingIdsComplete: _complete,
+					...publicResult
+				} = assembled;
 				return publicResult;
 			}
 			if (!operation.deliveredAt || !operation.result) throw new ORPCError("PRECONDITION_FAILED");
@@ -1001,6 +1150,7 @@ export const operationService = {
 			await lockDocumentOwner(tx, userId);
 			const operation = await getOwned(tx, userId, id);
 			const batch = await translationState(tx, userId, operation);
+			if (batch?.session.failureCode === "AI_SOURCE_CHANGED") return publicOperationView(tx, userId, operation);
 			if (batch && batch.session.state !== "complete") {
 				await tx
 					.update(aiTranslationBatch)
@@ -1498,6 +1648,7 @@ export async function reconcileExpiredAccounting(ownerId: string): Promise<void>
 					eq(aiTranslationBatch.userId, ownerId),
 					sql`${aiTranslationBatch.state} <> 'complete'`,
 					sql`${aiTranslationBatch.failureCode} IS DISTINCT FROM 'AI_CANCELLED'`,
+					sql`${aiTranslationBatch.failureCode} IS DISTINCT FROM 'AI_SOURCE_CHANGED'`,
 					or(
 						sql`${aiTranslationBatch.total} > (SELECT count(DISTINCT o.parameters->'translationBatch'->>'index') FROM ai_operation o WHERE o.user_id = ${ownerId} AND o.parameters->'translationBatch'->>'rootId' = ${aiTranslationBatch.rootOperationId})`,
 						sql`jsonb_array_length(COALESCE(${aiTranslationBatch.execution}->'retryFailedOperationIds', '[]'::jsonb)) > 0`,

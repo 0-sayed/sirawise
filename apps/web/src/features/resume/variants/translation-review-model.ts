@@ -2,6 +2,7 @@ import type { ResumeData } from "@reactive-resume/schema/resume/data";
 import type {
 	TranslationTarget,
 	VariantDecisionInput,
+	VariantReviewView,
 	VariantTerminology,
 } from "@reactive-resume/schema/resume/variants";
 import { buildTranslationInventory } from "@reactive-resume/resume/translation";
@@ -48,6 +49,7 @@ export type SegmentItem = {
 	after: string;
 	status: SegmentStatus;
 	hasUnresolvedPlaceholder?: boolean;
+	edited?: boolean;
 };
 
 type SegmentGroup = {
@@ -60,9 +62,11 @@ type SegmentGroup = {
 	unresolvedIds: string[];
 	acceptedCount: number;
 	totalCount: number;
+	gapCount: number;
 };
 
 export type GroupedSegments = {
+	actionableCount: number;
 	groups: SegmentGroup[];
 	pendingSegmentIds: string[];
 	unresolvedSegmentIds: string[];
@@ -126,6 +130,30 @@ export async function submitChunkedVariantDecision<Response extends { decisionId
 
 	if (!lastResponse) throw new Error("EMPTY_DECISION_SUBJECTS");
 	return lastResponse;
+}
+
+export async function submitApproveTranslation<Response extends { decisionId: string; updatedAt: string }>({
+	pendingSegmentIds,
+	...request
+}: {
+	operationId: string;
+	expectedUpdatedAt: string;
+	expectedDecisionId: string | null;
+	pendingSegmentIds: readonly string[];
+	submit: (payload: VariantDecisionInput) => Promise<Response>;
+}) {
+	const previous = pendingSegmentIds.length
+		? await submitChunkedVariantDecision({
+				...request,
+				input: { subjectIds: [...pendingSegmentIds], decision: "accept" },
+			})
+		: null;
+	return submitChunkedVariantDecision({
+		...request,
+		expectedUpdatedAt: previous?.updatedAt ?? request.expectedUpdatedAt,
+		expectedDecisionId: previous?.decisionId ?? request.expectedDecisionId,
+		input: { subjectIds: ["translation"], decision: "accept" },
+	});
 }
 
 export async function submitSequentialUndo<Response extends { decisionId: string; updatedAt: string }>({
@@ -272,15 +300,21 @@ export function groupTranslationSegments({
 	statuses,
 	sourceData,
 	terms,
+	gapIds = new Set<string>(),
 }: {
 	resultSegments: ReadonlyArray<{ sourceId: string; text: string }>;
-	sourceSegments: ReadonlyArray<{ id: string; text: string }>;
-	segments: Record<string, { text: string; status: SegmentStatus } | undefined>;
+	sourceSegments: readonly VariantReviewView["sourceSegments"][number][];
+	segments: Record<string, { text: string; status: SegmentStatus; author?: "model" | "user" } | undefined>;
 	statuses: Record<string, SegmentStatus | undefined>;
 	sourceData?: ResumeData | undefined;
 	terms: readonly TranslationTerm[];
+	gapIds?: ReadonlySet<string>;
 }): GroupedSegments {
 	const sourceTextById = new Map(sourceSegments.map((segment) => [segment.id, segment.text]));
+	const resultIds = new Set(resultSegments.map(({ sourceId }) => sourceId));
+	const untranslatedSegments = sourceSegments.flatMap(({ id, text, untranslated }) =>
+		untranslated && !resultIds.has(id) ? [{ sourceId: id, text }] : [],
+	);
 	const targetById = new Map<string, TranslationTarget>();
 	const customTitleById = new Map<string, string>();
 
@@ -302,7 +336,7 @@ export function groupTranslationSegments({
 	const unresolvedSegmentIds: string[] = [];
 	let acceptedCount = 0;
 
-	for (const segment of resultSegments) {
+	for (const segment of [...resultSegments, ...untranslatedSegments]) {
 		const id = segment.sourceId;
 		const reviewed = segments[id];
 		const status: SegmentStatus = statuses[id] ?? reviewed?.status ?? "pending";
@@ -314,6 +348,7 @@ export function groupTranslationSegments({
 			after,
 			status,
 			hasUnresolvedPlaceholder: unresolved,
+			...(reviewed?.author === "user" ? { edited: true } : {}),
 		};
 
 		if (status === "accepted") acceptedCount += 1;
@@ -338,19 +373,22 @@ export function groupTranslationSegments({
 				unresolvedIds: [],
 				acceptedCount: 0,
 				totalCount: 0,
+				gapCount: 0,
 			};
 			groupsByKey.set(key, group);
 		}
 
 		group.items.push(item);
 		group.totalCount += 1;
+		if (gapIds.has(id)) group.gapCount += 1;
 		if (status === "accepted") group.acceptedCount += 1;
-		if (status === "pending" && reviewed) group.pendingIds.push(id);
+		if (status !== "accepted" && reviewed) group.pendingIds.push(id);
 		if (unresolved) group.unresolvedIds.push(id);
 	}
 
 	return {
 		groups: [...groupsByKey.values()],
+		actionableCount: Object.values(segments).filter(Boolean).length,
 		pendingSegmentIds,
 		unresolvedSegmentIds,
 		acceptedCount,

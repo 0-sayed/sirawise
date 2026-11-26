@@ -9,6 +9,7 @@ import { Button, buttonVariants } from "@reactive-resume/ui/components/button";
 import { Icon } from "@reactive-resume/ui/components/icon";
 import { toast } from "@reactive-resume/ui/components/toast";
 import { SettingsSection } from "../section";
+import { AiProcessingSettings } from "./ai-processing";
 import { ExportStatus } from "./export-status";
 import { PrivacyNotice } from "./notice";
 import { QuerySkeleton } from "@/components/query-skeleton";
@@ -85,10 +86,9 @@ export function PrivacyPage() {
 						</AccordionTrigger>
 						<AccordionContent>
 							<Trans context="privacy.storage.aiDescription">
-								AI is optional and needs your consent. Only necessary text, without contact details, goes through
-								OpenRouter. OpenAI Luna and Terra use Microsoft Azure. The DeepSeek checker uses Together AI. Requests
-								use zero data retention (ZDR) routing and deny data collection for training. Provider terms govern
-								actual handling.
+								AI is optional and needs your consent. OpenRouter routes requests to Microsoft Azure and Together AI for
+								processing outside Saudi Arabia. We request zero data retention and block data collection for training.
+								Provider terms govern how they handle data.
 							</Trans>
 						</AccordionContent>
 					</AccordionItem>
@@ -104,6 +104,7 @@ export function PrivacyPage() {
 					</Link>
 				</ActionGroup>
 			</SettingsSection>
+			<AiProcessingSettings />
 			<SettingsSection
 				id="data-export"
 				width="full"

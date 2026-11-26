@@ -50,6 +50,29 @@ for (const locale of syntheticNativePdfLocales)
 			});
 			await seedReviewBudget();
 			await openPdfReview(page, locale, locale);
+			const main = page.getByRole("main");
+			const actions = main.locator('[data-slot="sticky-actions"]');
+			await expect(actions).toBeInViewport({ ratio: 1 });
+			await expect(actions.getByRole("button").first()).toBeDisabled();
+			await expect(actions.getByRole("button").first()).toHaveAttribute("data-variant", "primary");
+			await main.evaluate((element) => {
+				element.scrollTop = element.scrollHeight / 2;
+			});
+			await expect(actions).toBeInViewport({ ratio: 1 });
+			const fields = main.locator(
+				'[data-slot="sticky-actions-content"] :is(input:not([type=hidden]),textarea,select,[contenteditable=true]):visible',
+			);
+			const lastField = fields.last();
+			await lastField.evaluate((element) => element.scrollIntoView({ block: "start" }));
+			await expect(actions).toBeInViewport({ ratio: 1 });
+			await expect(lastField).toBeInViewport({ ratio: 1 });
+			const fieldBounds = await lastField.boundingBox();
+			const actionsBounds = await actions.boundingBox();
+			if (!fieldBounds || !actionsBounds) throw new Error("Missing review bounds");
+			expect(fieldBounds.y + fieldBounds.height).toBeLessThanOrEqual(actionsBounds.y);
+			await main.evaluate((element) => {
+				element.scrollTop = 0;
+			});
 			await page
 				.getByRole("button", { name: ar ? "فتح المساعدة في النص" : "Open text assistance", exact: true })
 				.click();

@@ -257,6 +257,6 @@ Before activation, require written coverage for translation and job evidence, in
 
 The user accepts the exact displayed notice for the operation purpose and route configuration. Dismissal grants no consent. An obsolete notice or digest requires a new explicit acceptance. Before each dispatch, the worker checks the current grant, target ownership, source revision, route approval, and cost limits.
 
-Protected names stay masked until local restoration. Contact fields and PDF bytes stay local. The extraction candidate sends only selected passages. It offers only fields that pass provenance and semantic checks. The saved CV changes only through the existing explicit approval actions. A translation start approves the separate language copy only.
+Protected names stay masked until local restoration. Contact fields and PDF bytes stay local. The extraction candidate sends only selected passages. It offers only fields that pass provenance and semantic checks. The saved CV changes only after explicit approval. The user approves the whole translation draft before the separate copy saves.
 
 The gateway pins the provider, denies data collection, and requires zero data retention and structured parameters. Gateway fallback stays disabled. One explicit backup can follow an eligible rate limit, server error, or timeout within the existing time and money limits. Unknown costs hold their reservation. Real-CV processing remains subject to A11 and D16.

@@ -274,12 +274,6 @@ msgstr "{0} أكثر"
 msgid "{0} of {1} edits accepted"
 msgstr "تم قبول {0} من أصل {1} من التعديلات"
 
-#. placeholder {0}: report.matchedCount
-#. placeholder {1}: report.denominator
-#: src/features/career/literal-job-evidence.tsx
-msgid "{0} of {1} selected terms appear in this CV."
-msgstr "تظهر {0} من {1} عبارة مختارة في هذه السيرة."
-
 #. placeholder {0}: shown.length
 #. placeholder {1}: TEMPLATE_IDS.length
 #: src/features/resume/editor/design/template-group.tsx
@@ -425,6 +419,16 @@ msgid "{count, plural, one {# part failed. Completed parts are kept.} other {# p
 msgstr "{count, plural, zero {لم يتعثر أي جزء. الأجزاء المكتملة محفوظة.} one {تعذرت ترجمة جزء واحد. الأجزاء المكتملة محفوظة.} two {تعذرت ترجمة جزأين. الأجزاء المكتملة محفوظة.} few {تعذرت ترجمة # أجزاء. الأجزاء المكتملة محفوظة.} many {تعذرت ترجمة # جزءًا. الأجزاء المكتملة محفوظة.} other {تعذرت ترجمة # جزء. الأجزاء المكتملة محفوظة.}}"
 
 #: src/features/resume/variants/copy.generated.ts
+msgctxt "review.translation.gapsTitle"
+msgid "{count, plural, one {# part stayed in its original language} other {# parts stayed in their original language}}"
+msgstr "{count, plural, zero {لم تبقَ أجزاء بلغتها الأصلية} one {أُبقي مقطع واحد بلغته الأصلية} two {أُبقي مقطعان بلغتهما الأصلية} few {أُبقيت # مقاطع بلغتها الأصلية} many {أُبقي # مقطعًا بلغته الأصلية} other {أُبقي # مقطع بلغته الأصلية}}"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.translation.heldParts"
+msgid "{count, plural, one {# part was left untranslated. Its original text is kept.} other {# parts were left untranslated. Their original text is kept.}}"
+msgstr "{count, plural, one {لم يُترجم جزء واحد. بقي نصه الأصلي محفوظًا.} other {عدد الأجزاء التي لم تُترجم: #. بقي نصها الأصلي محفوظًا.}}"
+
+#: src/features/resume/variants/copy.generated.ts
 msgctxt "jobs.requirements.partialTotal"
 msgid "{count, plural, one {# partial} other {# partial}}"
 msgstr "{count, plural, zero {لا أدلة جزئية} one {دليل جزئي واحد} two {دليلان جزئيان} few {# أدلة جزئية} many {# دليلًا جزئيًا} other {# دليل جزئي}}"
@@ -434,13 +438,28 @@ msgid "{count, plural, one {# point} other {# points}}"
 msgstr "{count, plural, zero {# نقطة} one {# نقطة} two {نقطتان} few {# نقاط} many {# نقطة} other {# نقطة}}"
 
 #: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.evidence.withheldSummary"
+msgid "{count, plural, one {# requirement could not be checked. Retry or check it yourself.} other {# requirements could not be checked. Retry or check them yourself.}}"
+msgstr "{count, plural, zero {تم فحص جميع المتطلبات.} one {تعذّر فحص متطلب واحد. أعد المحاولة أو افحصه بنفسك.} two {تعذّر فحص متطلبين. أعد المحاولة أو افحصهما بنفسك.} few {تعذّر فحص # متطلبات. أعد المحاولة أو افحصها بنفسك.} many {تعذّر فحص # متطلبًا. أعد المحاولة أو افحصها بنفسك.} other {تعذّر فحص # متطلب. أعد المحاولة أو افحصها بنفسك.}}"
+
+#: src/features/resume/variants/copy.generated.ts
 msgctxt "jobs.requirements.totalCount"
 msgid "{count, plural, one {# requirement} other {# requirements}} from the ad. This compares what you wrote, not your ability."
 msgstr "{count, plural, zero {لا متطلبات} one {متطلب واحد} two {متطلبان} few {# متطلبات} many {# متطلبًا} other {# متطلب}} من الإعلان. هذه مقارنة بما كتبته، وليست حكمًا على قدرتك."
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.sectionsTranslated"
+msgid "{count, plural, one {# section translated} other {# sections translated}}"
+msgstr "{count, plural, zero {لم يُترجم أي قسم} one {تُرجم قسم واحد} two {تُرجم قسمان} few {تُرجمت # أقسام} many {تُرجم # قسمًا} other {تُرجم # قسم}}"
+
 #: src/features/resume/editor/check/finding-group.tsx
 msgid "{count, plural, one {# section uses an unfamiliar heading} other {# sections use unfamiliar headings}}"
 msgstr "{count, plural, zero {لا أقسام بعناوين غير مألوفة} one {قسم واحد بعنوان غير مألوف} two {قسمان بعنوانين غير مألوفين} few {# أقسام بعناوين غير مألوفة} many {# قسمًا بعناوين غير مألوفة} other {# قسم بعناوين غير مألوفة}}"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.translation.heldSegments"
+msgid "{count, plural, one {# segment was left untranslated. Its original text is kept.} other {# segments were left untranslated. Their original text is kept.}}"
+msgstr "{count, plural, one {لم يُترجم مقطع واحد. بقي نصه الأصلي محفوظًا.} other {عدد المقاطع التي لم تُترجم: #. بقي نصها الأصلي محفوظًا.}}"
 
 #: src/features/resume/variants/copy.generated.ts
 msgctxt "language.terms.reviewCount"
@@ -513,9 +532,24 @@ msgstr "{count} أيام"
 msgid "{count} findings: {title}"
 msgstr "{count} ملاحظات: {title}"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.keptCount"
+msgid "{count} kept"
+msgstr "أُبقي {count}"
+
 #: src/features/resume/editor/check/check-sections.tsx
 msgid "{count} kept as is"
 msgstr "{count} تم إبقاؤها كما هي"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.keptArabic"
+msgid "{count} kept in Arabic"
+msgstr "أُبقي {count} بالعربية"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.keptEnglish"
+msgid "{count} kept in English"
+msgstr "أُبقي {count} بالإنجليزية"
 
 #: src/features/ats-guide/copy.ts
 msgctxt "atsGuide.count"
@@ -1014,6 +1048,11 @@ msgctxt "jobs.comparison.resultHint"
 msgid "A comparison with what you wrote, not a judgment of your ability."
 msgstr "مقارنة بما كتبته، وليست حكمًا على قدرتك."
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.translation.factContact"
+msgid "A contact detail changed."
+msgstr "تغيّرت إحدى بيانات الاتصال."
+
 #: src/features/ats-guide/examples.ts
 msgid "A contact line is clipped at the edge"
 msgstr "سطر تواصل مقطوع عند الحافة"
@@ -1132,6 +1171,11 @@ msgstr "رصيد شهري من عمليات الذكاء الاصطناعي"
 msgid "A name helps you tell passkeys apart, like \"Work laptop\"."
 msgstr "يساعدك الاسم على التمييز بين مفاتيح المرور، مثل \"كمبيوتر محمول للعمل\"."
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.translation.factNumber"
+msgid "A number changed."
+msgstr "تغيّر أحد الأرقام."
+
 #: src/features/ats-guide/examples.ts
 msgid "A PDF collection containing the CV"
 msgstr "مجموعة PDF تتضمن السيرة"
@@ -1143,6 +1187,11 @@ msgstr "رقم هاتف مع رمز الدولة"
 #: src/features/ats-checker/messages.ts
 msgid "A profile or portfolio can support your experience."
 msgstr "يمكن للملف المهني أو معرض الأعمال أن يدعم خبراتك."
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.translation.factTerm"
+msgid "A protected term changed."
+msgstr "تغيّر أحد المصطلحات المحمية."
 
 #: src/features/ats-guide/examples.ts
 msgid "A qualification has no section heading"
@@ -1281,9 +1330,13 @@ msgid "Accept"
 msgstr "قبول"
 
 #: src/features/resume/editor/proposals/proposal-list.tsx
-#: src/features/resume/variants/translation-review.tsx
 msgid "Accept all"
 msgstr "قبول الكل"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.tailoring.acceptHint"
+msgid "Accept at least one edit to save a tailored copy."
+msgstr "اقبل تعديلًا واحدًا على الأقل لحفظ نسخة مخصصة."
 
 #: src/features/resume/editor/check/review-findings.tsx
 msgid "Accept change"
@@ -1325,6 +1378,11 @@ msgstr "قبلت عرضا آخر"
 msgctxt "workspace.privacy.c4f7d23573b7"
 msgid "Accepted deletion requests revoke access on all devices. Active erasure may still be pending. Completion is confirmed separately after required cleanup."
 msgstr "تلغي طلبات الحذف المقبولة الوصول من جميع الأجهزة. قد تستمر إزالة البيانات النشطة. يُؤكّد الاكتمال بشكل منفصل بعد التنظيف المطلوب."
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.tailoring.acceptedForCopy"
+msgid "Accepted for the tailored copy"
+msgstr "مقبول للنسخة المخصصة"
 
 #: src/features/applications/stages.ts
 msgid "Accepted offer"
@@ -1955,6 +2013,11 @@ msgctxt "reviewGuide.tabs.aiShort"
 msgid "AI"
 msgstr "الذكاء"
 
+#: src/features/assistant/copy.generated.ts
+msgctxt "privacy.ai.title"
+msgid "AI and privacy"
+msgstr "الذكاء الاصطناعي والخصوصية"
+
 #: src/features/usage/allowance-limit.tsx
 msgctxt "allowance.budget.title"
 msgid "AI budget limit reached"
@@ -1975,6 +2038,11 @@ msgstr "لم يتم تحميل اتصالات الذكاء الاصطناعي. �
 #: src/features/applications/components/add-application-dialog.tsx
 msgid "AI couldn't fill the details. The posting is retained; complete the fields manually."
 msgstr "لم يتمكن الذكاء الاصطناعي من ملء التفاصيل. يتم الاحتفاظ بإعلان الوظيفة؛ أكمل الحقول يدويًا."
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "privacy.ai.details"
+msgid "AI details"
+msgstr "تفاصيل الذكاء الاصطناعي"
 
 #: src/features/resume/share/format.ts
 msgid "AI edit"
@@ -1997,13 +2065,13 @@ msgstr "الذكاء الاصطناعي غير متاح في هذه البيئة
 
 #: src/features/settings/privacy/page.tsx
 msgctxt "privacy.storage.aiDescription"
-msgid "AI is optional and needs your consent. Only necessary text, without contact details, goes through OpenRouter. OpenAI Luna and Terra use Microsoft Azure. The DeepSeek checker uses Together AI. Requests use zero data retention (ZDR) routing and deny data collection for training. Provider terms govern actual handling."
-msgstr "الذكاء الاصطناعي اختياري ويتطلب موافقتك. يمر النص اللازم فقط، دون بيانات الاتصال، عبر OpenRouter. تستخدم نماذج OpenAI Luna وTerra خدمة Microsoft Azure، ويستخدم مدقق DeepSeek خدمة Together AI. تستخدم الطلبات توجيهًا مؤهلًا لانعدام الاحتفاظ بالبيانات (ZDR) وترفض جمع البيانات للتدريب. تخضع المعالجة الفعلية لشروط مزودي الخدمة."
+msgid "AI is optional and needs your consent. OpenRouter routes requests to Microsoft Azure and Together AI for processing outside Saudi Arabia. We request zero data retention and block data collection for training. Provider terms govern how they handle data."
+msgstr "الذكاء الاصطناعي اختياري ويتطلب موافقتك. يوجّه OpenRouter الطلبات إلى Microsoft Azure وTogether AI للمعالجة خارج السعودية. نطلب عدم الاحتفاظ بالبيانات ونمنع جمعها للتدريب. تخضع معالجة البيانات لشروط المزوّدين."
 
 #: src/features/assistant/copy.generated.ts
 msgctxt "privacy.ai.overseasNotice"
-msgid "AI is optional. You must consent before first use. We send only necessary CV text without contact details through OpenRouter. OpenRouter sends requests to Microsoft Azure for OpenAI Luna and Terra. It sends requests to Together AI for the DeepSeek checker. Both services process requests outside Saudi Arabia. Requests use zero data retention (ZDR) routing and deny data collection for training. Provider terms govern actual handling."
-msgstr "ميزات الذكاء الاصطناعي اختيارية وتتطلب موافقتك الصريحة قبل أول استخدام. نرسل نص السيرة اللازم فقط، دون بيانات الاتصال، عبر OpenRouter إلى Microsoft Azure لنماذج OpenAI Luna وTerra، وإلى Together AI لمدقق DeepSeek. تتم هذه المعالجة خارج السعودية. نضبط توجيه الطلبات على انعدام الاحتفاظ بالبيانات (ZDR) ورفض جمع البيانات للتدريب. تخضع المعالجة الفعلية لشروط مزوّدي الخدمة."
+msgid "AI is optional. Give consent once for this processing notice. If the notice changes, we ask again. For CV review, import, translation and cover letters, we send only the necessary text. This can include CV passages, job descriptions, your answers, and language or length choices. We exclude contact details and original files. OpenRouter routes requests to Microsoft Azure and Together AI for processing outside Saudi Arabia. We request zero data retention and block data collection for training. Provider terms govern how they handle data. You can withdraw consent in Settings."
+msgstr "الذكاء الاصطناعي اختياري. تكفي موافقتك مرة واحدة على إشعار المعالجة هذا. إذا تغيّر الإشعار، نطلب موافقتك من جديد. نرسل النص اللازم فقط لمراجعة السيرة واستيرادها وترجمتها وإعداد خطابات التقديم. قد يشمل ذلك مقاطع من السيرة، وأوصاف الوظائف، وإجاباتك، وخيارات اللغة أو الطول. نستبعد بيانات الاتصال والملفات الأصلية. يوجّه OpenRouter الطلبات إلى Microsoft Azure وTogether AI للمعالجة خارج السعودية. نطلب عدم الاحتفاظ بالبيانات ونمنع جمعها للتدريب. تخضع معالجة البيانات لشروط المزوّدين. يمكنك سحب موافقتك من الإعدادات."
 
 #: src/features/settings/ai/providers.tsx
 msgid "AI providers"
@@ -2124,6 +2192,11 @@ msgstr "تم التقديم بالفعل"
 #: src/features/auth/pages/register.tsx
 msgid "Already have an account?"
 msgstr "لديك حساب بالفعل؟"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.coverage.foundGroup"
+msgid "Already in your CV ({count})"
+msgstr "مذكورة في سيرتك ({count})"
 
 #: src/features/applications/components/add-application-dialog.tsx
 msgid "Already interviewing"
@@ -2501,13 +2574,19 @@ msgid "Approval is enabled after confirming {count, plural, one {# term} other {
 msgstr "يُفعَّل الاعتماد بعد تأكيد {count, plural, zero {صفر من المصطلحات} one {مصطلح واحد} two {مصطلحين} few {# مصطلحات} many {# مصطلحًا} other {# مصطلح}}."
 
 #: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.approveArabic"
+msgid "Approve & save Arabic copy"
+msgstr "اعتماد وحفظ النسخة العربية"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.approveEnglish"
+msgid "Approve & save English copy"
+msgstr "اعتماد وحفظ النسخة الإنجليزية"
+
+#: src/features/resume/variants/copy.generated.ts
 msgctxt "language.translation.approve"
 msgid "Approve English copy"
 msgstr "اعتماد النسخة الإنجليزية"
-
-#: src/features/resume/variants/translation-review.tsx
-msgid "Approve language copy"
-msgstr "اعتماد النسخة اللغوية"
 
 #: src/features/resume/editor/check/review-findings.tsx
 msgid "Approximate area; no precise text box is available."
@@ -2543,6 +2622,16 @@ msgid "Arabic"
 msgstr "العربية"
 
 #: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.originalArabic"
+msgid "Arabic · Original"
+msgstr "العربية · الأصل"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.readyArabic"
+msgid "Arabic · Ready"
+msgstr "العربية · جاهزة"
+
+#: src/features/resume/variants/copy.generated.ts
 msgctxt "jobs.copy.arabicLabel"
 msgid "Arabic · Tailored copy"
 msgstr "العربية · نسخة مخصصة"
@@ -2566,6 +2655,16 @@ msgstr "عربي وإنجليزي"
 msgctxt "landing.ats.order"
 msgid "Arabic and English PDFs tested so their dates and facts are read in order"
 msgstr "ملفات PDF بالعربي والإنجليزي مُختبرة لتُقرأ تواريخها ومعلوماتها بالترتيب"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.copyArabic"
+msgid "Arabic copy"
+msgstr "النسخة العربية"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.savedArabic"
+msgid "Arabic copy saved"
+msgstr "تم حفظ النسخة العربية"
 
 #: src/features/resume/variants/copy.generated.ts
 msgctxt "language.document.arabic"
@@ -2800,11 +2899,6 @@ msgctxt "account.email.status.pending"
 msgid "Awaiting new email verification"
 msgstr "بانتظار تأكيد البريد الجديد"
 
-#: src/features/resume/variants/copy.generated.ts
-msgctxt "language.translation.status.pending"
-msgid "Awaiting your confirmation"
-msgstr "بانتظار تأكيدك"
-
 #: src/features/public-copy.ts
 msgctxt "landing.example.pending"
 msgid "Awaiting your decision"
@@ -2817,6 +2911,11 @@ msgstr "الجهة المانحة"
 
 #: src/libs/resume/section-title.ts
 #: src/libs/resume/section.tsx
+msgid "Awards"
+msgstr "الجوائز"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.tailoring.section.awards"
 msgid "Awards"
 msgstr "الجوائز"
 
@@ -2944,6 +3043,11 @@ msgstr "المعلومات الأساسية"
 #: src/libs/resume/section.tsx
 msgid "Basics"
 msgstr "الأساسيات"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.tailoring.section.basics"
+msgid "Basics"
+msgstr "المعلومات الأساسية"
 
 #: src/features/resume/editor/check/finding-help.tsx
 #: src/features/resume/editor/check/review-diff.tsx
@@ -3214,6 +3318,16 @@ msgstr "إدخال القائمة {n}"
 msgid "Bulleted list"
 msgstr "قائمة نقطية"
 
+#: src/features/assistant/copy.generated.ts
+msgctxt "privacy.ai.startConsent"
+msgid "By selecting Start review, you agree to this processing notice."
+msgstr "باختيار «بدء المراجعة»، فإنك توافق على إشعار المعالجة هذا."
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "privacy.ai.retryConsent"
+msgid "By selecting the retry button, you agree to this processing notice."
+msgstr "باختيار زر إعادة المحاولة، فإنك توافق على إشعار المعالجة هذا."
+
 #: src/features/applications/insights-copy.ts
 msgctxt "applications.insights.method"
 msgid "Calculations and data tables"
@@ -3297,6 +3411,11 @@ msgctxt "common.actions.cancel"
 msgid "Cancel"
 msgstr "إلغاء"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.cancel"
+msgid "Cancel"
+msgstr "إلغاء"
+
 #: src/dialogs/auth/change-email.tsx
 #: src/dialogs/auth/change-password.tsx
 #: src/dialogs/auth/confirm-account-access.tsx
@@ -3360,6 +3479,11 @@ msgstr "الشهادات"
 msgid "Certifications"
 msgstr "الشهادات"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.tailoring.section.certifications"
+msgid "Certifications"
+msgstr "الشهادات"
+
 #: src/routes/builder/letter/-components/write-panel.tsx
 msgid "Change"
 msgstr "تغيير"
@@ -3389,9 +3513,10 @@ msgctxt "account.email.change"
 msgid "Change email address"
 msgstr "تغيير البريد الإلكتروني"
 
-#: src/features/career/job-evidence-page.tsx
-msgid "Change job ad"
-msgstr "تغيير إعلان الوظيفة"
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.context.change"
+msgid "Change job"
+msgstr "تغيير الوظيفة"
 
 #: src/features/command-palette/pages/preferences/index.tsx
 msgid "Change language to…"
@@ -3500,6 +3625,11 @@ msgctxt "landing.steps.download.body"
 msgid "Check its readability, then download."
 msgstr "افحص قابلية قراءتها، ثم نزّلها."
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.evidence.check"
+msgid "Check job requirements"
+msgstr "فحص متطلبات الوظيفة"
+
 #: src/features/ats-checker/messages.ts
 msgid "Check missing letters in the PDF"
 msgstr "راجع الحروف المفقودة في PDF"
@@ -3553,6 +3683,11 @@ msgstr "راجع النص في ملف PDF"
 #: src/features/ats-checker/messages.ts
 msgid "Check the year; mark ongoing work as current only if it is."
 msgstr "راجع السنة، وحدّد الوظيفة كمستمرة فقط إذا كنت لا تزال تعمل بها."
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.explanation.checkEvidence"
+msgid "Check this finding against the source information."
+msgstr "قارن هذه الملاحظة بالمعلومات الواردة في المصدر."
 
 #: src/features/career/workspace/fit.tsx
 msgid "Check this role against your evidence"
@@ -4060,10 +4195,6 @@ msgstr "موقع الشركة"
 msgid "Company,Role,Stage,…"
 msgstr "الشركة,الوظيفة,المرحلة,…"
 
-#: src/features/career/job-target-page.tsx
-msgid "Compare"
-msgstr "مقارنة"
-
 #. placeholder {0}: application.company
 #: src/features/career/workspace/practise.tsx
 msgid "Compare attempts to see what improved. Practice questions are simulated, not from {0}."
@@ -4091,6 +4222,11 @@ msgstr "مقارنة بوظيفة"
 msgctxt "jobs.comparison.submit"
 msgid "Compare with ad"
 msgstr "مقارنة بالإعلان"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.context.compare"
+msgid "Compare with job"
+msgstr "مقارنة بالوظيفة"
 
 #: src/features/resume/variants/copy.generated.ts
 msgctxt "language.translation.compareWithOriginal"
@@ -4259,6 +4395,11 @@ msgctxt "language.terms.confirmName"
 msgid "Confirm the official name"
 msgstr "تأكد من الاسم الرسمي"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.blockedNames"
+msgid "Confirm the official names before saving."
+msgstr "أكد الأسماء الرسمية قبل الحفظ."
+
 #: src/features/career/workspace/messages.tsx
 msgid "Confirm the time before adding a new interview."
 msgstr "أكّد الموعد قبل إضافة مقابلة جديدة."
@@ -4278,10 +4419,6 @@ msgstr "تأكيد هذا التغيير"
 #: src/routes/email-change.tsx
 msgid "Confirmation email sent. Check your inbox."
 msgstr "أُرسلت رسالة التأكيد. تحقق من بريدك الوارد."
-
-#: src/features/resume/variants/translation-review.tsx
-msgid "Confirmed"
-msgstr "مؤكد"
 
 #: src/features/resume/import/review.tsx
 msgctxt "review.fact.status.confirmed"
@@ -4362,6 +4499,11 @@ msgstr "الاتصال: {text}"
 #: src/features/career/workspace/practise.tsx
 msgid "Connections bill speech separately and may use tokens on your account. Your browser's speech is free, but its maker may process the audio. The server keeps transcripts, never recordings."
 msgstr "تحتسب الاتصالات تكلفة الكلام بشكل منفصل وقد تستهلك رموزًا من حسابك. الكلام عبر متصفحك مجاني، لكن الشركة المصنّعة له قد تعالج الصوت. يحتفظ الخادم بالنصوص المفرّغة، ولا يحتفظ بالتسجيلات أبدًا."
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "privacy.ai.grantedAt"
+msgid "Consent given on {date}"
+msgstr "تاريخ الموافقة: {date}"
 
 #: src/features/ats-guide/copy.ts
 msgctxt "atsGuide.map.datesDescription"
@@ -4687,11 +4829,6 @@ msgid "Could not approve because the CV structure changed since this review star
 msgstr "تعذّر الاعتماد لأن بنية السيرة تغيّرت منذ بدء هذه المراجعة. اطلب مراجعة ترجمة جديدة."
 
 #: src/features/resume/variants/copy.generated.ts
-msgctxt "language.translation.errorIncomplete"
-msgid "Could not approve yet. Confirm all names and accept all segments before approving."
-msgstr "تعذّر الاعتماد بعد. أكّد كل الأسماء واقبل كل الفقرات قبل الاعتماد."
-
-#: src/features/resume/variants/copy.generated.ts
 msgctxt "review.withheldReason.absence"
 msgid "Could not be confirmed as absent from your CV."
 msgstr "تعذّر تأكيد غياب هذا المتطلب من سيرتك الذاتية."
@@ -4700,16 +4837,6 @@ msgstr "تعذّر تأكيد غياب هذا المتطلب من سيرتك ا�
 msgctxt "review.withheldReason.default"
 msgid "Could not be verified against your CV."
 msgstr "تعذّر التحقق منه مقابل سيرتك الذاتية."
-
-#: src/features/resume/variants/copy.generated.ts
-msgctxt "review.withheldReason.translation"
-msgid "Could not be verified as an accurate translation."
-msgstr "تعذّر التحقق من دقة ترجمة هذا المقطع."
-
-#: src/features/resume/editor/proposals/review-failure.tsx
-msgctxt "review.translation.partSafety"
-msgid "Could not be verified as an accurate translation. The original text is kept."
-msgstr "تعذر التحقق من دقة ترجمة هذا الجزء. بقي النص الأصلي محفوظًا."
 
 #: src/features/resume/editor/proposals/review-operation.tsx
 msgid "Could not check assistant availability. Your draft is kept."
@@ -4812,6 +4939,11 @@ msgstr "تعذّر تحميل هذه المراجعة."
 msgid "Could not load this saved version"
 msgstr "تعذر تحميل هذه النسخة المحفوظة"
 
+#: src/features/assistant/copy.generated.ts
+msgctxt "privacy.ai.statusUnavailable"
+msgid "Could not load your AI consent."
+msgstr "تعذّر تحميل حالة موافقتك على الذكاء الاصطناعي."
+
 #: src/features/documents/base-cv-limit.tsx
 #: src/features/resume/import/review.tsx
 msgctxt "documents.baseCvLimit.loadExisting"
@@ -4872,6 +5004,11 @@ msgstr "تعذّر حفظ المقارنة. النص الملصق محفوظ ه�
 msgid "Could not save the cover-letter change"
 msgstr "تعذّر حفظ التغيير في خطاب التقديم"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.errorIncomplete"
+msgid "Could not save the draft. Reload the review and resolve any remaining items."
+msgstr "تعذّر حفظ المسودة. أعد تحميل المراجعة وعالج الأجزاء المتبقية."
+
 #: src/features/applications/components/detail/note-composer.tsx
 msgid "Could not save the notes."
 msgstr "تعذّر حفظ الملاحظات."
@@ -4927,6 +5064,11 @@ msgstr "لا يمكن فرز هذه العناصر؛ بقيت في النهاي�
 #: src/features/resume/share/history-tab.tsx
 msgid "Could not update version history"
 msgstr "تعذر تحديث سجل النسخ"
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "privacy.ai.withdrawFailed"
+msgid "Could not withdraw consent."
+msgstr "تعذّر سحب الموافقة."
 
 #: src/features/career/knowledge/facts.tsx
 msgid "Couldn't add that fact."
@@ -5276,6 +5418,11 @@ msgstr "خطاب التقديم"
 msgid "Cover Letter"
 msgstr "خطاب التقديم"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.tailoring.section.cover-letter"
+msgid "Cover Letter"
+msgstr "خطاب التقديم"
+
 #. placeholder {0}: application.company
 #: src/features/applications/components/detail/document-manager.tsx
 msgid "Cover letter — {0}"
@@ -5339,6 +5486,16 @@ msgctxt "reviewGuide.ai.translation.description"
 msgid "Create a separate version in another language."
 msgstr "إنشاء نسخة مستقلة بلغة أخرى."
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.tailoring.copyTitle"
+msgid "Create a tailored copy for this job"
+msgstr "إنشاء نسخة مخصصة لهذه الوظيفة"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.context.subtitle"
+msgid "Create a tailored copy for this job while keeping your original CV intact."
+msgstr "جهّز نسخة مخصصة لهذا الإعلان مع الحفاظ على سيرتك الأصلية."
+
 #: src/features/auth/components/guest-banner.tsx
 msgid "Create account"
 msgstr "إنشاء حساب"
@@ -5401,6 +5558,11 @@ msgstr "تم إنشاء \"{finalName}\""
 #: src/features/documents/new-document-dialog.tsx
 msgid "Created and linked to {0}"
 msgstr "تم إنشاؤها وربطها بـ {0}"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.copyHint"
+msgid "Creates a separate copy. Your original stays unchanged."
+msgstr "تُنشئ الترجمة نسخة منفصلة. تبقى سيرتك الأصلية كما هي."
 
 #: src/features/resume/import/start.tsx
 msgid "Creating your CV"
@@ -5515,6 +5677,11 @@ msgid "Custom section"
 msgstr "قسم مخصص"
 
 #: src/libs/resume/section.tsx
+msgid "Custom Sections"
+msgstr "أقسام مخصصة"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.tailoring.section.custom"
 msgid "Custom Sections"
 msgstr "أقسام مخصصة"
 
@@ -5919,6 +6086,11 @@ msgstr "مصمم · شركة"
 msgid "Designer · Company · 2021–2023"
 msgstr "مصمم · شركة · 2021–2023"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.evidence.detailsTitle"
+msgid "Detailed requirement check"
+msgstr "فحص متطلبات الوظيفة بالتفصيل"
+
 #: src/features/applications/components/detail/properties.tsx
 #: src/features/career/workspace/shell.tsx
 msgid "Details"
@@ -5985,6 +6157,11 @@ msgid "Discard changes?"
 msgstr "تجاهل التغييرات؟"
 
 #: src/features/applications/components/detail/note-composer.tsx
+msgid "Discard draft"
+msgstr "تجاهل المسودة"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.discard"
 msgid "Discard draft"
 msgstr "تجاهل المسودة"
 
@@ -6251,6 +6428,11 @@ msgstr "صياغة ملخص من الحقائق التي تختارها."
 msgid "Draft kept. Edit anything you like."
 msgstr "المسودة محفوظة. عدّل ما تشاء"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.status.pending"
+msgid "Draft ready to review"
+msgstr "مسودة جاهزة للمراجعة"
+
 #: src/features/public-copy.ts
 msgctxt "legal.draft.revision"
 msgid "Draft revision: 2026-11-15"
@@ -6414,6 +6596,11 @@ msgstr "بداية 2020 إلى فترة لاحقة"
 msgid "Edit"
 msgstr "تعديل"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.edit"
+msgid "Edit"
+msgstr "تعديل"
+
 #. Screen reader label for button that edits a keyword chip. Variable is the current keyword text.
 #: src/components/input/chip-input.tsx
 msgid "Edit {chip}"
@@ -6533,11 +6720,21 @@ msgstr "تعديل…"
 msgid "Edited"
 msgstr "تم تحريره"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.edited"
+msgid "Edited"
+msgstr "عُدّل"
+
 #: src/features/documents/document-card.tsx
 msgid "Edited {relativeTime}"
 msgstr "عُدّلت {relativeTime}"
 
 #: src/features/resume/variants/translation-review.tsx
+msgid "Edited text"
+msgstr "النص المعدّل"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.editedText"
 msgid "Edited text"
 msgstr "النص المعدّل"
 
@@ -6579,6 +6776,11 @@ msgstr "التعليم"
 
 #: src/features/career/copy.generated.ts
 msgctxt "editor.education.title"
+msgid "Education"
+msgstr "التعليم"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.tailoring.section.education"
 msgid "Education"
 msgstr "التعليم"
 
@@ -6766,6 +6968,16 @@ msgctxt "language.copy.englishDescription"
 msgid "English · Language copy of \"{documentName}\""
 msgstr "الإنجليزية · نسخة لغة من «{documentName}»"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.originalEnglish"
+msgid "English · Original"
+msgstr "الإنجليزية · الأصل"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.readyEnglish"
+msgid "English · Ready"
+msgstr "الإنجليزية · جاهزة"
+
 #: src/libs/locale.ts
 msgid "English (United Kingdom)"
 msgstr "الإنجليزية (المملكة المتحدة)"
@@ -6774,6 +6986,16 @@ msgstr "الإنجليزية (المملكة المتحدة)"
 msgctxt "language.document.englishCopy"
 msgid "English copy"
 msgstr "نسخة إنجليزية"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.copyEnglish"
+msgid "English copy"
+msgstr "النسخة الإنجليزية"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.savedEnglish"
+msgid "English copy saved"
+msgstr "تم حفظ النسخة الإنجليزية"
 
 #: src/features/resume/variants/copy.generated.ts
 msgctxt "language.term.englishCompactLabel"
@@ -6963,8 +7185,8 @@ msgctxt "landing.pricing.free.note"
 msgid "Everything you need to start."
 msgstr "كل اللي تحتاجه عشان تبدأ."
 
-#: src/features/career/job-evidence-page.tsx
 #: src/features/resume/editor/proposals/review-panel.tsx
+#: src/features/resume/variants/clarification.tsx
 msgid "Evidence"
 msgstr "المصدر"
 
@@ -7027,6 +7249,11 @@ msgstr "الخبرات العملية"
 
 #: src/features/career/copy.generated.ts
 msgctxt "editor.experience.title"
+msgid "Experience"
+msgstr "الخبرة المهنية"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.tailoring.section.experience"
 msgid "Experience"
 msgstr "الخبرة المهنية"
 
@@ -7543,19 +7770,15 @@ msgstr "تنسيق ورقة الأنماط"
 msgid "Formatting"
 msgstr "التنسيق"
 
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.diff.formatting"
+msgid "Formatting only"
+msgstr "تغيير في التنسيق فقط"
+
 #. placeholder {0}: day(row.firstSeenAt)
 #: src/features/career/today.tsx
 msgid "Found {0}"
 msgstr "عُثر عليها {0}"
-
-#: src/features/career/literal-job-evidence.tsx
-msgid "Found in CV"
-msgstr "موجود في السيرة"
-
-#: src/features/career/literal-job-evidence.tsx
-msgctxt "jobs.coverage.foundGroup"
-msgid "Found in CV: {count}"
-msgstr "موجود في السيرة: {count}"
 
 #: src/features/applications/components/add-application-dialog.tsx
 msgid "Found the role and company on the page. Review the details before saving."
@@ -7660,6 +7883,11 @@ msgstr "الاسم الكامل"
 #: src/features/career/information/entry-fields.tsx
 msgid "Full professional"
 msgstr "مهني كامل"
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.diff.rewrite"
+msgid "Full rewrite"
+msgstr "إعادة صياغة كاملة"
 
 #. Layout editor toggle label that makes a page single-column
 #: src/routes/builder/$resumeId/-sidebar/right/sections/layout/pages.tsx
@@ -8419,6 +8647,11 @@ msgid "Interests"
 msgstr "الاهتمامات"
 
 #: src/features/resume/variants/copy.generated.ts
+msgctxt "review.tailoring.section.interests"
+msgid "Interests"
+msgstr "الاهتمامات"
+
+#: src/features/resume/variants/copy.generated.ts
 msgctxt "language.interface.independenceLabel"
 msgid "Interface in English, CV in Arabic. Values keep their own direction."
 msgstr "الواجهة بالإنجليزية، والسيرة بالعربية. تحافظ القيم على اتجاهها."
@@ -8622,6 +8855,7 @@ msgid "Job ad text"
 msgstr "نص الإعلان"
 
 #: src/features/resume/variants/copy.generated.ts
+#: src/libs/route-titles.ts
 msgctxt "jobs.comparison.title"
 msgid "Job comparison"
 msgstr "المقارنة بوظيفة"
@@ -8736,7 +8970,7 @@ msgstr "الاحتفاظ بإمكانية الوصول إلى حسابك حتى 
 
 #: src/features/resume/variants/copy.generated.ts
 msgctxt "language.terms.keepAllNames"
-msgid "Keep all names as they are"
+msgid "Keep all as written"
 msgstr "إبقاء كل الأسماء كما هي"
 
 #: src/features/resume/editor/check/review-findings.tsx
@@ -8775,6 +9009,11 @@ msgstr "اكتفِ ببريد إلكتروني واحد للتقديم."
 msgctxt "landing.example.keep"
 msgid "Keep original"
 msgstr "الإبقاء على الأصل"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.keepOriginal"
+msgid "Keep original"
+msgstr "إبقاء الأصل"
 
 #: src/features/assistant/copy.generated.ts
 msgctxt "review.suggestion.keepOriginal"
@@ -8857,6 +9096,11 @@ msgstr "ينتهي المفتاح بـ {0}"
 msgid "Key stored encrypted"
 msgstr "المفتاح المخزن مشفر"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.coverage.title"
+msgid "Key terms from the job ad"
+msgstr "الكلمات المهمة في الإعلان"
+
 #: src/features/settings/ai/api-keys.tsx
 msgid "Keys act as you and can read and edit your documents."
 msgstr "تتيح المفاتيح العمل باسمك وقراءة مستنداتك وتعديلها."
@@ -8928,7 +9172,6 @@ msgctxt "account.menu.language"
 msgid "Language"
 msgstr "اللغة"
 
-#: src/features/resume/variants/language-versions.tsx
 #: src/features/resume/variants/variant-banner.tsx
 msgid "Language copy"
 msgstr "نسخة لغوية"
@@ -8949,6 +9192,11 @@ msgstr "اللغات"
 
 #: src/features/career/copy.generated.ts
 msgctxt "editor.languages.title"
+msgid "Languages"
+msgstr "اللغات"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.tailoring.section.languages"
 msgid "Languages"
 msgstr "اللغات"
 
@@ -9281,10 +9529,6 @@ msgstr "اذكر الأدوات والمهارات التي تستخدمها ف�
 #: src/features/career/workspace/practise.tsx
 msgid "Listening… Stop when you're done."
 msgstr "جارٍ الاستماع… توقّف عندما تنتهي."
-
-#: src/features/career/literal-job-evidence.tsx
-msgid "Literal text coverage"
-msgstr "تغطية العبارات النصية"
 
 #: src/libs/locale.ts
 msgid "Lithuanian"
@@ -10138,6 +10382,11 @@ msgstr "النسخة المسماة"
 msgid "Named versions are kept until you delete them. This can't be undone."
 msgstr "يتم الاحتفاظ بالإصدارات المسماة حتى تقوم بحذفها. لا يمكن التراجع عن هذا."
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.trustNote"
+msgid "Names, dates, and numbers were checked automatically. Nothing is saved until you approve."
+msgstr "تحققنا تلقائيًا من الأسماء والتواريخ والأرقام. لن يُحفظ شيء قبل اعتمادك."
+
 #: src/features/resume/editor/design/style-groups.tsx
 msgid "Narrow"
 msgstr "ضيق"
@@ -10290,10 +10539,6 @@ msgstr "جدول جديد"
 msgid "New section"
 msgstr "قسم جديد"
 
-#: src/features/resume/editor/proposals/wording-diff.tsx
-msgid "New wording — check it is true"
-msgstr "صياغة جديدة — تحقق من صحتها"
-
 #: src/features/applications/components/import-applications-sheet.tsx
 #: src/features/resume/import/assistance-guide.tsx
 #: src/features/resume/stylesheet/editor-extensions.ts
@@ -10336,6 +10581,11 @@ msgstr "ليس لديك حساب؟"
 #: src/features/applications/components/interview-dialog.tsx
 msgid "No active applications."
 msgstr "لا توجد طلبات عمل نشطة."
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "privacy.ai.noConsent"
+msgid "No active consent."
+msgstr "لا توجد موافقة سارية."
 
 #: src/features/applications/components/detail/activity.tsx
 msgid "No activity matches this filter"
@@ -10577,6 +10827,11 @@ msgstr "لا يوجد رقم هاتف"
 msgid "No photo. Most ATS ignore photos; some regions expect one."
 msgstr "لا توجد صورة. معظم ATS تتجاهل الصور؛ بعض المناطق تتوقع واحدة."
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.coverage.empty"
+msgid "No phrases stood out in this job ad."
+msgstr "لم تظهر عبارات بارزة في إعلان الوظيفة."
+
 #: src/features/applications/components/add-application-dialog.tsx
 msgid "No postings found. Try different keywords."
 msgstr "لم يتم العثور على وظائف شاغرة. جرب كلمات رئيسية مختلفة."
@@ -10639,10 +10894,6 @@ msgstr "لا توجد وسوم"
 #: src/features/career/knowledge/stories.tsx
 msgid "No tags yet"
 msgstr "لا توجد وسوم بعد"
-
-#: src/features/career/literal-job-evidence.tsx
-msgid "No terms stood out in this ad."
-msgstr "لم تظهر عبارات قابلة للاختيار في هذا الإعلان."
 
 #: src/features/settings/preferences.tsx
 msgid "No timezone matches."
@@ -10741,15 +10992,6 @@ msgstr "ليست لي"
 msgid "not found"
 msgstr "لم يتم العثور عليه"
 
-#: src/features/career/literal-job-evidence.tsx
-msgid "Not found in CV"
-msgstr "غير موجود في السيرة"
-
-#: src/features/career/literal-job-evidence.tsx
-msgctxt "jobs.coverage.missingGroup"
-msgid "Not found in CV: {count}"
-msgstr "غير موجود في السيرة: {count}"
-
 #: src/features/career/offers.tsx
 msgid "Not in either offer yet"
 msgstr "غير موجود في أيٍّ من العرضين بعد"
@@ -10757,6 +10999,11 @@ msgstr "غير موجود في أيٍّ من العرضين بعد"
 #: src/features/career/offers.tsx
 msgid "Not in the offer · ask {company}"
 msgstr "غير موجود في العرض · اسأل {company}"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.coverage.missingGroup"
+msgid "Not in your CV yet ({count})"
+msgstr "غير مكتوبة في سيرتك ({count})"
 
 #: src/features/resume/stylesheet/editor-extensions.ts
 msgid "Not inherited"
@@ -10810,8 +11057,8 @@ msgstr "لم تبدأ"
 
 #: src/features/resume/variants/copy.generated.ts
 msgctxt "review.translation.notTranslated"
-msgid "Not translated"
-msgstr "تُرك دون ترجمة"
+msgid "Not translated yet"
+msgstr "لم يُترجم بعد"
 
 #: src/features/career/knowledge/facts.tsx
 msgid "Not used"
@@ -11054,10 +11301,6 @@ msgstr "وظيفة واحدة فقط لها تواريخ"
 msgid "Only one version so far. Every editing session adds one automatically."
 msgstr "نسخة واحدة فقط حتى الآن. تضيف كل جلسة تحرير واحدة تلقائيًا."
 
-#: src/features/resume/variants/translation-review.tsx
-msgid "Only part of the job requirement is supported by this CV. Add confirmed information or request a new review."
-msgstr "تدعم هذه السيرة جزءًا فقط من متطلب الوظيفة. أضف معلومات مؤكدة أو اطلب مراجعة جديدة."
-
 #: src/features/resume/import/review.tsx
 msgid "Only part of this file could be read. Review every section and add missing information before saving."
 msgstr "أمكنت قراءة جزء من الملف فقط. راجع كل قسم وأضف المعلومات الناقصة قبل الحفظ."
@@ -11105,6 +11348,11 @@ msgctxt "language.translation.openCopy"
 msgid "Open"
 msgstr "فتح"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.openOriginal"
+msgid "Open"
+msgstr "فتح"
+
 #: src/features/resume/editor/write/section-row.tsx
 msgid "Open {title}"
 msgstr "افتح {title}"
@@ -11112,6 +11360,11 @@ msgstr "افتح {title}"
 #: src/routes/email-change.tsx
 msgid "Open account settings to check the current address and pending change."
 msgstr "افتح إعدادات الحساب للتحقق من العنوان الحالي والتغيير المعلّق."
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.openArabic"
+msgid "Open Arabic copy"
+msgstr "فتح النسخة العربية"
 
 #: src/features/career/today.tsx
 msgid "Open briefing"
@@ -11143,6 +11396,11 @@ msgstr "فتح المستند"
 #: src/features/ats-guide/examples.ts
 msgid "Open each point with the action actually performed"
 msgstr "ابدأ كل نقطة بالفعل الذي نفذته فعلًا"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.openEnglish"
+msgid "Open English copy"
+msgstr "فتح النسخة الإنجليزية"
 
 #: src/features/documents/base-cv-limit.tsx
 msgctxt "documents.baseCvLimit.openExisting"
@@ -11184,8 +11442,12 @@ msgctxt "editor.conflict.openSaved"
 msgid "Open saved copy"
 msgstr "فتح النسخة المحفوظة"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.openSavedCopy"
+msgid "Open saved copy"
+msgstr "فتح النسخة المحفوظة"
+
 #: src/features/career/job-evidence-page.tsx
-#: src/features/resume/variants/language-versions.tsx
 msgid "Open saved CV"
 msgstr "فتح السيرة المحفوظة"
 
@@ -11200,6 +11462,11 @@ msgstr "فتح السيرة المصدر"
 #: src/features/career/workspace/prepare.tsx
 msgid "Open story"
 msgstr "افتح القصة"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.tailoring.openCopy"
+msgid "Open tailored CV"
+msgstr "فتح النسخة المخصصة"
 
 #: src/features/resume/import/ai-assistance-panel.tsx
 msgctxt "review.import.help.expand"
@@ -11307,14 +11574,15 @@ msgstr "برتقالي"
 msgid "Organization"
 msgstr "المنظمة"
 
-#: src/features/resume/variants/language-versions.tsx
-msgid "Original"
-msgstr "الأصل"
-
 #: src/features/public-copy.ts
 msgctxt "landing.example.before"
 msgid "Original"
 msgstr "النص الأصلي"
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.diff.original"
+msgid "Original"
+msgstr "الأصل"
 
 #: src/features/resume/variants/copy.generated.ts
 msgctxt "language.copies.originalLabel"
@@ -11339,6 +11607,11 @@ msgstr "ملف PDF الأصلي"
 #: src/features/resume/editor/write/rich-text-editor.tsx
 msgid "Original table formatting is preserved. This content is read-only because it cannot be edited safely."
 msgstr "يتم الحفاظ على تنسيق الجدول الأصلي. هذا المحتوى للقراءة فقط لأنه لا يمكن تحريره بأمان."
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.translation.gapsBody"
+msgid "Original text was kept to protect accuracy. Retry the untranslated parts or approve as is."
+msgstr "أبقينا النص الأصلي للحفاظ على الدقة. يمكنك إعادة المحاولة أو الاعتماد كما هي."
 
 #: src/features/applications/components/application-form-sheet.tsx
 #: src/features/applications/interviews.ts
@@ -11469,6 +11742,11 @@ msgstr "الفقرة {n}"
 msgid "Parsed text"
 msgstr "النص المستخرج"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.translation.partLabel"
+msgid "Part {part}"
+msgstr "الجزء {part}"
+
 #: src/features/assistant/copy.generated.ts
 msgctxt "review.progress.part"
 msgid "Part {part} of {total}"
@@ -11476,8 +11754,8 @@ msgstr "الجزء {part} من {total}"
 
 #: src/features/assistant/copy.generated.ts
 msgctxt "review.translation.partialFailure"
-msgid "Part {part} of {total} stopped. Verified parts are saved. Retry this part to continue. Nothing is applied until every part passes."
-msgstr "توقف الجزء {part} من {total}. الأجزاء التي اجتازت التحقق محفوظة. أعد محاولة هذا الجزء للمتابعة. لا تُطبَّق أي تغييرات حتى تجتاز جميع الأجزاء التحقق."
+msgid "Part {part} of {total} stopped. Retry this part to continue. Review and approve the translation before saving it."
+msgstr "توقف الجزء {part} من {total}. أعد محاولة هذا الجزء للمتابعة. راجع الترجمة واعتمدها قبل حفظها."
 
 #: src/features/resume/editor/proposals/review-failure.tsx
 msgctxt "review.translation.partFailure"
@@ -12258,12 +12536,22 @@ msgstr "يجب أن تكون روابط الملفات الشخصية عناوي
 msgid "Profiles"
 msgstr "الملفات الشخصية"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.tailoring.section.profiles"
+msgid "Profiles"
+msgstr "الملفات الشخصية"
+
 #: src/components/level/combobox.tsx
 msgid "Progress Bar"
 msgstr "شريط التقدّم"
 
 #: src/libs/resume/section-title.ts
 #: src/libs/resume/section.tsx
+msgid "Projects"
+msgstr "المشاريع"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.tailoring.section.projects"
 msgid "Projects"
 msgstr "المشاريع"
 
@@ -12282,6 +12570,11 @@ msgstr "تم رفض المقترح. لم يتغير خطابك."
 #: src/features/letters/review.tsx
 msgid "Proposal saved as a letter version."
 msgstr "تم حفظ المقترح كنسخة من الخطاب."
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.diff.proposed"
+msgid "Proposed"
+msgstr "المقترح"
 
 #: src/features/career/workspace/messages.tsx
 msgid "Proposed changes"
@@ -12331,10 +12624,20 @@ msgstr "عام، بكلمة مرور"
 msgid "Publications"
 msgstr "المنشورات"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.tailoring.section.publications"
+msgid "Publications"
+msgstr "المنشورات"
+
 #: src/features/resume/editor/write/entries.tsx
 #: src/features/resume/import/field-label.ts
 msgid "Publisher"
 msgstr "الناشر"
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.diff.punctuation"
+msgid "Punctuation only"
+msgstr "تغيير في علامات الترقيم فقط"
 
 #: src/features/resume/editor/check/review-values.ts
 #: src/features/resume/editor/write/rich-text-editor.tsx
@@ -12406,6 +12709,11 @@ msgstr "عندك سؤال؟"
 #: src/routes/builder/$resumeId/-components/design-panel.tsx
 msgid "Raise the design sheet"
 msgstr "ارفع ورقة التصميم"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.retranslate"
+msgid "Re-translate"
+msgstr "إعادة الترجمة"
 
 #. placeholder {0}: reader.label
 #: src/features/career/workspace/practise.tsx
@@ -12665,6 +12973,11 @@ msgstr "قلّل حجم ملف PDF"
 msgid "References"
 msgstr "المراجعون"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.tailoring.section.references"
+msgid "References"
+msgstr "المراجعون"
+
 #: src/features/applications/components/application-form-sheet.tsx
 #: src/features/applications/components/detail/contacts.tsx
 msgid "Referral"
@@ -12706,7 +13019,6 @@ msgstr "تمرّن بصوت عالٍ"
 msgid "Rehearse one answer aloud"
 msgstr "تمرّن على إجابة واحدة بصوت عالٍ"
 
-#: src/features/resume/editor/proposals/proposal-list.tsx
 #: src/features/resume/variants/translation-review.tsx
 msgid "Reject"
 msgstr "رفض"
@@ -13048,8 +13360,8 @@ msgstr "حل تعارض الحفظ"
 
 #: src/features/resume/variants/copy.generated.ts
 msgctxt "language.translation.needsAttentionNotice"
-msgid "Resolve the items below to finish and save your language copy automatically."
-msgstr "عالج العناصر أدناه لإكمال النسخة اللغوية وحفظها تلقائيًا."
+msgid "Resolve the items below, then review and approve your language copy."
+msgstr "عالج العناصر أدناه، ثم راجع النسخة اللغوية واعتمدها."
 
 #: src/features/resume/share/download-tab.tsx
 msgid "Resolve the save conflict before downloading."
@@ -13220,6 +13532,7 @@ msgstr "تم استرجاع {0} باستخدام {1}. وقت الاسترجاع 
 #: src/features/resume/editor/save-conflict.tsx
 #: src/features/resume/editor/save-status.tsx
 #: src/features/resume/import/career-reuse.tsx
+#: src/features/resume/variants/translation-review.tsx
 #: src/routes/builder/letter/-components/letter-bar.tsx
 #: src/routes/dashboard/applications/index.tsx
 #: src/routes/dashboard/import/$flowId.tsx
@@ -13230,6 +13543,11 @@ msgstr "إعادة المحاولة"
 msgctxt "applications.insights.retry"
 msgid "Retry"
 msgstr "إعادة المحاولة"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.translation.retryAll"
+msgid "Retry all"
+msgstr "إعادة محاولة الكل"
 
 #: src/features/assistant/copy.generated.ts
 msgctxt "review.translation.retryFailedParts"
@@ -13262,6 +13580,21 @@ msgstr "إعادة محاولة هذا الجزء"
 msgctxt "review.translation.retryThisPart"
 msgid "Retry this part"
 msgstr "إعادة محاولة هذا الجزء"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.translation.retryThisSegment"
+msgid "Retry this segment"
+msgstr "إعادة محاولة هذا المقطع"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.translation.retryUntranslated"
+msgid "Retry untranslated parts"
+msgstr "إعادة محاولة الأجزاء غير المترجمة"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.blockedEmpty"
+msgid "Retry untranslated parts to get a draft you can save."
+msgstr "أعد محاولة ترجمة الأجزاء غير المترجمة للحصول على مسودة يمكنك حفظها."
 
 #: src/components/query-list-state.tsx
 #: src/features/documents/library-error.tsx
@@ -13304,6 +13637,11 @@ msgstr "مراجعة المعلومات المهنية وتأكيدها"
 msgid "Review and import"
 msgstr "المراجعة والاستيراد"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.reviewArabic"
+msgid "Review Arabic copy"
+msgstr "مراجعة النسخة العربية"
+
 #: src/features/public-copy.ts
 msgctxt "landing.review.eyebrow"
 msgid "Review before anything changes"
@@ -13321,6 +13659,11 @@ msgstr "مراجعة الموافقة"
 #: src/features/career/today.tsx
 msgid "Review draft"
 msgstr "راجع المسودة"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.reviewDraft"
+msgid "Review draft"
+msgstr "مراجعة المسودة"
 
 #: src/features/public-copy.ts
 msgctxt "legal.draft.notice"
@@ -13340,6 +13683,11 @@ msgstr "قم بمراجعة كل قسم قبل استخدام هذه السير�
 msgctxt "review.import.subtitle"
 msgid "Review each section beside the original PDF. Highlighted information needs checking."
 msgstr "راجع كل قسم بجانب ملف PDF الأصلي. تحتاج المعلومات المظللة إلى التحقق."
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.reviewEnglish"
+msgid "Review English copy"
+msgstr "مراجعة النسخة الإنجليزية"
 
 #: src/features/public-copy.ts
 msgctxt "landing.pricing.free.review"
@@ -13394,10 +13742,6 @@ msgstr "نتائج المراجعة قديمة. تنزيل PDF مجاني."
 #: src/features/resume/variants/variant-banner.tsx
 msgid "Review job copy"
 msgstr "مراجعة نسخة الوظيفة"
-
-#: src/features/career/job-evidence-page.tsx
-msgid "Review job evidence"
-msgstr "مراجعة أدلة الوظيفة"
 
 #: src/features/resume/variants/variant-banner.tsx
 msgid "Review language copy"
@@ -13454,10 +13798,6 @@ msgstr "مراجعة النص المحدد"
 #: src/features/resume/variants/summary-review.tsx
 msgid "Review summary"
 msgstr "مراجعة النبذة"
-
-#: src/features/career/job-evidence-page.tsx
-msgid "Review tailored wording"
-msgstr "مراجعة الصياغة المخصصة"
 
 #: src/features/ats-checker/messages.ts
 msgid "Review text hidden behind the page"
@@ -13580,10 +13920,6 @@ msgstr "مراجعة فقرة واحدة في {section}"
 #: src/features/resume/variants/term-dialog.tsx
 msgid "Reviewed term"
 msgstr "المصطلح المراجع"
-
-#: src/features/resume/variants/language-versions.tsx
-msgid "Reviewed translation saved"
-msgstr "حُفظت الترجمة المراجعة"
 
 #: src/features/career/workspace/debrief.tsx
 msgid "Reviewing needs an AI connection. <0>Add one in Settings</0>. What you write here stays in this browser until then."
@@ -13869,6 +14205,11 @@ msgstr "احفظ الجدول"
 msgid "Save story"
 msgstr "احفظ القصة"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.tailoring.saveCopy"
+msgid "Save tailored copy"
+msgstr "حفظ النسخة المخصصة"
+
 #: src/features/assistant/copy.generated.ts
 msgctxt "review.launch.saveRequired"
 msgid "Save the current draft before starting this review. If saving fails, reload the saved document. Your edits are kept."
@@ -13883,6 +14224,11 @@ msgid "Save to Knowledge"
 msgstr "احفظ في المعرفة"
 
 #: src/features/resume/variants/translation-review.tsx
+msgid "Save wording"
+msgstr "حفظ الصياغة"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.saveWording"
 msgid "Save wording"
 msgstr "حفظ الصياغة"
 
@@ -14026,6 +14372,11 @@ msgstr "جارٍ الحفظ…"
 #: src/features/career/copy.generated.ts
 #: src/features/settings/account/saved-field.tsx
 msgctxt "editor.save.status.saving"
+msgid "Saving…"
+msgstr "جارٍ الحفظ…"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.saving"
 msgid "Saving…"
 msgstr "جارٍ الحفظ…"
 
@@ -14328,10 +14679,6 @@ msgstr "ورقة أنماط CSS الدلالية"
 msgid "Semantic element {label}. Attributes: {attributes}. Roles: {roles}."
 msgstr "العنصر الدلالي {label}. السمات: {attributes}. الأدوار: {roles}."
 
-#: src/features/career/job-evidence-page.tsx
-msgid "Semantic evidence requires a separately verified review. Literal coverage is available without AI."
-msgstr "تحتاج الأدلة الدلالية إلى مراجعة مستقلة متحقق منها. تتاح التغطية النصية دون ذكاء اصطناعي."
-
 #: src/features/assistant/conversation.tsx
 #: src/features/career/coach-thread.tsx
 msgid "Send"
@@ -14623,25 +14970,20 @@ msgstr "عرض {0} إضافية"
 msgid "Show {0} read"
 msgstr "اعرض {0} مقروءة"
 
-#: src/features/career/literal-job-evidence.tsx
-msgctxt "jobs.coverage.more"
-msgid "Show {remaining} more terms"
-msgstr "عرض {remaining} مصطلحات أخرى"
-
 #: src/features/resume/editor/write/section-row.tsx
 msgid "Show {title} on the page"
 msgstr "إظهار {title} على الصفحة"
-
-#: src/features/resume/variants/copy.generated.ts
-msgctxt "jobs.coverage.excluded"
-msgid "Show additional phrases ({total})"
-msgstr "عرض العبارات الإضافية ({total})"
 
 #: src/features/resume/editor/check/check-sections.tsx
 msgid "Show again"
 msgstr "اعرض مرة أخرى"
 
 #: src/features/applications/components/add-application-dialog.tsx
+msgid "Show all"
+msgstr "عرض الكل"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.coverage.more"
 msgid "Show all"
 msgstr "عرض الكل"
 
@@ -14683,6 +15025,11 @@ msgctxt "atsGuide.showTable"
 msgid "Show as table"
 msgstr "عرض كجدول"
 
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.diff.showChanges"
+msgid "Show changes"
+msgstr "عرض التغييرات"
+
 #: src/routes/dashboard/applications/index.tsx
 msgid "Show closed"
 msgstr "عرض الطلبات المغلقة"
@@ -14691,10 +15038,25 @@ msgstr "عرض الطلبات المغلقة"
 msgid "Show CV"
 msgstr "عرض السيرة"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.translation.gapDetails"
+msgid "Show details ({count})"
+msgstr "عرض التفاصيل ({count})"
+
 #: src/features/career/copy.generated.ts
 msgctxt "editor.career.showFewer"
 msgid "Show fewer"
 msgstr "عرض أقل"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.coverage.less"
+msgid "Show fewer"
+msgstr "عرض أقل"
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.diff.showFinal"
+msgid "Show final"
+msgstr "عرض النص النهائي"
 
 #: src/features/resume/editor/write/section-row.tsx
 msgid "Show heading"
@@ -14754,6 +15116,11 @@ msgstr "عرض الأقرب 5"
 msgid "Show on page"
 msgstr "عرض على الصفحة"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.showOriginal"
+msgid "Show original text"
+msgstr "إظهار النص الأصلي"
+
 #: src/features/resume/editor/chrome.tsx
 msgid "Show panel"
 msgstr "إظهار اللوحة"
@@ -14771,9 +15138,24 @@ msgstr "عرض الصورة"
 msgid "Show source"
 msgstr "عرض المصدر"
 
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.diff.showSpacing"
+msgid "Show spacing"
+msgstr "عرض المسافات"
+
 #: src/features/resume/editor/design/template-group.tsx
 msgid "Show templates"
 msgstr "إظهار القوالب"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.evidence.withheldTitles"
+msgid "Show unchecked requirements"
+msgstr "عرض المتطلبات التي لم تُفحص"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.coverage.truncated"
+msgid "Showing the highest-signal terms from the job ad."
+msgstr "نعرض أهم الكلمات المتكررة في الإعلان."
 
 #: src/features/ats-guide/copy.ts
 msgctxt "atsGuide.showing"
@@ -14999,6 +15381,11 @@ msgctxt "editor.skills.title"
 msgid "Skills"
 msgstr "المهارات"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.tailoring.section.skills"
+msgid "Skills"
+msgstr "المهارات"
+
 #: src/features/ats-guide/examples.ts
 msgid "Skills as an image"
 msgstr "المهارات داخل صورة"
@@ -15089,6 +15476,11 @@ msgstr "قد تفقد بعض أشكال الحروف المدمجة حروفًا
 #: src/features/resume/editor/check/review-findings.tsx
 msgid "Some pages or checks could not be read completely. This result does not cover the whole file."
 msgstr "تعذّرت قراءة بعض الصفحات أو إكمال بعض الفحوصات. لا تغطي هذه النتيجة الملف كاملًا."
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.evidence.withheldNotes"
+msgid "Some review notes could not be checked."
+msgstr "تعذّر التحقق من بعض ملاحظات المراجعة."
 
 #: src/features/ats-checker/messages.ts
 msgid "Some software cannot read text inside XFA forms."
@@ -15476,6 +15868,11 @@ msgstr "النجاح بعد 90 يومًا · الخطوة التالية"
 msgid "Suggest again"
 msgstr "اقتراح مرة أخرى"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.tailoring.suggest"
+msgid "Suggest edits for this job"
+msgstr "اقتراح تعديلات لهذه الوظيفة"
+
 #: src/features/documents/new-document-dialog.tsx
 msgid "Suggested from the source and the job. Change it anytime."
 msgstr "اسم مقترح بناءً على السيرة الأصلية والوظيفة. يمكنك تغييره في أي وقت"
@@ -15488,6 +15885,11 @@ msgstr "رد مقترح · عدّله قبل الإرسال"
 msgctxt "landing.example.after"
 msgid "Suggested wording"
 msgstr "الصياغة المقترحة"
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.diff.view"
+msgid "Suggestion view"
+msgstr "عرض الاقتراحات"
 
 #: src/features/settings/ai/providers.tsx
 msgid "Suggestions from <0>models.dev</0>. You can also enter any model ID."
@@ -15513,6 +15915,11 @@ msgstr "ملخصات طلباتك المفتوحة"
 #: src/features/resume/import/review.tsx
 #: src/libs/resume/section-title.ts
 #: src/libs/resume/section.tsx
+msgid "Summary"
+msgstr "الملخّص"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.tailoring.section.summary"
 msgid "Summary"
 msgstr "الملخّص"
 
@@ -15656,6 +16063,11 @@ msgid "Tailor a copy to a job ad without changing your original."
 msgstr "خصّص نسخة لإعلان وظيفة دون أن تتغير سيرتك الأصلية."
 
 #: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.context.tailorSelected"
+msgid "Tailor CV for this job"
+msgstr "تخصيص سيرة لهذه الوظيفة"
+
+#: src/features/resume/variants/copy.generated.ts
 msgctxt "jobs.tailoring.start"
 msgid "Tailor to a job"
 msgstr "تخصيص لوظيفة"
@@ -15669,6 +16081,11 @@ msgstr "تكييف مع إعلان وظيفة {0}"
 msgctxt "jobs.copy.badge"
 msgid "Tailored"
 msgstr "مخصصة"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.tailoring.savedCopies"
+msgid "Tailored copies for this job"
+msgstr "النسخ المخصصة لهذه الوظيفة"
 
 #: src/features/resume/variants/copy.generated.ts
 msgctxt "jobs.copy.type"
@@ -15756,6 +16173,11 @@ msgstr "المصطلح بالإنجليزية"
 msgctxt "legal.tab.terms"
 msgid "Terms"
 msgstr "الشروط"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.coverage.description"
+msgid "Terms from the job ad — missing words aren't written in your CV yet, not proof you lack the skill."
+msgstr "كلمات من الإعلان — عدم ظهورها يعني أنها غير مكتوبة في سيرتك، لا أنك لا تتقنها."
 
 #: src/features/resume/variants/copy.generated.ts
 msgctxt "language.terms.title"
@@ -15937,6 +16359,11 @@ msgid "The application this letter is for."
 msgstr "طلب التقديم الذي خُصّص له هذا الخطاب"
 
 #: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.evidence.detailsHint"
+msgid "The assistant compares job requirements against your CV and cites supporting passages. Beta feature."
+msgstr "يقارن المساعد متطلبات الإعلان بسيرتك ويبيّن موضع الدليل. الميزة تجريبية."
+
+#: src/features/resume/variants/copy.generated.ts
 msgctxt "review.withheldReason.extraction"
 msgid "The assistant did not verify this field against the selected text. The field was not added."
 msgstr "تعذر على المساعد التحقق من هذا الحقل بالاستناد إلى النص المحدد. لم يُضف الحقل."
@@ -16011,6 +16438,11 @@ msgstr "يحفظ المدرّب الحقائق التي تذكرها، ويخب�
 msgid "The copy is linked to the application, so Check and the assistant use its posting."
 msgstr "يتم ربط النسخة بطلب الوظيفة، لذا يستخدم الفحص والمساعد إعلان الوظيفة الخاص به."
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.staleReview"
+msgid "The CV changed after this translation, so this review is out of date. Start a new translation."
+msgstr "تغيّرت السيرة الذاتية بعد الترجمة، لذا لم تعد هذه المراجعة محدثة. ابدأ ترجمة جديدة."
+
 #: src/features/assistant/copy.generated.ts
 msgctxt "review.launch.sourceChanged"
 msgid "The CV, letter, selected text, or job changed. Cancel this request, reload the saved source, and start a new review. Your draft is kept."
@@ -16021,6 +16453,12 @@ msgctxt "review.launch.budgetReached"
 msgid "The daily AI budget is reached. Try again tomorrow. Your draft is kept."
 msgstr "بلغت ميزانية الذكاء الاصطناعي اليومية حدها. حاول مجددًا غدًا. مسودتك محفوظة."
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.translation.factDate"
+msgid "The date was not preserved."
+msgstr "لم يُحافَظ على التاريخ."
+
+#: src/features/resume/variants/translation-draft-review.tsx
 #: src/features/resume/variants/translation-review.tsx
 msgid "The decision was not saved. Reload the review before trying again."
 msgstr "لم يُحفظ القرار. أعد تحميل المراجعة قبل المحاولة مجددًا."
@@ -16155,6 +16593,11 @@ msgctxt "review.launch.jobTextRequired"
 msgid "The linked job has no job description. Add the job description to that saved job, then start the review."
 msgstr "الوظيفة المرتبطة لا تحتوي على وصف وظيفي. أضف الوصف إلى الوظيفة المحفوظة، ثم ابدأ المراجعة."
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.translation.factNegation"
+msgid "The meaning of a negative statement changed."
+msgstr "تغيّر معنى عبارة منفية."
+
 #: src/features/career/workspace/saved.tsx
 msgid "the message"
 msgstr "الرسالة"
@@ -16163,13 +16606,28 @@ msgstr "الرسالة"
 msgid "The morning of the interview has passed, so the briefing runs now."
 msgstr "مضى صباح يوم المقابلة، لذا تُعدّ الإحاطة الآن."
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.translation.factName"
+msgid "The name was not preserved."
+msgstr "لم يُحافَظ على الاسم."
+
 #: src/features/applications/components/detail/note-composer.tsx
 msgid "The notes changed. Reload before saving your draft."
 msgstr "تغيّرت الملاحظات. أعد تحميلها قبل حفظ مسودتك."
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.translation.factNumberValue"
+msgid "The number {value} changed."
+msgstr "تغيّر الرقم {value}."
+
 #: src/features/career/coach.tsx
 msgid "The offers you chose to compare, with their terms"
 msgstr "العروض التي اخترت مقارنتها، مع شروطها"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.translation.factOrganization"
+msgid "The organization name was not preserved."
+msgstr "لم يُحافَظ على اسم الجهة."
 
 #: src/features/ats-guide/examples.ts
 msgid "The original document exported as PDF"
@@ -16364,9 +16822,15 @@ msgctxt "review.launch.translationStructure"
 msgid "The source and language copy have different sections or text blocks. Open the saved CV and align its structure with the source before requesting a translation."
 msgstr "تختلف أقسام الأصل والنسخة اللغوية أو كتل النص فيهما. افتح السيرة المحفوظة وطابق بنيتها مع الأصل قبل طلب الترجمة."
 
-#: src/features/resume/variants/language-versions.tsx
-msgid "The source changed or is unavailable. Update deliberately; saved copies stay independent."
-msgstr "تغيّر المصدر أو أصبح غير متاح. حدّث النسخة باختيارك؛ تبقى النسخ المحفوظة مستقلة."
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.sourceChanged"
+msgid "The source changed after you saved this copy."
+msgstr "تغيّرت السيرة الأصلية بعد حفظ هذه النسخة."
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.sourceUnavailable"
+msgid "The source CV is unavailable."
+msgstr "السيرة الأصلية غير متاحة."
 
 #: src/features/assistant/copy.generated.ts
 msgctxt "review.launch.sourceLocked"
@@ -16378,6 +16842,11 @@ msgid "The source or this copy changed. Keep your work and request a new review.
 msgstr "تغيّر المصدر أو هذه النسخة. احتفظ بعملك واطلب مراجعة جديدة."
 
 #: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.blockedStale"
+msgid "The source or this copy changed. Start a new translation to save a current copy."
+msgstr "تغيّرت السيرة الأصلية أو هذه النسخة. ابدأ ترجمة جديدة لحفظ نسخة محدثة."
+
+#: src/features/resume/variants/copy.generated.ts
 msgctxt "language.copies.originalHint"
 msgid "The source used to build copies"
 msgstr "المصدر الذي تُبنى منه النسخ"
@@ -16385,6 +16854,11 @@ msgstr "المصدر الذي تُبنى منه النسخ"
 #: src/features/letters/save-error.ts
 msgid "The submitted letter stays unchanged. Create a copy to open an unlinked, editable draft. You can link the draft to any application."
 msgstr "يبقى الخطاب المُرسَل دون تغيير. أنشئ نسخة لفتح مسودة قابلة للتحرير وغير مرتبطة بطلب. يمكنك ربط المسودة بأي طلب وظيفة."
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.translation.factTermValue"
+msgid "The term {value} was changed."
+msgstr "تغيّر المصطلح {value}."
 
 #: src/features/resume/variants/term-dialog.tsx
 msgid "The term was not saved. Your correction is kept."
@@ -16397,6 +16871,11 @@ msgstr "لم يتم تشغيل الاختبار."
 #: src/features/ats-guide/examples.ts
 msgid "The title and description stay together"
 msgstr "المسمى والوصف متجاوران"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.translation.factMissing"
+msgid "The translation omitted this segment."
+msgstr "لم تتضمن الترجمة هذا المقطع."
 
 #: src/features/command-palette/pages/navigation.tsx
 #: src/features/command-palette/pages/preferences/theme.tsx
@@ -16739,6 +17218,21 @@ msgstr "لم تعد هذه النسخة المحفوظة متاحة."
 msgid "This section has information but is missing from the page layout."
 msgstr "يحتوي هذا القسم على معلومات، لكنه غير موجود في تخطيط الصفحات."
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.withheldReason.translation"
+msgid "This segment did not pass the translation checks."
+msgstr "لم يجتز هذا المقطع فحوص الترجمة."
+
+#: src/features/resume/editor/proposals/review-failure.tsx
+msgctxt "review.translation.partSafety"
+msgid "This segment did not pass the translation checks. The original text is kept."
+msgstr "لم يجتز هذا المقطع فحوص الترجمة. بقي النص الأصلي محفوظًا."
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.translation.factLanguage"
+msgid "This segment is not in the requested language."
+msgstr "هذا المقطع ليس باللغة المطلوبة."
+
 #: src/features/auth/pages/error.tsx
 msgid "This sign-in attempt expired or was already used. Please start again."
 msgstr "انتهت صلاحية محاولة تسجيل الدخول هذه أو تم استخدامها بالفعل. يُرجى البدء من جديد."
@@ -16765,8 +17259,8 @@ msgstr "هذا الوقت غير موجود في منطقتك الزمنية. ا
 
 #: src/features/assistant/copy.generated.ts
 msgctxt "review.translation.batchCost"
-msgid "This translation has {total} parts. Starting it uses one AI use in total. Retrying parts uses no extra AI uses. Verified parts are applied automatically to the translated copy. Parts that fail verification keep their original text."
-msgstr "تتكون هذه الترجمة من {total} أجزاء. يستهلك بدء الترجمة استخدامًا واحدًا للمساعد إجمالًا. إعادة محاولة الأجزاء لا تستهلك استخدامات إضافية. تُطبَّق الأجزاء التي تجتاز التحقق تلقائيًا في النسخة المترجمة. وتبقى الأجزاء التي لم تجتز التحقق بالنص الأصلي."
+msgid "This translation has {total} parts. It uses one AI use, including retries. Review and approve the translation before it is saved. Segments that fail the checks keep their original text."
+msgstr "تتكون هذه الترجمة من {total} أجزاء. تستهلك استخدامًا واحدًا للمساعد، بما في ذلك إعادة المحاولة. راجع الترجمة واعتمدها قبل حفظها. تحتفظ المقاطع التي لم تجتز الفحص بنصها الأصلي."
 
 #: src/features/assistant/copy.generated.ts
 msgctxt "review.translation.startChargedFailure"
@@ -16934,6 +17428,21 @@ msgctxt "language.translation.translateToEnglish"
 msgid "Translate to English"
 msgstr "ترجمة إلى الإنجليزية"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.previewTitle"
+msgid "Translated CV"
+msgstr "السيرة المترجمة"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.translatingCv"
+msgid "Translating your CV…"
+msgstr "جارٍ ترجمة السيرة…"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.running"
+msgid "Translating…"
+msgstr "جارٍ الترجمة…"
+
 #: src/features/ats-guide/ai-features.ts
 msgctxt "reviewGuide.ai.translation.name"
 msgid "Translation"
@@ -17021,6 +17530,7 @@ msgstr "حاول مرة أخرى"
 #: src/features/settings/account/sessions.tsx
 #: src/features/settings/ai/web-access.tsx
 #: src/features/settings/integrations/ai-provider-load-state.tsx
+#: src/features/settings/privacy/ai-processing.tsx
 #: src/features/settings/privacy/deletion-page.tsx
 #: src/features/settings/privacy/page.tsx
 msgctxt "workspace.privacy.d8b8392e2c54"
@@ -17227,7 +17737,6 @@ msgstr "الأوكرانية"
 msgid "Unable to create this account. Try signing in or use another email."
 msgstr "تعذّر إنشاء هذا الحساب. جرّب تسجيل الدخول أو استخدم بريدًا آخر."
 
-#: src/features/career/job-evidence-page.tsx
 #: src/features/resume/variants/translation-review.tsx
 msgid "Unclear"
 msgstr "غير واضح"
@@ -17258,7 +17767,6 @@ msgstr "تعرّف على كل فحص وسببه وطريقة تحسين سير�
 #: src/features/resume/editor/write/entry-card.tsx
 #: src/features/resume/editor/write/section-row.tsx
 #: src/features/resume/import/review.tsx
-#: src/features/resume/variants/translation-review.tsx
 #: src/features/settings/ai/api-keys.tsx
 #: src/routes/builder/$resumeId/-components/design-panel.tsx
 #: src/routes/builder/$resumeId/-components/document-menu.tsx
@@ -17268,6 +17776,11 @@ msgstr "التراجع"
 
 #: src/features/assistant/copy.generated.ts
 msgctxt "common.actions.undo"
+msgid "Undo"
+msgstr "تراجع"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.undo"
 msgid "Undo"
 msgstr "تراجع"
 
@@ -17408,10 +17921,6 @@ msgstr "حتى دقيقتين. أو <0>اختر ملفًا صوتيًا</0> بح
 msgid "Up to 2 minutes. Your words appear as you speak."
 msgstr "حتى دقيقتين. تظهر كلماتك أثناء حديثك."
 
-#: src/features/career/literal-job-evidence.tsx
-msgid "Up to 35 distinct ranked terms. Arabic marks and digit forms, case and known aliases are normalized. This checks text occurrence, not ability or all advertised requirements."
-msgstr "يُختار حتى 35 عبارة مميزة مرتّبة. تُوحّد العلامات العربية وأشكال الأرقام وحالة الأحرف والبدائل المعروفة. يفحص هذا ظهور النص، ولا يثبت القدرة أو يغطي جميع متطلبات الإعلان."
-
 #: src/features/applications/components/detail/activity.tsx
 msgid "Upcoming interview"
 msgstr "مقابلة قادمة"
@@ -17419,6 +17928,11 @@ msgstr "مقابلة قادمة"
 #: src/features/applications/components/calendar-view.tsx
 msgid "Upcoming interviews"
 msgstr "المقابلات القادمة"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.updateCopy"
+msgid "Update copy"
+msgstr "تحديث النسخة"
 
 #: src/features/resume/variants/copy.generated.ts
 msgctxt "language.translation.update"
@@ -17906,6 +18420,11 @@ msgstr "عرض أحدث نسخة"
 msgid "View posting"
 msgstr "عرض إعلان الوظيفة"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.viewProgress"
+msgid "View progress"
+msgstr "عرض التقدم"
+
 #: src/features/career/copy.generated.ts
 msgctxt "editor.conflict.hint"
 msgid "View the latest copy first. We will not replace your work without your approval."
@@ -17978,6 +18497,11 @@ msgstr "إعدادات الصوت"
 msgid "Volunteer"
 msgstr "التطوع"
 
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.tailoring.section.volunteer"
+msgid "Volunteer"
+msgstr "التطوع"
+
 #: src/features/usage/allowance-limit.tsx
 msgctxt "allowance.concurrent.next"
 msgid "Wait for an operation to finish, then try again. Your draft is kept."
@@ -18033,6 +18557,11 @@ msgstr "سنسألك عن أي معلومة ناقصة بدل أن نخمّنه�
 msgctxt "landing.ats.body"
 msgid "We check your PDF file itself and show what to fix. No pass score: no tool can promise one."
 msgstr "نفحص ملف PDF نفسه ونوضّح ما يحتاج إلى إصلاح، بلا درجة نجاح، فلا توجد أداة تضمنها."
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.translation.factReview"
+msgid "We checked the translation for names, dates and numbers. Review it before approving."
+msgstr "فحصنا الترجمة للتأكد من الأسماء والتواريخ والأرقام. راجعها قبل اعتمادها."
 
 #: src/features/auth/components/account-form-error.tsx
 #: src/features/auth/errors.ts
@@ -18112,8 +18641,8 @@ msgstr "نعرض ما يدعمه محتواك، وما لا نجد له دليل
 
 #: src/features/public-copy.ts
 msgctxt "privacy.policy.purposeDescription"
-msgid "We use account data to run your account. We use CV data to create and export your CV. During the pilot, we store the app, database, files and backups on a Contabo VPS in Portsmouth, United Kingdom. We plan to move hosting to Saudi Arabia later. AI is optional. You must consent before first use. We send only necessary CV text without contact details through OpenRouter. OpenRouter sends requests to Microsoft Azure for OpenAI Luna and Terra. It sends requests to Together AI for the DeepSeek checker. Both services process requests outside Saudi Arabia. Requests use zero data retention (ZDR) routing and deny data collection for training. Provider terms govern actual handling."
-msgstr "نستخدم بيانات حسابك لتشغيل الحساب، وبيانات سيرتك لإنشائها وتصديرها. خلال المرحلة التجريبية، يُخزّن التطبيق وقاعدة البيانات والملفات والنسخ الاحتياطية على خادم Contabo الافتراضي في بورتسموث بالمملكة المتحدة. نخطط لنقل الاستضافة إلى السعودية لاحقًا. الذكاء الاصطناعي اختياري ويتطلب موافقتك الصريحة قبل أول استخدام. نرسل نص السيرة اللازم فقط، دون بيانات الاتصال، عبر OpenRouter إلى Microsoft Azure لنماذج OpenAI Luna وTerra، وإلى Together AI لمدقق DeepSeek. تتم معالجة الذكاء الاصطناعي خارج السعودية. نضبط توجيه الطلبات على انعدام الاحتفاظ بالبيانات (ZDR) ورفض جمع البيانات للتدريب. تخضع المعالجة الفعلية لشروط مزوّدي الخدمة."
+msgid "We use account data to run your account. We use CV data to create and export your CV. During the pilot, we store the app, database, files and backups on a Contabo VPS in Portsmouth, United Kingdom. We plan to move hosting to Saudi Arabia later. AI is optional. Give consent once for this processing notice. If the notice changes, we ask again. For CV review, import, translation and cover letters, we send only the necessary text. This can include CV passages, job descriptions, your answers, and language or length choices. We exclude contact details and original files. OpenRouter routes requests to Microsoft Azure and Together AI for processing outside Saudi Arabia. We request zero data retention and block data collection for training. Provider terms govern how they handle data. You can withdraw consent in Settings."
+msgstr "نستخدم بيانات حسابك لتشغيل الحساب، وبيانات سيرتك لإنشائها وتصديرها. خلال المرحلة التجريبية، يُخزّن التطبيق وقاعدة البيانات والملفات والنسخ الاحتياطية على خادم Contabo الافتراضي في بورتسموث بالمملكة المتحدة. نخطط لنقل الاستضافة إلى السعودية لاحقًا. الذكاء الاصطناعي اختياري. تكفي موافقتك مرة واحدة على إشعار المعالجة هذا. إذا تغيّر الإشعار، نطلب موافقتك من جديد. نرسل النص اللازم فقط لمراجعة السيرة واستيرادها وترجمتها وإعداد خطابات التقديم. قد يشمل ذلك مقاطع من السيرة، وأوصاف الوظائف، وإجاباتك، وخيارات اللغة أو الطول. نستبعد بيانات الاتصال والملفات الأصلية. يوجّه OpenRouter الطلبات إلى Microsoft Azure وTogether AI للمعالجة خارج السعودية. نطلب عدم الاحتفاظ بالبيانات ونمنع جمعها للتدريب. تخضع معالجة البيانات لشروط المزوّدين. يمكنك سحب موافقتك من الإعدادات."
 
 #: src/features/career/copy.generated.ts
 msgctxt "auth.welcome.privacy.description"
@@ -18213,9 +18742,15 @@ msgstr "ماذا قلت، بأقرب ما تتذكره؟"
 msgid "What do you want to rename this section to?"
 msgstr "بماذا تريد أن تعيد تسمية هذا القسم؟"
 
-#: src/features/resume/variants/translation-review.tsx
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.clarification.requirement"
 msgid "What experience, study or project can you confirm for this requirement?"
 msgstr "ما الخبرة أو الدراسة أو المشروع الذي يمكنك تأكيده لهذا المتطلب؟"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.clarification.summary"
+msgid "What experience, study or skill can you confirm for your summary?"
+msgstr "ما الخبرة أو الدراسة أو المهارة التي يمكنك تأكيدها لإضافتها إلى ملخصك؟"
 
 #: src/features/resume/editor/write/add-section.tsx
 msgid "What goes in it?"
@@ -18230,6 +18765,11 @@ msgstr "ماذا حدث بعد المقابلة؟"
 msgctxt "jobs.tailoring.stepsTitle"
 msgid "What happens next?"
 msgstr "ما الذي سيحدث؟"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.clarification.import"
+msgid "What information can you confirm from the original CV?"
+msgstr "ما المعلومات التي يمكنك تأكيدها من السيرة الذاتية الأصلية؟"
 
 #: src/features/career/coach.tsx
 msgid "What interview answers should I practise?"
@@ -18259,6 +18799,11 @@ msgstr "ما يهمك"
 msgctxt "privacy.deletion.retentionTitle"
 msgid "What may remain"
 msgstr "ما قد يبقى"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.clarification.wording"
+msgid "What result or detail can you confirm for this passage?"
+msgstr "ما النتيجة أو التفصيل الذي يمكنك تأكيده في هذا المقطع؟"
 
 #: src/features/resume/editor/write/improve.tsx
 msgid "What should change?"
@@ -18420,6 +18965,11 @@ msgstr "عرض"
 msgctxt "landing.faq.ats.question"
 msgid "Will my CV pass ATS?"
 msgstr "هل تضمنون أن سيرتي تتجاوز أنظمة الفرز (ATS)؟"
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "privacy.ai.withdraw"
+msgid "Withdraw consent"
+msgstr "سحب الموافقة"
 
 #: src/routes/builder/letter/-components/write-panel.tsx
 msgid "Without one, you fill in the recipient yourself and drafting uses only your resume."
@@ -19058,6 +19608,11 @@ msgid "Your original CV stays unchanged."
 msgstr "سيرتك الأصلية لم تتغير."
 
 #: src/features/resume/variants/copy.generated.ts
+msgctxt "language.translation.originalSafe"
+msgid "Your original CV stays unchanged."
+msgstr "سيرتك الأصلية محفوظة كما هي."
+
+#: src/features/resume/variants/copy.generated.ts
 msgctxt "jobs.copy.originalHint"
 msgid "Your original CV stays unchanged. Edit this copy freely. The comparison is saved in Version history."
 msgstr "سيرتك الأصلية لم تتغير. عدّل هذه النسخة بحرية؛ المطابقة محفوظة في «سجل النسخ»."
@@ -19066,6 +19621,11 @@ msgstr "سيرتك الأصلية لم تتغير. عدّل هذه النسخة 
 msgctxt "jobs.tailoring.originalHint.compact"
 msgid "Your original CV stays unchanged. See Privacy and data for processing details."
 msgstr "سيرتك الأصلية لن تتغير. تفاصيل المعالجة في «الخصوصية والبيانات»."
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "jobs.tailoring.copyHint"
+msgid "Your original CV stays unchanged. You review and approve every edit before saving."
+msgstr "تبقى سيرتك الأصلية كما هي. ستراجع كل تعديل وتوافق عليه قبل الحفظ."
 
 #: src/dialogs/auth/change-password.tsx
 msgid "Your password has been updated."
@@ -19226,6 +19786,110 @@ msgstr "تصغير"
 msgid "Zulu"
 msgstr "الزولو"
 
+#: src/features/resume/editor/proposals/review-panel.tsx
+msgid "Needs your review ({needsCount})"
+msgstr "بانتظار مراجعتك ({needsCount})"
+
+#: src/features/resume/editor/proposals/review-panel.tsx
+msgid "Past reviews ({pastCount})"
+msgstr "المراجعات السابقة ({pastCount})"
+
+#: src/features/resume/editor/proposals/review-panel.tsx
+msgid "No reviews yet"
+msgstr "لا توجد مراجعات بعد"
+
+#: src/features/resume/editor/proposals/review-panel.tsx
+msgid "Choose a section to improve wording or review your summary. Your results stay saved here."
+msgstr "اختر فقرة لطلب تحسين الصياغة أو مراجعة الملخص المهني. ستبقى نتائجك محفوظة هنا."
+
+#: src/features/resume/editor/proposals/review-panel.tsx
+msgid "Kept original"
+msgstr "أُبقي النص الأصلي"
+
+#: src/features/resume/editor/proposals/review-panel.tsx
+msgid "Answer saved"
+msgstr "تم حفظ إجابتك"
+
+#: src/features/resume/editor/proposals/review-panel.tsx
+msgid "Out of date"
+msgstr "تغيّر النص منذ المراجعة"
+
+#: src/features/resume/editor/proposals/review-panel.tsx
+msgid "Your answer was saved. Your CV is unchanged."
+msgstr "حُفظت إجابتك دون تعديل السيرة الذاتية."
+
+#: src/features/resume/editor/proposals/review-panel.tsx
+msgid "Review with this answer"
+msgstr "إعادة المراجعة بهذه الإجابة"
+
+#: src/features/resume/editor/proposals/review-panel.tsx
+msgid "Save answer"
+msgstr "حفظ الإجابة"
+
+#: src/features/resume/editor/proposals/review-panel.tsx
+msgid "The source changed. Your answer is kept here. Open a current review to use it."
+msgstr "تغيّر المصدر. إجابتك محفوظة هنا. افتح مراجعة حديثة لاستخدامها."
+
+#: src/features/resume/editor/proposals/review-panel.tsx
+msgid "Review type"
+msgstr "نوع المراجعة"
+
+#: src/features/resume/editor/proposals/review-panel.tsx
+msgid "Wording review"
+msgstr "مراجعة الصياغة"
+
+#: src/features/resume/editor/proposals/review-panel.tsx
+msgid "Summary review"
+msgstr "مراجعة الملخص المهني"
+
+#: src/features/resume/editor/proposals/review-panel.tsx
+msgctxt "Review history outcome"
+msgid "Applied"
+msgstr "طُبّقت التعديلات"
+
+#: src/features/resume/editor/proposals/review-panel.tsx
+msgid "Completed"
+msgstr "اكتملت المراجعة"
+
+#: src/features/resume/editor/proposals/review-panel.tsx
+msgid "Cancelled"
+msgstr "أُلغيت المراجعة"
+
+#: src/features/resume/variants/clarification.tsx
+msgctxt "Skip a review question"
+msgid "Skip"
+msgstr "تخطّي"
+
+#: src/features/resume/editor/proposals/review-panel.tsx
+msgid "Wording review · {section}"
+msgstr "مراجعة الصياغة · {section}"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.tailoring.order.title"
+msgid "Reorder proposal"
+msgstr "اقتراح تغيير الترتيب"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.tailoring.order.current"
+msgid "Current order"
+msgstr "الترتيب الحالي"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.tailoring.order.proposed"
+msgid "Proposed order"
+msgstr "الترتيب المقترح"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.tailoring.order.move"
+msgid "Move {moved} above {above}."
+msgstr "انقل {moved} فوق {above}."
+
+#: src/features/assistant/copy.generated.ts
+msgctxt "review.diff.shortcuts"
+msgid "A accepts and R rejects the focused edit. ↑ and ↓ move between edits."
+msgstr "اضغط A لقبول التعديل المحدد أو R لرفضه. استخدم ↑ و ↓ للتنقل بين التعديلات."
+
+#: src/features/auth/pages/consent.tsx
 #: src/features/settings/ai/connected-apps.tsx
 msgid "Unknown application"
 msgstr "تطبيق غير معروف"

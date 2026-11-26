@@ -1,3 +1,4 @@
+import type { TranslationBatchPlan } from "./translation-batches";
 import type { ProtectedTranslation } from "./translation-invariants";
 import type { TailoringOutput } from "@reactive-resume/schema/resume/variant-outputs";
 
@@ -5,6 +6,7 @@ export type CvFact = {
 	id: string;
 	section: string;
 	text: string;
+	confirmation?: "user_supplied";
 	protected?: Array<{
 		kind: "name" | "employer" | "title" | "date" | "number" | "skill" | "degree" | "certification" | "language";
 		text: string;
@@ -22,15 +24,14 @@ export type Claim = {
 export type GuardContext = {
 	category: string;
 	cv: CvFact[];
-	jobAd: { segments: Array<{ id: string; text: string }> } | null;
+	jobAd: { segments: Array<{ id: string; text: string; heading?: string }>; version?: "requirements-v2" } | null;
 };
 export type VariantSnapshot = GuardContext & {
 	category: "job-evidence" | "tailoring" | "translation" | "summary";
 	resumeId: string;
 	sourceRevision: string;
 	direction?: "ar-en" | "en-ar";
-	translationBatchCount?: number;
-	translationPlanHash?: string;
+	translationPlan?: TranslationBatchPlan;
 	translationProtection?: ProtectedTranslation;
 	variant?: {
 		resumeId: string;

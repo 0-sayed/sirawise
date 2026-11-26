@@ -7,11 +7,13 @@ import { defaultResumeData } from "@reactive-resume/schema/resume/default";
 import { resumeService } from "../resume/service";
 import { runAiOperations } from "./operation-worker";
 import { operationService } from "./operations";
-import { recordReviewAnswer, dismissReviewQuestion } from "./review-decisions";
+import { prepareReviewContinuation } from "./review-continuation";
+import { listResumeReviews, recordReviewAnswer, dismissReviewQuestion } from "./review-decisions";
 import { withAiRuntime } from "./route-policy";
 import { aiTestDatabase } from "./testing/database";
 import { syntheticReviewRuntime } from "./testing/runtime";
 import { decideVariantReview, getVariantReview } from "./variant-decisions";
+import { variantReviewHandlers } from "./variant-handlers";
 import { loadVariantSnapshot, prepareVariantReview } from "./variant-sources";
 import { validateVariantOutput } from "./variant-validation";
 
@@ -69,7 +71,7 @@ it("returns a source-lock reason from preflight without starting an operation", 
 it("applies a selected-fact summary, records ordinary history, replays, and rejects an undo over manual work", async () => {
 	const data = structuredClone(defaultResumeData);
 	data.basics.name = "Alice $&";
-	data.summary.content = "<p>Alice $& used React. Did not manage a budget.</p>";
+	data.summary.content = "<p>Alice $&amp; used React. Did not manage a budget.</p>";
 	data.summary.hidden = false;
 	data.basics.headline = "Unselected headline";
 	data.metadata.layout.pages = [{ fullWidth: false, main: ["summary"], sidebar: [] }];
@@ -113,6 +115,34 @@ it("applies a selected-fact summary, records ordinary history, replays, and reje
 		notes: [],
 	};
 	const result = validateVariantOutput(snapshot, raw);
+	const originalText = "[NAME_1] used React. Did not manage a budget.";
+	const validateResult = variantReviewHandlers["review.summary"].validateResult;
+	assert(validateResult);
+	const validatedNoOp = await run(() =>
+		withOwnerDatabase("alice", (tx) =>
+			validateResult(
+				tx,
+				"alice",
+				{
+					...prepared,
+					requestKey: randomUUID(),
+					consentVersion: "1",
+					route: { routeId: "synthetic", routeRevision: "1", configRevision: "1" },
+				},
+				{
+					...raw,
+					summary: {
+						text: originalText,
+						claims: [
+							...raw.summary.claims,
+							{ id: "budget", text: "Did not manage a budget.", evidenceIds: [selected], kind: "fact" },
+						],
+					},
+				},
+			),
+		),
+	);
+	expect(validatedNoOp).toMatchObject({ output: { summary: { text: "", claims: [] }, questions: raw.questions } });
 	const operationId = randomUUID();
 	await database
 		.admin()
@@ -139,6 +169,27 @@ it("applies a selected-fact summary, records ordinary history, replays, and reje
 	expect(
 		(await database.admin().query("SELECT state FROM ai_operation WHERE id=$1", [operationId])).rows[0].state,
 	).toBe("waiting_review");
+	expect(await run(() => listResumeReviews("alice", id))).toMatchObject([
+		{
+			kind: "review.summary",
+			pendingCount: 1,
+			answeredCount: 1,
+			unansweredQuestionCount: 0,
+		},
+	]);
+	const continuation = await run(() => prepareReviewContinuation("alice", operationId, answer.id));
+	expect(continuation.parameters.answerIds).toEqual([answer.id]);
+	const followUp = await run(() =>
+		withOwnerDatabase("alice", (tx) => loadVariantSnapshot(tx, "alice", { ...continuation, kind: "review.summary" })),
+	);
+	expect(followUp.cv).toContainEqual(
+		expect.objectContaining({
+			id: answer.id,
+			text: "Prepared reports.",
+			confirmation: "user_supplied",
+		}),
+	);
+
 	const input = {
 		operationId,
 		requestKey: randomUUID(),
@@ -156,6 +207,7 @@ it("applies a selected-fact summary, records ordinary history, replays, and reje
 			.rows[0].n,
 	).toBe(1);
 	const view = await run(() => getVariantReview("alice", operationId));
+	expect(view.segments.summary).toMatchObject({ text: "Alice $& used React.", status: "accepted" });
 	const edited = structuredClone(saved.data);
 	edited.summary.content = "<p>Manual work.</p>";
 	await database
@@ -309,6 +361,63 @@ it.each(["questions", "notes"] as const)(
 		).rejects.toMatchObject({ code: "NOT_FOUND" });
 		expect(calls).toHaveLength(2);
 		expect(calls[1]?.model).toBe("deepseek/deepseek-v4.1-flash-1017");
+		if (mode === "questions") {
+			const answer = await run(() =>
+				recordReviewAnswer(ownerId, {
+					operationId: operation.id,
+					questionId: "clarify",
+					requestKey: randomUUID(),
+					expectedSource: { kind: "resume", id, revision },
+					text: "Built a reporting project.",
+				}),
+			);
+			const next = await run(() => prepareReviewContinuation(ownerId, operation.id, answer.id));
+			const follow = {
+				...next,
+				kind: prepared.kind,
+				requestKey: randomUUID(),
+				route: { routeId: "synthetic", routeRevision: "1", configRevision: "1" },
+				consentVersion: "1",
+			};
+			await expect(run(() => prepareReviewContinuation("alice", operation.id, answer.id))).rejects.toMatchObject({
+				code: "NOT_FOUND",
+			});
+			await expect(
+				run(() =>
+					withAiRuntime(runtime, () =>
+						operationService.start(ownerId, {
+							...follow,
+							parameters: { ...follow.parameters, selectedEvidenceIds: ["another-fact"] },
+						}),
+					),
+				),
+			).rejects.toMatchObject({ code: "BAD_REQUEST" });
+			expect(await run(() => withAiRuntime(runtime, () => operationService.preflight(ownerId, follow)))).toMatchObject({
+				available: true,
+				operationCost: 0,
+			});
+			const child = await run(() => withAiRuntime(runtime, () => operationService.start(ownerId, follow)));
+			await run(() => withAiRuntime(runtime, () => runAiOperations()));
+			expect(await run(() => operationService.get(ownerId, child.id))).toMatchObject({ state: "waiting_review" });
+			expect(JSON.stringify(calls[2])).toContain("Built a reporting project.");
+			expect(JSON.stringify(calls[2])).toContain("user_supplied");
+			const ledger = await database
+				.admin()
+				.query("SELECT operation_id, units FROM ai_usage_ledger WHERE user_id=$1 AND kind='settle'", [ownerId]);
+			expect(ledger.rows).toEqual([{ operation_id: operation.id, units: 1 }]);
+			const childCost = await database.admin().query("SELECT actual_micros FROM ai_operation WHERE id=$1", [child.id]);
+			expect(Number(childCost.rows[0].actual_micros)).toBeGreaterThan(0);
+			await expect(
+				run(() =>
+					withAiRuntime(runtime, () =>
+						operationService.start(ownerId, {
+							...follow,
+							requestKey: randomUUID(),
+						}),
+					),
+				),
+			).rejects.toMatchObject({ code: "CONFLICT", data: { reason: "AI_REVIEW_ALREADY_CONTINUED" } });
+		}
 		expect(
 			(await database.admin().query("SELECT data,updated_at FROM resume WHERE id=$1", [id])).rows[0],
 		).toMatchObject({

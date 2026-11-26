@@ -187,13 +187,24 @@ export function buildVariantVerificationPayload(
 				id: "variant-cv-evidence",
 				kind: "confirmed_content",
 				section: "summary",
-				text: JSON.stringify(minimize(snapshot.cv.map(({ id, section, text }) => ({ id, section, text })))),
+				text: JSON.stringify(
+					minimize(snapshot.cv.map(({ id, section, text, confirmation }) => ({ id, section, text, confirmation }))),
+				),
 			},
 			{
 				id: "variant-job-context",
 				kind: "user_supplied",
 				section: "summary",
-				text: JSON.stringify(minimize({ trust: "untrusted", segments: snapshot.jobAd?.segments ?? [] })),
+				text: JSON.stringify(
+					minimize({
+						trust: "untrusted",
+						segments:
+							snapshot.jobAd?.segments.map(({ id, text, heading }) => ({
+								id,
+								text: heading ? `${heading.replace(/:$/u, "")}: ${text}` : text,
+							})) ?? [],
+					}),
+				),
 			},
 			{
 				id: "variant-verification-task",

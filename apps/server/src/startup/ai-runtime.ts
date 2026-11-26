@@ -1,9 +1,6 @@
 import type { AiRuntime, ApprovedRoute } from "@reactive-resume/api/features/ai/route-policy";
 import { extractionCandidateHandler, reviewHandlers } from "@reactive-resume/api/features/ai/review-handlers";
-import {
-	jobEvidenceCandidateContract,
-	translationCandidateContract,
-} from "@reactive-resume/api/features/ai/variant-contracts";
+import { jobEvidenceCandidateContract } from "@reactive-resume/api/features/ai/variant-contracts";
 import {
 	createJobEvidenceCandidateHandler,
 	createTranslationCandidateHandler,
@@ -33,11 +30,9 @@ export function bindQualifiedReviewHandlers(
 	const historicalHandlers = { ...runtime.historicalHandlers };
 	const job = resolvePrimaryContract(route, "job-evidence", jobEvidenceCandidateContract, runtime.writerConfig);
 	const extraction = resolvePrimaryContract(route, "extraction", extractionCandidateHandler, runtime.writerConfig);
-	const translation = resolvePrimaryContract(route, "translation", translationCandidateContract, runtime.writerConfig);
 	const candidates = [
 		[job.tuple, createJobEvidenceCandidateHandler(job.verifier)],
 		[extraction.tuple, extractionCandidateHandler],
-		[translation.tuple, createTranslationCandidateHandler()],
 	] as const;
 	const backup = route.verifier?.backup;
 	const backupReceipts = new Set<string>();
@@ -51,7 +46,7 @@ export function bindQualifiedReviewHandlers(
 			backup &&
 			route.noticeVersion !== "1" &&
 			route.configRevision !== "pilot-writers-full-cv-2026-11-21-v4" &&
-			(tuple.feature === "translation" || tuple.feature === "job-evidence")
+			tuple.feature === "job-evidence"
 		) {
 			const request = { kind, parameters: {} };
 			const writer = resolveWriterRoute(route, request, runtime.writerConfig);
@@ -111,7 +106,12 @@ export function createProductionAiRuntime(environment: { OPENROUTER_API_KEY?: st
 	return bindQualifiedReviewHandlers(
 		{
 			routes: [route],
-			handlers: { ...reviewHandlers, ...variantReviewHandlers, "review.cover-letter": letterReviewHandler },
+			handlers: {
+				...reviewHandlers,
+				...variantReviewHandlers,
+				"review.translation": createTranslationCandidateHandler(),
+				"review.cover-letter": letterReviewHandler,
+			},
 			workerAvailable: true,
 		},
 		qualifications.selections as QualificationSelection[],

@@ -1,4 +1,4 @@
-import { openPdfReview } from "../fixtures/import-review";
+import { confirmPdfSections, openPdfReview } from "../fixtures/import-review";
 import { openWriting, seedReview, seedReviewBudget, startReview } from "../fixtures/reviewable-ai";
 import { expect, test } from "../fixtures/test";
 
@@ -30,7 +30,10 @@ test("extraction withholds the invented field and saves the supported field afte
 	await page.getByRole("combobox", { name: "Add to which entry?", exact: true }).selectOption("new");
 	await approve.click();
 	expect(await list()).toEqual(initial);
-	await page.getByRole("button", { name: /^Create CV (?:only|and save career information)$/, exact: true }).click();
+	const create = page.getByRole("button", { name: "Create CV only", exact: true });
+	await expect(create).toBeDisabled();
+	await confirmPdfSections(page);
+	await create.click();
 	await expect(page).toHaveURL(/\/builder\//u);
 	const id = new URL(page.url()).pathname.split("/").at(-1);
 	const saved = await (await page.request.get(`/api/openapi/resumes/${id}`)).json();
@@ -66,29 +69,28 @@ for (const locale of ["en-US", "ar-SA"] as const)
 				name: locale === "ar-SA" ? "النص المطلوب مراجعته" : "Text to review",
 			});
 			await field.selectOption(JSON.stringify(summaryTarget));
-			await startReview(page);
-			const review = page.getByTestId("durable-review");
+			const review = await startReview(page);
 			const accept = review.getByRole("button", { name: /^(Accept|قبول)$/u });
 			await expect(accept).toBeEnabled();
 			await field.selectOption(JSON.stringify(target));
-			await expect(review).toHaveCount(0);
-			await startReview(page);
-			const pending = locale === "ar-SA" ? /الاقتراحات المعلّقة: 1/u : /Pending suggestions: 1/u;
-			await expect(field.locator("option").filter({ hasText: pending })).toHaveCount(2);
+			await expect(review).toBeVisible();
+			const experience = await startReview(page, true);
+			const acceptExperience = experience.getByRole("button", { name: /^(Accept|قبول)$/u });
+			await expect(acceptExperience).toBeEnabled();
+			await expect(page.getByTestId("durable-review")).toHaveCount(2);
 			await page.screenshot({ path: info.outputPath("pending-fields.png") });
 			await page.reload();
 			await openWriting(page, width);
-			await field.selectOption(JSON.stringify(summaryTarget));
+			await expect(acceptExperience).toBeEnabled();
 			await expect(accept).toBeEnabled();
 			await accept.click();
 			await expect
 				.poll(async () => (await saved()).data.summary.content)
 				.toBe("<p>Developed services.</p><p>Built services.</p>");
 			await expect(review.locator(".review-wording del")).toBeHidden();
-			await field.selectOption(JSON.stringify(target));
-			await expect(accept).toBeEnabled();
-			await review.getByRole("button", { name: /^(Keep original|الإبقاء على الأصل)$/u }).click();
-			await expect(accept).toHaveCount(0);
+			await expect(acceptExperience).toBeEnabled();
+			await experience.getByRole("button", { name: /^(Keep original|الإبقاء على الأصل)$/u }).click();
+			await expect(acceptExperience).toHaveCount(0);
 			expect((await saved()).data.sections.experience.items[0].description).toBe("<p>Built services.</p>");
 			expect((await (await page.request.get("/api/openapi/ai/usage")).json()).operations.used).toBe(2);
 		});

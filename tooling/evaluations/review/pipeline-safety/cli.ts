@@ -26,7 +26,6 @@ const repository = fileURLToPath(new URL("../../../../", import.meta.url));
 const folder = fileURLToPath(new URL("./", import.meta.url));
 const publicRoutePath = resolve(repository, "apps/server/src/startup/ai-route.json");
 const suiteFeatures = {
-	"translation-primary": "translation",
 	"job-evidence-primary": "job-evidence",
 	"extraction-primary": "extraction",
 } as const;
@@ -37,7 +36,6 @@ const positiveInteger = z.number().int().positive();
 const approvedConfig = z.strictObject({
 	campaignId: z.string().regex(/^[a-z0-9][a-z0-9-]{0,79}$/u),
 	suiteCaps: z.strictObject({
-		"translation-primary": z.literal(436660),
 		"job-evidence-primary": z.literal(672401),
 		"extraction-primary": z.literal(1091956),
 	}),
@@ -218,6 +216,7 @@ async function prepare(suites: string[], outputPath: string, freezeBlocked: bool
 		const cases: QualificationCase[] = [];
 		for (const input of inputs) {
 			const routeFeature = input.feature;
+			if (routeFeature === "translation") throw new Error("QUALIFICATION_FEATURE_CHANGED");
 			const effective = runtime.effectiveQualificationRoute(input, base);
 			const rate = requireQualificationLimits(effective, routeFeature, approvals);
 			const writerModel = writerPolicy.resolveWriterRoute(base, {
@@ -225,21 +224,18 @@ async function prepare(suites: string[], outputPath: string, freezeBlocked: bool
 				parameters: {},
 			}).model;
 			const versions =
-				routeFeature === "translation"
-					? contracts.translationCandidateContract
-					: routeFeature === "job-evidence"
-						? contracts.jobEvidenceCandidateContract
-						: routeFeature === "extraction"
-							? review.extractionCandidateHandler
-							: review.reviewHandlers["review.wording"];
+				routeFeature === "job-evidence"
+					? contracts.jobEvidenceCandidateContract
+					: routeFeature === "extraction"
+						? review.extractionCandidateHandler
+						: review.reviewHandlers["review.wording"];
 			const verifierVersion =
-				routeFeature === "translation"
-					? "translation-check-v2"
-					: routeFeature === "job-evidence"
-						? `${verifier.VARIANT_VERIFIER_VERSION}-classified`
-						: routeFeature === "extraction"
-							? reviewVerifier.EXTRACTION_VERIFIER_VERSION
-							: reviewVerifier.VERIFIER_VERSION;
+				routeFeature === "job-evidence"
+					? `${verifier.VARIANT_VERIFIER_VERSION}-classified`
+					: routeFeature === "extraction"
+						? reviewVerifier.EXTRACTION_VERIFIER_VERSION
+						: reviewVerifier.VERIFIER_VERSION;
+
 			const routeSha256 = local.canonicalVerifierRouteSha256(effective);
 			const route: QualificationRoute = routes.get(routeFeature) ?? {
 				feature: routeFeature,
@@ -252,11 +248,9 @@ async function prepare(suites: string[], outputPath: string, freezeBlocked: bool
 				promptVersion: versions.promptVersion,
 				schemaVersion: versions.schemaVersion,
 				verifierPromptVersion:
-					routeFeature === "translation"
-						? contracts.translationCandidateContract.verifierPromptVersion
-						: routeFeature === "job-evidence"
-							? contracts.jobEvidenceCandidateContract.verifierPromptVersion
-							: verifierVersion,
+					routeFeature === "job-evidence"
+						? contracts.jobEvidenceCandidateContract.verifierPromptVersion
+						: verifierVersion,
 				verifierSchemaVersion: verifierVersion,
 				routeSha256,
 				promptSha256: sha256(""),

@@ -28,7 +28,7 @@ export function hasOverbroadJobAbsence(text: string): boolean {
 	const englishDocumentAbsence =
 		/\b(?:cv|r[eé]sum[eé])\s+(?:(?:does not|doesn't|did not|cannot)\s+(?:show|mention|document|contain|establish|record|provide|list|confirm)|(?:contains?|lists?|shows?|mentions?|documents?)\s+no|lacks?|has no)\b|\b(?:nowhere|no (?:evidence|mention|record|documentation)|not (?:mentioned|documented|recorded|listed))\b.*\b(?:in|throughout)\s+(?:(?:the|this|their|my|his|her|whole|full|entire|complete)\s+)*(?:cv|r[eé]sum[eé])\b/iu;
 	const arabicDocumentAbsence =
-		/السيرة(?: الذاتية)?(?:\s+(?:الكاملة|كاملة|كلها|باكملها))?\s+(?:(?:لا|لم)\s+(?:تذكر|توثق|تثبت|توضح|تظهر|تتضمن|تحتوي|تورد|تحدد)|تخلو|خالية)(?!\p{L})|(?:تخلو|يخلو)\s+السيرة|(?:لا|لم)\s+(?:يوجد|توجد|يذكر|تذكر|يرد|ترد|يظهر|تظهر|يوثق|توثق)\s+.*?(?:في|من)\s+السيرة/iu;
+		/السيرة(?: الذاتية)?(?:\s+(?:الكاملة|كاملة|كلها|باكملها))?\s+(?:(?:لا|لم)\s+(?:تذكر|توثق|تثبت|توضح|تظهر|تتضمن|تحتوي|تورد|تحدد)|تخلو|خالية)(?!\p{L})|(?:تخلو|يخلو)\s+السيرة|(?:لا|لم)\s+(?:يوجد|توجد|يذكر|تذكر|يرد|ترد|يظهر|تظهر|يوثق|توثق)\s+(?:.*?\s+)?(?:في|من)\s+(?:هذه\s+)?السيرة/iu;
 	const selectedMaterial =
 		/\b(?:selected|supplied|cited|reviewed|provided)\s+(?:(?:cv|r[eé]sum[eé])\s+)?(?:passages?|excerpts?|segments?|evidence)\b|(?:المقاطع|الفقرات|المقتطفات|النصوص|الادلة)\s+(?:المختارة|المنتقاة|المقدمة|المستشهد بها|المتاحة)/iu;
 	const explicitlyWhole =

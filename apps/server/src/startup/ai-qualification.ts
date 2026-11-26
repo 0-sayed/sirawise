@@ -6,7 +6,7 @@ import {
 import { resolveWriterRoute } from "@reactive-resume/api/features/ai/writer-policy";
 
 export type QualificationSelection = {
-	feature: "translation" | "job-evidence" | "extraction";
+	feature: "job-evidence" | "extraction";
 	endpointSlot: "primary" | "backup";
 	writerModel: string;
 	verifierModel: string;

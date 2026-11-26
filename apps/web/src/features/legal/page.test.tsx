@@ -37,10 +37,12 @@ it.each(["ar-SA", "en-US"])("discloses the draft, AI processors and qualified ro
 		),
 	).toBeVisible();
 	expect(
-		screen.getByText(/OpenRouter.*Microsoft Azure.*Together AI.*(?:zero data retention|انعدام الاحتفاظ بالبيانات)/i),
+		screen.getByText(
+			/OpenRouter.*Microsoft Azure.*Together AI.*(?:request zero data retention|نطلب عدم الاحتفاظ بالبيانات)/i,
+		),
 	).toBeVisible();
 	expect(
-		screen.getByText(/Provider terms govern actual handling|تخضع المعالجة الفعلية لشروط مزوّدي الخدمة/),
+		screen.getByText(/Provider terms govern how they handle data|تخضع معالجة البيانات لشروط المزوّدين/),
 	).toBeVisible();
 	expect(
 		screen.getByText(

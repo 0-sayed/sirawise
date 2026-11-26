@@ -44,13 +44,18 @@ export const processingCopy = {
 	},
 	"privacy.ai.overseasNotice": {
 		"ar-SA":
-			"ميزات الذكاء الاصطناعي اختيارية وتتطلب موافقتك الصريحة قبل أول استخدام. نرسل نص السيرة اللازم فقط، دون بيانات الاتصال، عبر OpenRouter إلى Microsoft Azure لنماذج OpenAI Luna وTerra، وإلى Together AI لمدقق DeepSeek. تتم هذه المعالجة خارج السعودية. نضبط توجيه الطلبات على انعدام الاحتفاظ بالبيانات (ZDR) ورفض جمع البيانات للتدريب. تخضع المعالجة الفعلية لشروط مزوّدي الخدمة.",
+			"الذكاء الاصطناعي اختياري. تكفي موافقتك مرة واحدة على إشعار المعالجة هذا. إذا تغيّر الإشعار، نطلب موافقتك من جديد. نرسل النص اللازم فقط لمراجعة السيرة واستيرادها وترجمتها وإعداد خطابات التقديم. قد يشمل ذلك مقاطع من السيرة، وأوصاف الوظائف، وإجاباتك، وخيارات اللغة أو الطول. نستبعد بيانات الاتصال والملفات الأصلية. يوجّه OpenRouter الطلبات إلى Microsoft Azure وTogether AI للمعالجة خارج السعودية. نطلب عدم الاحتفاظ بالبيانات ونمنع جمعها للتدريب. تخضع معالجة البيانات لشروط المزوّدين. يمكنك سحب موافقتك من الإعدادات.",
 		"en-US":
-			"AI is optional. You must consent before first use. We send only necessary CV text without contact details through OpenRouter. OpenRouter sends requests to Microsoft Azure for OpenAI Luna and Terra. It sends requests to Together AI for the DeepSeek checker. Both services process requests outside Saudi Arabia. Requests use zero data retention (ZDR) routing and deny data collection for training. Provider terms govern actual handling.",
+			"AI is optional. Give consent once for this processing notice. If the notice changes, we ask again. For CV review, import, translation and cover letters, we send only the necessary text. This can include CV passages, job descriptions, your answers, and language or length choices. We exclude contact details and original files. OpenRouter routes requests to Microsoft Azure and Together AI for processing outside Saudi Arabia. We request zero data retention and block data collection for training. Provider terms govern how they handle data. You can withdraw consent in Settings.",
 	},
 	"privacy.ai.backupNotice": {
-		"ar-SA": "قد يستخدم مدقق DeepSeek خدمة Parasail لمعالجة هذا الطلب خارج السعودية عند تعذّر استخدام المزوّد الأساسي.",
+		"ar-SA": "يمكن للمدقق استخدام Parasail خارج السعودية عند تعذّر استخدام المزوّد الأساسي في مراجعات أدلة الوظيفة.",
 		"en-US":
-			"The DeepSeek checker can use Parasail to process this request outside Saudi Arabia when the primary provider is unavailable.",
+			"The DeepSeek checker can use Parasail outside Saudi Arabia when the primary provider is unavailable for job evidence reviews.",
+	},
+	"privacy.ai.backupTranslationNotice": {
+		"ar-SA": "يمكن للمدقق استخدام Parasail خارج السعودية عند تعذّر استخدام المزوّد الأساسي في ترجمة السيرة.",
+		"en-US":
+			"The DeepSeek checker can use Parasail outside Saudi Arabia when the primary provider is unavailable for CV translation.",
 	},
 } as const;

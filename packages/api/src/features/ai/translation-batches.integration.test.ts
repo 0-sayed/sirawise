@@ -6,10 +6,11 @@ import { defaultResumeData } from "@reactive-resume/schema/resume/default";
 import { resumeService } from "../resume/service";
 import { createVariant, listVariants } from "../resume/variants";
 import { executeLease, runAiOperations } from "./operation-worker";
-import { claimNextOperation, operationService } from "./operations";
+import { claimNextOperation, discoverAiOwners, operationService, reconcileExpiredAccounting } from "./operations";
 import { withAiRuntime } from "./route-policy";
 import { aiTestDatabase } from "./testing/database";
 import { syntheticReviewRuntime, syntheticRuntime } from "./testing/runtime";
+import * as translationBatches from "./translation-batches";
 import { usageService } from "./usage";
 import { decideVariantReview, getVariantReview } from "./variant-decisions";
 import { createTranslationCandidateHandler } from "./variant-handlers";
@@ -139,7 +140,7 @@ beforeEach(() => {
 	stepCostMicros = 10;
 	runtime.localOwnerAllowance.limit = 100;
 });
-async function start(repeat = 3, paragraphCount = 18, unresolved = false) {
+async function start(repeat = 3, paragraphCount = 18, unresolved = false, plainDescription = false) {
 	const data = structuredClone(defaultResumeData);
 	data.summary.hidden = false;
 	data.summary.content = Array.from(
@@ -148,11 +149,26 @@ async function start(repeat = 3, paragraphCount = 18, unresolved = false) {
 			`<p>${`Used React for confirmed career work number ${i}. `.repeat(repeat).trim()}${unresolved && i === paragraphCount - 1 ? " [LOCAL_999]" : ""}</p>`,
 	).join("");
 	data.metadata.layout.pages = [{ fullWidth: false, main: ["summary"], sidebar: [] }];
+	if (plainDescription) {
+		data.sections.experience.hidden = false;
+		data.sections.experience.items.push({
+			id: randomUUID(),
+			hidden: false,
+			company: "Example",
+			position: "",
+			location: "",
+			period: "",
+			website: { url: "", label: "", inlineLink: false },
+			roles: [],
+			description: "Used React for confirmed career work number 99.",
+		});
+		data.metadata.layout.pages[0]?.main.push("experience");
+	}
 	const source =
 		sourceId ??
 		(await run(() => resumeService.create({ userId: "alice", name: "Synthetic", tags: [], data, locale: "en-US" })));
 	sourceId = source;
-	if (repeat !== 3 || paragraphCount !== 18 || unresolved)
+	if (repeat !== 3 || paragraphCount !== 18 || unresolved || plainDescription)
 		await database.admin().query("UPDATE resume SET data=$2,updated_at=now() WHERE id=$1", [source, data]);
 	const revision = (
 		await database.admin().query("SELECT updated_at FROM resume WHERE id=$1", [source])
@@ -169,7 +185,7 @@ async function start(repeat = 3, paragraphCount = 18, unresolved = false) {
 		);
 		languageCopyId = created.resumeId;
 	}
-	if (reviewDecisionFixture)
+	if (reviewDecisionFixture || plainDescription)
 		await database.admin().query("UPDATE resume SET data=$2,updated_at=now() WHERE id=$1", [languageCopyId, data]);
 	const row = (await database.admin().query("SELECT updated_at,data FROM resume WHERE id=$1", [languageCopyId]))
 		.rows[0];
@@ -182,12 +198,14 @@ async function start(repeat = 3, paragraphCount = 18, unresolved = false) {
 			expectedSourceRevision: revision,
 		}),
 	);
+	const route = runtime.routes[0];
+	if (!route) throw new Error("Missing synthetic translation route");
 	const request = {
 		kind: prepared.kind,
 		parameters: prepared.parameters,
 		sources: prepared.sources,
 		requestKey: randomUUID(),
-		route: { routeId: "synthetic", routeRevision: "1", configRevision: "1" },
+		route: { routeId: route.routeId, routeRevision: "1", configRevision: "1" },
 		consentVersion: "1",
 	};
 	const operation = await run(() => operationService.start("alice", request));
@@ -198,137 +216,6 @@ async function start(repeat = 3, paragraphCount = 18, unresolved = false) {
 	return { copy, operation, request, data: row.data as typeof data, source, revision };
 }
 
-it.each(["all", "mixed"] as const)("applies only verified compact segments once (%s)", async (rejection) => {
-	const originalHandlers = runtime.handlers;
-	const originalHistory = runtime.historicalHandlers;
-	const originalFetch = runtime.fetch;
-	let repairing = false;
-	let compactWrites = 0;
-	let compactChecks = 0;
-	let rejectedId: string | undefined;
-	let rejectedSource: string | undefined;
-	const goodText = "وثقت أعمال React رقم";
-	const retryText = "راجعت أعمال React رقم";
-	const compactHandler = createTranslationCandidateHandler();
-	runtime.handlers = { ...originalHandlers, "review.translation": compactHandler };
-	runtime.fetch = async (_url, init) => {
-		const body = JSON.parse(String(init?.body));
-		const payload = JSON.parse(body.messages.at(-1).content);
-		const selection = payload.selections[0];
-		const task = JSON.parse(selection.text);
-		let output: object;
-		if (selection.id === "translation-source") {
-			compactWrites++;
-			output = {
-				direction: task.direction,
-				sourceRevision: task.sourceRevision,
-				segments: task.segments.map(({ id, text }: { id: string; text: string }) => ({
-					sourceId: id,
-					text: text.replaceAll("Used React for confirmed career work number", repairing ? retryText : goodText),
-				})),
-			};
-		} else {
-			compactChecks++;
-			const pairs = task.pairs as Array<{ sourceId: string; source: string }>;
-			const rejected = !repairing && pairs.filter(({ source }) => rejection === "all" || /number 0\./u.test(source));
-			if (rejected && rejected[0]) {
-				rejectedId = rejected[0].sourceId;
-				rejectedSource = rejected[0].source;
-			}
-			output = {
-				schemaVersion: 1,
-				batchId: task.batchId,
-				checkedSourceIds: pairs.map(({ sourceId }) => sourceId),
-				supportedSourceIds: pairs
-					.filter((pair) => !rejected || !rejected.includes(pair))
-					.map(({ sourceId }) => sourceId),
-				quality: { status: "appropriate", reason: '{"mqm":[]}' },
-				issues:
-					rejected && rejected.length
-						? [{ sourceIds: rejected.map(({ sourceId }) => sourceId), code: "addition" }]
-						: [],
-			};
-		}
-		return Response.json({
-			id: "compact-synthetic",
-			model: body.model,
-			provider: body.provider.only[0],
-			choices: [{ index: 0, message: { role: "assistant", content: JSON.stringify(output) }, finish_reason: "stop" }],
-			usage: { prompt_tokens: 5, completion_tokens: 5, total_tokens: 10, cost: 0.00001 },
-		});
-	};
-	try {
-		const fixture = await start();
-		const stored = async () =>
-			(await database.admin().query("SELECT data,updated_at FROM resume WHERE id=$1", [fixture.copy.resumeId])).rows[0];
-		if (rejection === "all") await run(() => runAiOperations());
-		else await finishBatch(fixture.operation.id);
-		const partial = await stored();
-		expect(compactWrites).toBeGreaterThan(0);
-		expect(compactChecks).toBe(compactWrites);
-		if (rejection === "all") {
-			expect((await run(() => operationService.get("alice", fixture.operation.id))).resultId).toBeNull();
-			expect(partial.updated_at.toISOString()).toBe(fixture.copy.updatedAt);
-			return;
-		}
-		const partialView = await run(() => getVariantReview("alice", fixture.operation.id));
-		if (partialView.result.kind !== "review.translation") throw new Error("Missing translation");
-		const withheld = partialView.result.withheld?.items?.[0];
-		if (!withheld || !rejectedId || !rejectedSource) throw new Error("Missing compact rejection");
-		expect(partialView.segments[withheld.id]).toBeUndefined();
-		expect(partial.data.summary.content).toContain(rejectedSource);
-		expect(partial.data.summary.content).toContain(`${goodText} 1`);
-		await expect(
-			run(() =>
-				decideVariantReview("alice", {
-					operationId: fixture.operation.id,
-					requestKey: randomUUID(),
-					expectedUpdatedAt: partialView.updatedAt,
-					expectedDecisionId: partialView.latestDecisionId,
-					subjectIds: [withheld.id],
-					decision: "accept",
-				}),
-			),
-		).rejects.toMatchObject({ code: "NOT_FOUND" });
-		const historical = (
-			await database.admin().query("SELECT result FROM ai_operation WHERE id=$1", [fixture.operation.id])
-		).rows[0].result;
-		const beforeRetry = compactWrites;
-		repairing = true;
-		runtime.handlers = originalHandlers;
-		runtime.historicalHandlers = { ...originalHistory, "review.translation": [compactHandler] };
-		const retryKey = randomUUID();
-		await run(() => operationService.retryTranslation("alice", fixture.operation.id, retryKey));
-		await finishBatch(fixture.operation.id);
-		const recovered = await stored();
-		expect(compactWrites).toBe(beforeRetry + 1);
-		expect(recovered.data.summary.content).toContain(`${goodText} 1`);
-		expect(recovered.data.summary.content).toContain(`${retryText} 0`);
-		await run(() => operationService.retryTranslation("alice", fixture.operation.id, retryKey));
-		expect((await stored()).updated_at).toEqual(recovered.updated_at);
-		expect(
-			(await database.admin().query("SELECT result FROM ai_operation WHERE id=$1", [fixture.operation.id])).rows[0]
-				.result,
-		).toEqual(historical);
-		expect(
-			(
-				await database
-					.admin()
-					.query("SELECT kind FROM ai_usage_ledger WHERE operation_id=$1 AND kind='settle'", [fixture.operation.id])
-			).rows,
-		).toHaveLength(1);
-		expect(
-			(
-				await database.admin().query("SELECT updated_at FROM resume WHERE id=$1", [fixture.source])
-			).rows[0].updated_at.toISOString(),
-		).toBe(fixture.revision);
-	} finally {
-		runtime.handlers = originalHandlers;
-		if (originalHistory) runtime.historicalHandlers = originalHistory;
-		else delete runtime.historicalHandlers;
-		runtime.fetch = originalFetch;
-	}
-});
 it("keeps verified parts, retries only the failed part, charges the whole translation once at admission and exposes one atomic review", async () => {
 	failPart = 2;
 	writers = 0;
@@ -739,6 +626,96 @@ it.each(["writer", "verifier"])(
 			expect(attempts.rows).toHaveLength((fixture.operation.progress?.total ?? 0) * 2 + (phase === "writer" ? 1 : 0));
 			// Item 65: clean translation auto-applies atomically to the language copy.
 			expect((await run(() => getVariantReview("alice", fixture.operation.id))).statuses.translation).toBe("accepted");
+		} finally {
+			runtime.fetch = transport;
+			runtime.routes = routes;
+		}
+	},
+);
+
+it.each([
+	["writer", 1, true],
+	["verifier", 1, true],
+	["verifier", 2, true],
+	["verifier", 1, false],
+] as const)(
+	"handles a %s call timeout with %i timed out responses and deadline room=%s",
+	async (phase, timeoutCount, deadlineRoom) => {
+		const transport = runtime.fetch;
+		const routes = runtime.routes;
+		const routeId = `timeout-${phase}-${timeoutCount}-${deadlineRoom}`;
+		const admin = database.admin();
+		await admin.query(
+			"INSERT INTO ai_platform_budget(id,route_id,route_revision,window_date,cap_micros,request_cap_micros,concurrency) VALUES ($1,$1,'1',(now() AT TIME ZONE 'UTC')::date,100000,10000,6)",
+			[routeId],
+		);
+		await admin.query(
+			"INSERT INTO ai_processing_consent(id,user_id,route_id,route_revision,notice_version,purpose,config_revision) VALUES ($1,'alice',$1,'1','1','review.translation','1')",
+			[routeId],
+		);
+		runtime.routes = routes.map((route) => {
+			if (!route.verifier) throw new Error("Missing synthetic translation verifier");
+			return {
+				...route,
+				routeId,
+				callTimeoutMs: 500,
+				deadlineMs: deadlineRoom ? route.deadlineMs : 10000,
+				// Leave room for an owner-triggered retry while both unknown costs remain reserved.
+				verifier: { ...route.verifier, maxCallCostMicros: 1000 },
+			};
+		});
+		let selectedPayload: string | undefined;
+		let calls = 0;
+		runtime.fetch = async (url, init) => {
+			const body = JSON.parse(String(init?.body));
+			const payload = body.messages.at(-1).content;
+			const verifying = payload.includes('"id":"variant-verification-task"');
+			if (verifying === (phase === "verifier") && payload.includes(plannedEvidenceIds[1] ?? "<missing part>")) {
+				selectedPayload ??= payload;
+				if (payload === selectedPayload && ++calls <= timeoutCount) {
+					return new Response(
+						new ReadableStream({
+							start(controller) {
+								init?.signal?.addEventListener("abort", () => controller.error(init.signal?.reason), { once: true });
+							},
+						}),
+						{ status: 200, headers: { "content-type": "application/json" } },
+					);
+				}
+			}
+			return transport(url, init);
+		};
+		const before = await run(() => usageService.getStartUsage("alice"));
+		try {
+			const fixture = await start();
+			await run(() => runAiOperations());
+			const view = await run(() => operationService.get("alice", fixture.operation.id));
+			if (deadlineRoom && timeoutCount === 1) expect(view).toMatchObject({ state: "succeeded", retryable: false });
+			else {
+				expect(view).toMatchObject({ state: "failed", retryable: true, failureCode: "AI_TIMEOUT" });
+				expect(view.progress?.failedPartDetails).toEqual([{ part: 2, failureCode: "AI_TIMEOUT" }]);
+			}
+			expect(calls).toBe(deadlineRoom ? 2 : 1);
+			expect((await run(() => usageService.getStartUsage("alice"))).operations.used).toBe(before.operations.used + 1);
+			const { rows } = await database.admin().query(
+				`SELECT a.outcome,a.cost_micros,a.output,o.actual_micros
+			FROM ai_operation_attempt a JOIN ai_operation o ON a.operation_id=o.id
+			WHERE o.parameters->'translationBatch'->>'rootId'=$1`,
+				[fixture.operation.id],
+			);
+			const attempts = phase === "writer" ? rows : rows.flatMap((row) => row.output?._verifyCalls ?? []);
+			const timedOut = attempts.filter((call) => call.outcome === "unknown" && !call.output?._verifyCalls);
+			expect(timedOut).toHaveLength(timeoutCount);
+			for (const call of timedOut) expect(call.costMicros ?? call.cost_micros ?? null).toBeNull();
+			expect(rows.some((row) => row.actual_micros === null)).toBe(true);
+			if (timeoutCount === 2) {
+				const retried = await run(() =>
+					operationService.retryTranslation("alice", fixture.operation.id, randomUUID(), undefined, { partIndex: 1 }),
+				);
+				expect(retried).toMatchObject({ state: "queued", progress: { part: 2, activeParts: 1 } });
+				expect(await finishBatch(fixture.operation.id)).toMatchObject({ state: "succeeded", retryable: false });
+				expect((await run(() => usageService.getStartUsage("alice"))).operations.used).toBe(before.operations.used + 1);
+			}
 		} finally {
 			runtime.fetch = transport;
 			runtime.routes = routes;
@@ -1428,6 +1405,67 @@ it("pauses at the shared request cap and does not charge rejected admission or p
 	}
 });
 
+it("retires an old partial review after a copy edit and removes its queued retry from worker discovery", async () => {
+	failPart = 2;
+	const fixture = await start();
+	const id = fixture.operation.id;
+	await run(() => runAiOperations());
+	expect(await finishBatch(id)).toMatchObject({ retryable: true, resultId: id });
+	const admin = database.admin();
+	const saved = (await admin.query("SELECT data, updated_at FROM resume WHERE id=$1", [fixture.copy.resumeId])).rows[0];
+	const updated = (
+		await admin.query(
+			`UPDATE resume SET updated_at = updated_at + interval '1 second',
+			data = jsonb_set(data, '{basics,headline}', '"Manually edited Arabic copy"')
+			WHERE id=$1 RETURNING data, updated_at`,
+			[fixture.copy.resumeId],
+		)
+	).rows[0];
+	const deferred = (
+		await admin.query(
+			`SELECT id FROM ai_operation WHERE parameters->'translationBatch'->>'rootId'=$1
+			AND (failure_code IN ('AI_VERIFICATION_FAILED', 'AI_REVIEW_INVALID') OR result ? 'withheld')
+			ORDER BY created_at DESC LIMIT 1`,
+			[id],
+		)
+	).rows[0];
+	expect(deferred).toBeDefined();
+	await admin.query(`UPDATE ai_translation_batch SET execution=$2 WHERE root_operation_id=$1`, [
+		id,
+		{
+			route: fixture.request.route,
+			consentVersion: fixture.request.consentVersion,
+			retryFailedOperationIds: [deferred.id],
+		},
+	]);
+	expect(await run(discoverAiOwners)).toContain("alice");
+	const writerCount = writers;
+	try {
+		expect(await run(() => operationService.get("alice", id))).toMatchObject({
+			state: "failed",
+			failureCode: "AI_SOURCE_CHANGED",
+			resultId: null,
+			retryable: false,
+		});
+		await run(() => runAiOperations());
+		expect(await run(discoverAiOwners)).not.toContain("alice");
+		await run(() => runAiOperations());
+		expect(writers).toBe(writerCount);
+		expect(
+			(await admin.query("SELECT failure_code FROM ai_translation_batch WHERE root_operation_id=$1", [id])).rows,
+		).toEqual([{ failure_code: "AI_SOURCE_CHANGED" }]);
+		expect(
+			(await admin.query("SELECT data, updated_at FROM resume WHERE id=$1", [fixture.copy.resumeId])).rows,
+		).toEqual([updated]);
+	} finally {
+		await admin.query("UPDATE resume SET data=$2, updated_at=$3 WHERE id=$1", [
+			fixture.copy.resumeId,
+			saved.data,
+			saved.updated_at,
+		]);
+	}
+});
+
 it("withholds a batch after its source changes and prevents retry or partial application", async () => {
 	const fixture = await start();
 	await runOnePart();
@@ -1438,9 +1476,13 @@ it("withholds a batch after its source changes and prevents retry or partial app
 	await run(() => runAiOperations());
 	expect(await run(() => operationService.get("alice", fixture.operation.id))).toMatchObject({
 		state: "failed",
+		failureCode: "AI_SOURCE_CHANGED",
+		retryable: false,
 		resultId: null,
 		progress: { part: 2, total: fixture.operation.progress?.total },
 	});
+	await run(() => reconcileExpiredAccounting("alice"));
+	expect(await run(discoverAiOwners)).not.toContain("alice");
 	const partCount = async () =>
 		(
 			await database
@@ -1645,6 +1687,7 @@ it("prepares a single source paragraph above the former 128000-character payload
 		}),
 	);
 	expect(prepared.evidenceIds.length).toBeGreaterThan(0);
+	using plan = vi.spyOn(translationBatches, "planTranslationBatches");
 	const preflight = await run(() =>
 		operationService.preflight("alice", {
 			kind: prepared.kind,
@@ -1655,6 +1698,7 @@ it("prepares a single source paragraph above the former 128000-character payload
 			consentVersion: "1",
 		}),
 	);
+	expect(plan).toHaveBeenCalledTimes(1);
 	expect(preflight).toMatchObject({ available: true, operationCost: 1 });
 	expect(preflight.translationParts).toBeGreaterThan(3);
 	expect(preflight.operationCost).toBe(1);
@@ -1746,3 +1790,130 @@ it.each(["reject", "undo and reject", "accept"] as const)(
 		}
 	},
 );
+
+it("withholds changed facts and retries only the selected segment before explicit approval", async () => {
+	const originalHandlers = runtime.handlers;
+	const originalFetch = runtime.fetch;
+	const savedResumes = (
+		await database.admin().query("SELECT id,data,updated_at FROM resume WHERE id=ANY($1)", [[sourceId, languageCopyId]])
+	).rows;
+	const requests: string[][] = [];
+	let repairing = false;
+	const goodText = "وثقت أعمال React رقم";
+	runtime.handlers = { ...originalHandlers, "review.translation": createTranslationCandidateHandler() };
+	runtime.fetch = async (_url, init) => {
+		const body = JSON.parse(String(init?.body));
+		const selection = JSON.parse(body.messages.at(-1).content).selections[0];
+		expect(selection.id).toBe("translation-source");
+		const task = JSON.parse(selection.text);
+		const segments = task.segments as Array<{ id: string; text: string }>;
+		requests.push(segments.map(({ id }) => id));
+		const output = {
+			direction: task.direction,
+			sourceRevision: task.sourceRevision,
+			segments: segments.map(({ id, text }) => ({
+				sourceId: id,
+				text: text.replaceAll(
+					/Used React for confirmed career work number (\d+)/gu,
+					(_match, number) => goodText + " " + (!repairing && ["0", "1"].includes(number) ? "88" : number),
+				),
+			})),
+		};
+		return Response.json({
+			id: "synthetic-writer-only",
+			model: body.model,
+			provider: body.provider.only[0],
+			choices: [{ index: 0, message: { role: "assistant", content: JSON.stringify(output) }, finish_reason: "stop" }],
+			usage: { prompt_tokens: 5, completion_tokens: 5, total_tokens: 10, cost: 0.00001 },
+		});
+	};
+	try {
+		const fixture = await start(3, 18, false, true);
+		const id = fixture.operation.id;
+		const stored = async () =>
+			(await database.admin().query("SELECT data,updated_at FROM resume WHERE id=$1", [fixture.copy.resumeId])).rows[0];
+		expect(await finishBatch(id)).toMatchObject({ state: "waiting_review", retryable: true });
+		expect((await stored()).updated_at.toISOString()).toBe(fixture.copy.updatedAt);
+		const read = () => run(() => getVariantReview("alice", id));
+		const first = await read();
+		const [gap, otherGap] = first.result.withheld?.items ?? [];
+		if (gap?.partIndex === undefined || otherGap?.partIndex === undefined)
+			throw new Error("Missing deterministic gaps");
+		expect(first.stale).toBe(false);
+		expect(gap.reason).toBe("TRANSLATION_FACT_NUMBER:0");
+		expect(first.segments[gap.id]).toBeUndefined();
+		const decide = (view: typeof first, subjectIds: string[]) =>
+			run(() =>
+				decideVariantReview("alice", {
+					operationId: id,
+					requestKey: randomUUID(),
+					expectedUpdatedAt: view.updatedAt,
+					expectedDecisionId: view.latestDecisionId,
+					subjectIds,
+					decision: "accept",
+				}),
+			);
+		await expect(decide(first, ["translation"])).rejects.toMatchObject({
+			data: { reason: "TRANSLATION_REVIEW_INCOMPLETE" },
+		});
+
+		const beforeRetry = requests.length;
+		repairing = true;
+		const retryKey = randomUUID();
+		const scope = { partIndex: gap.partIndex, segmentId: gap.id };
+		await run(() => operationService.retryTranslation("alice", id, retryKey, undefined, scope));
+		expect(await finishBatch(id)).toMatchObject({ state: "waiting_review", retryable: true });
+		expect(requests.slice(beforeRetry)).toEqual([[plannedEvidenceIds[gap.partIndex]]]);
+		const after = await read();
+		expect(after.result.withheld?.items).toEqual([otherGap]);
+		expect(after.segments[gap.id]?.text).toContain(goodText + " 0");
+		expect((await stored()).updated_at.toISOString()).toBe(fixture.copy.updatedAt);
+		await run(() => operationService.retryTranslation("alice", id, retryKey, undefined, scope));
+		expect(requests.slice(beforeRetry)).toEqual([[plannedEvidenceIds[gap.partIndex]]]);
+
+		if (after.terms.terms.length)
+			await decide(
+				after,
+				after.terms.terms.map(({ id }) => id),
+			);
+		const confirmed = await read();
+		await decide(confirmed, Object.keys(confirmed.segments));
+		await decide(await read(), ["translation"]);
+		const saved = await stored();
+		expect(saved.data.summary.content).toContain(goodText + " 0");
+		expect(saved.data.summary.content).toContain("Used React for confirmed career work number 1.");
+		expect(saved.data.summary.content).not.toContain("88");
+		expect(saved.data.sections.experience.items[0].description).toBe(`<p>${goodText} 99.</p>`);
+		const { partIndex: remainingPartIndex } = otherGap;
+		await run(() =>
+			operationService.retryTranslation("alice", id, randomUUID(), undefined, {
+				partIndex: remainingPartIndex,
+				segmentId: otherGap.id,
+			}),
+		);
+		expect(await finishBatch(id)).toMatchObject({ state: "waiting_review", retryable: false });
+		const recovered = await read();
+		expect(recovered.statuses).toMatchObject({ translation: "pending", [otherGap.id]: "pending" });
+		expect((await stored()).data).toEqual(saved.data);
+		await decide(recovered, [otherGap.id]);
+		await decide(await read(), ["translation"]);
+		expect((await stored()).data.summary.content).toContain(goodText + " 1");
+
+		expect(
+			(await database.admin().query("SELECT kind FROM ai_usage_ledger WHERE operation_id=$1 AND kind='settle'", [id]))
+				.rows,
+		).toHaveLength(1);
+		expect(
+			(
+				await database.admin().query("SELECT updated_at FROM resume WHERE id=$1", [fixture.source])
+			).rows[0].updated_at.toISOString(),
+		).toBe(fixture.revision);
+	} finally {
+		runtime.handlers = originalHandlers;
+		runtime.fetch = originalFetch;
+		for (const saved of savedResumes)
+			await database
+				.admin()
+				.query("UPDATE resume SET data=$2,updated_at=$3 WHERE id=$1", [saved.id, saved.data, saved.updated_at]);
+	}
+}, 15_000);

@@ -21,6 +21,7 @@ catalog:
   "ai": ^7.0.148
   "bcryptjs": "^3.0.3"
   "better-auth": "1.7.12"
+  diff: 9.0.0
   "drizzle-orm": "1.0.0-rc.4"
   "es-toolkit": "^1.52.0"
   esbuild: ^0.28.2

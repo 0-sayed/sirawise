@@ -5,7 +5,7 @@ import { setupI18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
 import { ORPCError } from "@orpc/client";
 import { messages as arabicMessages } from "../../../../../locales/ar-SA.po";
-import { type ProcessingNotice, useTranslationRetryConsent } from "./processing-consent";
+import { ProcessingDetails, type ProcessingNotice, useTranslationRetryConsent } from "./processing-consent";
 import { ReviewFailureReason } from "./review-failure";
 
 const api = vi.hoisted(() => ({ notices: vi.fn(), grant: vi.fn() }));
@@ -27,6 +27,26 @@ function RetrySurface({ retry }: { retry: (notice: ProcessingNotice) => Promise<
 		</>
 	);
 }
+
+it("opens the processing notice from the named AI details icon without granting consent", async () => {
+	const locale = "en-US";
+	const purpose = "review.wording";
+	const content = "Only the selected text is sent for processing.";
+	api.notices.mockResolvedValue([{ content, locale, purpose, alreadyGranted: false }]);
+
+	render(
+		<I18nProvider i18n={setupI18n({ locale, messages: { [locale]: {} } })}>
+			<ProcessingDetails purpose={purpose} />
+		</I18nProvider>,
+	);
+	const details = screen.getByRole("button", { name: /^AI details$/u });
+	expect(details.textContent).toBe("");
+	fireEvent.click(details);
+
+	expect(await screen.findByText(content)).toBeVisible();
+	expect(api.notices).toHaveBeenCalledWith({ purpose, locale });
+	expect(api.grant).not.toHaveBeenCalled();
+});
 
 it.each(["en-US", "ar-SA"] as const)(
 	"requires a displayed %s notice after revocation and a stale grant",
@@ -53,15 +73,10 @@ it.each(["en-US", "ar-SA"] as const)(
 			.fn()
 			.mockRejectedValueOnce(new ORPCError("PRECONDITION_FAILED", { data: { reason: "AI_CONSENT_REQUIRED" } }))
 			.mockResolvedValue(undefined);
-		api.notices
-			.mockReturnValueOnce(pending)
-			.mockResolvedValueOnce([notice])
-			.mockResolvedValueOnce([current])
-			.mockResolvedValueOnce([changed]);
+		api.notices.mockReturnValueOnce(pending).mockResolvedValueOnce([current]).mockResolvedValueOnce([changed]);
 		api.grant
 			.mockRejectedValueOnce(new ORPCError("PRECONDITION_FAILED", { data: { reason: "AI_CONSENT_NOTICE_CHANGED" } }))
 			.mockResolvedValue(undefined);
-		const cancel = locale === "ar-SA" ? "إلغاء" : "Cancel";
 		const review = locale === "ar-SA" ? "مراجعة الموافقة" : "Review consent";
 		const acceptance = locale === "ar-SA" ? "إعادة محاولة الأجزاء المتعثرة" : "Retry failed parts";
 		render(
@@ -71,12 +86,9 @@ it.each(["en-US", "ar-SA"] as const)(
 		);
 		const open = () => fireEvent.click(screen.getByRole("button", { name: "Open" }));
 		open();
-		expect(screen.getByRole("button", { name: acceptance })).toBeDisabled();
-		fireEvent.click(screen.getByRole("button", { name: cancel }));
-		await act(async () => finishLoading([notice]));
-		expect(api.grant).not.toHaveBeenCalled();
+		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 		expect(retry).not.toHaveBeenCalled();
-		open();
+		await act(async () => finishLoading([notice]));
 		await waitFor(() => expect(retry).toHaveBeenCalledTimes(1));
 		expect(api.grant).not.toHaveBeenCalled();
 		fireEvent.click(await screen.findByRole("button", { name: review }));
@@ -93,7 +105,7 @@ it.each(["en-US", "ar-SA"] as const)(
 		fireEvent.click(screen.getByRole("button", { name: acceptance }));
 		await waitFor(() => expect(retry).toHaveBeenCalledTimes(2));
 		expect(api.grant).toHaveBeenLastCalledWith(expect.objectContaining({ noticeSha256: changed.noticeSha256 }));
-		expect(api.notices).toHaveBeenCalledTimes(4);
+		expect(api.notices).toHaveBeenCalledTimes(3);
 		expect(api.notices).toHaveBeenLastCalledWith({ purpose: notice.purpose, locale });
 	},
 );

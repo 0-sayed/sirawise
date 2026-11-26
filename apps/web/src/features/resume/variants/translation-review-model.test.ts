@@ -1,5 +1,5 @@
 import type { VariantTerminology } from "@reactive-resume/schema/resume/variants";
-import { expect, it } from "vite-plus/test";
+import { expect, it, vi } from "vite-plus/test";
 import { buildTranslationInventory } from "@reactive-resume/resume/translation";
 import { customSectionSchema, educationItemSchema, experienceItemSchema } from "@reactive-resume/schema/resume/data";
 import { defaultResumeData } from "@reactive-resume/schema/resume/default";
@@ -9,6 +9,7 @@ import {
 	groupTranslationTerms,
 	groupTranslationUndoActions,
 	MAX_DECISION_SUBJECTS,
+	submitApproveTranslation,
 	submitChunkedVariantDecision,
 	submitSequentialUndo,
 } from "./translation-review-model";
@@ -277,6 +278,7 @@ it("groups chunked undoable decisions into section, accept-all, and single-segme
 	const sumIds = ["sum-1", "sum-2"];
 	const allIds = [...sumIds, ...expIds, ...eduIds];
 	const groupedSegments = {
+		actionableCount: allIds.length,
 		groups: [
 			{
 				key: "summary",
@@ -286,6 +288,7 @@ it("groups chunked undoable decisions into section, accept-all, and single-segme
 				unresolvedIds: [],
 				acceptedCount: sumIds.length,
 				totalCount: sumIds.length,
+				gapCount: 0,
 			},
 			{
 				key: "experience",
@@ -295,6 +298,7 @@ it("groups chunked undoable decisions into section, accept-all, and single-segme
 				unresolvedIds: [],
 				acceptedCount: expIds.length,
 				totalCount: expIds.length,
+				gapCount: 0,
 			},
 			{
 				key: "education",
@@ -304,6 +308,7 @@ it("groups chunked undoable decisions into section, accept-all, and single-segme
 				unresolvedIds: [],
 				acceptedCount: eduIds.length,
 				totalCount: eduIds.length,
+				gapCount: 0,
 			},
 		],
 		pendingSegmentIds: [],
@@ -381,4 +386,32 @@ it("undoes multi-chunk decisions in reverse chronological order chaining revisio
 			expectedUpdatedAt: "2026-11-21T00:00:11.000Z",
 		},
 	]);
+});
+
+it.each([0, 91, 201])("chains whole-draft approval after %i pending parts", async (count) => {
+	const pendingSegmentIds = Array.from({ length: count }, (_, index) => `part-${index}`);
+	let call = 0;
+	const submit = vi.fn(async () => {
+		call += 1;
+		return { decisionId: `decision-${call}`, updatedAt: `revision-${call}` };
+	});
+	await expect(
+		submitApproveTranslation({
+			operationId: "operation",
+			pendingSegmentIds,
+			expectedUpdatedAt: "revision-0",
+			expectedDecisionId: null,
+			submit,
+		}),
+	).resolves.toMatchObject({ decisionId: `decision-${Math.ceil(count / 100) + 1}` });
+	const payloads = submit.mock.calls as unknown as [
+		import("@reactive-resume/schema/resume/variants").VariantDecisionInput,
+	][];
+	expect(payloads.flatMap(([payload]) => payload.subjectIds)).toEqual([...pendingSegmentIds, "translation"]);
+	for (const [[payload], index] of payloads.map((entry, index) => [entry, index] as const)) {
+		expect(payload.subjectIds.length).toBeLessThanOrEqual(100);
+		expect(payload.decision).toBe("accept");
+		expect(payload.expectedUpdatedAt).toBe(`revision-${index}`);
+		expect(payload.expectedDecisionId).toBe(index ? `decision-${index}` : null);
+	}
 });

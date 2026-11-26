@@ -43,7 +43,12 @@ export const summaryOutputSchema = z.strictObject({
 		.array(
 			z.strictObject({
 				id: summaryId,
-				prompt: z.string().trim().min(1).max(600),
+				prompt: z
+					.string()
+					.trim()
+					.min(1)
+					.max(600)
+					.describe("Question for the user in the requested interface language."),
 				evidenceIds: z.array(summaryId).max(50),
 			}),
 		)
@@ -125,28 +130,9 @@ const translationDirection = z.enum(["ar-en", "en-ar"]);
 export const translationCandidateSchema = z.strictObject({
 	direction: translationDirection,
 	sourceRevision: translationId,
-	segments: z
-		.array(z.strictObject({ sourceId: translationId, text: translationText }))
-		.min(1)
-		.max(MAX_VARIANT_PASSAGES),
+	segments: z.array(z.strictObject({ sourceId: translationId, text: translationText })).max(MAX_VARIANT_PASSAGES),
 });
 export type TranslationCandidate = z.infer<typeof translationCandidateSchema>;
-
-export const translationCheckSchema = z.strictObject({
-	schemaVersion: z.literal(1),
-	batchId: translationId,
-	checkedSourceIds: z.array(translationId).min(1).max(MAX_VARIANT_PASSAGES),
-	supportedSourceIds: z.array(translationId).max(MAX_VARIANT_PASSAGES),
-	issues: z
-		.array(
-			z.strictObject({
-				sourceIds: z.array(translationId).min(1).max(MAX_VARIANT_PASSAGES),
-				code: z.enum(["addition", "omission", "polarity", "responsibility", "credential"]),
-			}),
-		)
-		.max(MAX_VARIANT_PASSAGES * 5),
-});
-export type TranslationCheck = z.infer<typeof translationCheckSchema>;
 
 export const translationOutputSchema = z.strictObject({
 	direction: translationDirection,

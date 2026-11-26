@@ -71,6 +71,21 @@ export function variantClient(page: Page): RouterClient<typeof router> {
 		}),
 	);
 }
+export async function decideVariantFixture(
+	api: ReturnType<typeof variantClient>,
+	operationId: string,
+	input: Pick<Parameters<typeof api.ai.variantReview.decide>[0], "subjectIds" | "decision" | "undoDecisionId">,
+) {
+	const review = await api.ai.variantReview.get({ operationId });
+	return api.ai.variantReview.decide({
+		operationId,
+		requestKey: crypto.randomUUID(),
+		expectedUpdatedAt: review.updatedAt,
+		expectedDecisionId: review.latestDecisionId,
+		...input,
+	});
+}
+
 export async function readProcessingNotice(page: Page, purpose: string, locale: "ar-SA" | "en-US" = "en-US") {
 	const response = await page.request.get("/api/openapi/ai/processing-notices", { params: { purpose, locale } });
 	await expect(response).toBeOK();
@@ -158,12 +173,14 @@ export async function seedTailoringReview(
 	return { sourceId, copyId: copy.resumeId, original };
 }
 
-export async function launchTailoringReview(page: Page, copyId: string) {
+export async function launchTailoringReview(page: Page, copyId: string, alreadyConsented = false) {
 	await page.goto(`/dashboard/resumes/${copyId}/job`);
-	await page.getByRole("button", { name: /^(Review tailored wording|مراجعة الصياغة المخصصة)$/u }).click();
-	await page
-		.getByRole("dialog")
-		.getByRole("button", { name: /^(Start review|بدء المراجعة)$/u })
-		.click();
-	await expect(page.getByRole("dialog")).toHaveCount(0);
+	const start = page.waitForResponse((response) =>
+		/^\/api\/rpc\/ai\/operations\/start(?:\/__batch__)?$/u.test(new URL(response.url()).pathname),
+	);
+	await page.getByRole("button", { name: /^(Suggest edits for this job|اقتراح تعديلات لهذه الوظيفة)$/u }).click();
+	const dialog = page.getByRole("dialog");
+	if (!alreadyConsented) await dialog.getByRole("button", { name: /^(Start review|بدء المراجعة)$/u }).click();
+	expect((await start).ok()).toBe(true);
+	await expect(dialog).toHaveCount(0);
 }

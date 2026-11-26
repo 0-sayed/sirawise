@@ -18,6 +18,7 @@ import { Textarea } from "@reactive-resume/ui/components/textarea";
 import { ReviewLaunch, ReviewNotice, ReviewOperationPanel } from "../editor/proposals/review-operation";
 import { getEntries, resolveSection, describeEntry } from "../editor/write/model";
 import { useVariantsCopy } from "../variants/copy.generated";
+import { useReviewInterfaceText } from "../variants/review-interface-copy";
 import {
 	applyImportReviewCandidate,
 	applyImportReviewCandidates,
@@ -254,6 +255,7 @@ export function ExtractionCandidates({
 	const [error, setError] = useState(false);
 	const id = useId();
 	const variantsCopy = useVariantsCopy();
+	const interfaceText = useReviewInterfaceText();
 	useEffect(() => {
 		if (review && query.data?.result.kind === "extraction" && !review.result)
 			onChange({ ...state, aiReview: { ...review, result: query.data.result } });
@@ -480,7 +482,7 @@ export function ExtractionCandidates({
 
 			{result.questions.map((question) => (
 				<p key={question.id} dir="auto">
-					{question.prompt}
+					{interfaceText(question.prompt, "import")}
 				</p>
 			))}
 		</div>

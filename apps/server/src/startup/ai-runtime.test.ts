@@ -1,10 +1,7 @@
 import { describe, expect, it } from "vite-plus/test";
 import { extractionCandidateHandler, reviewHandlers } from "@reactive-resume/api/features/ai/review-handlers";
 import { getAiAvailability, getOperationHandler, withAiRuntime } from "@reactive-resume/api/features/ai/route-policy";
-import {
-	jobEvidenceCandidateContract,
-	translationCandidateContract,
-} from "@reactive-resume/api/features/ai/variant-contracts";
+import { jobEvidenceCandidateContract } from "@reactive-resume/api/features/ai/variant-contracts";
 import { variantReviewHandlers } from "@reactive-resume/api/features/ai/variant-handlers";
 import {
 	canonicalVerifierRouteSha256,
@@ -15,32 +12,28 @@ import { resolveWriterRoute } from "@reactive-resume/api/features/ai/writer-poli
 import { resolvePrimaryContract, selectQualifiedContract } from "./ai-qualification";
 import { bindQualifiedReviewHandlers, createProductionAiRuntime, productionAiRoute } from "./ai-runtime";
 
-it.each(["translation", "job-evidence", "extraction"] as const)(
-	"requires exact qualification evidence for %s",
-	(feature) => {
-		const expected = {
-			feature,
-			endpointSlot: "primary" as const,
-			writerModel: "test/writer",
-			verifierModel: "test/verifier",
-			promptVersion: "prompt",
-			schemaVersion: "schema",
-			routeSha256: "a".repeat(64),
-		};
-		const evidence = { ...expected, manifestSha256: "b".repeat(64), scoredReceiptsSha256: "c".repeat(64) };
-		expect(selectQualifiedContract(expected, [])).toBe(false);
-		expect(selectQualifiedContract(expected, [{ ...evidence, scoredReceiptsSha256: "missing" }])).toBe(false);
-		expect(selectQualifiedContract(expected, [{ ...evidence, endpointSlot: "backup" }])).toBe(false);
-		expect(selectQualifiedContract(expected, [{ ...evidence, promptVersion: "changed" }])).toBe(false);
-		expect(selectQualifiedContract(expected, [{ ...evidence, schemaVersion: "changed" }])).toBe(false);
-		expect(selectQualifiedContract(expected, [{ ...evidence, routeSha256: "d".repeat(64) }])).toBe(false);
-		const unrelatedBuild = { ...evidence, lockfileSha256: "new-build-only" };
-		expect(selectQualifiedContract(expected, [unrelatedBuild])).toBe(true);
-	},
-);
+it.each(["job-evidence", "extraction"] as const)("requires exact qualification evidence for %s", (feature) => {
+	const expected = {
+		feature,
+		endpointSlot: "primary" as const,
+		writerModel: "test/writer",
+		verifierModel: "test/verifier",
+		promptVersion: "prompt",
+		schemaVersion: "schema",
+		routeSha256: "a".repeat(64),
+	};
+	const evidence = { ...expected, manifestSha256: "b".repeat(64), scoredReceiptsSha256: "c".repeat(64) };
+	expect(selectQualifiedContract(expected, [])).toBe(false);
+	expect(selectQualifiedContract(expected, [{ ...evidence, scoredReceiptsSha256: "missing" }])).toBe(false);
+	expect(selectQualifiedContract(expected, [{ ...evidence, endpointSlot: "backup" }])).toBe(false);
+	expect(selectQualifiedContract(expected, [{ ...evidence, promptVersion: "changed" }])).toBe(false);
+	expect(selectQualifiedContract(expected, [{ ...evidence, schemaVersion: "changed" }])).toBe(false);
+	expect(selectQualifiedContract(expected, [{ ...evidence, routeSha256: "d".repeat(64) }])).toBe(false);
+	const unrelatedBuild = { ...evidence, lockfileSha256: "new-build-only" };
+	expect(selectQualifiedContract(expected, [unrelatedBuild])).toBe(true);
+});
 
 it.each([
-	["translation", translationCandidateContract],
 	["job-evidence", jobEvidenceCandidateContract],
 	["extraction", extractionCandidateHandler],
 ] as const)("selects the complete %s contract and keeps the legacy operation version readable", (feature, versions) => {
@@ -89,7 +82,8 @@ describe("createProductionAiRuntime", () => {
 				schemaVersion: contract.schemaVersion,
 			});
 		}
-		expect(runtime.handlers["review.translation"]?.promptVersion).toBe("translation-v5-quota-batches");
+		expect(runtime.handlers["review.translation"]?.translationPlanVersion).toBe("compact-v1");
+		expect(runtime.handlers["review.translation"]?.verifier).toBeUndefined();
 	});
 
 	it("ignores the local candidate switch in the production entry", () => {
@@ -158,20 +152,20 @@ describe("createProductionAiRuntime", () => {
 	});
 
 	it.each([
-		{ kind: "review.translation", callTimeoutMs: 90_000, deadlineMs: 240_000 },
+		{ kind: "review.translation", callTimeoutMs: 90_000, deadlineMs: 300_000 },
 		{ kind: "review.wording", callTimeoutMs: 60_000, deadlineMs: 120_000 },
 		{ kind: "review.extraction", callTimeoutMs: 60_000, deadlineMs: 120_000 },
 		{ kind: "review.summary", callTimeoutMs: 60_000, deadlineMs: 120_000 },
 		{ kind: "review.job-evidence", callTimeoutMs: 90_000, deadlineMs: 240_000 },
 	])(
-		"resolves the production $kind writer and verifier timeout without changing spend limits",
+		"resolves the production $kind inference timeout without changing spend limits",
 		({ kind, callTimeoutMs, deadlineMs }) => {
 			const runtime = createProductionAiRuntime({ OPENROUTER_API_KEY: "sk-test" });
 			const route = runtime?.routes[0];
 			if (!route) throw new Error("Expected a configured route");
 			const writer = resolveWriterRoute(route, { kind, parameters: {} });
 			const verifier = resolveReviewVerifierRoute(writer);
-			for (const selected of [writer, verifier]) {
+			for (const selected of kind === "review.translation" ? [writer] : [writer, verifier]) {
 				expect(selected).toMatchObject({
 					callTimeoutMs,
 					deadlineMs,
@@ -196,7 +190,7 @@ it("requires exact backup receipts and fresh notice and configuration revisions 
 	const runtime = createProductionAiRuntime({ OPENROUTER_API_KEY: "synthetic" });
 	const current = runtime?.routes[0];
 	if (!runtime || !current?.verifier) throw new Error("Missing route fixture");
-	const { tuple } = resolvePrimaryContract(current, "translation", translationCandidateContract);
+	const { tuple } = resolvePrimaryContract(current, "job-evidence", jobEvidenceCandidateContract);
 	const proof = "synthetic";
 	const route = {
 		...current,
@@ -220,15 +214,15 @@ it("requires exact backup receipts and fresh notice and configuration revisions 
 					fullPrecision: proof,
 					structuredOutput: proof,
 					callBound: proof,
-					purposes: ["review.translation"] as const,
+					purposes: ["review.job-evidence"] as const,
 				},
 				qualified: [
-					{ kind: "review.translation" as const, writerModel: tuple.writerModel, verifierModel: tuple.verifierModel },
+					{ kind: "review.job-evidence" as const, writerModel: tuple.writerModel, verifierModel: tuple.verifierModel },
 				],
 			},
 		},
 	};
-	const kind = "review.translation";
+	const kind = "review.job-evidence";
 	const backup = resolveReviewVerifierRoutes(resolveWriterRoute(route, { kind, parameters: {} }), kind).backup;
 	if (!backup) throw new Error("Missing backup fixture");
 	const primary = { ...tuple, manifestSha256: "b".repeat(64), scoredReceiptsSha256: "c".repeat(64) };

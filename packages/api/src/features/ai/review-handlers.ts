@@ -27,6 +27,7 @@ import {
 	reviewTargetSchema,
 } from "@reactive-resume/schema/resume/ai-review";
 import { parseResumeDataForWrite } from "@reactive-resume/schema/resume/write";
+import { uiLocaleSchema } from "@reactive-resume/utils/locale";
 import { buildModelPayload, resumeContactValues } from "./payload";
 import { filterExtractionProvenance, type ExtractionWithholding } from "./review-provenance";
 import {
@@ -62,12 +63,14 @@ export const wordingParameters = z.strictObject({
 	action: z.enum(["review", "verb", "shorter", "result", "custom"]),
 	request: z.string().trim().min(1).max(500).optional(),
 	answerIds: z.array(id).max(9).optional(),
+	continuationOf: id.optional(),
+	interfaceLocale: uiLocaleSchema.optional(),
 });
-const extractionParameters = z.strictObject({ sourceId: id });
+const extractionParameters = z.strictObject({ sourceId: id, interfaceLocale: uiLocaleSchema.optional() });
 const question = z.strictObject({
 	id,
 	passageId: id.nullable(),
-	prompt: plain,
+	prompt: plain.describe("Question for the user in the requested interface language."),
 	evidenceIds: z.array(id).min(1).max(50),
 });
 const wordingOutput = z.strictObject({
@@ -120,7 +123,14 @@ async function snapshot(
 	for (const answerId of parameters.answerIds ?? []) {
 		const answer = request.sources.find((source) => source.kind === "answer" && source.id === answerId);
 		if (!answer) throw new Error("AI_SOURCE_BINDING");
-		const loaded = await loadBoundReviewAnswer(tx, ownerId, answer, source, parameters.targets);
+		const loaded = await loadBoundReviewAnswer(
+			tx,
+			ownerId,
+			answer,
+			source,
+			parameters.targets,
+			Boolean(parameters.continuationOf),
+		);
 		expected.push(answer);
 		evidence.push(...loaded.evidence);
 	}
@@ -246,7 +256,7 @@ const makeHandler = (kind: "review.wording" | "review.extraction"): OperationHan
 					} catch {
 						throw new Error("AI_INVALID_MARKUP");
 					}
-					if (repeatsUntouchedReviewPassage(value, { before, after, blockIndex: first.index }))
+					if (before !== after && repeatsUntouchedReviewPassage(value, { before, after, blockIndex: first.index }))
 						throw new Error("AI_INVALID_MARKUP");
 					return {
 						schemaVersion: 2,
@@ -267,7 +277,7 @@ const makeHandler = (kind: "review.wording" | "review.extraction"): OperationHan
 				}),
 			};
 		} else result = { ...common, kind: "extraction", candidates: output.candidates };
-		return validateReviewResult(loaded, result);
+		return validateReviewResult(loaded, result, uiLocaleSchema.safeParse(request.parameters.interfaceLocale).success);
 	},
 });
 

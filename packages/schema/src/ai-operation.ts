@@ -65,7 +65,7 @@ export const operationViewSchema = z
 export type OperationView = z.infer<typeof operationViewSchema>;
 export const operationPreflightSchema = z.strictObject({
 	allowance: allowanceBalanceSchema.optional(),
-	operationCost: z.number().int().positive(),
+	operationCost: z.union([z.literal(0), z.literal(1)]),
 	translationParts: z.number().int().positive().optional(),
 	available: z.boolean(),
 	reason: identifier.nullable(),

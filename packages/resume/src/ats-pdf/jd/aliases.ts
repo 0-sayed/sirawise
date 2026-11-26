@@ -99,6 +99,7 @@ const ALIASES: Readonly<Record<string, string>> = {
 	ec2: "aws-ec2",
 
 	// Practice
+	"system design": "system design",
 	"machine learning": "machine-learning",
 	ml: "machine-learning",
 	"deep learning": "deep-learning",
@@ -146,6 +147,9 @@ const ALIASES: Readonly<Record<string, string>> = {
 	"user interface": "user-interface",
 	"product management": "product-management",
 	"project management": "project-management",
+	"إدارة المشاريع": "إدارة المشاريع",
+	"customer service": "customer-service",
+	"platform engineering": "platform-engineering",
 	pmp: "project-management",
 	okr: "okrs",
 	kpi: "kpis",
@@ -213,6 +217,10 @@ const SURFACES_BY_CANONICAL = (() => {
  * stemmed. "kubernetes" stems to "kubernet", which matches nothing a recruiter would ever type.
  */
 export const SKILL_SURFACE_FORMS: ReadonlySet<string> = new Set([
+	"mobile",
+	"sql",
+	"figma",
+	"sap",
 	...Object.keys(ALIASES),
 	...SURFACES_BY_CANONICAL.keys(),
 ]);

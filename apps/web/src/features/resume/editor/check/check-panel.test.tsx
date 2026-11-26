@@ -137,11 +137,11 @@ it.each([undefined, null])("keeps the unavailable AI tab label without a visible
 	expect(tab.querySelector('[data-slot="tabs-count"]')).toBeNull();
 });
 
-it("preserves a real zero AI count", () => {
+it("does not render a badge for a real zero AI count", () => {
 	documentState.aiCount = 0;
 	panel();
-	const tab = screen.getByRole("tab", { name: "AI 0" });
-	expect(tab.querySelector('[data-slot="tabs-count"]')).toHaveTextContent("0");
+	const tab = screen.getByRole("tab", { name: "AI" });
+	expect(tab.querySelector('[data-slot="tabs-count"]')).toBeNull();
 });
 
 it("opens findings immediately with counts, one severity control, and no summary step", async () => {

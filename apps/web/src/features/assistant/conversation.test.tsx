@@ -336,7 +336,7 @@ it("keeps a failed decision unconfirmed across rerenders and confirms only after
 		</I18nProvider>
 	);
 	const { rerender } = render(view);
-	fireEvent.click(screen.getByRole("button", { name: /^Reject$/ }));
+	fireEvent.click(screen.getByRole("button", { name: /^Keep original$/ }));
 	expect(screen.getByText("Saving decision…")).toBeDefined();
 	expect(screen.queryByText("Rejected", { exact: true })).toBeNull();
 	reject(new Error("Offline"));

@@ -239,6 +239,9 @@ catalogs:
     better-auth:
       specifier: 1.7.12
       version: 1.7.12
+    diff:
+      specifier: 9.0.0
+      version: 9.0.0
     drizzle-orm:
       specifier: 1.0.0-rc.4
       version: 1.0.0-rc.4
@@ -1574,12 +1577,12 @@ importers:
 
   packages/email:
     dependencies:
-      '@reactive-resume/utils':
-        specifier: workspace:*
-        version: link:../utils
       '@reactive-resume/env':
         specifier: workspace:*
         version: link:../env
+      '@reactive-resume/utils':
+        specifier: workspace:*
+        version: link:../utils
       nodemailer:
         specifier: ^10.1.7
         version: 10.1.7
@@ -1867,6 +1870,9 @@ importers:
       css-tree:
         specifier: ^3.2.1
         version: 3.2.1
+      diff:
+        specifier: 'catalog:'
+        version: 9.0.0
       fast-json-patch:
         specifier: ^3.1.1
         version: 3.1.1
@@ -2028,15 +2034,6 @@ importers:
         specifier: workspace:*
         version: link:../packages/schema
     devDependencies:
-      '@orpc/server':
-        specifier: 'catalog:'
-        version: 1.15.7(ws@8.21.3)
-      '@reactive-resume/auth':
-        specifier: workspace:*
-        version: link:../packages/auth
-      '@reactive-resume/utils':
-        specifier: workspace:*
-        version: link:../packages/utils
       '@lingui/core':
         specifier: 'catalog:'
         version: 6.10.0(@babel/core@7.29.7(supports-color@7.2.0))(babel-plugin-macros@3.1.0)
@@ -2046,6 +2043,9 @@ importers:
       '@lingui/message-utils':
         specifier: 'catalog:'
         version: 6.10.0
+      '@orpc/server':
+        specifier: 'catalog:'
+        version: 1.15.7(ws@8.21.3)
       '@phosphor-icons/react':
         specifier: ^2.1.10
         version: 2.1.10(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -2055,6 +2055,9 @@ importers:
       '@reactive-resume/api':
         specifier: workspace:*
         version: link:../packages/api
+      '@reactive-resume/auth':
+        specifier: workspace:*
+        version: link:../packages/auth
       '@reactive-resume/config':
         specifier: workspace:*
         version: link:../packages/config
@@ -2076,6 +2079,9 @@ importers:
       '@reactive-resume/resume':
         specifier: workspace:*
         version: link:../packages/resume
+      '@reactive-resume/utils':
+        specifier: workspace:*
+        version: link:../packages/utils
       '@types/pg':
         specifier: 'catalog:'
         version: 8.23.1

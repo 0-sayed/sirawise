@@ -16,11 +16,11 @@ const { serve } = createRequire(new URL("../../apps/server/package.json", import
 import { extractionCandidateHandler, reviewHandlers } from "../../packages/api/src/features/ai/review-handlers";
 import { withAiRuntime } from "../../packages/api/src/features/ai/route-policy";
 import { syntheticReviewRuntime as syntheticRuntime } from "../../packages/api/src/features/ai/testing/runtime";
+import { jobEvidenceCandidateContract } from "../../packages/api/src/features/ai/variant-contracts";
 import {
-	jobEvidenceCandidateContract,
-	translationCandidateContract,
-} from "../../packages/api/src/features/ai/variant-contracts";
-import { variantReviewHandlers } from "../../packages/api/src/features/ai/variant-handlers";
+	createTranslationCandidateHandler,
+	variantReviewHandlers,
+} from "../../packages/api/src/features/ai/variant-handlers";
 import { resolveReviewVerifierRoutes } from "../../packages/api/src/features/ai/verifier-policy";
 import { canonicalVerifierRouteSha256 } from "../../packages/api/src/features/ai/verifier-policy";
 import { resolveWriterRoute } from "../../packages/api/src/features/ai/writer-policy";
@@ -97,6 +97,8 @@ const runtime = {
 			);
 		if (selections.some((selection) => selection.text.includes("Synthetic batched translation")))
 			await wait(1000, undefined, init?.signal ? { signal: init.signal } : {});
+		if (selections.some((selection) => selection.text.includes("Compact retry")))
+			await wait(2500, undefined, init?.signal ? { signal: init.signal } : {});
 		const letter = scriptedLetterResponse(selections);
 		if (letter !== undefined)
 			return Promise.resolve(
@@ -131,11 +133,17 @@ const runtime = {
 					{ headers: { "content-type": "application/json" } },
 				),
 			);
-		const source = selections.find((selection) => selection.id !== "intent");
+		const intent = selections.find((selection) => selection.id === "intent")?.text ?? "";
+		const source =
+			intent === "custom: Review the second reporting bullet"
+				? selections.find((selection) => selection.text === "Built reporting tools.")
+				: selections.find((selection) => selection.id !== "intent");
 		if (!source) throw new Error("Missing synthetic source");
 		const arabicSource =
 			(source.text.match(/\p{Script=Arabic}/gu) ?? []).length > (source.text.match(/\p{Script=Latin}/gu) ?? []).length;
-		const intent = selections.find((selection) => selection.id === "intent")?.text ?? "";
+		const answer = intent.startsWith("result")
+			? selections.find((selection) => selection.kind === "user_supplied" && selection.id !== "intent")
+			: undefined;
 		const merged = source.text === "Built a gateway that also" ? selections.slice(0, 3) : null;
 		const evidenceIds = merged ? merged.map((passage) => passage.id) : [source.id];
 		const extraction = source.kind === "unconfirmed_source";
@@ -228,29 +236,34 @@ const runtime = {
 						: [],
 				}
 			: {
-					proposals: intent.startsWith("result")
+					proposals:
+						intent.startsWith("result") && !answer
+							? []
+							: [
+									{
+										id: "proposal",
+										passageId: source.id,
+										text: intent.includes("INVALID_METRIC")
+											? "Led delivery with a 30% increase."
+											: answer
+												? `${source.text} ${answer.text}`
+												: merged
+													? "Built a gateway that routes service requests. Maintained the service logs."
+													: source.text.replace(/Built/gu, "Developed").replace(/بنيت/gu, "طورت"),
+										reason: arabicSource ? "صياغة أوضح للنص الأصلي" : "Synthetic wording fixture",
+										evidenceIds: answer ? [...evidenceIds, answer.id] : evidenceIds,
+									},
+								],
+					questions: answer
 						? []
 						: [
 								{
-									id: "proposal",
+									id: "outcome",
 									passageId: source.id,
-									text: intent.includes("INVALID_METRIC")
-										? "Led delivery with a 30% increase."
-										: merged
-											? "Built a gateway that routes service requests. Maintained the service logs."
-											: source.text.replace(/Built/gu, "Developed").replace(/بنيت/gu, "طورت"),
-									reason: arabicSource ? "صياغة أوضح للنص الأصلي" : "Synthetic wording fixture",
-									evidenceIds,
+									prompt: arabicSource ? "ما النتيجة التي يمكنك تأكيدها؟" : "What result can you confirm?",
+									evidenceIds: [source.id],
 								},
 							],
-					questions: [
-						{
-							id: "outcome",
-							passageId: source.id,
-							prompt: arabicSource ? "ما النتيجة التي يمكنك تأكيدها؟" : "What result can you confirm?",
-							evidenceIds: [source.id],
-						},
-					],
 					notes: [],
 				};
 		const verify = selections.find((s) => s.id === "verification-claims");
@@ -297,11 +310,11 @@ const runtime = {
 	},
 };
 
-const compactSelection = resolvePrimaryContract(syntheticRoute, "translation", translationCandidateContract).tuple;
-const compactRuntime = bindQualifiedReviewHandlers(runtime, [
-	...syntheticQualifications,
-	{ ...compactSelection, manifestSha256: "a".repeat(64), scoredReceiptsSha256: "b".repeat(64) },
-]);
+const compactHandler = createTranslationCandidateHandler();
+const compactRuntime = {
+	...runtime,
+	handlers: { ...runtime.handlers, "review.translation": compactHandler },
+};
 const backupWriter = resolveWriterRoute(backupRoute, { kind: backupKind, parameters: {} });
 const backupVerifier = resolveReviewVerifierRoutes(backupWriter, backupKind).backup;
 if (!backupVerifier) throw new Error("Missing synthetic backup verifier");
@@ -334,8 +347,13 @@ async function start() {
 				() => app.fetch(...args),
 			),
 	});
-	const ai = withAiRuntime({ ...runtime, routes: [...runtime.routes, ...backupRuntime.routes] }, () =>
-		startAiScheduler(),
+	const ai = withAiRuntime(
+		{
+			...runtime,
+			routes: [...runtime.routes, ...backupRuntime.routes],
+			historicalHandlers: { ...runtime.historicalHandlers, "review.translation": [compactHandler] },
+		},
+		() => startAiScheduler(),
 	);
 	const career = startCareerScheduler();
 	let shuttingDown = false;

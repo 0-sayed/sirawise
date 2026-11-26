@@ -15,7 +15,11 @@ export function parseReviewResultForSource(snapshot: ReviewSourceSnapshot, outpu
 	return result;
 }
 
-export function validateReviewResult(snapshot: ReviewSourceSnapshot, output: ReviewResult): ReviewResult {
+export function validateReviewResult(
+	snapshot: ReviewSourceSnapshot,
+	output: ReviewResult,
+	localizedReview = false,
+): ReviewResult {
 	const result = parseReviewResultForSource(snapshot, output);
 	const evidence = new Map(snapshot.evidence.map((entry) => [entry.id, entry]));
 	const quotesFor = (ids: string[]) => ids.map((id) => evidence.get(id)?.quote ?? "").join(" ");
@@ -39,20 +43,22 @@ export function validateReviewResult(snapshot: ReviewSourceSnapshot, output: Rev
 		// Accept either language in bilingual prose. A borrowed name or technical term is not enough.
 		const arabicProse = /(?:\p{Script=Arabic}+[\p{M}]*[^\S\r\n]+){2}\p{Script=Arabic}/u.test(sourceText);
 		const latinProse = /(?:\p{Script=Latin}+[\p{M}]*[^\S\r\n]+){2}\p{Script=Latin}/u.test(sourceText);
-		const explanations = [
-			...result.notes,
-			...result.questions.map((question) => question.prompt),
-			...result.proposals.map((proposal) => proposal.why),
-		];
+		const explanations = localizedReview
+			? []
+			: [
+					...result.notes,
+					...result.questions.map((question) => question.prompt),
+					...result.proposals.map((proposal) => proposal.why),
+				];
 		for (const text of explanations) {
 			const ar = (text.match(/\p{Script=Arabic}/gu) ?? []).length;
 			const en = (text.match(/\p{Script=Latin}/gu) ?? []).length;
 			if ((arabic > latin && en > ar && !latinProse) || (latin > arabic && ar > en && !arabicProse))
 				throw new Error("AI_WRONG_LANGUAGE");
 		}
-	} else {
-		const { withheld } = filterExtractionProvenance(snapshot, result);
-		if (withheld[0]) throw new Error(withheld[0].reason);
+		return { ...result, proposals: result.proposals.filter(({ before, after }) => before !== after) };
 	}
+	const { withheld } = filterExtractionProvenance(snapshot, result);
+	if (withheld[0]) throw new Error(withheld[0].reason);
 	return result;
 }

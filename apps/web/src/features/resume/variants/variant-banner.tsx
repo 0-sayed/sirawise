@@ -6,6 +6,8 @@ import { useState } from "react";
 import { Badge } from "@reactive-resume/ui/components/badge";
 import { IconButton } from "@reactive-resume/ui/components/icon-button";
 import { cn } from "@reactive-resume/utils/style";
+import { isReviewRunning, useReviewOperationStatus } from "../editor/proposals/review-operation";
+import { TranslationGaps, UntranslatedBadge, useTranslationGapRetry } from "./translation-gaps";
 import { browserStorage, storageKey } from "@/libs/browser-storage";
 import { orpc } from "@/libs/orpc/client";
 /** A copy's stored identity is independent from the interface language and review status. */
@@ -78,6 +80,38 @@ export function VariantBanner({ resumeId, className }: { resumeId: string; class
 					</div>
 				</>
 			)}
+			{current.variantKind === "language" && current.operationId && (
+				<LanguageCopyGaps operationId={current.operationId} collapsed={collapsed} />
+			)}
 		</section>
+	);
+}
+
+function LanguageCopyGaps({ operationId, collapsed }: { operationId: string; collapsed: boolean }) {
+	const status = useReviewOperationStatus(operationId);
+	const running = !!status.data && isReviewRunning(status.data);
+	const review = useQuery({
+		...orpc.ai.variantReview.get.queryOptions({ input: { operationId } }),
+		enabled: !!status.data?.resultId && !running,
+	});
+	const retry = useTranslationGapRetry(operationId, review.data?.stale);
+	if (running || review.data?.stale || review.data?.statuses.translation === "rejected") return null;
+	const result = review.data?.result;
+	const withheld = new Map(
+		result?.kind === "review.translation" ? result.withheld?.items?.map((item) => [item.id, item]) : [],
+	);
+	const gaps =
+		review.data?.sourceSegments.flatMap(({ id, text, untranslated }) =>
+			untranslated
+				? [{ id, text, partIndex: untranslated.partIndex, reason: untranslated.reason ?? withheld.get(id)?.reason }]
+				: [],
+		) ?? [];
+	if (gaps.length === 0) return null;
+	if (collapsed) return <UntranslatedBadge />;
+	return (
+		<>
+			<TranslationGaps gaps={gaps} retry={retry.open} disabled={retry.pending} />
+			{retry.dialog}
+		</>
 	);
 }

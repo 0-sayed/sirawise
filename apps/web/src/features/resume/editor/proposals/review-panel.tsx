@@ -1,11 +1,14 @@
 import type { Proposal } from "@reactive-resume/resume/proposals";
 import type { ReviewDecisionInput, ReviewProposal } from "@reactive-resume/schema/resume/ai-review";
 import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useId, useRef, useState } from "react";
 import { blockText, collectPassages } from "@reactive-resume/resume/proposals";
 import { hasCompleteReviewScope, rebaseReviewProposal } from "@reactive-resume/resume/review-evidence";
+import { ActionGroup } from "@reactive-resume/ui/components/action-group";
+import { Badge } from "@reactive-resume/ui/components/badge";
 import { Button } from "@reactive-resume/ui/components/button";
 import {
 	Dialog,
@@ -14,6 +17,8 @@ import {
 	DialogDescription,
 	DialogFooter,
 } from "@reactive-resume/ui/components/dialog";
+import { Disclosure, DisclosureContent, DisclosureSummary } from "@reactive-resume/ui/components/disclosure";
+import { EmptyState } from "@reactive-resume/ui/components/empty-state";
 import { NativeSelect } from "@reactive-resume/ui/components/native-select";
 import { Textarea } from "@reactive-resume/ui/components/textarea";
 import { getSectionName } from "../check/issues";
@@ -26,7 +31,12 @@ import { QuerySkeleton } from "@/components/query-skeleton";
 import { useAssistantCopy } from "@/features/assistant/copy.generated";
 import { assistantAvailability } from "@/features/assistant/operation-state";
 import { savePendingChanges, useResumeStore } from "@/features/resume/builder/draft";
+import { Clarification } from "@/features/resume/variants/clarification";
 import { useVariantsCopy } from "@/features/resume/variants/copy.generated";
+import { useReviewInterfaceText, useReviewSectionTitle } from "@/features/resume/variants/review-interface-copy";
+import { SummaryReview } from "@/features/resume/variants/summary-review";
+import { TranslationReview } from "@/features/resume/variants/translation-review";
+import { formatInterfaceDate, formatRelativeTime } from "@/libs/locale";
 import { client, orpc } from "@/libs/orpc/client";
 
 export function useResumeReviewSummary(): {
@@ -57,7 +67,7 @@ export function useResumeReviewSummary(): {
 		state === "off" || history.error || !history.data
 			? null
 			: history.data.reduce(
-					(total, operation) => total + operation.targets.reduce((count, entry) => count + entry.pendingCount, 0),
+					(total, operation) => total + operation.pendingCount + operation.unansweredQuestionCount,
 					0,
 				);
 	return { state, pendingCount };
@@ -66,18 +76,27 @@ export function useResumeReviewSummary(): {
 export function ReviewResultPanel({
 	operationId,
 	onRequestNew,
+	onContinued,
+	continued,
+	onChanged,
 }: {
 	operationId: string;
 	onRequestNew?: (() => void) | undefined;
+	onContinued?: ((id: string) => void) | undefined;
+	continued?: boolean | undefined;
+	onChanged?: (() => void) | undefined;
 }) {
 	const copy = useAssistantCopy();
 	const variantsCopy = useVariantsCopy();
+	const sectionTitle = useReviewSectionTitle();
+	const interfaceText = useReviewInterfaceText();
 	const review = useQuery(orpc.ai.review.get.queryOptions({ input: { operationId } }));
 	const queryClient = useQueryClient();
 	useEffect(() => {
 		if (review.dataUpdatedAt) void queryClient.invalidateQueries({ queryKey: orpc.ai.review.list.key() });
 	}, [review.dataUpdatedAt, queryClient]);
 	const data = useResumeStore((state) => state.resume?.data);
+	const revision = useResumeStore((state) => state.acknowledgedUpdatedAt);
 	const locked = useResumeStore(
 		(state) =>
 			!state.resume || state.resume.isLocked || Boolean(state.recoveryDraft) || state.saveStatus === "conflict",
@@ -85,14 +104,21 @@ export function ReviewResultPanel({
 	const feedback = useEditorStore((state) => state.reviewFeedback);
 	const [localError, setLocalError] = useState(false);
 	const [editing, setEditing] = useState<ReviewProposal | null>(null);
-	const [answering, setAnswering] = useState<string | null>(null);
 	const [drafts, setDrafts] = useState<Record<string, string>>({});
+	const [openEvidence, setOpenEvidence] = useState<Record<string, boolean>>({});
 	const pending = useRef<ReviewDecisionInput | null>(null);
 	const textId = useId();
+	const evidenceId = useId();
 	const decision = useMutation({
 		mutationFn: (input: ReviewDecisionInput) => submitReviewDecision(input),
 		onSuccess: (response, input) => {
-			if (input.decision !== "reject" && review.data?.result.kind === "wording") {
+			const restoresText =
+				input.decision === "undo" &&
+				review.data?.undoable.some((event) => event.decisionId === input.undoDecisionId && event.changes.length > 0);
+			if (
+				(input.decision === "accept" || input.decision === "accept_edited" || restoresText) &&
+				review.data?.result.kind === "wording"
+			) {
 				const proposals = review.data.result.proposals.filter((proposal) => input.proposalIds.includes(proposal.id));
 				useEditorStore.getState().setReviewFeedback({
 					id: response.decisionId,
@@ -112,33 +138,13 @@ export function ReviewResultPanel({
 				});
 			}
 			setEditing(null);
+			onChanged?.();
 			void review.refetch();
 		},
 		onError: () => {
 			void review.refetch();
 		},
 	});
-	const answers = useMutation({
-		mutationFn: async ({ questionId, text, requestKey }: { questionId: string; text?: string; requestKey: string }) => {
-			if (!review.data) throw new Error("AI_REVIEW_UNAVAILABLE");
-			if (text === undefined) {
-				await client.ai.review.dismissQuestion({ operationId, questionId, requestKey });
-				return;
-			}
-			await client.ai.review.answer({
-				operationId,
-				questionId,
-				requestKey,
-				expectedSource: review.data.result.sourceRevision,
-				text,
-			});
-		},
-		onSuccess: () => {
-			setAnswering(null);
-			void review.refetch();
-		},
-	});
-	const answerRequest = useRef<{ questionId: string; text?: string; requestKey: string } | null>(null);
 	if (review.error)
 		return (
 			<ReviewNotice
@@ -184,7 +190,7 @@ export function ReviewResultPanel({
 			pending.current = { ...value, requestKey: crypto.randomUUID() };
 		decision.mutate(pending.current);
 	};
-	const busy = decision.isPending || answers.isPending;
+	const busy = decision.isPending;
 	const stateOf = (proposal: ReviewProposal) => {
 		if (statuses[proposal.id] !== "pending") return statuses[proposal.id] ?? "pending";
 		try {
@@ -199,18 +205,8 @@ export function ReviewResultPanel({
 			return "stale";
 		}
 	};
-	const resolvedQuestions = new Set([...review.data.dismissedQuestionIds, ...review.data.answeredQuestionIds]);
-	const sendAnswer = (questionId: string, text?: string) => {
-		if (
-			!answerRequest.current ||
-			answerRequest.current.questionId !== questionId ||
-			answerRequest.current.text !== text
-		)
-			answerRequest.current = { questionId, ...(text === undefined ? {} : { text }), requestKey: crypto.randomUUID() };
-		answers.mutate(answerRequest.current);
-	};
 	return (
-		<div className="grid min-w-0 gap-4" data-testid="durable-review">
+		<div className="grid min-w-0 gap-4" data-testid="durable-review" data-review-operation={operationId}>
 			{!bound && (
 				<ReviewNotice>
 					<Trans>Open this CV in the editor to review its changes.</Trans>
@@ -229,15 +225,6 @@ export function ReviewResultPanel({
 					</Trans>
 				</ReviewNotice>
 			)}
-			{answers.error && (
-				<ReviewNotice
-					retry={() => {
-						if (answerRequest.current) answers.mutate(answerRequest.current);
-					}}
-				>
-					<Trans>Could not save your answer. Your text is kept.</Trans>
-				</ReviewNotice>
-			)}
 			{result.withheld && result.withheld.count > 0 && (
 				<ReviewNotice>
 					{variantsCopy("review.withheldItems", { count: result.withheld.count })}
@@ -247,13 +234,12 @@ export function ReviewResultPanel({
 			{result.proposals.length > 0 && (
 				<ChangeSet
 					feedback={feedback?.operationId === operationId ? feedback : undefined}
-					proposals={result.proposals.map(
-						(proposal) =>
-							undoable.flatMap((event) => event.changes).find((change) => change.id === proposal.id) ?? proposal,
-					)}
+					proposals={result.proposals.map((proposal) => ({
+						...(undoable.flatMap((event) => event.changes).find((change) => change.id === proposal.id) ?? proposal),
+						location: sectionTitle(proposal.target.sectionId, data),
+					}))}
 					states={result.proposals.map(stateOf)}
 					locked={!bound || locked || busy}
-					keepLabel={copy("review.suggestion.keepOriginal")}
 					onAccept={(proposals) => {
 						void choose(proposals, "accept");
 					}}
@@ -271,66 +257,42 @@ export function ReviewResultPanel({
 						}
 					}}
 					onSuggestAgain={onRequestNew}
-					renderDetails={(proposal, state) => (
-						<>
-							<details className="type-body">
-								<summary className="cursor-pointer text-ink-2">
-									<Trans>Evidence</Trans>
-								</summary>
-								<ul className="grid gap-2">
-									{result.evidence
-										.filter((entry) =>
-											result.proposals.find((entry) => entry.id === proposal.id)?.evidenceIds.includes(entry.id),
-										)
-										.map((entry) => (
-											<li key={entry.id}>
-												<blockquote dir="auto" className="wrap-anywhere">
-													{entry.quote}
-												</blockquote>
-												<span className="type-metadata text-ink-3">
-													{entry.confirmation === "user_supplied" ? (
-														<Trans>Information you supplied</Trans>
-													) : (
-														<Trans>Saved source</Trans>
-													)}
-												</span>
-												{entry.target && (
-													<Button
-														size="sm"
-														variant="secondary"
-														disabled={!bound}
-														onClick={() => {
-															const target = entry.target;
-															if (!target) return;
-															useEditorStore
-																.getState()
-																.select(
-																	target.itemId
-																		? { kind: "item", sectionId: target.sectionId, itemId: target.itemId }
-																		: { kind: "section", sectionId: target.sectionId },
-																);
-														}}
-													>
-														<Trans>Show source</Trans>
-													</Button>
-												)}
-											</li>
-										))}
-								</ul>
-							</details>
-							{state === "accepted" &&
-								undoable
-									.filter((event) => event.proposalIds.includes(proposal.id))
-									.map((event) => (
-										<div key={event.decisionId}>
-											<p className="type-metadata">
-												{event.userSupplied ? (
-													<Trans>Your wording was saved to this CV.</Trans>
-												) : (
-													copy("review.suggestion.undoHint")
-												)}
-											</p>
+					renderDetails={(proposal, state) => {
+						const evidenceIds = result.proposals.find((entry) => entry.id === proposal.id)?.evidenceIds;
+						const evidence = result.evidence.filter((entry) => evidenceIds?.includes(entry.id));
+						const expanded = openEvidence[proposal.id] ?? false;
+						const panelId = `${evidenceId}-${proposal.id}`;
+						const events =
+							state === "accepted" || state === "rejected"
+								? undoable.filter((event) => event.proposalIds.includes(proposal.id))
+								: [];
+						return (
+							<>
+								{state === "accepted" && events.length > 0 && (
+									<p className="type-metadata">
+										{events.some((event) => event.userSupplied) ? (
+											<Trans>Your wording was saved to this CV.</Trans>
+										) : (
+											copy("review.suggestion.undoHint")
+										)}
+									</p>
+								)}
+								{(evidence.length > 0 || events.length > 0 || state === "stale") && (
+									<ActionGroup>
+										{evidence.length > 0 && (
 											<Button
+												size="sm"
+												variant="secondary"
+												aria-expanded={expanded}
+												aria-controls={panelId}
+												onClick={() => setOpenEvidence((current) => ({ ...current, [proposal.id]: !expanded }))}
+											>
+												<Trans>Evidence</Trans>
+											</Button>
+										)}
+										{events.map((event) => (
+											<Button
+												key={event.decisionId}
 												size="sm"
 												variant="secondary"
 												disabled={!bound || locked || busy}
@@ -345,22 +307,63 @@ export function ReviewResultPanel({
 											>
 												{copy("common.actions.undo")}
 											</Button>
-										</div>
-									))}
-							{state === "stale" && (
-								<Button
-									size="sm"
-									variant="secondary"
-									disabled={!bound || locked || busy}
-									onClick={() => {
-										void choose([proposal], "reject");
-									}}
-								>
-									{copy("review.suggestion.keepOriginal")}
-								</Button>
-							)}
-						</>
-					)}
+										))}
+										{state === "stale" && (
+											<Button
+												size="sm"
+												variant="secondary"
+												disabled={!bound || locked || busy}
+												onClick={() => {
+													void choose([proposal], "reject");
+												}}
+											>
+												{copy("review.suggestion.keepOriginal")}
+											</Button>
+										)}
+									</ActionGroup>
+								)}
+								{evidence.length > 0 && (
+									<ul id={panelId} hidden={!expanded} className={expanded ? "grid gap-2 type-body" : undefined}>
+										{expanded &&
+											evidence.map((entry) => (
+												<li key={entry.id}>
+													<blockquote dir="auto" className="wrap-anywhere">
+														{entry.quote}
+													</blockquote>
+													<span className="type-metadata text-ink-3">
+														{entry.confirmation === "user_supplied" ? (
+															<Trans>Information you supplied</Trans>
+														) : (
+															<Trans>Saved source</Trans>
+														)}
+													</span>
+													{entry.target && (
+														<Button
+															size="sm"
+															variant="secondary"
+															disabled={!bound}
+															onClick={() => {
+																const target = entry.target;
+																if (!target) return;
+																useEditorStore
+																	.getState()
+																	.select(
+																		target.itemId
+																			? { kind: "item", sectionId: target.sectionId, itemId: target.itemId }
+																			: { kind: "section", sectionId: target.sectionId },
+																	);
+															}}
+														>
+															<Trans>Show source</Trans>
+														</Button>
+													)}
+												</li>
+											))}
+									</ul>
+								)}
+							</>
+						);
+					}}
 				/>
 			)}
 			{result.proposals.length === 0 && result.questions.length === 0 && (
@@ -370,82 +373,85 @@ export function ReviewResultPanel({
 			)}
 			{result.notes.map((note, index) => (
 				<p key={index} dir="auto" className="type-body">
-					{note}
+					{interfaceText(note, "finding")}
 				</p>
 			))}
-			{result.questions
-				.filter((question) => !resolvedQuestions.has(question.id))
-				.map((question) => (
-					<div key={question.id} className="grid gap-2 rounded-lg border border-line p-3">
-						<p dir="auto">{question.prompt}</p>
-						<div className="flex flex-wrap gap-2">
-							<Button variant="secondary" disabled={!bound || busy} onClick={() => setAnswering(question.id)}>
-								{copy("jobs.letter.addInformation")}
-							</Button>
-							<Button variant="ghost" disabled={busy} onClick={() => sendAnswer(question.id)}>
-								<Trans>Dismiss</Trans>
-							</Button>
-						</div>
-					</div>
-				))}
+			<Clarification
+				key={operationId}
+				operationId={operationId}
+				source={result.sourceRevision}
+				kind="review.wording"
+				questions={result.questions}
+				resolved={review.data.answeredQuestionIds}
+				dismissed={review.data.dismissedQuestionIds}
+				saved={review.data.questionAnswers}
+				remainingAnswerSlots={review.data.remainingAnswerSlots}
+				stale={!bound || locked || revision?.toISOString() !== result.sourceRevision.revision}
+				continued={continued}
+				onContinued={onContinued}
+				onSaved={() => {
+					onChanged?.();
+					void review.refetch();
+				}}
+			/>
 			<Dialog
-				open={editing !== null || answering !== null}
+				open={editing !== null}
 				onOpenChange={(open) => {
-					if (!open && !busy) {
-						setEditing(null);
-						setAnswering(null);
-					}
+					if (!open && !busy) setEditing(null);
 				}}
 			>
 				<DialogContent>
-					<DialogTitle>
-						{editing ? copy("review.suggestion.inputLabel") : copy("jobs.letter.addInformation")}
-					</DialogTitle>
+					<DialogTitle>{copy("review.suggestion.inputLabel")}</DialogTitle>
 					<DialogDescription>
-						{editing ? (
-							<Trans>Save your wording to this CV only.</Trans>
-						) : (
-							<Trans>
-								Write the information you want to supply. It will not change your CV or career information. Requesting a
-								new suggestion uses another operation.
-							</Trans>
-						)}
+						<Trans>Save your wording to this CV only.</Trans>
 					</DialogDescription>
 					<label htmlFor={textId}>{copy("review.fact.descriptionLabel")}</label>
 					<Textarea
 						id={textId}
 						dir="auto"
 						maxLength={4000}
-						value={drafts[editing?.id ?? answering ?? ""] ?? ""}
-						onChange={(event) =>
-							setDrafts((current) => ({ ...current, [editing?.id ?? answering ?? ""]: event.target.value }))
-						}
+						value={drafts[editing?.id ?? ""] ?? ""}
+						onChange={(event) => {
+							if (editing) setDrafts((current) => ({ ...current, [editing.id]: event.target.value }));
+						}}
 					/>
 					<DialogFooter>
-						<Button
-							variant="secondary"
-							disabled={busy}
-							onClick={() => {
-								setEditing(null);
-								setAnswering(null);
-							}}
-						>
+						<Button variant="secondary" disabled={busy} onClick={() => setEditing(null)}>
 							{copy("common.actions.cancel")}
 						</Button>
 						<Button
-							disabled={busy || !(drafts[editing?.id ?? answering ?? ""] ?? "").trim()}
+							disabled={busy || !(drafts[editing?.id ?? ""] ?? "").trim()}
 							onClick={() => {
 								if (editing) void choose([editing], "accept_edited", drafts[editing.id]);
-								else if (answering) sendAnswer(answering, drafts[answering]);
 							}}
 						>
-							{editing ? copy("review.suggestion.saveWording") : copy("review.fact.save")}
+							{copy("review.suggestion.saveWording")}
 						</Button>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
 		</div>
 	);
+}
+
+type HistoryEntry = Awaited<ReturnType<typeof client.ai.review.list>>[number];
+
+function isActiveReview(entry: HistoryEntry) {
+	return (
+		["queued", "running", "cancel_requested"].includes(entry.state) ||
+		entry.pendingCount + entry.unansweredQuestionCount > 0 ||
+		entry.continuationAvailable
+	);
+}
+
+function reviewOutcome(entry: HistoryEntry) {
+	if (entry.stale) return t`Out of date`;
+	if (entry.state === "failed") return t`Failed`;
+	if (entry.state === "cancelled") return t`Cancelled`;
+	if (entry.acceptedCount) return t({ message: "Applied", context: "Review history outcome" });
+	if (entry.rejectedCount) return t`Kept original`;
+	if (entry.answeredCount) return t`Answer saved`;
+	return t`Completed`;
 }
 
 export function ResumeReviewWorkspace({
@@ -458,186 +464,258 @@ export function ResumeReviewWorkspace({
 	request?: string | undefined;
 }) {
 	const copy = useAssistantCopy();
+	const { i18n } = useLingui();
 	const resume = useResumeStore((state) => state.resume);
+	const revision = useResumeStore((state) => state.acknowledgedUpdatedAt);
+	const queryClient = useQueryClient();
 	const history = useQuery({
 		...orpc.ai.review.list.queryOptions({ input: { resumeId: resume?.id ?? "" } }),
 		enabled: Boolean(resume),
+		refetchInterval: ({ state }) =>
+			state.data?.some(({ state }) => ["queued", "running", "cancel_requested"].includes(state)) ? 1000 : false,
 	});
+	useEffect(() => {
+		if (revision) void queryClient.invalidateQueries({ queryKey: orpc.ai.review.list.key() });
+	}, [revision, queryClient]);
 	const [retryRequest, setRetryRequest] = useState(0);
 	const [selectedTarget, setSelectedTarget] = useState("");
+	const [scope, setScope] = useState<"wording" | "summary">("wording");
+	const [focused, setFocused] = useState<string | null>(null);
+	const [started, setStarted] = useState<{ operationId: string; kind: HistoryEntry["kind"] } | null>(null);
+	const [openHistory, setOpenHistory] = useState<boolean | undefined>();
+	const [openEntries, setOpenEntries] = useState<Record<string, boolean>>({});
 	const selectId = useId();
-	const [chosenReview, setChosenReview] = useState<{ resumeId: string; target: string; operationId: string } | null>(
-		null,
-	);
-	const historySelectId = useId();
-	const queryClient = useQueryClient();
+	const scopeId = useId();
+	const needsId = useId();
+	const usage = useQuery(orpc.ai.usage.get.queryOptions());
 	if (!resume) return null;
 	const passages = collectPassages(resume.data, {
 		summary: t`Summary`,
 		sectionTitle: (id) => getSectionName(resume.data, id),
 		entryTitle: (type, entry) => describeEntry(type as never, entry as never).title,
-		bullet: (n) => String(n),
-		paragraph: (n) => String(n),
+		bullet: String,
+		paragraph: String,
 	});
-	const choices = [...new Map(passages.map((passage) => [JSON.stringify(passage.target), passage])).entries()];
-	const selected = target
-		? JSON.stringify(target)
-		: choices.some(([key]) => key === selectedTarget)
-			? selectedTarget
-			: (choices[0]?.[0] ?? "");
-	const sameTarget = (candidate: ReviewProposal["target"], selected: ReviewProposal["target"]) =>
-		candidate.sectionId === selected.sectionId &&
-		candidate.itemId === selected.itemId &&
-		candidate.roleId === selected.roleId &&
-		candidate.field === selected.field;
-	const selectedAddress = target ?? choices.find(([key]) => key === selected)?.[1].target;
-	const reviews =
-		history.data?.filter((operation) =>
-			operation.targets.some((entry) => selectedAddress && sameTarget(entry.target, selectedAddress)),
-		) ?? [];
-	const operationId =
-		chosenReview?.resumeId === resume.id && chosenReview.target === selected
-			? chosenReview.operationId
-			: reviews[0]?.operationId;
-	const pendingFor = (target: ReviewProposal["target"]) =>
-		(history.data ?? []).reduce(
-			(total, operation) =>
-				total +
-				operation.targets
-					.filter((entry) => sameTarget(entry.target, target))
-					.reduce((count, entry) => count + entry.pendingCount, 0),
-			0,
-		);
+	const targetKey = (value: ReviewProposal["target"]) =>
+		JSON.stringify([value.sectionId, value.itemId, value.roleId, value.field]);
+	const choices = [...new Map(passages.map((passage) => [targetKey(passage.target), passage])).values()];
+	const selectedAddress =
+		target ?? choices.find(({ target }) => JSON.stringify(target) === selectedTarget)?.target ?? choices[0]?.target;
+	const selected = selectedAddress ? JSON.stringify(selectedAddress) : "";
+	const reviews = (history.data ?? []).filter(
+		(entry) =>
+			!target ||
+			(entry.kind === "review.wording" && entry.targets.some((item) => targetKey(item.target) === targetKey(target))),
+	);
+	const active = reviews.filter(isActiveReview);
+	const past = reviews.filter((entry) => !isActiveReview(entry));
+	const pastCount = past.length;
+	const needsCount = active.reduce((sum, entry) => sum + entry.pendingCount + entry.unansweredQuestionCount, 0);
+	const refresh = () => void queryClient.invalidateQueries({ queryKey: orpc.ai.review.list.key() });
+	const focus = (id: string) => {
+		setFocused(id);
+		setOpenHistory(true);
+		setOpenEntries((previous) => ({ ...previous, [id]: true }));
+	};
+	const launch = (id: string, kind: HistoryEntry["kind"]) => {
+		setStarted({ operationId: id, kind });
+		focus(id);
+		refresh();
+	};
+	const requestNew = (entry?: HistoryEntry) => {
+		const address = entry?.targets[0]?.target;
+		if (address && !target) setSelectedTarget(JSON.stringify(address));
+		setScope("wording");
+		setRetryRequest((n) => n + 1);
+	};
 	const prepare = async () => {
 		if (!(await savePendingChanges(resume.id))) throw new Error("AI_REVIEW_SAVE_REQUIRED");
 		const saved = useResumeStore.getState();
-		if (!saved.resume || saved.resume.id !== resume.id || !saved.acknowledgedUpdatedAt)
+		if (!selectedAddress || saved.resume?.id !== resume.id || !saved.acknowledgedUpdatedAt)
 			throw new Error("AI_REVIEW_SAVE_REQUIRED");
-		const savedData = saved.resume.data;
-		const passages = collectPassages(savedData, {
-			summary: t`Summary`,
-			sectionTitle: (id) => getSectionName(savedData, id),
-			entryTitle: (type, entry) => describeEntry(type as never, entry as never).title,
-			bullet: (n) => String(n),
-			paragraph: (n) => String(n),
-		});
-		const targets = target
-			? [target]
-			: passages
-					.filter((passage) => JSON.stringify(passage.target) === selected)
-					.slice(0, 1)
-					.map((passage) => passage.target);
+		const targets = [selectedAddress];
 		const prepared = await client.ai.review.prepare({
 			resumeId: resume.id,
 			expectedUpdatedAt: saved.acknowledgedUpdatedAt.toISOString(),
 			targets,
 		});
-		const previousStatus = operationId ? await client.ai.operations.get({ id: operationId }) : null;
-		const previous = operationId && previousStatus?.resultId ? await client.ai.review.get({ operationId }) : null;
-		const answers =
-			previous?.result.sourceRevision.id === resume.id &&
-			previous.result.sourceRevision.revision === saved.acknowledgedUpdatedAt.toISOString()
-				? previous.answers
-						.filter(
-							(answer) =>
-								answer.target &&
-								targets.some(
-									(target) =>
-										target.sectionId === answer.target?.sectionId &&
-										target.itemId === answer.target.itemId &&
-										target.roleId === answer.target.roleId &&
-										target.field === answer.target.field,
-								),
-						)
-						.slice(-8)
-				: [];
 		return {
-			sources: [...prepared.sources, ...answers.map((answer) => answer.source)],
-			parameters: {
-				resumeId: resume.id,
-				targets,
-				action,
-				...(request ? { request } : {}),
-				...(answers.length ? { answerIds: answers.map((answer) => answer.source.id) } : {}),
-			},
+			sources: prepared.sources,
+			parameters: { resumeId: resume.id, targets, action, ...(request ? { request } : {}) },
 		};
 	};
+	const title = (entry: HistoryEntry) => {
+		if (entry.kind === "review.summary") return t`Summary review`;
+		if (entry.kind === "review.job-evidence") return t`Job evidence`;
+		if (entry.kind === "review.tailoring") return t`Job tailoring`;
+		if (entry.kind === "review.translation") return t`Translation`;
+		const address = entry.targets[0]?.target;
+		if (!address) return t`Wording review`;
+		const section =
+			choices.find((choice) => targetKey(choice.target) === targetKey(address))?.location ??
+			getSectionName(resume.data, address.sectionId);
+		return t`Wording review · ${section}`;
+	};
+	const renderReview = (id: string, kind: HistoryEntry["kind"], entry?: HistoryEntry) => (
+		<ReviewOperationPanel
+			key={id}
+			kind={kind}
+			operationId={id}
+			{...(kind === "review.wording" && !entry?.continuationOf ? { onRetry: () => requestNew(entry) } : {})}
+		>
+			{kind === "review.wording" ? (
+				<ReviewResultPanel
+					operationId={id}
+					onRequestNew={() => requestNew(entry)}
+					onChanged={() => focus(id)}
+					onContinued={(nextId) => launch(nextId, kind)}
+					continued={entry?.continued}
+				/>
+			) : (
+				<TranslationReview
+					operationId={id}
+					sourceData={resume.data}
+					onSaved={() => {
+						focus(id);
+						refresh();
+					}}
+					onContinued={(nextId) => launch(nextId, kind)}
+					continued={entry?.continued}
+				/>
+			)}
+		</ReviewOperationPanel>
+	);
+	const startedNotListed = started && !reviews.some((entry) => entry.operationId === started.operationId);
+	const hasActive = active.length > 0 || startedNotListed;
+	const remaining = usage.data?.operations.remaining;
 	return (
 		<div className="grid min-w-0 gap-4">
-			{!target && choices.length > 0 && (
+			{!target && (
 				<div className="grid gap-2">
-					<label htmlFor={selectId}>
-						<Trans>Text to review</Trans>
+					<label htmlFor={scopeId} className="type-label">
+						<Trans>Review type</Trans>
 					</label>
-					<NativeSelect id={selectId} value={selected} onChange={(event) => setSelectedTarget(event.target.value)}>
-						{choices.map(([key, passage]) => (
-							<option key={key} value={key}>
-								{passage.location}
-								{pendingFor(passage.target) > 0
-									? ` · ${copy("review.wording.pendingCount", { count: pendingFor(passage.target) })}`
-									: ""}
-							</option>
-						))}
+					<NativeSelect
+						id={scopeId}
+						value={scope}
+						onChange={(event) => setScope(event.target.value === "summary" ? "summary" : "wording")}
+					>
+						<option value="wording">
+							<Trans>Wording review</Trans>
+						</option>
+						<option value="summary">
+							<Trans>Summary review</Trans>
+						</option>
 					</NativeSelect>
-					<p className="type-metadata text-ink-2">
-						<Trans>Only this field and its related confirmed facts are reviewed.</Trans>
-					</p>
 				</div>
 			)}
-			<ReviewLaunch
-				retryRequest={retryRequest}
-				key={JSON.stringify([resume.id, selected, action, request])}
-				kind="review.wording"
-				prepare={prepare}
-				disabled={resume.isLocked || !selected}
-				onStarted={(id) => {
-					setChosenReview({ resumeId: resume.id, target: selected, operationId: id });
-					void queryClient.invalidateQueries({ queryKey: orpc.ai.review.list.key() });
-				}}
-			>
-				<Trans>Review wording</Trans>
-			</ReviewLaunch>
-			{history.error && (
-				<ReviewNotice
-					retry={() => {
-						void history.refetch();
-					}}
-				>
+			{scope === "summary" ? (
+				<SummaryReview locked={resume.isLocked} launchOnly onStarted={(id) => launch(id, "review.summary")} />
+			) : (
+				<div className="grid gap-2">
+					{!target && choices.length > 0 && (
+						<>
+							<label htmlFor={selectId} className="type-label">
+								<Trans>Text to review</Trans>
+							</label>
+							<NativeSelect id={selectId} value={selected} onChange={(event) => setSelectedTarget(event.target.value)}>
+								{choices.map(({ target, location }) => (
+									<option key={targetKey(target)} value={JSON.stringify(target)}>
+										{location}
+									</option>
+								))}
+							</NativeSelect>
+						</>
+					)}
+					<ReviewLaunch
+						retryRequest={retryRequest}
+						key={resume.id}
+						kind="review.wording"
+						prepare={prepare}
+						disabled={resume.isLocked || !selected}
+						onStarted={(id) => launch(id, "review.wording")}
+					>
+						<Trans>Review wording</Trans>
+					</ReviewLaunch>
+					{!target && (
+						<p className="type-metadata text-ink-2">
+							<Trans>Only this field and its related confirmed facts are reviewed.</Trans>
+						</p>
+					)}
+				</div>
+			)}
+			{!target && remaining != null && (
+				<p className="type-metadata text-ink-2">{copy("billing.usage.remainingOperations", { remaining })}</p>
+			)}
+			{history.error ? (
+				<ReviewNotice retry={refresh}>
 					<Trans>Could not reload this review. Your draft is kept.</Trans>
 				</ReviewNotice>
+			) : history.isPending && !started ? (
+				<QuerySkeleton shape="rows" label={<Trans>Loading review…</Trans>} />
+			) : !hasActive && !past.length && !target ? (
+				<EmptyState
+					density="compact"
+					title={<Trans>No reviews yet</Trans>}
+					description={
+						<Trans>Choose a section to improve wording or review your summary. Your results stay saved here.</Trans>
+					}
+				/>
+			) : null}
+			{hasActive && (
+				<section className="grid min-w-0 gap-3" aria-labelledby={needsId}>
+					<h2 id={needsId} className="type-section">
+						<Trans>Needs your review ({needsCount})</Trans>
+					</h2>
+					{startedNotListed && renderReview(started.operationId, started.kind)}
+					{active.map((entry) => (
+						<div key={entry.operationId} className="grid min-w-0 gap-2 border-t border-line pt-3">
+							<h3 className="min-w-0 type-label wrap-anywhere" dir="auto">
+								{title(entry)}
+							</h3>
+							{renderReview(entry.operationId, entry.kind, entry)}
+						</div>
+					))}
+				</section>
 			)}
-			{reviews.length > 1 && (
-				<div className="grid gap-2">
-					<label htmlFor={historySelectId}>{copy("review.wording.savedReviews")}</label>
-					<NativeSelect
-						id={historySelectId}
-						value={operationId ?? ""}
-						onChange={(event) =>
-							setChosenReview({ resumeId: resume.id, target: selected, operationId: event.target.value })
-						}
-					>
-						{reviews.map((review, index) => (
-							<option key={review.operationId} value={review.operationId}>
-								{copy("review.wording.savedReview", {
-									number: reviews.length - index,
-									count: review.targets
-										.filter((entry) => selectedAddress && sameTarget(entry.target, selectedAddress))
-										.reduce((total, entry) => total + entry.pendingCount, 0),
-								})}
-							</option>
-						))}
-					</NativeSelect>
-				</div>
-			)}
-			{operationId && (
-				<ReviewOperationPanel
-					kind="review.wording"
-					onRetry={() => setRetryRequest((n) => n + 1)}
-					key={operationId}
-					operationId={operationId}
-				>
-					<ReviewResultPanel operationId={operationId} />
-				</ReviewOperationPanel>
+			{past.length > 0 && (
+				<Disclosure open={openHistory ?? !hasActive} onToggle={(event) => setOpenHistory(event.currentTarget.open)}>
+					<DisclosureSummary>
+						<Trans>Past reviews ({pastCount})</Trans>
+					</DisclosureSummary>
+					<DisclosureContent>
+						{past.map((entry) => {
+							const id = entry.operationId;
+							const open = openEntries[id] ?? (focused === id || (!hasActive && past.length === 1));
+							return (
+								<Disclosure
+									key={id}
+									open={open}
+									onToggle={(event) => {
+										const next = event.currentTarget.open;
+										setOpenEntries((previous) => (previous[id] === next ? previous : { ...previous, [id]: next }));
+									}}
+								>
+									<DisclosureSummary
+										description={
+											<time dateTime={entry.createdAt} title={formatInterfaceDate(entry.createdAt, i18n.locale)}>
+												{formatRelativeTime(entry.createdAt, i18n.locale)}
+											</time>
+										}
+									>
+										<span dir="auto" className="min-w-0 wrap-anywhere">
+											{title(entry)}
+										</span>
+										<Badge shape="tag" variant={entry.stale || entry.state === "failed" ? "warn" : "neutral"}>
+											{reviewOutcome(entry)}
+										</Badge>
+									</DisclosureSummary>
+									{open && <DisclosureContent>{renderReview(id, entry.kind, entry)}</DisclosureContent>}
+								</Disclosure>
+							);
+						})}
+					</DisclosureContent>
+				</Disclosure>
 			)}
 		</div>
 	);

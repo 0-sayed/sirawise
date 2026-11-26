@@ -3,7 +3,19 @@ import { fileURLToPath } from "node:url";
 import { expect, it } from "vite-plus/test";
 
 it("runs startup checks when launched through real-ai.mjs", () => {
-	const preloaded = "process.loadEnvFile = () => {};";
+	// Freshness has its own filesystem tests. This startup test runs without a web build.
+	const preloaded = `
+		import { registerHooks } from "node:module";
+		process.loadEnvFile = () => {};
+		registerHooks({
+			resolve(specifier, context, nextResolve) {
+				if (specifier === "./web-dist-freshness.mjs" && context.parentURL.endsWith("/tooling/local/real-ai.mjs")) {
+					return { url: "data:text/javascript,export function assertFreshWebDist() {}", shortCircuit: true };
+				}
+				return nextResolve(specifier, context);
+			}
+		});
+	`;
 	const result = spawnSync(
 		process.execPath,
 		["--import", `data:text/javascript,${encodeURIComponent(preloaded)}`, "tooling/local/real-ai.mjs"],

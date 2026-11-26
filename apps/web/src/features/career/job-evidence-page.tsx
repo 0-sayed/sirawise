@@ -2,11 +2,14 @@ import type { jobEvidenceViewSchema } from "@reactive-resume/schema/job-evidence
 import type { z } from "zod";
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { buildJobPassages } from "@reactive-resume/resume/ats";
 import { Button } from "@reactive-resume/ui/components/button";
-import { SectionCard } from "@reactive-resume/ui/components/section-card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@reactive-resume/ui/components/collapsible";
+import { Icon } from "@reactive-resume/ui/components/icon";
+import { SectionCard, SectionCardTitle } from "@reactive-resume/ui/components/section-card";
+import { SuccessStatus } from "@reactive-resume/ui/components/success-celebration";
 import { LiteralJobEvidence } from "./literal-job-evidence";
 import { FeatureBetaBadge } from "@/components/feature-beta-badge";
 import { ReviewLaunch, ReviewNotice, ReviewOperationPanel } from "@/features/resume/editor/proposals/review-operation";
@@ -17,195 +20,222 @@ import { client, orpc } from "@/libs/orpc/client";
 export function JobEvidencePage({
 	resumeId,
 	data,
-	onChange,
 	onRefresh,
 }: {
 	resumeId: string;
 	data: z.infer<typeof jobEvidenceViewSchema>;
-	onChange: () => void;
 	onRefresh: () => void;
 }) {
 	const copy = useVariantsCopy();
-	const navigate = useNavigate();
-	const family = useQuery(orpc.resume.variants.list.queryOptions({ input: { resumeId } }));
+	const selection = data.selection;
+	const job = selection ? { jobId: selection.jobId, jobRevision: selection.jobRevision } : undefined;
+	const family = useQuery(orpc.resume.variants.list.queryOptions({ input: { resumeId, job } }));
 	const current = family.data?.find((document) => document.resumeId === resumeId);
+	const isJobCopy = current?.variantKind === "job";
 	const cv = useQuery(orpc.resume.getById.queryOptions({ input: { id: resumeId } }));
 	const passages = cv.data ? buildJobPassages(cv.data.data) : [];
 	const [retryRequests, setRetryRequests] = useState({ evidence: 0, tailoring: 0 });
-	const [startedKind, setStartedKind] = useState<"evidence" | "tailoring">("evidence");
-	const [started, setStarted] = useState<string | null>(null);
-	const operationId = started ?? ("operationId" in data.semantic ? data.semantic.operationId : null);
+	const [evidenceOpen, setEvidenceOpen] = useState<boolean | undefined>();
+	const [startedEvidence, setStartedEvidence] = useState<string | null>(null);
+	const [evidenceParent, setEvidenceParent] = useState<string | null>(null);
+	const [startedTailoring, setStartedTailoring] = useState<string | null>(null);
+	const operationId = startedEvidence ?? ("operationId" in data.semantic ? data.semantic.operationId : null);
+	const tailoringId = startedTailoring ?? current?.operationId;
+	// The review panel loads the result after delivery. Subscribe to the same query for the page actions.
+	const tailoring = useQuery({
+		...orpc.ai.variantReview.get.queryOptions({ input: { operationId: tailoringId ?? "" } }),
+		enabled: false,
+	});
+	const decisionId = tailoring.data?.latestDecisionId;
+	const accepted =
+		tailoring.data?.result.kind === "review.tailoring" &&
+		!tailoring.data.stale &&
+		Object.values(tailoring.data.statuses).includes("accepted");
+	const reviewed = tailoringId && decisionId && accepted ? { operationId: tailoringId, decisionId } : null;
+	const jobCopies =
+		family.data?.filter((document) => document.variantKind === "job" && document.jobId === job?.jobId) ?? [];
+	const saved = reviewed
+		? jobCopies.find((document) => document.tailoringDecisionId === reviewed.decisionId)
+		: undefined;
 	const create = useMutation({
-		mutationFn: () => {
-			if (!cv.data || !data.job) throw new Error("SOURCE_UNAVAILABLE");
+		mutationFn: (review: NonNullable<typeof reviewed>) => {
+			if (!cv.data || !job) throw new Error("SOURCE_UNAVAILABLE");
 			return client.resume.variants.create({
 				sourceResumeId: resumeId,
 				expectedUpdatedAt: cv.data.updatedAt.toISOString(),
 				variantKind: "job",
 				requestKey: crypto.randomUUID(),
-				jobId: data.job.jobId,
-				jobRevision: data.job.revision,
+				...job,
+				review,
 			});
 		},
-		onSuccess: (copy) => void navigate({ to: "/dashboard/resumes/$resumeId/job", params: { resumeId: copy.resumeId } }),
+		onSuccess: () => {
+			void family.refetch();
+		},
 	});
-	const selection = data.selection;
-	const jobLines = (data.job?.text ?? "")
-		.split(/\r?\n/u)
-		.map((line) => line.trim())
-		.filter(Boolean);
-	const resolveJobSpan = (spanId: string, multipleRequirements: boolean) => {
-		const match = /:(\d+)$/u.exec(spanId);
-		if (match) {
-			const line = jobLines[Number(match[1])];
-			if (line) return line;
+	const createdId =
+		saved?.resumeId ?? (create.variables?.operationId === tailoringId ? create.data?.resumeId : undefined);
+	const openId = createdId ?? (isJobCopy && accepted ? resumeId : undefined);
+	const canCreate = Boolean(reviewed && cv.data && !cv.data.isLocked && job && current && !isJobCopy);
+	const retryTailoring = () => setRetryRequests((r) => ({ ...r, tailoring: r.tailoring + 1 }));
+	const retryEvidence = () => {
+		if (evidenceParent) {
+			setStartedEvidence(evidenceParent);
+			setEvidenceParent(null);
+			return;
 		}
-		if (multipleRequirements && jobLines.length > 1) return null;
-		return data.job?.text ?? null;
+		setRetryRequests((r) => ({ ...r, evidence: r.evidence + 1 }));
 	};
 	return (
-		<div className="grid gap-4">
-			<div className="flex flex-wrap items-center gap-2">
-				<h2 className="type-section" dir="auto">
-					{copy("jobs.comparison.resultTitle", { jobTitle: data.job?.role ?? "" })}
-				</h2>
-				{(!cv.data || !selection) && <FeatureBetaBadge />}
-			</div>
+		<div className="grid min-w-0 gap-4">
 			{data.literal && <LiteralJobEvidence report={data.literal} resumeId={resumeId} passages={passages} />}
-			<SectionCard>
-				<h3 className="type-label">{copy("jobs.evidence.principleTitle")}</h3>
-				{data.semantic.state === "complete" ? (
-					data.semantic.findings.requirements.map((requirement) => {
-						const multipleRequirements =
-							data.semantic.state === "complete" && data.semantic.findings.requirements.length > 1;
-						const spans = requirement.spanIds
-							.map((id) => ({ id, text: resolveJobSpan(id, multipleRequirements) }))
-							.filter((entry): entry is { id: string; text: string } => Boolean(entry.text));
-						return (
-							<SectionCard key={requirement.id}>
-								<p dir="auto">{requirement.explanation}</p>
-								<p>
-									{requirement.verdict === "supported" ? (
-										copy("jobs.evidence.status.found")
-									) : requirement.verdict === "partial" ? (
-										copy("jobs.evidence.status.partial")
-									) : requirement.verdict === "no_evidence" ? (
-										copy("jobs.evidence.status.absent")
-									) : (
-										<Trans>Unclear</Trans>
-									)}
-								</p>
-								<details>
-									<summary>
-										<Trans>Evidence</Trans>
-									</summary>
-									{spans.map((span) => (
-										<blockquote key={span.id} dir="auto">
-											{span.text}
-										</blockquote>
-									))}
-									{cv.data &&
-										passages
-											.filter((passage) => requirement.evidenceIds.includes(passage.id))
-											.map((passage) => (
-												<div key={passage.id}>
-													<blockquote dir="auto">{passage.text}</blockquote>
-													<Link to="/builder/$resumeId" params={{ resumeId }} search={{ source: passage.target }}>
-														{copy("jobs.evidence.showInCv")}
-													</Link>
-												</div>
-											))}
-								</details>
-								{["partial", "no_evidence", "unclear"].includes(requirement.verdict) && (
-									<Link to="/dashboard/career/information">{copy("jobs.evidence.addFact")}</Link>
-								)}
-							</SectionCard>
-						);
-					})
-				) : (
-					<p>
-						<Trans>
-							Semantic evidence requires a separately verified review. Literal coverage is available without AI.
-						</Trans>
-					</p>
+			<SectionCard className="min-w-0">
+				<SectionCardTitle as="h2">{copy("jobs.tailoring.copyTitle")}</SectionCardTitle>
+				{!isJobCopy && !createdId && <p className="type-body text-ink-2">{copy("jobs.tailoring.copyHint")}</p>}
+				{createdId && <SuccessStatus complete>{copy("jobs.copy.toast.created")}</SuccessStatus>}
+				{(openId || jobCopies.length > 0) && (
+					<section aria-label={copy("jobs.tailoring.savedCopies")} className="grid gap-2">
+						{openId && (
+							<div>
+								<Button
+									nativeButton={false}
+									render={<Link role="link" to="/builder/$resumeId" params={{ resumeId: openId }} />}
+								>
+									{copy("jobs.tailoring.openCopy")}
+								</Button>
+							</div>
+						)}
+						{jobCopies.some((document) => document.resumeId !== openId) && (
+							<>
+								<h3 className="type-label">{copy("jobs.tailoring.savedCopies")}</h3>
+								<ul className="grid gap-2">
+									{jobCopies
+										.filter((document) => document.resumeId !== openId)
+										.map((document) => (
+											<li key={document.resumeId}>
+												<Button
+													nativeButton={false}
+													variant="secondary"
+													render={<Link role="link" to="/builder/$resumeId" params={{ resumeId: document.resumeId }} />}
+												>
+													<bdi dir="auto">{document.name}</bdi>
+												</Button>
+											</li>
+										))}
+								</ul>
+							</>
+						)}
+					</section>
 				)}
-				{cv.data && selection && (
-					<div className="flex flex-wrap items-center gap-2">
-						<ReviewLaunch
-							retryRequest={retryRequests.evidence}
-							kind="review.job-evidence"
-							prepare={() =>
-								client.ai.variantReview.prepare({
-									kind: "review.job-evidence",
-									resumeId,
-									expectedUpdatedAt: cv.data.updatedAt.toISOString(),
-									jobId: selection.jobId,
-									jobRevision: selection.jobRevision,
-									expectedSelectionRevision: selection.revision,
-								})
-							}
-							onStarted={(id) => {
-								setStartedKind("evidence");
-								setStarted(id);
-							}}
-						>
-							<Trans>Review job evidence</Trans>
-						</ReviewLaunch>
-						<FeatureBetaBadge />
-					</div>
-				)}
-				{operationId && (
-					<ReviewOperationPanel
-						kind={startedKind === "evidence" ? "review.job-evidence" : "review.tailoring"}
-						onRetry={() => setRetryRequests((r) => ({ ...r, [startedKind]: r[startedKind] + 1 }))}
-						operationId={operationId}
+				{current && cv.data && selection && !createdId && (
+					<ReviewLaunch
+						hideTrigger={Boolean(tailoringId)}
+						disabled={cv.data.isLocked || create.isPending}
+						retryRequest={retryRequests.tailoring}
+						kind="review.tailoring"
+						prepare={() =>
+							client.ai.variantReview.prepare({
+								kind: "review.tailoring",
+								resumeId,
+								expectedUpdatedAt: cv.data.updatedAt.toISOString(),
+								jobId: selection.jobId,
+								jobRevision: selection.jobRevision,
+								expectedSelectionRevision: selection.revision,
+							})
+						}
+						onStarted={setStartedTailoring}
 					>
-						<TranslationReview operationId={operationId} onSaved={onRefresh} />
+						{copy("jobs.tailoring.suggest")}
+					</ReviewLaunch>
+				)}
+				{tailoringId && !createdId && (
+					<ReviewOperationPanel kind="review.tailoring" onRetry={retryTailoring} operationId={tailoringId}>
+						<TranslationReview
+							key={tailoringId}
+							operationId={tailoringId}
+							sourceData={cv.data?.data}
+							onSaved={onRefresh}
+							onRetry={retryTailoring}
+							stageTailoring={!isJobCopy}
+							lockDecisions={create.isPending}
+							footerHint={!accepted && <p className="type-metadata text-ink-2">{copy("jobs.tailoring.acceptHint")}</p>}
+							primaryAction={
+								!isJobCopy &&
+								tailoring.data?.result.kind === "review.tailoring" &&
+								!tailoring.data.stale && (
+									<Button
+										disabled={!canCreate || create.isPending}
+										onClick={() => {
+											if (reviewed) create.mutate(reviewed);
+										}}
+									>
+										{copy("jobs.tailoring.saveCopy")}
+									</Button>
+								)
+							}
+						/>
 					</ReviewOperationPanel>
 				)}
 			</SectionCard>
-			{current?.variantKind === "job" && cv.data && selection && (
-				<ReviewLaunch
-					retryRequest={retryRequests.tailoring}
-					kind="review.tailoring"
-					prepare={() =>
-						client.ai.variantReview.prepare({
-							kind: "review.tailoring",
-							resumeId,
-							expectedUpdatedAt: cv.data.updatedAt.toISOString(),
-							jobId: selection.jobId,
-							jobRevision: selection.jobRevision,
-							expectedSelectionRevision: selection.revision,
-						})
-					}
-					onStarted={(id) => {
-						setStartedKind("tailoring");
-						setStarted(id);
-					}}
+			<SectionCard className="min-w-0">
+				<Collapsible
+					open={evidenceOpen ?? Boolean(operationId)}
+					onOpenChange={setEvidenceOpen}
+					className="group/requirements"
 				>
-					<Trans>Review tailored wording</Trans>
-				</ReviewLaunch>
-			)}
-			{current?.variantKind === "job" && current.operationId && current.operationId !== operationId && (
-				<ReviewOperationPanel
-					kind="review.tailoring"
-					onRetry={() => setRetryRequests((r) => ({ ...r, tailoring: r.tailoring + 1 }))}
-					operationId={current.operationId}
-				>
-					<TranslationReview operationId={current.operationId} onSaved={onRefresh} />
-				</ReviewOperationPanel>
-			)}
-			<div className="flex flex-wrap gap-2">
-				<Button
-					disabled={create.isPending || cv.data?.isLocked || current?.variantKind === "job"}
-					onClick={() => create.mutate()}
-				>
-					{copy("jobs.copy.create")}
-				</Button>
-				<Button variant="secondary" onClick={onChange}>
-					<Trans>Change job ad</Trans>
-				</Button>
-			</div>
+					<h2>
+						<CollapsibleTrigger variant="heading" className="w-full text-start">
+							<Icon name="caret-down" className="group-data-panel-open/requirements:rotate-180" aria-hidden />
+							<span>{copy("jobs.evidence.detailsTitle")}</span>
+							<FeatureBetaBadge />
+						</CollapsibleTrigger>
+					</h2>
+					<CollapsibleContent>
+						<div className="grid gap-3 pt-2">
+							<p className="type-body text-ink-2">{copy("jobs.evidence.detailsHint")}</p>
+							{cv.data && selection && (
+								<ReviewLaunch
+									variant="secondary"
+									hideTrigger={Boolean(operationId)}
+									retryRequest={retryRequests.evidence}
+									kind="review.job-evidence"
+									prepare={() =>
+										client.ai.variantReview.prepare({
+											kind: "review.job-evidence",
+											resumeId,
+											expectedUpdatedAt: cv.data.updatedAt.toISOString(),
+											jobId: selection.jobId,
+											jobRevision: selection.jobRevision,
+											expectedSelectionRevision: selection.revision,
+										})
+									}
+									onStarted={(id) => {
+										setEvidenceParent(null);
+										setStartedEvidence(id);
+									}}
+								>
+									{copy("jobs.evidence.check")}
+								</ReviewLaunch>
+							)}
+							{operationId && (
+								<ReviewOperationPanel kind="review.job-evidence" onRetry={retryEvidence} operationId={operationId}>
+									<TranslationReview
+										key={operationId}
+										operationId={operationId}
+										sourceData={cv.data?.data}
+										onSaved={onRefresh}
+										onRetry={retryEvidence}
+										onContinued={(id) => {
+											setEvidenceParent(operationId);
+											setStartedEvidence(id);
+										}}
+									/>
+								</ReviewOperationPanel>
+							)}
+						</div>
+					</CollapsibleContent>
+				</Collapsible>
+			</SectionCard>
 			{getAllowanceReason(create.error) ? (
 				<AllowanceLimitNotice
 					error={create.error}
@@ -238,7 +268,6 @@ export function JobEvidencePage({
 					</ReviewNotice>
 				)
 			)}
-			<p>{copy("jobs.copy.toast.originalPreserved")}</p>
 		</div>
 	);
 }

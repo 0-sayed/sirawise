@@ -3,7 +3,9 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, expect, it, vi } from "vite-plus/test";
 import { i18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
+import { ORPCError } from "@orpc/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { messages as arabicMessages } from "../../../../locales/ar-SA.po";
 import { Clarification } from "./clarification";
 vi.mock("@tanstack/react-router", () => ({
 	Link: ({ children }: { children: React.ReactNode }) => <a href="/career">{children}</a>,
@@ -13,7 +15,12 @@ vi.mock("@/libs/orpc/client", () => ({
 	client: { ai: { review: { answer: api.answer, dismissQuestion: api.dismiss } } },
 }));
 vi.mock("../editor/proposals/review-operation", () => ({
-	ReviewNotice: ({ children }: { children: React.ReactNode }) => <div role="alert">{children}</div>,
+	ReviewNotice: ({ children, retry }: { children: React.ReactNode; retry?: () => void }) => (
+		<div role="alert">
+			{children}
+			{retry && <button onClick={retry}>Retry</button>}
+		</div>
+	),
 }));
 afterEach(() => {
 	cleanup();
@@ -53,14 +60,27 @@ it("shows a failed Skip beside the question and clears it when opening an answer
 	cache.clear();
 });
 
-it("keeps an unsaved answer visible after failure", async () => {
-	api.answer.mockRejectedValueOnce(new Error("offline"));
+it("retries a conflict inside the overlay, preserves the draft, and shows the saved answer", async () => {
+	api.answer.mockRejectedValueOnce(new ORPCError("CONFLICT")).mockResolvedValueOnce({
+		id: "answer",
+		quote: "Built a reporting project.",
+	});
 	const { cache } = showQuestion();
 	fireEvent.click(screen.getByRole("button", { name: "Add information" }));
-	fireEvent.change(await screen.findByRole("textbox"), { target: { value: "Built a reporting project." } });
-	fireEvent.click(screen.getByRole("button", { name: "Save" }));
+	const dialog = await screen.findByRole("dialog");
+	expect(dialog).toHaveTextContent("What project can you confirm?");
+	fireEvent.change(screen.getByRole("textbox", { name: "Your answer" }), {
+		target: { value: "Built a reporting project." },
+	});
+	fireEvent.click(screen.getByRole("button", { name: "Save answer" }));
 	expect(await screen.findByRole("alert")).toBeDefined();
-	expect((screen.getByRole("textbox") as HTMLTextAreaElement).value).toBe("Built a reporting project.");
+	expect(dialog).toContainElement(screen.getByRole("alert"));
+	expect(screen.getByRole("textbox")).toHaveValue("Built a reporting project.");
+	fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+	await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+	expect(screen.getByText("Built a reporting project.")).toHaveAttribute("dir", "auto");
+	expect(screen.getByText("Your answer was saved. Your CV is unchanged.")).toBeDefined();
+	expect(api.answer.mock.calls.at(-1)?.[0].requestKey).toBe(api.answer.mock.calls.at(-2)?.[0].requestKey);
 	cache.clear();
 });
 
@@ -71,9 +91,9 @@ it("shows skipped status without implying supplied information", () => {
 	expect(screen.queryByRole("button", { name: "Add information" })).toBeNull();
 	cache.clear();
 });
-it("isolates English generated clarification text from an Arabic interface in the overlay", async () => {
+it("localizes a stored English wording question in the Arabic card and overlay", async () => {
 	document.documentElement.dir = "rtl";
-	i18n.loadAndActivate({ locale: "ar-SA", messages: {} });
+	i18n.loadAndActivate({ locale: "ar-SA", messages: arabicMessages });
 	const cache = new QueryClient();
 	render(
 		<I18nProvider i18n={i18n}>
@@ -81,6 +101,7 @@ it("isolates English generated clarification text from an Arabic interface in th
 				<Clarification
 					operationId="review"
 					source={{ kind: "resume", id: "cv", revision: "1" }}
+					kind="review.wording"
 					questions={[{ id: "q", prompt: "What project can you confirm?" }]}
 					resolved={[]}
 					stale={false}
@@ -89,11 +110,15 @@ it("isolates English generated clarification text from an Arabic interface in th
 			</QueryClientProvider>
 		</I18nProvider>,
 	);
-	fireEvent.click(screen.getByRole("button", { name: "Add information" }));
+	const localized = "ما النتيجة أو التفصيل الذي يمكنك تأكيده في هذا المقطع؟";
+	expect(screen.getByText(localized)).toBeVisible();
+	expect(screen.queryByText("What project can you confirm?")).toBeNull();
+	fireEvent.click(screen.getByRole("button", { name: "إضافة معلومة" }));
 	const dialog = await screen.findByRole("dialog");
-	const prompt = Array.from(dialog.querySelectorAll("p")).find(
-		(node) => node.textContent === "What project can you confirm?",
+	expect(dialog).toHaveAccessibleDescription(localized);
+	expect(Array.from(dialog.querySelectorAll("p")).find((node) => node.textContent === localized)).toHaveAttribute(
+		"dir",
+		"auto",
 	);
-	expect(prompt?.getAttribute("dir")).toBe("auto");
 	cache.clear();
 });

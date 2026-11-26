@@ -1,4 +1,5 @@
 import { normalizeWithOffsets } from "./normalize";
+import { isEnglishContraction } from "./stopwords";
 
 /**
  * Word segmentation that keeps technical surface forms intact.
@@ -33,7 +34,13 @@ function segment(text: string): Segment[] {
 }
 
 export function tokenize(text: string): string[] {
-	const segments = segment(text);
+	// Keep UTF-16 positions intact for matchingWindows.
+	const withoutPossessives = text.replace(
+		/([a-z][a-z0-9._/+#-]*)(['’](?:s(?![a-z])|(?<=s['’])(?![a-z])))/giu,
+		(word, stem: string, suffix: string) =>
+			isEnglishContraction(word.toLowerCase().replaceAll("’", "'")) ? word : stem + " ".repeat(suffix.length),
+	);
+	const segments = segment(withoutPossessives);
 	const tokens: string[] = [];
 
 	let current = "";
@@ -83,7 +90,7 @@ export function tokenize(text: string): string[] {
  */
 export function splitIntoRuns(text: string): string[] {
 	return text
-		.split(/[\n\r]+|(?<=[.!?;:])\s+|[•▪◦‣·|,()[\]{}]/)
+		.split(/[\n\r]+|(?<=[.!?؟;:])\s+|[•▪◦‣·|,،؛()[\]{}]/)
 		.map((run) => run.trim())
 		.filter(Boolean);
 }
