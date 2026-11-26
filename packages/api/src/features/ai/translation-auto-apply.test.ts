@@ -78,7 +78,10 @@ it("allows auto-apply when all segments are verified, no terms are pending, and 
 	expect(source).toEqual(originalSnapshot);
 });
 
-it("allows auto-apply when true proper names are pending so they default to kept source values", () => {
+it.each([
+	["جامعة الرياض", { ready: true }],
+	["Riyadh University", { ready: false, reason: "pending_terms" }],
+])("handles the pending proper name %s before auto-apply", (value, expected) => {
 	const source = sampleCv();
 	const inventory = buildTranslationInventory(source);
 	const segments = Object.fromEntries(
@@ -94,14 +97,14 @@ it("allows auto-apply when true proper names are pending so they default to kept
 			{
 				id: "term:1",
 				source: "جامعة الرياض",
-				value: "جامعة الرياض",
+				value,
 				status: "pending",
 			},
 		],
 		segments,
 	});
 
-	expect(result).toEqual({ ready: true });
+	expect(result).toEqual(expected);
 });
 
 it("stops auto-apply when any segment still has an unresolvable privacy placeholder", () => {

@@ -104,9 +104,7 @@ export async function getProcessingStatus(userId: string, locale: NoticeRequest[
 					return [
 						{
 							content: resolved.notice.content,
-							grantedAt:
-								findGrant(grants, { ...resolved, grantPurposes: [resolved.grantPurpose] })?.grantedAt.toISOString() ??
-								null,
+							grantedAt: findGrant(grants, resolved)?.grantedAt.toISOString() ?? null,
 						},
 					];
 				})

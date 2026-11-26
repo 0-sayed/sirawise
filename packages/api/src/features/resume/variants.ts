@@ -345,8 +345,12 @@ export async function applyReviewedTranslation(
 	const pending = new Map<string, string>();
 	for (const segment of targets) {
 		const approved = input.payload.segments[segment.id];
-		if (!approved || approved.status !== "accepted")
+		if (!approved || approved.status === "pending")
 			throw new ORPCError("CONFLICT", { data: { reason: "TRANSLATION_REVIEW_INCOMPLETE" } });
+		if (approved.status === "rejected") {
+			pending.set(segment.id, segment.text);
+			continue;
+		}
 		const term = terms.find((term) => term.id === `term:${segment.id}`);
 		const text = resolveTranslationText({
 			text: approved.text,

@@ -26,6 +26,8 @@ export function evaluateTranslationAutoApply({
 	withheldSegmentIds?: ReadonlySet<string>;
 	protection?: ProtectedTranslation | undefined;
 }): TranslationAutoApplyEvaluation {
+	if (terms.some((term) => term.status === "pending" && term.value !== term.source))
+		return { ready: false, reason: "pending_terms" };
 	if (inventory.blocking.length) return { ready: false, reason: "blocking_sections" };
 	const segmentEntries = Object.values(segments);
 	if (segmentEntries.some((segment) => segment?.status === "rejected"))

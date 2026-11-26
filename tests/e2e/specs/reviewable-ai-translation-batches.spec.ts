@@ -140,7 +140,16 @@ for (const action of ["reject", "undo and reject", "accept"] as const) {
 		);
 		expect((await api.resume.getById({ id: resumeId })).data).toEqual(source.data);
 		await page.reload();
-		await expect(segment.getByText(firstTranslation, { exact: true })).toBeVisible();
+		if (expectedStatus === "rejected") {
+			const keptSource = page.locator('[data-slot="translation-segment"] p[lang="en-US"]').filter({
+				has: page.getByText(firstSource, { exact: true }),
+			});
+			await expect(keptSource).toBeVisible();
+			await expect(keptSource).toHaveAttribute("dir", "auto");
+			await expect(segment).toHaveCount(0);
+		} else {
+			await expect(segment.getByText(firstTranslation, { exact: true })).toBeVisible();
+		}
 		const approve = page.getByRole("button", { name: "Approve & save Arabic copy" });
 		if (action === "undo and reject") {
 			await expect(approve).toBeEnabled();

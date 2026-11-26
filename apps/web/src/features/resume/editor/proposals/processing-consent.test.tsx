@@ -110,6 +110,35 @@ it.each(["en-US", "ar-SA"] as const)(
 	},
 );
 
+it("resumes a retry when the reloaded notice was already granted", async () => {
+	const locale = "en-US";
+	const notice = {
+		content: "Processing notice",
+		locale,
+		purpose: "review.translation",
+		noticeVersion: "1",
+		route: { routeId: "route", routeRevision: "1", configRevision: "1" },
+		noticeSha256: "a".repeat(64),
+		alreadyGranted: true,
+	};
+	api.notices.mockResolvedValueOnce([notice]).mockResolvedValueOnce([{ ...notice, noticeVersion: "2" }]);
+	const retry = vi
+		.fn()
+		.mockRejectedValueOnce(new ORPCError("PRECONDITION_FAILED", { data: { reason: "AI_CONSENT_REQUIRED" } }))
+		.mockResolvedValue(undefined);
+	render(
+		<I18nProvider i18n={setupI18n({ locale, messages: { [locale]: {} } })}>
+			<RetrySurface retry={retry} />
+		</I18nProvider>,
+	);
+	fireEvent.click(screen.getByRole("button", { name: "Open" }));
+	fireEvent.click(await screen.findByRole("button", { name: "Review consent" }));
+	await waitFor(() => expect(retry).toHaveBeenCalledTimes(2));
+	expect(retry).toHaveBeenLastCalledWith(expect.objectContaining({ noticeVersion: "2" }));
+	expect(api.grant).not.toHaveBeenCalled();
+	expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+});
+
 it.each([
 	["en-US", "This request expired while waiting to start. Your draft is kept. Retry to put it back in the queue."],
 	["ar-SA", "انتهت مهلة الطلب قبل بدء المعالجة. بقيت مسودتك محفوظة. أعد المحاولة لإضافته إلى قائمة الانتظار."],

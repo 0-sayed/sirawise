@@ -340,11 +340,12 @@ export function groupTranslationSegments({
 		const id = segment.sourceId;
 		const reviewed = segments[id];
 		const status: SegmentStatus = statuses[id] ?? reviewed?.status ?? "pending";
-		const after = reviewed?.text ?? segment.text;
-		const unresolved = hasUnresolvedTranslationPlaceholder(after);
+		const before = sourceTextById.get(id) ?? "";
+		const after = status === "rejected" ? before : (reviewed?.text ?? segment.text);
+		const unresolved = status !== "rejected" && hasUnresolvedTranslationPlaceholder(after);
 		const item: SegmentItem = {
 			id,
-			before: sourceTextById.get(id) ?? "",
+			before,
 			after,
 			status,
 			hasUnresolvedPlaceholder: unresolved,
@@ -382,7 +383,7 @@ export function groupTranslationSegments({
 		group.totalCount += 1;
 		if (gapIds.has(id)) group.gapCount += 1;
 		if (status === "accepted") group.acceptedCount += 1;
-		if (status !== "accepted" && reviewed) group.pendingIds.push(id);
+		if (status === "pending" && reviewed) group.pendingIds.push(id);
 		if (unresolved) group.unresolvedIds.push(id);
 	}
 

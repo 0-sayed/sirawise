@@ -5,6 +5,7 @@ import { expect, it } from "vite-plus/test";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Pool } from "pg";
+import { grantRuntimePrivileges } from "./runtime-role.mjs";
 
 it("isolates translation batches, freezes completed results, and cascades account erasure", async () => {
 	const connection = process.env.COVER_LETTER_TEST_DATABASE_URL;
@@ -23,9 +24,11 @@ it("isolates translation batches, freezes completed results, and cascades accoun
 		await migrate(drizzle({ client: pool }), {
 			migrationsFolder: fileURLToPath(new URL("../../../migrations", import.meta.url)),
 		});
-		await pool.query(
-			`CREATE ROLE "${role}" NOSUPERUSER NOBYPASSRLS NOINHERIT; GRANT USAGE ON SCHEMA public TO "${role}"; GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public TO "${role}"`,
-		);
+		await pool.query(`CREATE ROLE "${role}" NOSUPERUSER NOBYPASSRLS NOINHERIT`);
+		await grantRuntimePrivileges(pool, role);
+		expect(
+			(await pool.query("SELECT has_table_privilege($1, 'ai_translation_batch', 'DELETE') AS allowed", [role])).rows,
+		).toEqual([{ allowed: false }]);
 		await pool.query(
 			`INSERT INTO "user" (id,name,email,username,display_username) VALUES ('alice','Alice','alice@example.test','alice','alice'),('bob','Bob','bob@example.test','bob','bob')`,
 		);

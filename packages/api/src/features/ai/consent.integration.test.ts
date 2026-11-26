@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 import { createRouterClient } from "@orpc/server";
-import { getProcessingNotices, processingConsentService } from "./consent";
+import { getProcessingNotices, getProcessingStatus, processingConsentService } from "./consent";
 import { processingPurposes } from "./processing-scope";
 import { resolveApprovedRoute, withAiRuntime } from "./route-policy";
 import { aiRouter } from "./router";
@@ -46,6 +46,9 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("processing consent
 						});
 					});
 				}
+				expect((await getProcessingStatus("alice", "ar-SA")).notices).toEqual([
+					expect.objectContaining({ grantedAt: expect.any(String) }),
+				]);
 				await processingConsentService.revoke("alice", route.routeId);
 				expect(
 					(await getProcessingNotices("alice", { purpose: "review.translation", locale: "ar-SA" }))[0]?.alreadyGranted,

@@ -39,7 +39,7 @@ export async function grantRuntimePrivileges(pool, role) {
 	await pool.query(`REVOKE UPDATE,DELETE,TRUNCATE ON cover_letter_proposal_decision FROM "${role}"`);
 	await pool.query(`REVOKE UPDATE,TRUNCATE ON ai_import_review_source FROM "${role}"`);
 	await pool.query(`REVOKE ALL ON ai_platform_budget,ai_platform_capacity FROM "${role}"`);
-	await pool.query(`REVOKE DELETE ON ai_operation,ai_operation_attempt FROM "${role}"`);
+	await pool.query(`REVOKE DELETE ON ai_operation,ai_operation_attempt,ai_translation_batch FROM "${role}"`);
 	await pool.query(`REVOKE ALL ON deletion_replay_record,support_access_log FROM "${role}"`);
 	await pool.query(
 		`GRANT EXECUTE ON FUNCTION master_cv_submit_support(text,text,text,text,text,text,text),master_cv_support_delivery(text,text) TO "${role}"`,

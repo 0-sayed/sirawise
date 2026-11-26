@@ -4,6 +4,7 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { channel } from "node:diagnostics_channel";
 import net from "node:net";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+import { ORPCError } from "@orpc/server";
 import { APICallError, NoObjectGeneratedError, NoOutputGeneratedError, generateText, Output, zodSchema } from "ai";
 import { z } from "zod";
 import { togetherVerifierCallBound, togetherVerifierPrice } from "./attempt-budget";
@@ -104,7 +105,28 @@ export async function verificationCallBound(
 		),
 	);
 }
+export const dispatchFailureCodes = [
+	"AI_CANCELLED",
+	"AI_DEADLINE",
+	"AI_SOURCE_CHANGED",
+	"AI_CONSENT_REQUIRED",
+	"AI_REQUEST_COST_LIMIT",
+	"AI_EXECUTION_FAILED",
+] as const;
+export type DispatchFailureCode = (typeof dispatchFailureCodes)[number];
+
+function dispatchFailureCode(error: unknown): DispatchFailureCode {
+	const reason =
+		error instanceof ORPCError && typeof error.data === "object" && error.data !== null && "reason" in error.data
+			? error.data.reason
+			: error instanceof Error
+				? error.message
+				: undefined;
+	return dispatchFailureCodes.find((code) => code === reason) ?? "AI_EXECUTION_FAILED";
+}
+
 export type AttemptFailure = {
+	dispatchFailureCode?: DispatchFailureCode;
 	timedOut?: boolean;
 	abortCause?: "call_timeout" | "operation_deadline" | "cancelled";
 	providerErrorCode?: string;
@@ -512,6 +534,7 @@ async function executeApprovedStepOnce(
 						...(requestSent !== undefined ? { requestSent } : {}),
 					}),
 					...(evidence.providerErrorCode ? { providerErrorCode: evidence.providerErrorCode } : {}),
+					...(evidence.dispatchFailureCode ? { dispatchFailureCode: evidence.dispatchFailureCode } : {}),
 					...(evidence.abortCause ? { abortCause: evidence.abortCause } : {}),
 					...(identityMismatch ? { code: "AI_VERIFIER_IDENTITY_MISMATCH" } : {}),
 				},
@@ -521,6 +544,7 @@ async function executeApprovedStepObserved(
 	input: ApprovedStepInput,
 	evidence: {
 		abortCause?: AttemptFailure["abortCause"];
+		dispatchFailureCode?: DispatchFailureCode;
 		httpStatus: number | null;
 		bytesReceived: boolean;
 		generationId: string | null;
@@ -559,7 +583,8 @@ async function executeApprovedStepObserved(
 	if (!customFetch) ensureAiTransportConnectBudget();
 	const transport = customFetch ?? globalThis.fetch;
 	const callTimeout = new AbortController();
-	const callSignal = AbortSignal.any([input.signal, callTimeout.signal]);
+	const dispatchAbort = new AbortController();
+	const callSignal = AbortSignal.any([input.signal, callTimeout.signal, dispatchAbort.signal]);
 	let timer: ReturnType<typeof setTimeout> | undefined;
 	const fetch: typeof globalThis.fetch = async (url, init) => {
 		let pending: Promise<Response> | undefined;
@@ -586,10 +611,12 @@ async function executeApprovedStepObserved(
 			if (input.withDispatch) await input.withDispatch(send);
 			else await send();
 		} catch (error) {
-			dispatchBlocked = !dispatched;
 			evidence.requestSent = dispatched;
 			evidence.error = error;
-			callTimeout.abort(error);
+			if (input.withDispatch) {
+				evidence.dispatchFailureCode = dispatchFailureCode(error);
+				if (dispatched) dispatchAbort.abort(error);
+			}
 			throw error;
 		}
 		let response: Response;
@@ -823,6 +850,7 @@ async function executeApprovedStepObserved(
 		}
 		evidence.error ??= error;
 		if (dispatchBlocked) return { ...empty, costMicros: 0, outcome: "unsupported" };
+		if (evidence.dispatchFailureCode) return { ...empty, costMicros: dispatched ? costMicros : 0 };
 		if (evidence.httpStatus === null && !evidence.generationId)
 			return {
 				...empty,

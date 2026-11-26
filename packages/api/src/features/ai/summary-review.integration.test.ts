@@ -111,6 +111,7 @@ it("applies a selected-fact summary, records ordinary history, replays, and reje
 		questions: [
 			{ id: "clarify", prompt: "What other work can you confirm?", evidenceIds: [] },
 			{ id: "skip", prompt: "Would you like to add study evidence?", evidenceIds: [] },
+			{ id: "separate", prompt: "What was your other project?", evidenceIds: [] },
 		],
 		notes: [],
 	};
@@ -159,6 +160,14 @@ it("applies a selected-fact summary, records ordinary history, replays, and reje
 	};
 	const answer = await run(() => recordReviewAnswer("alice", answerInput));
 	expect(await run(() => recordReviewAnswer("alice", answerInput))).toEqual(answer);
+	const separate = await run(() =>
+		recordReviewAnswer("alice", {
+			...answerInput,
+			requestKey: randomUUID(),
+			questionId: "separate",
+			text: "Built a prototype.",
+		}),
+	);
 	await run(() => dismissReviewQuestion("alice", { operationId, questionId: "skip", requestKey: randomUUID() }));
 	const answered = await run(() => getVariantReview("alice", operationId));
 	expect(answered.result).toMatchObject({
@@ -173,12 +182,13 @@ it("applies a selected-fact summary, records ordinary history, replays, and reje
 		{
 			kind: "review.summary",
 			pendingCount: 1,
-			answeredCount: 1,
+			answeredCount: 2,
 			unansweredQuestionCount: 0,
 		},
 	]);
 	const continuation = await run(() => prepareReviewContinuation("alice", operationId, answer.id));
 	expect(continuation.parameters.answerIds).toEqual([answer.id]);
+	expect(continuation.sources).not.toContainEqual(expect.objectContaining({ id: separate.id }));
 	const followUp = await run(() =>
 		withOwnerDatabase("alice", (tx) => loadVariantSnapshot(tx, "alice", { ...continuation, kind: "review.summary" })),
 	);

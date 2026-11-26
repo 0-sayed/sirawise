@@ -246,6 +246,42 @@ it("keeps work active when Stop fails and only confirms cancellation after serve
 	expect(mocks.cancel).not.toHaveBeenCalled();
 });
 
+it("clears the expired queue notice when sending a new message", async () => {
+	mocks.chat.mockReturnValue({
+		messages: [],
+		sendMessage: mocks.send,
+		status: "ready",
+		setMessages: vi.fn(),
+		clearError: vi.fn(),
+	});
+	mocks.operationStatus.mockResolvedValue({
+		operation: { id: "expired", state: "failed", resultId: null, failureCode: "AI_QUEUE_EXPIRED" },
+	});
+	render(
+		<I18nProvider i18n={i18n}>
+			<Conversation
+				document={document}
+				threadId="thread-1"
+				operationId="expired"
+				initialMessages={[]}
+				activeRun={false}
+				readOnly={false}
+				providerLabel="Local"
+				initialContext={{ document: true, posting: false }}
+				prompt={null}
+				promptAttachments={[]}
+				onPromptSent={() => {}}
+				onSwitchModel={() => {}}
+			/>
+		</I18nProvider>,
+	);
+	const notice = await screen.findByText(/No AI use was charged/i);
+	fireEvent.change(screen.getByRole("textbox"), { target: { value: "Review this again" } });
+	fireEvent.click(screen.getByRole("button", { name: "Send" }));
+	expect(mocks.send).toHaveBeenCalledWith({ text: "Review this again" }, { body: { attachmentIds: [] } });
+	expect(notice).not.toBeInTheDocument();
+});
+
 it("recovers a persisted bounded result without attempting a Redis stream", async () => {
 	const setMessages = vi.fn();
 	mocks.chat.mockReturnValue({ messages: [], status: "ready", setMessages, clearError: vi.fn(), stop: vi.fn() });

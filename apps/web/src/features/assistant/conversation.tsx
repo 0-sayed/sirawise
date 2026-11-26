@@ -179,6 +179,7 @@ export function Conversation(props: ConversationProps) {
 	const send = (text: string, attachments: ChatAttachment[] = []) => {
 		if (streaming || readOnly) return;
 		clearError();
+		setOperation(null);
 		setStopped(false);
 		const files = attachments.map(attachmentPart);
 		sendMessage(files.length > 0 ? { text, files } : { text }, {
@@ -204,6 +205,7 @@ export function Conversation(props: ConversationProps) {
 	// A failed continuation (after an answer) is sent again as it was; regenerating would drop the answer.
 	const retry = () => {
 		clearError();
+		setOperation(null);
 		if (lastAssistantMessageIsCompleteWithToolCalls({ messages })) void sendMessage();
 		else void regenerate();
 	};

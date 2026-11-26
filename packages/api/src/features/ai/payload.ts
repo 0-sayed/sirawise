@@ -146,7 +146,11 @@ export function redactModelText(
 		);
 		if (!characters.length) continue;
 		const pattern = characters.map((character) => character.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("\\s*");
-		clean = clean.replaceAll(new RegExp(pattern, "giu"), (match) => mark(match));
+		const contactPattern = new RegExp(pattern, "giu");
+		clean = clean
+			.split(/(\uE000REDACTED_\d+\uE001)/gu)
+			.map((part, index) => (index % 2 === 0 ? part.replaceAll(contactPattern, mark) : part))
+			.join("");
 	}
 	clean = clean
 		.replace(/[\p{L}\p{M}\p{N}_.+%-]+@[\p{L}\p{M}\p{N}.-]+\.(?:xn--[a-z0-9-]+|[\p{L}\p{M}]{2,})/giu, (match) =>

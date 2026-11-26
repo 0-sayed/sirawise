@@ -709,6 +709,7 @@ export async function executeLease(lease: OperationLease, shutdown?: AbortSignal
 				const isWithheldTruncation = (call: BoundVerificationCall) =>
 					verifier.withholdTruncatedBatch && isVerificationTruncation(call);
 				const recoveryFor = (call: BoundVerificationCall, boundMicros: number, spent: number) => {
+					if (call.failure?.dispatchFailureCode) return;
 					const nowMs = Date.now();
 					const deadlineAtMs = operation.deadlineAt.getTime();
 					if (
@@ -951,7 +952,9 @@ export async function executeLease(lease: OperationLease, shutdown?: AbortSignal
 								continue;
 							}
 							const rule = call.output?._verificationFailureRule;
-							if (call.outcome === "ACCOUNT_ERROR") {
+							if (call.failure?.dispatchFailureCode) {
+								await failOperation(lease, call.failure.dispatchFailureCode);
+							} else if (call.outcome === "ACCOUNT_ERROR") {
 								const detail = providerAccountFailureDetail(call.failure);
 								await failOperation(lease, "AI_PROVIDER_UNAVAILABLE", detail);
 								console.error("[ai-operation]", {
@@ -1141,6 +1144,10 @@ export async function executeLease(lease: OperationLease, shutdown?: AbortSignal
 					continue;
 				}
 				await deliverContent(outcome.output);
+				return;
+			}
+			if (outcome.failure?.dispatchFailureCode) {
+				await failOperation(lease, outcome.failure.dispatchFailureCode);
 				return;
 			}
 			if (outcome.outcome === "ACCOUNT_ERROR") {

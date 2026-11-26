@@ -620,7 +620,7 @@ export async function decideVariantReview(ownerId: string, raw: VariantDecisionI
 							ctx.incompleteWithholding ||
 							(ctx.operation.promptVersion === translationCandidateContract.promptVersion &&
 								!Object.keys(payload.segments).length) ||
-							Object.values(payload.segments).some((segment) => segment.status !== "accepted") ||
+							Object.values(payload.segments).some((segment) => segment.status === "pending") ||
 							payload.terms.terms.some((term) => term.status !== "confirmed")
 						)
 							conflict("TRANSLATION_REVIEW_INCOMPLETE");

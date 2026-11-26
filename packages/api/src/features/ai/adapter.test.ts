@@ -2,6 +2,7 @@ import { once } from "node:events";
 import { createServer } from "node:http";
 import net from "node:net";
 import { expect, it, vi } from "vite-plus/test";
+import { ORPCError } from "@orpc/server";
 import { zodSchema } from "ai";
 import { z } from "zod";
 import { masterFields } from "@reactive-resume/schema/career-master";
@@ -67,6 +68,35 @@ it("enforces the priced verifier's journaled bound before sending the exact stru
 		expect(blocked).toMatchObject({ outcome: "unsupported", costMicros: 0 });
 		expect(fetch).toHaveBeenCalledTimes(1);
 	});
+});
+
+it.each([
+	[new Error("AI_CANCELLED"), "AI_CANCELLED"],
+	[new Error("AI_REQUEST_COST_LIMIT"), "AI_REQUEST_COST_LIMIT"],
+	[new ORPCError("CONFLICT", { data: { reason: "AI_SOURCE_CHANGED" } }), "AI_SOURCE_CHANGED"],
+])("records a dispatch rejection without a provider call (%s)", async (error, code) => {
+	const fetch = vi.fn(syntheticRuntime.fetch);
+	const result = await withAiRuntime({ ...syntheticRuntime, fetch }, () =>
+		executeApprovedStep({
+			route: syntheticRoute,
+			operationId: "guarded-operation",
+			attemptId: "attempt",
+			stepId: "generate",
+			payload: { selections: [{ section: "summary", text: "TypeScript" }] },
+			outputSchema: z.strictObject({ text: z.string() }),
+			signal: new AbortController().signal,
+			withDispatch: async () => {
+				throw error;
+			},
+		}),
+	);
+	expect(result).toMatchObject({
+		outcome: "unknown",
+		costMicros: 0,
+		failure: { requestSent: false, dispatchFailureCode: code },
+	});
+	expect(result.failure?.timedOut).toBeUndefined();
+	expect(fetch).not.toHaveBeenCalled();
 });
 
 it("rejects a paid writer request whose enforced token pricing exceeds 100000 micros before dispatch", async () => {

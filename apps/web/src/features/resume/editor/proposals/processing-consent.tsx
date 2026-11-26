@@ -192,6 +192,7 @@ export function useTranslationRetryConsent(
 								<Button
 									variant="secondary"
 									onClick={() => {
+										autoSubmit.current = true;
 										setNeedsReview(false);
 										setError(null);
 										processing.reload();

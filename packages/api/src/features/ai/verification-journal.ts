@@ -3,6 +3,7 @@ import type { OwnerTransaction } from "@reactive-resume/db/owner-scope";
 import type { OperationRequest } from "@reactive-resume/schema/ai-operation";
 import { createHash } from "node:crypto";
 import { z } from "zod";
+import { dispatchFailureCodes } from "./adapter";
 import { buildModelPayload, type ModelPayload } from "./payload";
 import { canonicalJson, type OperationHandler } from "./route-policy";
 import { VerificationGateError } from "./verification-failure";
@@ -59,6 +60,7 @@ const callIdentity = z.object({
 	cachedTokens: z.int().nonnegative().nullable(),
 	failure: z
 		.object({
+			dispatchFailureCode: z.enum(dispatchFailureCodes).optional(),
 			timedOut: z.boolean().optional(),
 			abortCause: z.enum(["call_timeout", "operation_deadline", "cancelled"]).optional(),
 			providerErrorCode: z.string().optional(),

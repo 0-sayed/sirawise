@@ -71,6 +71,8 @@ export function TranslationDraftReview({
 	const [termSource, setTermSource] = useState<string | null>(null);
 	const retry = useTranslationGapRetry(operationId, review.stale);
 	const arabic = result.output.direction === "en-ar";
+	const sourceLocale = arabic ? "en-US" : "ar-SA";
+	const targetLocale = arabic ? "ar-SA" : "en-US";
 	const draft = review.statuses.translation === "pending";
 	const disabled = locked || review.stale || retry.pending;
 	const { pending, confirmed, pendingTermIds } = groupTranslationTerms(review.terms.terms);
@@ -92,12 +94,6 @@ export function TranslationDraftReview({
 		terms: review.terms.terms,
 		gapIds: new Set(gapById.keys()),
 	});
-	const approvalIds = [
-		...pendingSegmentIds,
-		...Object.entries(review.segments)
-			.filter(([, item]) => item.status === "rejected")
-			.map(([id]) => id),
-	];
 	const labelFor = (group?: (typeof groups)[number]) =>
 		group?.customTitle ??
 		(!group || group.sectionId === "other"
@@ -204,15 +200,15 @@ export function TranslationDraftReview({
 		);
 
 	const renderSegment = (item: SegmentItem, gap?: TranslationGap) => (
-		<div key={item.id} data-slot="translation-segment" className="grid min-w-0 gap-1 py-2">
+		<div key={item.id} data-slot="translation-segment" className="grid min-w-0 gap-1 py-2 text-content-start">
 			{showOriginal && item.before && !gap && (
 				<blockquote dir="auto" className="type-body wrap-anywhere whitespace-pre-wrap text-ink-2">
 					<bdi>{item.before}</bdi>
 				</blockquote>
 			)}
 			<p
-				dir={gap || item.edited ? "auto" : arabic ? "rtl" : "ltr"}
-				lang={gap ? (arabic ? "en-US" : "ar-SA") : item.edited ? undefined : arabic ? "ar-SA" : "en-US"}
+				dir={gap || item.status === "rejected" || item.edited ? "auto" : arabic ? "rtl" : "ltr"}
+				lang={gap || item.status === "rejected" ? sourceLocale : item.edited ? undefined : targetLocale}
 				className="type-body wrap-anywhere whitespace-pre-wrap text-ink"
 			>
 				<bdi>{gap ? item.before || item.after : item.after}</bdi>
@@ -398,7 +394,9 @@ export function TranslationDraftReview({
 						disabled={disabled || Boolean(blocker)}
 						aria-describedby={blocker ? blockerId : undefined}
 						loading={saving}
-						onClick={() => decide({ subjectIds: ["translation"], decision: "accept", approveSegmentIds: approvalIds })}
+						onClick={() =>
+							decide({ subjectIds: ["translation"], decision: "accept", approveSegmentIds: pendingSegmentIds })
+						}
 					>
 						{copy(
 							saving

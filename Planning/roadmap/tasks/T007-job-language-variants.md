@@ -101,9 +101,8 @@ Implement this inventory with existing shared components, the appropriate shared
 ## Acceptance evidence
 
 D36 job page changes, owner decision 2026-11-26 (B-C04, B-C06, B-C07, and B-C09).
-S19 [desktop](https://www.figma.com/design/K3UTevGCFBhsoSLXH7BDni?node-id=33-1857) and [mobile](https://www.figma.com/design/K3UTevGCFBhsoSLXH7BDni?node-id=47-1365).
-S20 [desktop](https://www.figma.com/design/K3UTevGCFBhsoSLXH7BDni?node-id=33-1997) and [mobile](https://www.figma.com/design/K3UTevGCFBhsoSLXH7BDni?node-id=47-1425).
-Reviewed states include [start](https://www.figma.com/design/K3UTevGCFBhsoSLXH7BDni?node-id=259-80599), all requirements [desktop](https://www.figma.com/design/K3UTevGCFBhsoSLXH7BDni?node-id=258-33447) and [mobile](https://www.figma.com/design/K3UTevGCFBhsoSLXH7BDni?node-id=259-14999), [question answered](https://www.figma.com/design/K3UTevGCFBhsoSLXH7BDni?node-id=260-70035), and [fact recorded](https://www.figma.com/design/K3UTevGCFBhsoSLXH7BDni?node-id=260-70224).
+See [the Figma map](../../context/design/figma-map.json) for S19 and S20 desktop and mobile masters.
+The review covers the start, all requirements, question answered, and fact recorded states.
 
 - The context bar keeps the selected CV and job together so that users can see what they are comparing.
 - The keyword panel shows missing terms first and folds each group after six terms so that users can scan the gaps.
@@ -113,14 +112,10 @@ Reviewed states include [start](https://www.figma.com/design/K3UTevGCFBhsoSLXH7B
 A read-only replay found four broad absence claims, three unsupported importance labels, and one unsupported claim.
 The offline replay withheld 4 of 16 after it reused recorded absence checks with scoped wording. The original held 8 of 16.
 Two responses finished after a retry because the first responses were incomplete. The replay made no paid calls.
-Evidence includes 26 matcher tests, 2,021 web tests, 2,108 API tests, and five browser states in Arabic and English at 1440 and 390 pixels.
+Evidence includes 26 matcher tests, 2,021 web tests, the API suite, and five browser states in Arabic and English at 1440 and 390 pixels.
 
-D36 translation review changes, owner decision 2026-11-26 (B-C05, B-C09 and A13). The mapped
-S21 masters are [desktop](https://www.figma.com/design/K3UTevGCFBhsoSLXH7BDni?node-id=33-2204)
-and [mobile](https://www.figma.com/design/K3UTevGCFBhsoSLXH7BDni?node-id=47-1531).
-The map identifies the [translation review](https://www.figma.com/design/K3UTevGCFBhsoSLXH7BDni?node-id=80-30744),
-[term dialog](https://www.figma.com/design/K3UTevGCFBhsoSLXH7BDni?node-id=259-22024)
-and [mobile term sheet](https://www.figma.com/design/K3UTevGCFBhsoSLXH7BDni?node-id=259-39545).
+D36 translation review changes, owner decision 2026-11-26 (B-C05, B-C09 and A13). See
+[the Figma map](../../context/design/figma-map.json) for the S21 masters, translation review, term dialog, and mobile term sheet.
 The owner-approved wireframes guide the redesign. Live Figma access was unavailable.
 
 - The overview uses two cards and opens review in place so that saved copies and draft actions stay distinct.
@@ -129,7 +124,7 @@ The owner-approved wireframes guide the redesign. Live Figma access was unavaila
 - The mobile actions stay above the dashboard tabs so that the save and discard controls stay within reach.
 - The term dialog and retry consent retain their existing approval steps and recovery behavior.
 
-Local evidence uses synthetic CVs and a disposable database. The API suite passed 2,106 tests and the web suite passed 2,021.
+Local evidence uses synthetic CVs and a disposable database. The API and web suites passed.
 Chromium captured the overview, progress, review and mobile actions in Arabic and English at 1440×900 and 390×844.
 Impeccable reported one warning for the shared T002 page background.
 

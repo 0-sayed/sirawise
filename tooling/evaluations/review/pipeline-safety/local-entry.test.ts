@@ -6,6 +6,13 @@ import { fileURLToPath } from "node:url";
 import { expect, it } from "vite-plus/test";
 
 const tooling = fileURLToPath(new URL("../../../", import.meta.url));
+it("requires an explicit absolute ledger directory before starting qualification", () => {
+	const entry = fileURLToPath(new URL("./local-entry.mjs", import.meta.url));
+	expect(() => execFileSync(process.execPath, [entry, "--manifest", "unused"], { stdio: "pipe" })).toThrow(
+		"QUALIFICATION_LEDGER_DIRECTORY_REQUIRED",
+	);
+});
+
 const verifierLimits = {
 	maxInputCodePoints: 32000,
 	maxOutputTokens: 16384,

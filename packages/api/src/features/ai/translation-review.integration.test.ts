@@ -480,6 +480,20 @@ it("rolls back content, locale, provenance and history when recording final appr
 		.query("DROP TRIGGER reject_translation_commit ON ai_review_decision; DROP FUNCTION reject_translation_commit()");
 });
 
+it("keeps source text for a rejected segment when the draft saves", async () => {
+	const f = await fixture();
+	const view = await run(() => getVariantReview("alice", f.operationId));
+	const headline = view.sourceSegments.find(({ text }) => text === "مهندس");
+	assert(headline);
+	await decide(f, [headline.id], "reject");
+	const accepted = Object.keys(view.segments).filter((id) => id !== headline.id);
+	if (accepted.length) await decide(f, accepted);
+	const saved = await decide(f, ["translation"]);
+	expect(saved.statuses[headline.id]).toBe("rejected");
+	expect(saved.data.basics.headline).toBe(headline.text);
+	expect(saved.data.metadata.page.locale).toBe("en-US");
+});
+
 it("rejects the first translation segment without saving the CV and undoes that review decision", async () => {
 	const f = await fixture(true);
 	const first = f.raw.segments[0];

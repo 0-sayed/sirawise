@@ -20,6 +20,7 @@ import { savePendingChanges, useResumeStore } from "../builder/draft";
 import { ReviewLaunch, ReviewNotice } from "../editor/proposals/review-operation";
 import { useVariantsCopy } from "./copy.generated";
 import { useReviewInterfaceText } from "./review-interface-copy";
+import { extractVariantDecisionError } from "./translation-review-model";
 import { client } from "@/libs/orpc/client";
 
 type ClarificationItem = {
@@ -291,7 +292,9 @@ export function Clarification({
 					</div>
 					{answer.error && (
 						<ReviewNotice retry={retry}>
-							{answer.error instanceof ORPCError && answer.error.code === "CONFLICT" ? (
+							{answer.error instanceof ORPCError &&
+							answer.error.code === "CONFLICT" &&
+							extractVariantDecisionError(answer.error).reason === "AI_SOURCE_CHANGED" ? (
 								<Trans>The source changed. Your answer is kept here. Open a current review to use it.</Trans>
 							) : (
 								<Trans>Could not save your answer. Your text is kept.</Trans>

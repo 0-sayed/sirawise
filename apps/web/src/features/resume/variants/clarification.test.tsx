@@ -60,8 +60,11 @@ it("shows a failed Skip beside the question and clears it when opening an answer
 	cache.clear();
 });
 
-it("retries a conflict inside the overlay, preserves the draft, and shows the saved answer", async () => {
-	api.answer.mockRejectedValueOnce(new ORPCError("CONFLICT")).mockResolvedValueOnce({
+it.each([
+	["AI_ANSWER_LIMIT", "Could not save your answer. Your text is kept."],
+	["AI_SOURCE_CHANGED", "The source changed. Your answer is kept here."],
+])("retries the %s conflict with the relevant message and preserves the draft", async (reason, message) => {
+	api.answer.mockRejectedValueOnce(new ORPCError("CONFLICT", { data: { reason } })).mockResolvedValueOnce({
 		id: "answer",
 		quote: "Built a reporting project.",
 	});
@@ -75,6 +78,7 @@ it("retries a conflict inside the overlay, preserves the draft, and shows the sa
 	fireEvent.click(screen.getByRole("button", { name: "Save answer" }));
 	expect(await screen.findByRole("alert")).toBeDefined();
 	expect(dialog).toContainElement(screen.getByRole("alert"));
+	expect(screen.getByRole("alert")).toHaveTextContent(message);
 	expect(screen.getByRole("textbox")).toHaveValue("Built a reporting project.");
 	fireEvent.click(screen.getByRole("button", { name: "Retry" }));
 	await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());

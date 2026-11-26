@@ -63,11 +63,7 @@ export async function startRealAiServer() {
 	process.once("SIGINT", shutdown);
 }
 
-export async function startQualificationServer(
-	manifestFile: string,
-	port: string,
-	ledgerDirectory = "/tmp/sirawise-fixes/ai-redesign-evidence",
-) {
+export async function startQualificationServer(manifestFile: string, port: string, ledgerDirectory: string) {
 	if (port !== "0") qualificationBaseUrl(`http://127.0.0.1:${port}`);
 	const { manifest, manifestSha256, fixtures } = await loadQualificationBatch(manifestFile);
 	requireDispatchableManifest(manifest);

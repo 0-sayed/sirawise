@@ -55,18 +55,18 @@ async function continuation(tx: OwnerTransaction, ownerId: string, operationId: 
 	const byQuestion = new Map<string, NonNullable<(typeof answers)[number]["evidence"]>>();
 	for (const answer of answers)
 		if (answer.evidence) for (const question of answer.subjectIds) byQuestion.set(question, answer.evidence);
-	const evidence = [...new Map([...byQuestion.values()].map((answer) => [answer.id, answer])).values()];
-	if (!evidence.some((answer) => answer.id === answerId)) throw new ORPCError("NOT_FOUND");
-	if (parent.sources.length + evidence.length > 10) throw new ORPCError("BAD_REQUEST");
+	const evidence = [...byQuestion.values()].find((answer) => answer.id === answerId);
+	if (!evidence) throw new ORPCError("NOT_FOUND");
+	if (parent.sources.length >= 10) throw new ORPCError("BAD_REQUEST");
 	const { interfaceLocale: _locale, ...parameters } = parent.parameters;
 	const earlierIds = Array.isArray(parameters.answerIds) ? parameters.answerIds : [];
 	return {
 		parent,
-		sources: [...parent.sources, ...evidence.map((answer) => answer.source)],
+		sources: [...parent.sources, evidence.source],
 		parameters: {
 			...parameters,
 			continuationOf: operationId,
-			answerIds: [...earlierIds, ...evidence.map((answer) => answer.id)],
+			answerIds: [...earlierIds, evidence.id],
 		},
 	};
 }
