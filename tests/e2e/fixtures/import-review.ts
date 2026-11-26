@@ -4,7 +4,7 @@ import { expect } from "./test";
 export async function openPdfReview(
 	page: Page,
 	locale: "en-US" | "ar-SA" = "en-US",
-	documentLocale: "en-US" | "ar-SA" = "en-US",
+	documentLocale?: "en-US" | "ar-SA",
 	pdf:
 		| string
 		| {
@@ -20,7 +20,14 @@ export async function openPdfReview(
 		.getByRole("button", { name: ar ? /^(جديد|سيرة ذاتية جديدة)$/u : /^(New CV|New)$/, exact: true })
 		.click();
 	await page.getByRole("button", { name: ar ? /^رفع سيرة ذاتية موجودة/ : /^Upload an existing CV/ }).click();
-	await page.locator('[data-slot="dialog-content"] input[type="file"]').setInputFiles(pdf);
+	const dialog = page.locator('[data-slot="dialog-content"]');
+	if (documentLocale) {
+		const names = ar ? { "ar-SA": "العربية", "en-US": "الإنجليزية" } : { "ar-SA": "Arabic", "en-US": "English" };
+		const language = dialog.getByRole("radio", { name: names[documentLocale], exact: true });
+		await language.click();
+		await expect(language).toBeChecked();
+	}
+	await dialog.locator('input[type="file"]').setInputFiles(pdf);
 	await expect(page).toHaveURL(/\/dashboard\/import\/[\w-]+/, { timeout: 30000 });
 	await expect(
 		page.getByRole("heading", { name: ar ? "راجع المعلومات المستوردة" : "Review imported information", exact: true }),
