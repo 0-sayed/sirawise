@@ -12,11 +12,11 @@ async function openCardTags(page: Page, card: Locator, ar: boolean) {
 	return page.getByRole("dialog", { name: ar ? "الوسوم" : "Tags", exact: true });
 }
 
-async function openTags(page: Page, locale: "ar-SA" | "en-US", width: number) {
+async function openTags(page: Page, locale: "ar-SA" | "en-US", width: number, tags: string[] = []) {
 	const ar = locale === "ar-SA";
 	const name = ar ? "سيرة ذاتية تجريبية" : "Synthetic CV";
 	const api = variantClient(page);
-	const id = await api.resume.create({ name, tags: [], withSampleData: false });
+	const id = await api.resume.create({ name, tags, withSampleData: false });
 	await page.setViewportSize({ width, height: width === 390 ? 844 : 1024 });
 	await page.goto(`/dashboard?locale=${locale}&view=grid`);
 	const card = page.getByRole("article", { name, exact: true });
@@ -90,6 +90,41 @@ for (const locale of ["ar-SA", "en-US"] as const) {
 	for (const width of [1440, 390]) {
 		test.describe(`${locale} at ${width}px`, () => {
 			test.use({ hasTouch: width === 390 });
+
+			test("keeps the dialog in place while filtering and saves beside a stored long tag", async ({
+				authPage: page,
+			}) => {
+				const longTag = "Career portfolio · November 2026 · Calendar";
+				const tags = [longTag, "Work"];
+				const { dialog, input, save, readTags } = await openTags(page, locale, width, tags);
+				const list = dialog.getByRole("listbox");
+				await expect(list.getByRole("option")).toHaveCount(2);
+				await settleScreen(page);
+				const bounds = await dialog.boundingBox();
+				const listBounds = await list.boundingBox();
+				expect(bounds).not.toBeNull();
+				expect(listBounds).not.toBeNull();
+				await capture(page, `stored-long-tag-${locale}-${width}`);
+
+				await input.fill("x".repeat(41));
+				await expect(list.getByRole("option")).toHaveCount(0);
+				await expect(dialog.getByRole("alert")).toContainText(ar ? "40 حرفًا" : "40 characters or fewer");
+				await expect(save).toBeDisabled();
+				expect(await dialog.boundingBox()).toEqual(bounds);
+				expect(await list.boundingBox()).toEqual(listBounds);
+				await capture(page, `stored-long-tag-error-${locale}-${width}`);
+
+				await input.fill("d");
+				await expect(list.getByRole("option", { name: /Career portfolio/ })).toHaveAttribute("aria-checked", "true");
+				await expect(dialog.getByRole("alert")).toHaveCount(0);
+				await expect(save).toBeEnabled();
+				expect(await dialog.boundingBox()).toEqual(bounds);
+				expect(await list.boundingBox()).toEqual(listBounds);
+				await capture(page, `stored-long-tag-filtered-${locale}-${width}`);
+				await save.click();
+				await expect(dialog).toBeHidden();
+				expect(await readTags()).toEqual([...tags, "d"]);
+			});
 
 			test("shows library tags, validates drafts, and preserves untouched mixed tags", async ({ authPage: page }) => {
 				const { card, dialog, id, input, save, readTags } = await openTags(page, locale, width);

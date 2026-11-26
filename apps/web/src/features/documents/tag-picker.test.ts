@@ -68,8 +68,13 @@ it("rejects a batch when one target would exceed the cap and allows removal at c
 			{ tag: "New", selected: true },
 		]).error,
 	).toBeNull();
-	expect(getTagUpdates(documents, [{ tag: "x".repeat(41), selected: true }])).toEqual({
-		error: "length",
-		updates: [],
+});
+
+it("carries stored long tags through selection updates", () => {
+	const longTag = "Career portfolio · November 2026 · Calendar";
+	const documents = [document("a", [longTag]), document("b", [])];
+	expect(getTagUpdates(documents, [{ tag: longTag, selected: true }])).toEqual({
+		error: null,
+		updates: [{ type: "resume", id: "b", tags: [longTag] }],
 	});
 });

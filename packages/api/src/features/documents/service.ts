@@ -1,11 +1,17 @@
 import type { SeedOnlyResumeAdmission } from "../resume/service";
 export type { SeedOnlyResumeAdmission } from "../resume/service";
 import type { DocumentSummary } from "../../dto/documents";
+import type { DbOrTx } from "@reactive-resume/db/client";
 import { ORPCError } from "@orpc/client";
 import { and, count, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import { db } from "@reactive-resume/db/client";
 import * as schema from "@reactive-resume/db/schema";
-import { countDocumentTags, normalizeDocumentTags } from "@reactive-resume/utils/ui-format";
+import {
+	countDocumentTags,
+	documentTagKey,
+	documentTagMaxLength,
+	normalizeDocumentTags,
+} from "@reactive-resume/utils/ui-format";
 import { documentIdentitySchema } from "../../dto/documents";
 import { applicationService } from "../applications/service";
 import { coverLetterService } from "../cover-letters/service";
@@ -53,41 +59,50 @@ type ResumeChanges = Partial<typeof schema.resume.$inferInsert>;
 type LetterChanges = Partial<typeof schema.coverLetter.$inferInsert>;
 
 /** The same change to either table; `letter` differs only where the columns do (the linked application). */
-async function update(
+async function updateDocument(
+	tx: DbOrTx,
 	ref: DocumentRef,
 	resume: ResumeChanges,
 	letter: LetterChanges = resume as LetterChanges,
 	trashedOnly = false,
 ) {
+	const rows =
+		ref.type === "resume"
+			? await tx
+					.update(schema.resume)
+					.set(resume)
+					.where(and(owned(ref), trashedOnly ? isNotNull(schema.resume.trashedAt) : undefined))
+					.returning({ id: schema.resume.id })
+			: await tx
+					.update(schema.coverLetter)
+					// Letters carry a revision for their editor's optimistic saves; any change moves it on.
+					.set({ ...letter, revision: sql`${schema.coverLetter.revision} + 1` })
+					.where(and(owned(ref), trashedOnly ? isNotNull(schema.coverLetter.trashedAt) : undefined))
+					.returning({ id: schema.coverLetter.id });
+
+	if (rows.length === 0) throw new ORPCError("NOT_FOUND");
+}
+
+async function update(ref: DocumentRef, resume: ResumeChanges, letter?: LetterChanges, trashedOnly = false) {
 	await db.transaction(async (tx) => {
 		await lockDocumentOwner(tx, ref.userId);
-		const rows =
-			ref.type === "resume"
-				? await tx
-						.update(schema.resume)
-						.set(resume)
-						.where(and(owned(ref), trashedOnly ? isNotNull(schema.resume.trashedAt) : undefined))
-						.returning({ id: schema.resume.id })
-				: await tx
-						.update(schema.coverLetter)
-						// Letters carry a revision for their editor's optimistic saves; any change moves it on.
-						.set({ ...letter, revision: sql`${schema.coverLetter.revision} + 1` })
-						.where(and(owned(ref), trashedOnly ? isNotNull(schema.coverLetter.trashedAt) : undefined))
-						.returning({ id: schema.coverLetter.id });
-
-		if (rows.length === 0) throw new ORPCError("NOT_FOUND");
+		await updateDocument(tx, ref, resume, letter, trashedOnly);
 	});
 }
 
-async function readState(ref: DocumentRef) {
+async function readState(ref: DocumentRef, tx: DbOrTx = db) {
 	const [row] =
 		ref.type === "resume"
-			? await db
-					.select({ isLocked: schema.resume.isLocked, trashedAt: schema.resume.trashedAt })
+			? await tx
+					.select({ isLocked: schema.resume.isLocked, trashedAt: schema.resume.trashedAt, tags: schema.resume.tags })
 					.from(schema.resume)
 					.where(owned(ref))
-			: await db
-					.select({ isLocked: schema.coverLetter.isLocked, trashedAt: schema.coverLetter.trashedAt })
+			: await tx
+					.select({
+						isLocked: schema.coverLetter.isLocked,
+						trashedAt: schema.coverLetter.trashedAt,
+						tags: schema.coverLetter.tags,
+					})
 					.from(schema.coverLetter)
 					.where(owned(ref));
 
@@ -95,10 +110,23 @@ async function readState(ref: DocumentRef) {
 	return row;
 }
 
-async function assertUnlocked(ref: DocumentRef) {
-	const state = await readState(ref);
+async function assertUnlocked(ref: DocumentRef, tx?: DbOrTx) {
+	const state = await readState(ref, tx);
 	if (state.isLocked) throw locked(ref.type);
 	return state;
+}
+
+async function readLibraryTagRows(tx: DbOrTx, userId: string, includeLetters: boolean) {
+	const resumes = await tx
+		.select({ tags: schema.resume.tags })
+		.from(schema.resume)
+		.where(and(eq(schema.resume.userId, userId), isNull(schema.resume.trashedAt)));
+	if (!includeLetters) return resumes;
+	const letters = await tx
+		.select({ tags: schema.coverLetter.tags })
+		.from(schema.coverLetter)
+		.where(and(eq(schema.coverLetter.userId, userId), isNull(schema.coverLetter.trashedAt)));
+	return [...resumes, ...letters];
 }
 
 /** Automatic retention is policy gated and runs through the recorded worker, never a customer maintenance call. */
@@ -264,27 +292,31 @@ export const documentsService = {
 	},
 
 	tags: async ({ userId, includeLetters = true }: { userId: string; includeLetters?: boolean }) => {
-		const [resumes, letters] = await Promise.all([
-			db
-				.select({ tags: schema.resume.tags })
-				.from(schema.resume)
-				.where(and(eq(schema.resume.userId, userId), isNull(schema.resume.trashedAt))),
-			includeLetters
-				? db
-						.select({ tags: schema.coverLetter.tags })
-						.from(schema.coverLetter)
-						.where(and(eq(schema.coverLetter.userId, userId), isNull(schema.coverLetter.trashedAt)))
-				: [],
-		]);
 		const byName = new Intl.Collator("en-US");
-		return countDocumentTags([...resumes, ...letters]).sort(
+		return countDocumentTags(await readLibraryTagRows(db, userId, includeLetters)).sort(
 			(a, b) => b.count - a.count || byName.compare(a.tag, b.tag),
 		);
 	},
 
-	setTags: async (input: DocumentRef & { tags: string[] }) => {
-		await assertUnlocked(input);
-		await update(input, { tags: normalizeDocumentTags(input.tags) });
+	setTags: async (input: DocumentRef & { tags: string[]; includeLetters?: boolean }) => {
+		const tags = normalizeDocumentTags(input.tags);
+		await db.transaction(async (tx) => {
+			await lockDocumentOwner(tx, input.userId);
+			const document = await assertUnlocked(input, tx);
+			const current = new Set(document.tags.map(documentTagKey));
+			const newLongTags = tags.filter((tag) => tag.length > documentTagMaxLength && !current.has(documentTagKey(tag)));
+			if (newLongTags.length > 0) {
+				const library = await readLibraryTagRows(tx, input.userId, input.includeLetters ?? true);
+				const existing = new Set(library.flatMap(({ tags }) => tags.map(documentTagKey)));
+				if (newLongTags.some((tag) => !existing.has(documentTagKey(tag)))) {
+					throw new ORPCError("BAD_REQUEST", {
+						message: `New tags must be ${documentTagMaxLength} characters or fewer.`,
+						data: { issues: [{ code: "too_big", origin: "string", path: ["tags"], maximum: documentTagMaxLength }] },
+					});
+				}
+			}
+			await updateDocument(tx, input, { tags });
+		});
 	},
 
 	setLocked: (input: DocumentRef & { isLocked: boolean }) =>

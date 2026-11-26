@@ -66,9 +66,6 @@ export function getTagUpdates(documents: readonly Target[], changes: readonly Ta
 		const baseline = normalizeDocumentTags(tags);
 		const next = applyChanges(baseline, changes);
 		if (baseline.length === next.length && baseline.every((tag) => next.includes(tag))) continue;
-		if (next.some((tag) => tag.length > documentTagMaxLength)) {
-			return { error: "length", updates: [] } as const;
-		}
 		if (next.length > documentTagMaxCount) return { error: "count", updates: [] } as const;
 		updates.push({ id, type, tags: next });
 	}

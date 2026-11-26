@@ -61,8 +61,11 @@ export const documentsDto = {
 	setTags: {
 		input: documentRefSchema.extend({
 			tags: z
-				.array(z.string().overwrite(normalizeDocumentTag).min(1).max(documentTagMaxLength))
-				.max(documentTagMaxCount),
+				.array(z.string().overwrite(normalizeDocumentTag).min(1))
+				.max(documentTagMaxCount)
+				.describe(
+					`New tags must be ${documentTagMaxLength} characters or fewer. Longer tags can be reused from owned documents.`,
+				),
 		}),
 		output: z.void(),
 	},

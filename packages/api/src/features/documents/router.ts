@@ -98,7 +98,11 @@ export const documentsRouter = {
 		.output(documentsDto.setTags.output)
 		.handler(({ context, input }) => {
 			if (input.type === "letter") requirePersonalTool("coverLetters");
-			return documentsService.setTags({ ...input, userId: context.user.id });
+			return documentsService.setTags({
+				...input,
+				userId: context.user.id,
+				includeLetters: getPersonalToolsAvailability().coverLetters,
+			});
 		}),
 
 	setLocked: protectedProcedure

@@ -44,12 +44,12 @@ beforeEach(() => {
 	setTags.mockReset().mockResolvedValue(undefined);
 });
 
-function show(documents = [document]) {
+function show(documents = [document], tags = libraryTags) {
 	const onClose = vi.fn();
 	render(
 		<I18nProvider i18n={i18n}>
 			<QueryClientProvider client={new QueryClient()}>
-				<TagsDialog documents={documents} libraryTags={libraryTags} locale="en-US" onClose={onClose} />
+				<TagsDialog documents={documents} libraryTags={tags} locale="en-US" onClose={onClose} />
 			</QueryClientProvider>
 		</I18nProvider>,
 	);
@@ -66,6 +66,36 @@ it("saves the last pending tag after comma-separated entry", async () => {
 		id: "cv",
 		tags: ["Existing", "First", "Final tag"],
 	});
+});
+
+it("applies the length limit to the draft and saves a short tag alongside a stored long tag", async () => {
+	const longTag = "Career portfolio · November 2026 · Calendar";
+	const { dialog, onClose } = show([{ ...document, tags: [longTag] }]);
+	const input = dialog.getByRole("combobox");
+	const save = dialog.getByRole("button", { name: "Save" });
+	fireEvent.change(input, { target: { value: "x".repeat(41) } });
+	expect(dialog.getByRole("alert")).toHaveTextContent("Tag must be 40 characters or fewer.");
+	expect(save).toBeDisabled();
+	fireEvent.change(input, { target: { value: "d" } });
+	expect(dialog.queryByRole("alert")).toBeNull();
+	expect(save).toBeEnabled();
+	fireEvent.click(save);
+	await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
+	expect(setTags).toHaveBeenCalledExactlyOnceWith({ type: "resume", id: "cv", tags: [longTag, "d"] });
+});
+
+it("reuses a stored long tag from the library and allows it to be removed", async () => {
+	const longTag = "Career portfolio · November 2026 · Calendar";
+	const { dialog, onClose } = show([document], [{ tag: longTag, count: 1 }]);
+	const option = dialog.getByRole("option", { name: `${longTag} 1` });
+	fireEvent.click(option);
+	expect(option).toHaveAttribute("aria-checked", "true");
+	fireEvent.click(dialog.getByRole("button", { name: `Remove tag ${longTag}` }));
+	expect(option).toHaveAttribute("aria-checked", "false");
+	fireEvent.click(option);
+	fireEvent.click(dialog.getByRole("button", { name: "Save" }));
+	await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
+	expect(setTags).toHaveBeenCalledExactlyOnceWith({ type: "resume", id: "cv", tags: ["Existing", longTag] });
 });
 
 it("saves a replacement tag when Save is clicked directly after removing a chip", async () => {

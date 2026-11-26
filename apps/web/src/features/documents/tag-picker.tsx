@@ -157,7 +157,7 @@ export function TagPicker({
 						)
 					}
 				/>
-				<CommandList aria-multiselectable="true" label={t`Tags`} className="max-h-56 overscroll-contain">
+				<CommandList aria-multiselectable="true" label={t`Tags`} fixedHeight>
 					{matches.length > 0 && (
 						<CommandGroup heading={t`Existing tags`}>
 							{matches.map(({ tag, count }) => {
@@ -213,7 +213,9 @@ export function TagPicker({
 					</CommandEmpty>
 				</CommandList>
 			</Command>
-			<FieldError id={errorId}>{limitMessage}</FieldError>
+			<FieldError id={errorId} reserveSpace>
+				{limitMessage}
+			</FieldError>
 		</div>
 	);
 }

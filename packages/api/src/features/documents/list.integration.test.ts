@@ -4,6 +4,7 @@ import { withOwnerDatabase } from "@reactive-resume/db/owner-scope";
 import { application, coverLetter, coverLetterVersion, resume } from "@reactive-resume/db/schema";
 import { copyCoverLetterStyle } from "@reactive-resume/resume/cover-letter";
 import { defaultResumeData } from "@reactive-resume/schema/resume/default";
+import { documentsDto } from "../../dto/documents";
 import { privacyTestDatabase } from "../privacy/testing/database";
 import { documentsService } from "./service";
 
@@ -291,4 +292,35 @@ it("counts each live owned document once per tag and respects the letters gate",
 	});
 	const stored = await admin.query("SELECT tags FROM resume WHERE id = 'tag-a'");
 	expect(stored.rows[0].tags).toEqual(["Product Design", "product  design", "Alpha"]);
+});
+
+it("saves existing long tags from owned documents and rejects new or foreign long tags", async () => {
+	const ownTag = "Career portfolio · November 2026 · Calendar";
+	const otherTag = "Career portfolio · December 2026 · Calendar";
+	const admin = database.admin();
+	await admin.query(
+		"INSERT INTO resume (id, user_id, name, slug, tags, data) VALUES " +
+			"('legacy-tag-source','alice','Source','legacy-tag-source',ARRAY[$1::text],$3)," +
+			"('legacy-tag-foreign','bob','Foreign','legacy-tag-foreign',ARRAY[$2::text],$3)",
+		[ownTag, otherTag, data],
+	);
+	await admin.query(
+		"INSERT INTO cover_letter (id, user_id, name, tags, style) VALUES ('legacy-tag-letter','alice','Letter',ARRAY[$1::text],$2)",
+		[ownTag, style],
+	);
+	await withDatabasePool(admin, async () => {
+		const update = (tags: string[]) =>
+			documentsService.setTags({
+				...documentsDto.setTags.input.parse({ id: "legacy-tag-letter", type: "letter", tags }),
+				userId: "alice",
+			});
+		await update([ownTag, "d"]);
+		await update(["d"]);
+		await update(["d", ownTag]);
+		for (const tag of [otherTag, "x".repeat(41)]) {
+			await expect(update([tag])).rejects.toMatchObject({ code: "BAD_REQUEST" });
+		}
+	});
+	const stored = await admin.query("SELECT tags FROM cover_letter WHERE id = 'legacy-tag-letter'");
+	expect(stored.rows[0].tags).toEqual(["d", ownTag]);
 });
