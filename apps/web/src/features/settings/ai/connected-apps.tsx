@@ -25,7 +25,7 @@ export function ConnectedAppsSection() {
 					const client = await authClient.oauth2
 						.publicClient({ query: { client_id: connection.clientId } })
 						.catch(() => null);
-					return { ...connection, clientName: client?.data?.client_name?.trim() || connection.clientId };
+					return { ...connection, clientName: client?.data?.client_name?.trim() };
 				}),
 			);
 		},
@@ -56,7 +56,7 @@ export function ConnectedAppsSection() {
 					{connections.map((connection) => (
 						<li key={connection.id}>
 							<SettingsRow
-								title={<bdi className="break-all">{connection.clientName}</bdi>}
+								title={<bdi dir="auto">{connection.clientName || t`Unknown application`}</bdi>}
 								description={connection.scopes.join(", ")}
 							>
 								<Button

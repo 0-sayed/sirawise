@@ -40,8 +40,9 @@ it("shows registered application names, keeps unnamed or unavailable clients rev
 
 	expect(await screen.findByText("Codex")).toBeTruthy();
 	expect(screen.queryByText("codex-client-id")).toBeNull();
-	expect(screen.getByText("unnamed-client-id")).toBeTruthy();
-	expect(screen.getByText("unavailable-client-id")).toBeTruthy();
+	expect(screen.getAllByText("Unknown application")).toHaveLength(2);
+	expect(screen.queryByText("unnamed-client-id")).toBeNull();
+	expect(screen.queryByText("unavailable-client-id")).toBeNull();
 	const connection = screen.getByText("Codex").closest("li");
 	if (!connection) throw new Error("Application name is missing its connection row");
 	fireEvent.click(within(connection).getByRole("button", { name: "Revoke access" }));

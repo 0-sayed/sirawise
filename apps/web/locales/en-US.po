@@ -19227,3 +19227,7 @@ msgstr "Job requirement {number}"
 msgctxt "review.withheldNote"
 msgid "Review note {number}"
 msgstr "Review note {number}"
+
+#: src/features/settings/ai/connected-apps.tsx
+msgid "Unknown application"
+msgstr "Unknown application"
