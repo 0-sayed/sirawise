@@ -103,7 +103,10 @@ async function mount(hash = "", loader: () => Promise<readonly GuideEntry[]> = a
 }
 it.each(["en-US", "ar-SA"] as const)("uses direction-aware arrow keys and URL history in %s", async (locale) => {
 	i18n.loadAndActivate(await getUiLocaleMessages(locale));
-	const router = await mount("?tab=ats");
+	// The catalog tests cover the full rule lists. Navigation needs one rule per tab.
+	const router = await mount("?tab=ats", async () =>
+		entries.filter(({ code }) => code === "NO_EMAIL" || code === "MISSING_EMAIL"),
+	);
 	const tabs = screen.getAllByRole("tab");
 	tabs[0]?.focus();
 	await userEvent.keyboard(locale === "ar-SA" ? "{ArrowLeft}{Enter}" : "{ArrowRight}{Enter}");
