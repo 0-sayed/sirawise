@@ -1,7 +1,7 @@
 import { settleScreen } from "../fixtures/screen";
 import { expect, test } from "../fixtures/test";
 
-type CanvasFrame = { path: string; x: number; width: number; controlsX: number };
+type CanvasFrame = { time: number; path: string; x: number; width: number; controlsX: number };
 type CanvasWindow = typeof globalThis & { canvasFrames: CanvasFrame[]; sampleCanvas: boolean };
 
 for (const locale of ["ar-SA", "en-US"] as const) {
@@ -37,12 +37,13 @@ for (const locale of ["ar-SA", "en-US"] as const) {
 				const audit = globalThis as CanvasWindow;
 				audit.canvasFrames = [];
 				audit.sampleCanvas = true;
-				const sample = () => {
+				const sample = (time: number) => {
 					const content = document.querySelector('[data-slot="dashboard-content"]');
 					const controls = document.querySelector('[data-slot="dashboard-header-controls"]');
 					if (content && controls) {
 						const box = content.getBoundingClientRect();
 						audit.canvasFrames.push({
+							time,
 							path: location.pathname,
 							x: box.x,
 							width: box.width,
@@ -55,10 +56,12 @@ for (const locale of ["ar-SA", "en-US"] as const) {
 			});
 			try {
 				await card.click();
-				await page.waitForFunction(
-					() =>
-						(globalThis as CanvasWindow).canvasFrames.filter((frame) => frame.path.startsWith("/builder/")).length >= 5,
-				);
+				await page.waitForFunction(() => {
+					const frames = (globalThis as CanvasWindow).canvasFrames;
+					const firstPending = frames.find((frame) => frame.path.startsWith("/builder/"));
+					const last = frames.at(-1);
+					return firstPending && last && last.time - firstPending.time >= 500;
+				});
 			} finally {
 				release();
 			}

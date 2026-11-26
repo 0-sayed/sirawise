@@ -172,7 +172,9 @@ test("dense career, design, and device controls remain usable in both directions
 			await expect(
 				devicePage.getByText(locale === "ar-SA" ? "هذا الجهاز" : "This device", { exact: true }),
 			).toBeVisible();
-			await expect(devicePage.getByRole("button", { name: /10/ })).toBeVisible();
+			await expect(
+				devicePage.getByRole("button", { name: locale === "ar-SA" ? "عرض الكل (10)" : "Show all 10", exact: true }),
+			).toBeVisible();
 			await expect(devicePage.locator('[data-slot="settings-row"][data-density="compact"]')).toHaveCount(5);
 			const deviceRow = devicePage.locator('[data-slot="settings-row"][data-density="compact"]').nth(1);
 			const aligned = await deviceRow.evaluate((row) => {

@@ -79,7 +79,7 @@ export function ImportAssistance({
 	const lastPage = passage.pages.at(-1);
 	const id = useId();
 	return (
-		<SectionCard variant="flush">
+		<SectionCard variant="flush" className="text-content-start">
 			<Collapsible open={open} onOpenChange={setOpen}>
 				<SectionCardHeader className="flex-wrap">
 					<Icon name="sparkle" />

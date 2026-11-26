@@ -104,13 +104,7 @@ test("the fictional demo survives reruns and interface language changes", async 
 				await expect(page).toHaveTitle(locale === "ar-SA" ? /سيراوايز/ : /Sirawise/);
 				await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar-SA" ? "rtl" : "ltr");
 				if (route === "/dashboard/career/information") {
-					const values = await page.locator("main").evaluate(
-						(main) =>
-							`${main.textContent} ${Array.from(main.querySelectorAll("input"))
-								.map((input) => input.value)
-								.join(" ")}`,
-					);
-					expect(values).toContain("SQL");
+					await expect(page.locator("#career-section-skills").getByText("SQL", { exact: true })).toBeVisible();
 				}
 				const path = testInfo.outputPath(`${locale}-${width}-workspace-${index}.jpg`);
 				await page.screenshot({ path, type: "jpeg", quality: 55, animations: "disabled" });

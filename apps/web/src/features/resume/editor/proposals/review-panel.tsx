@@ -206,7 +206,11 @@ export function ReviewResultPanel({
 		}
 	};
 	return (
-		<div className="grid min-w-0 gap-4" data-testid="durable-review" data-review-operation={operationId}>
+		<div
+			className="grid min-w-0 gap-4 text-content-start"
+			data-testid="durable-review"
+			data-review-operation={operationId}
+		>
 			{!bound && (
 				<ReviewNotice>
 					<Trans>Open this CV in the editor to review its changes.</Trans>

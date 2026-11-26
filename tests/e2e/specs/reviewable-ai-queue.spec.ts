@@ -40,8 +40,9 @@ for (const locale of ["en-US", "ar-SA"] as const) {
 				if (!id) throw new Error("Missing queued operation");
 				expect(await api.ai.operations.get({ id })).toMatchObject({ state: "queued", queuePosition: 1 });
 				await page.screenshot({ path: info.outputPath("waiting.png") });
-				await waiting
-					.locator("xpath=ancestor::*[@data-slot='alert']")
+				await page
+					.locator('[data-slot="review-progress"]')
+					.filter({ has: waiting })
 					.getByRole("button", { name: ar ? "إلغاء" : "Cancel", exact: true })
 					.click();
 				await expect.poll(async () => (await api.ai.operations.get({ id })).state).toBe("cancelled");

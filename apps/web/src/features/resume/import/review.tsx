@@ -951,7 +951,7 @@ export function ImportReview({
 																			)}
 																		>
 																			<dt className="type-meta">{fieldLabel(field)}</dt>
-																			<dd className="type-body wrap-anywhere" dir="auto">
+																			<dd className="type-body wrap-anywhere text-content-start" dir="auto">
 																				{display || <Trans>Missing information</Trans>}
 																			</dd>
 																			{suggested && <p className="type-meta">{copy("review.import.aiUncertain")}</p>}

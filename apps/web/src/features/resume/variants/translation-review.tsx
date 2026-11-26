@@ -435,7 +435,7 @@ export function TranslationReview({
 	];
 
 	return (
-		<div className="grid gap-4" aria-label={copy("language.translation.review")}>
+		<div className="grid gap-4 text-content-start" aria-label={copy("language.translation.review")}>
 			{stale && (
 				<ReviewNotice retry={onRetry ?? (() => void review.refetch())}>
 					<Trans>The source or this copy changed. Keep your work and request a new review.</Trans>

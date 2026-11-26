@@ -281,9 +281,17 @@
 }
 
 @layer base {
-	/* Align standalone passages to the direction detected from their text. */
+	html {
+		--interface-text-align: left;
+	}
+
+	html[dir="rtl"] {
+		--interface-text-align: right;
+	}
+
+	/* Auto direction orders user text; its containing interface owns the alignment. */
 	:where([dir="auto"]):not(:where(input, textarea, [contenteditable], [contenteditable] *)) {
-		text-align: start;
+		text-align: var(--auto-text-align, var(--interface-text-align));
 	}
 
 	* {
@@ -1758,7 +1766,16 @@ button .success-tick {
 		}
 	}
 }
+/* Reviewed passages align with their own reading direction. */
+@utility text-content-start {
+	--auto-text-align: start;
+}
+
 @layer utilities {
+	.text-start[dir="auto"]:not(:where(input, textarea, [contenteditable], [contenteditable] *)) {
+		text-align: var(--auto-text-align, var(--interface-text-align));
+	}
+
 	[data-slot="segmented-control"][data-wrap="true"] {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(var(--space-48) * 2)), 1fr));

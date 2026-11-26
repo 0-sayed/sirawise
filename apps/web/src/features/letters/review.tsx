@@ -88,7 +88,7 @@ export function LetterReview({
 			</p>
 		);
 	return (
-		<div className="grid gap-4">
+		<div className="grid gap-4 text-content-start">
 			<SectionCard>
 				<SectionCardTitle>
 					<Trans>Your current letter</Trans>
