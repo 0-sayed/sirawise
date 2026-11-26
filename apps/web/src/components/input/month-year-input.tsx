@@ -5,11 +5,10 @@ import { formatYearMonth, toYearMonth } from "@reactive-resume/schema/resume/dat
 import { readSingleDate } from "@reactive-resume/schema/resume/period";
 import { Button } from "@reactive-resume/ui/components/button";
 import { Icon } from "@reactive-resume/ui/components/icon";
-import { inputBaseClassName, fieldDirectionProps } from "@reactive-resume/ui/components/input";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@reactive-resume/ui/components/input-group";
 import { NativeSelect } from "@reactive-resume/ui/components/native-select";
 import { Popover, PopoverContent, PopoverTrigger } from "@reactive-resume/ui/components/popover";
 import { normalizeNumericDigits } from "@reactive-resume/utils/string";
-import { cn } from "@reactive-resume/utils/style";
 
 type DateSettings = { locale: string; format?: DateFormat | undefined };
 const monthDateSamples = Array.from({ length: 12 }, (_, month) => new Date(Date.UTC(2020, month, 1)));
@@ -81,8 +80,8 @@ export function MonthYearInput({
 	};
 
 	return (
-		<div
-			className="relative min-w-0 flex-1"
+		<InputGroup
+			className="flex-1"
 			onBlur={(event) => {
 				const field = event.currentTarget;
 				queueMicrotask(() => {
@@ -99,19 +98,17 @@ export function MonthYearInput({
 					setOpen(next);
 				}}
 			>
-				<input
-					{...fieldDirectionProps({ placeholder: t`Mar 2022` })}
+				<InputGroupInput
 					id={id}
 					name={name}
 					type="text"
 					inputMode="text"
 					autoComplete="off"
 					aria-label={label}
-					aria-invalid={invalid}
+					aria-invalid={!disabled && invalid}
 					disabled={disabled}
 					placeholder={t`Mar 2022`}
 					value={placeholderValue ?? typed ?? formatted}
-					className={cn(inputBaseClassName, "h-11 pe-12 disabled:bg-sunken disabled:text-ink-2 disabled:opacity-100")}
 					onClick={() => {
 						setCalendarYear(selectedYear);
 						setOpen(true);
@@ -145,21 +142,17 @@ export function MonthYearInput({
 						if (next !== undefined) setTyped(null);
 					}}
 				/>
-				<PopoverTrigger
-					id={triggerId}
-					ref={triggerRef}
-					render={
-						<Button
-							variant="ghost"
-							size="icon-lg"
-							className="absolute inset-e-0 top-0"
-							aria-label={t`Choose a date.`}
-							disabled={disabled}
-						>
-							<Icon name="calendar-dots" />
-						</Button>
-					}
-				/>
+				<InputGroupAddon align="inline-end">
+					<PopoverTrigger
+						id={triggerId}
+						ref={triggerRef}
+						render={
+							<Button variant="ghost" size="icon-lg" aria-label={t`Choose a date.`} disabled={disabled}>
+								<Icon name="calendar-dots" />
+							</Button>
+						}
+					/>
+				</InputGroupAddon>
 				<PopoverContent ref={popupRef} className="w-72" aria-label={label} initialFocus={false}>
 					<NativeSelect
 						aria-label={label}
@@ -186,6 +179,6 @@ export function MonthYearInput({
 					</div>
 				</PopoverContent>
 			</Popover>
-		</div>
+		</InputGroup>
 	);
 }

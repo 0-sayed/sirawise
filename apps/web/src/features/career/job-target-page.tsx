@@ -141,12 +141,14 @@ export function JobTargetPage({ resumeId }: { resumeId: string }) {
 				</ReviewNotice>
 			) : cv.data ? (
 				<>
-					<SectionCard variant="compact" className="sm:grid-cols-2">
+					<SectionCard variant="compact" className="gap-4 sm:grid-cols-2">
 						<div className="grid min-w-0 content-start gap-2">
 							<Label htmlFor="job-source">{copy("jobs.baseCv.label")}</Label>
 							<NativeSelect
 								id="job-source"
+								className="truncate"
 								directionText={cv.data.name}
+								title={cv.data.name}
 								value={resumeId}
 								onChange={(event) =>
 									void navigate({ to: "/dashboard/resumes/$resumeId/job", params: { resumeId: event.target.value } })
@@ -160,22 +162,24 @@ export function JobTargetPage({ resumeId }: { resumeId: string }) {
 							</NativeSelect>
 						</div>
 						{evidence.data?.job && !editing && (
-							<div className="grid min-w-0 gap-2">
-								<p className="type-label">
+							<div className="grid min-w-0 content-start gap-2">
+								<p className="type-label text-ink-2">
 									<Trans>Job title</Trans>
 								</p>
-								<p className="type-body wrap-anywhere">
-									<bdi dir="auto">{evidence.data.job.role}</bdi>
-									{evidence.data.job.employer && (
-										<>
-											{" "}
-											· <bdi dir="auto">{evidence.data.job.employer}</bdi>
-										</>
-									)}
-								</p>
-								<Button variant="secondary" className="justify-self-start" onClick={() => setEditing(true)}>
-									{copy("jobs.context.change")}
-								</Button>
+								<div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
+									<p className="type-body wrap-anywhere">
+										<bdi dir="auto">{evidence.data.job.role}</bdi>
+										{evidence.data.job.employer && (
+											<>
+												{" "}
+												· <bdi dir="auto">{evidence.data.job.employer}</bdi>
+											</>
+										)}
+									</p>
+									<Button variant="secondary" className="shrink-0" onClick={() => setEditing(true)}>
+										{copy("jobs.context.change")}
+									</Button>
+								</div>
 							</div>
 						)}
 					</SectionCard>

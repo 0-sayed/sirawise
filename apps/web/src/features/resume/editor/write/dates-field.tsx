@@ -1,8 +1,6 @@
 import type { DateFormat, ResumeDates, YearMonth } from "@reactive-resume/schema/resume/dates";
-import { t } from "@lingui/core/macro";
-import { Trans } from "@lingui/react/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
 import { useId, useState } from "react";
-import { getPresentLabel } from "@reactive-resume/schema/resume/dates";
 import { Icon } from "@reactive-resume/ui/components/icon";
 import { Switch } from "@reactive-resume/ui/components/switch";
 import { cn } from "@reactive-resume/utils/style";
@@ -24,12 +22,13 @@ type DatesFieldProps = DateSettings & {
  * "needs a look" note left by text that couldn't be read exactly.
  */
 export function DatesField({ dates, single = false, locale, format, onChange, className }: DatesFieldProps) {
+	const { t } = useLingui();
 	const id = useId();
 	const [invalid, setInvalid] = useState<Record<"start" | "end", boolean>>({ start: false, end: false });
 	// Any edit replaces the dates without `raw`, which clears the review note.
 	const current: ResumeDates = { start: dates.start, end: dates.end, present: dates.present };
 	const reversed = !single && !dates.present && dates.start && dates.end && isBefore(dates.end, dates.start);
-	const hasError = invalid.start || invalid.end;
+	const hasError = invalid.start || (!dates.present && invalid.end);
 
 	const setInvalidFor = (part: "start" | "end") => (value: boolean) =>
 		setInvalid((state) => (state[part] === value ? state : { ...state, [part]: value }));
@@ -61,7 +60,7 @@ export function DatesField({ dates, single = false, locale, format, onChange, cl
 							locale={locale}
 							format={format}
 							disabled={dates.present}
-							placeholderValue={dates.present ? getPresentLabel(locale) : undefined}
+							placeholderValue={dates.present ? t`Present` : undefined}
 							onCommit={(end) => onChange({ ...current, end })}
 							onInvalid={setInvalidFor("end")}
 						/>
@@ -75,6 +74,7 @@ export function DatesField({ dates, single = false, locale, format, onChange, cl
 					<label className="flex w-fit cursor-pointer items-center gap-2 p-1 text-sm">
 						<Switch
 							checked={dates.present}
+							// The date schema stores a null end date when the user marks a role as ongoing.
 							onCheckedChange={(present) => onChange({ ...current, present, end: present ? null : dates.end })}
 						/>
 						<Trans>Present</Trans>

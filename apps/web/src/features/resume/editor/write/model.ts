@@ -5,9 +5,10 @@ import type {
 	ResumeData,
 	SectionType,
 } from "@reactive-resume/schema/resume/data";
+import type { DateFormatOptions, ResumeDates } from "@reactive-resume/schema/resume/dates";
 import type { WritableDraft } from "immer";
 import { sectionTypeSchema } from "@reactive-resume/schema/resume/data";
-import { EMPTY_RESUME_DATES } from "@reactive-resume/schema/resume/dates";
+import { EMPTY_RESUME_DATES, formatResumeDates } from "@reactive-resume/schema/resume/dates";
 import { generateId, stripHtml } from "@reactive-resume/utils/string";
 
 type Data = ResumeData | WritableDraft<ResumeData>;
@@ -158,17 +159,26 @@ const text = (value: unknown) => (typeof value === "string" ? value.trim() : "")
 const join = (...parts: unknown[]) => parts.map(text).filter(Boolean).join(" · ");
 
 /**
- * How an entry reads in the outline: a title and a line of details ("company · location · dates"). Dates come
- * from the legacy text, which is kept formatted from the structured dates.
+ * How an entry reads in the outline: a title and a line of details ("company · location · dates").
  */
-export function describeEntry(type: CustomSectionType, entry: Entry): { title: string; meta: string } {
-	const e = entry as Record<string, unknown> & { website?: { label?: string }; keywords?: string[] };
+export function describeEntry(
+	type: CustomSectionType,
+	entry: Entry,
+	dateOptions?: DateFormatOptions,
+): { title: string; meta: string } {
+	const e = entry as Record<string, unknown> & {
+		website?: { label?: string };
+		keywords?: string[];
+		dates?: ResumeDates;
+	};
 	const keywords = (e.keywords ?? []).join(", ");
 
 	switch (type) {
 		case "experience": {
 			const position = text(e.position);
-			return { title: position || text(e.company), meta: join(position ? e.company : "", e.location, e.period) };
+			const period =
+				dateOptions && e.dates?.present ? formatResumeDates({ ...e.dates, raw: undefined }, dateOptions) : e.period;
+			return { title: position || text(e.company), meta: join(position ? e.company : "", e.location, period) };
 		}
 		case "education":
 			return {
