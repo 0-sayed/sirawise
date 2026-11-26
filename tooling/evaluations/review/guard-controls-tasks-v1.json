@@ -1,9 +1,9 @@
 {
 	"study": "tasks-v1",
-	"freezeHash": "db53dd4137399deca53f4efbd30e5c403acb03a03b89a0edbb5ac706fb7e4ff4",
-	"reason": "Seal the AI review safeguards from PR 35. Offline controls preserve the unapproved benchmark gate.",
+	"freezeHash": "5a3139b8055a8d90077d91a4fc17ec06af646687f5033a58cb18d2c83f2d484c",
+	"reason": "Pin the job-term matcher after the generic-term filter changes. Offline controls preserve the unapproved benchmark gate.",
 	"controlsBasis": "Fresh deterministic controls for all categories, the primary scope, and the judge canaries. This scan used no paid calls.",
-	"scannedAt": "2026-11-26T11:23:22.568Z",
+	"scannedAt": "2026-11-26T14:39:56.577Z",
 	"all": {
 		"checked": 1540,
 		"pass": true,

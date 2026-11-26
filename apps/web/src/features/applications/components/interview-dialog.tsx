@@ -34,6 +34,7 @@ import { dayKey, formatDuration, interviewTypeLabel } from "../interviews";
 import { isHttpLink } from "../links";
 import { applicationsListQueryKey } from "../queries";
 import { ApplicationPicker } from "./application-picker";
+import { ApplicationText, ApplicationTextLine } from "./application-text";
 import { LocalDateInput } from "@/components/input/local-date-input";
 import { Combobox } from "@/components/ui/combobox";
 import { useCareerTime, useNow, confirmAction } from "@/features/career/shared";
@@ -344,9 +345,7 @@ export function InterviewDialog({
 					<DialogTitle>{editing ? <Trans>Edit interview</Trans> : <Trans>Schedule an interview</Trans>}</DialogTitle>
 					<DialogDescription>
 						{application ? (
-							<>
-								<bdi dir="auto">{application.role}</bdi> · <bdi dir="auto">{application.company}</bdi>
-							</>
+							<ApplicationTextLine value={application.role} detail={application.company} />
 						) : (
 							<Trans>It will show on the application's timeline and on the calendar.</Trans>
 						)}
@@ -366,11 +365,7 @@ export function InterviewDialog({
 								· {draft.timezone}
 							</bdi>
 						</p>
-						{editing.location && (
-							<bdi dir="auto" className="wrap-anywhere">
-								{editing.location}
-							</bdi>
-						)}
+						{editing.location && <ApplicationText className="wrap-anywhere">{editing.location}</ApplicationText>}
 						<div className="flex flex-wrap gap-2">
 							{isHttpLink(editing.location) && (
 								<Button

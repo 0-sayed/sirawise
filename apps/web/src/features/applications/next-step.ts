@@ -88,11 +88,10 @@ export function describeNextStep(
 	switch (step.kind) {
 		case "interview": {
 			const kind = interviewTypeLabel(step.interview.kind);
-			const where = step.interview.location ? ` · ${step.interview.location}` : "";
 			return {
 				icon: "calendar-dot",
 				title: t`${kind} interview`,
-				sub: `${formatWhen(step.at, locale, true, step.interview.timezone)} · ${step.interview.timezone}${where}`,
+				sub: `${formatWhen(step.at, locale, true, step.interview.timezone)} · ${step.interview.timezone}`,
 				tone: "normal",
 			};
 		}

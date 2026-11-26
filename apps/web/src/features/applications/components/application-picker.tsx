@@ -3,6 +3,7 @@ import type { SingleComboboxProps } from "@/components/ui/combobox";
 import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 import { getStageColor, getStageLabel } from "../stages";
+import { ApplicationText } from "./application-text";
 import { Combobox } from "@/components/ui/combobox";
 import { formatRelativeTime } from "@/libs/locale";
 
@@ -41,13 +42,9 @@ export function ApplicationPicker({ applications, noneLabel, ...props }: Applica
 						keywords: [item.role, company, stage],
 						label: (
 							<span className="grid min-w-0 gap-1 text-start">
-								<span dir="auto" className="type-body font-medium wrap-anywhere">
-									{item.role}
-								</span>
+								<ApplicationText className="type-body font-medium wrap-anywhere">{item.role}</ApplicationText>
 								{company && (
-									<span dir="auto" className="type-metadata wrap-anywhere text-ink-3">
-										{company}
-									</span>
+									<ApplicationText className="type-metadata wrap-anywhere text-ink-3">{company}</ApplicationText>
 								)}
 								<span className="flex flex-wrap items-center gap-2 type-metadata text-ink-3">
 									<span className="inline-flex items-center gap-1">

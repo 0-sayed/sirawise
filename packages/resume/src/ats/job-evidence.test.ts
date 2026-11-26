@@ -171,20 +171,23 @@ it("excludes Arabic function words and phrases made from them from literal cover
 
 it.each([
 	[
-		"TypeScript services, TypeScript stack, TypeScript solutions, TypeScript systems, TypeScript applications, TypeScript development, TypeScript experience",
+		"TypeScript services, TypeScript stack, TypeScript solutions, TypeScript systems, TypeScript applications, TypeScript development, TypeScript experience, TypeScript tools, TypeScript tooling, TypeScript platform, maintain TypeScript, build TypeScript, use TypeScript, develop TypeScript, write TypeScript, support TypeScript, design TypeScript, product engineering",
 	],
 	[
-		"خدمات TypeScript، TypeScript حلول، أنظمة TypeScript، تطبيقات TypeScript، تطوير TypeScript، خبرة TypeScript، حزمة TypeScript",
+		"خدمات TypeScript، TypeScript حلول، أنظمة TypeScript، تطبيقات TypeScript، تطوير TypeScript، خبرة TypeScript، حزمة TypeScript، أدوات TypeScript، منصة TypeScript، صيانة TypeScript، بناء TypeScript، استخدام TypeScript، كتابة TypeScript، دعم TypeScript، تصميم TypeScript",
 	],
 ])("drops generic skill phrases while preserving named skills (%s)", (examples) => {
-	const skills = "system design, machine learning, React Native";
+	const skills = "system design, machine learning, React Native, product management";
 	const text = `${examples}, ${skills}`;
 	const report = analyzeJobTerms({ identity, jobText: text, passages: [passage(text)] });
 	const matches = report.terms.filter((term) => term.matched).map((term) => term.term);
-	expect(matches).toEqual(expect.arrayContaining(["typescript", "system design", "machine-learning", "react-native"]));
+	expect(matches).toEqual(
+		expect.arrayContaining(["typescript", "system design", "machine-learning", "react-native", "product-management"]),
+	);
 	expect(
 		[...report.terms.map((term) => term.term), ...report.excludedTerms].filter((term) => term.includes("typescript")),
 	).toEqual(["typescript"]);
+	expect([...report.terms.map(({ term }) => term), ...report.excludedTerms]).not.toContain("product engineering");
 });
 
 it.each([
@@ -220,7 +223,7 @@ it.each([
 	const terms = [...report.terms.map(({ term }) => term), ...report.excludedTerms];
 	expect(terms).toEqual(expect.arrayContaining(kept));
 	for (const term of noise) expect(terms).not.toContain(term);
-	expect(report.identity.normalizationVersion).toBe("matching-v3");
+	expect(report.identity.normalizationVersion).toBe("matching-v4");
 });
 
 it("ranks curated skills before repeated free text and requirements before other free text", () => {

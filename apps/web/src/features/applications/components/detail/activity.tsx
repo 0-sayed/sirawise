@@ -32,6 +32,7 @@ import { interviewKindOf, interviewTypeLabel } from "../../interviews";
 import { getStageColor, getStageLabel } from "../../stages";
 import { useInvalidateApplications } from "../../use-application-actions";
 import { useApplicationNotes } from "../application-notes";
+import { ApplicationText } from "../application-text";
 import { NoteComposer } from "./note-composer";
 import { CalendarDateInput } from "@/components/input/calendar-date-input";
 import { useClosingValue } from "@/hooks/use-closing-value";
@@ -141,9 +142,9 @@ export function Activity({ application, onOpenInterview }: ActivityProps) {
 							<Trans>Edit application note</Trans>
 						</Button>
 					</div>
-					<p dir="auto" className="type-body wrap-anywhere whitespace-pre-wrap">
+					<ApplicationText as="p" className="type-body wrap-anywhere whitespace-pre-wrap">
 						{application.notes}
-					</p>
+					</ApplicationText>
 				</article>
 			)}
 
@@ -171,9 +172,9 @@ export function Activity({ application, onOpenInterview }: ActivityProps) {
 										<h3 className="type-label">
 											<Trans>Note</Trans>
 										</h3>
-										<p dir="auto" className="wrap-anywhere whitespace-pre-wrap">
+										<ApplicationText as="p" className="wrap-anywhere whitespace-pre-wrap">
 											{entry.text}
-										</p>
+										</ApplicationText>
 									</>
 								) : entry.type === "stage" ? (
 									<h3 className="type-label">
@@ -212,9 +213,9 @@ export function Activity({ application, onOpenInterview }: ActivityProps) {
 								</time>
 								{entry.type === "interview" && (
 									<>
-										<p dir="auto" className="type-metadata text-ink-2">
+										<ApplicationText as="p" className="type-metadata text-ink-2">
 											{entry.location}
-										</p>
+										</ApplicationText>
 										{entry.participants.length > 0 && (
 											<p dir="auto" className="type-metadata text-ink-2">
 												{entry.participants
@@ -223,9 +224,9 @@ export function Activity({ application, onOpenInterview }: ActivityProps) {
 											</p>
 										)}
 										{entry.notes && (
-											<p dir="auto" className="type-body wrap-anywhere whitespace-pre-wrap">
+											<ApplicationText as="p" className="type-body wrap-anywhere whitespace-pre-wrap">
 												{entry.notes}
-											</p>
+											</ApplicationText>
 										)}
 									</>
 								)}

@@ -2542,5 +2542,24 @@
 		"freezeHash": "f77c41c4325fe3fdfb939e22290c333ec82be6e98fb4a78ea85e9687def5a395",
 		"sha256": "016bab5e9cba1970143a56f6c2ee6bb72b813396c99b2e3dbdee894d8de31c0e",
 		"gitBlob": "e02ad2de4565a2f3fbf1230704574f531bbe8fde"
+	},
+	{
+		"name": "tasks-study-before-job-term-filter.json",
+		"date": "2026-11-26",
+		"reason": "Pin the job-term matcher after the generic-term filter changes. Offline controls preserve the unapproved benchmark gate.",
+		"originalName": "tasks-study.json",
+		"studyId": "tasks-v1-personal-career-98faa6933630",
+		"studyHash": "db53dd4137399deca53f4efbd30e5c403acb03a03b89a0edbb5ac706fb7e4ff4",
+		"sha256": "3e8a84cd8df01ebe0cdc49fa74bb057b5d1224e8ccce465697405f5557fba45d",
+		"gitBlob": "bbb0fe72170416d4af2f62a9404dafd61fcac59d"
+	},
+	{
+		"name": "guard-controls-before-job-term-filter.json",
+		"date": "2026-11-26",
+		"reason": "Pin the job-term matcher after the generic-term filter changes. Offline controls preserve the unapproved benchmark gate.",
+		"originalName": "guard-controls-tasks-v1.json",
+		"freezeHash": "db53dd4137399deca53f4efbd30e5c403acb03a03b89a0edbb5ac706fb7e4ff4",
+		"sha256": "6b62492572fa46527676c7f15a8bb434ea9aedd00f1eb888355d27d1412399cb",
+		"gitBlob": "a749e3f57a0ef5862c8a3a569ebf7ecd5607fcea"
 	}
 ]

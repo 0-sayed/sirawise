@@ -131,6 +131,25 @@ it("keeps the same column contract when a stage closes", () => {
 	expect(columns()).toEqual(before);
 	expect(screen.queryByRole("columnheader", { name: "Stage" })).toBeNull();
 });
+it.each(["desktop", "mobile"])("isolates mixed-language application text in the %s list", (breakpoint) => {
+	media.breakpoint = breakpoint;
+	const role = "Software Engineer.";
+	const company = "شركة المثال";
+	const location = "Riyadh.";
+	const followUpNote = "Review the interview schedule and preparation questions.";
+	mount(null, [{ ...application, role, company, location, followUpNote, followUpAt: new Date("2027-01-01") }]);
+	for (const value of [role, company, breakpoint === "mobile" ? followUpNote : location]) {
+		const text = screen.getByText(value);
+		expect(text).toHaveAttribute("dir", "auto");
+		expect(text.closest(".text-content-start")).not.toBeNull();
+	}
+	if (breakpoint === "desktop") {
+		const note = screen.getByText(followUpNote);
+		expect(note).toHaveAttribute("dir", "auto");
+		expect(note).toHaveClass("text-content-start", "truncate");
+	}
+});
+
 it("shows the stage for an ungrouped list", () => {
 	mount(null);
 	expect(screen.getByRole("columnheader", { name: "Stage" })).toBeTruthy();

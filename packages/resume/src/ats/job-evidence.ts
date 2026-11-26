@@ -11,7 +11,7 @@ import { matchingWindows } from "../ats-pdf/jd/tokenize";
 import { hashReviewTarget } from "../review-evidence";
 import { isRenderedSection, walkSections } from "./walk";
 
-export const JOB_NORMALIZATION_VERSION = "matching-v3";
+export const JOB_NORMALIZATION_VERSION = "matching-v4";
 export const JOB_RUBRIC_VERSION = "literal-v2";
 const TERM_LIMIT = 35;
 const plain = (value: string) => decodeHtmlEntities(value.replace(/<[^>]*>/gu, " ")).trim();

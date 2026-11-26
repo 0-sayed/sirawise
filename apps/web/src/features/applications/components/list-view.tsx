@@ -27,6 +27,7 @@ import { summarizeApplicationGroup } from "../list-summary";
 import { describeNextStep, getNextStep } from "../next-step";
 import { CLOSED_REASONS, getClosedReasonLabel, getStageColor, getStageLabel, LIST_ORDER, PIPELINE } from "../stages";
 import { useInvalidateApplications } from "../use-application-actions";
+import { ApplicationText, ApplicationTextLine } from "./application-text";
 import { useApplicationGroupCollapse, type ApplicationGroupCollapseState } from "./list-group-collapse";
 import { SelectionBar } from "@/components/layout/selection-bar";
 import { useNow } from "@/features/career/shared";
@@ -306,18 +307,15 @@ function ApplicationRow({
 
 	const openButton = (
 		<button type="button" onClick={onOpen} className="grid min-w-0 flex-1 text-start after:absolute after:inset-0">
-			<span dir="auto" title={application.role} className="truncate font-medium">
+			<ApplicationText title={application.role} className="truncate font-medium">
 				{application.role}
-			</span>
-			<span
-				dir="auto"
-				title={[application.company, application.location].filter(Boolean).join(" · ")}
-				className="truncate type-metadata text-ink-3"
-			>
-				{phone
-					? `${application.company} · ${next.title}`
-					: [application.company, application.location].filter(Boolean).join(" · ")}
-			</span>
+			</ApplicationText>
+			<ApplicationTextLine
+				value={application.company}
+				detail={phone ? next.title : application.location}
+				truncate
+				className="type-metadata text-ink-3"
+			/>
 		</button>
 	);
 
@@ -362,9 +360,9 @@ function ApplicationRow({
 			<td className="px-2">
 				<span className={cn("flex items-center gap-1.5", tone)}>
 					<Icon name={next.icon} size={16} className="shrink-0" />
-					<span dir="auto" title={next.title} className="truncate">
+					<ApplicationText title={next.title} className="truncate">
 						{next.title}
-					</span>
+					</ApplicationText>
 				</span>
 			</td>
 			{showStage && (

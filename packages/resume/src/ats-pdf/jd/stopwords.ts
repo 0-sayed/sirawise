@@ -50,7 +50,7 @@ export const JD_STOPWORDS: ReadonlySet<string> = new Set(
 
 // These words can be part of a real skill, such as platform engineering or customer service.
 const GENERIC_JOB_WORDS = new Set(
-	`design research explain client clients customer customers stakeholder stakeholders stack stacks ideal modern impact scale mission values platform platforms product products partner partners helping ensuring multiple day daily
+	`design engineering research explain client clients customer customers stakeholder stakeholders stack stacks ideal modern impact scale mission values platform platforms product products partner partners helping ensuring multiple day daily
 take help existing code growing launch decision decisions technical technology complex
 work working works team teams role job jobs candidate candidates company companies business good great strong excellent effective efficiently ability able responsible responsibilities responsibility required requirements require experience experienced knowledge understanding proven demonstrate demonstrated environment environments opportunity opportunities looking seeking join provide support ensure including include using use used new develop development deliver delivery manage management lead leading driven focus focused passionate passion skill skills communication collaborative collaboration collaborate people person professional highly preferred minimum must need needs want relevant across within various related through achieve contributing contribute maintain drive build building successful success solution solutions process processes tasks daily activities additional value
 عميل عملاء شرح توضيح مثالي مثالية يومي يومية حلول منصة تعمل
@@ -60,9 +60,10 @@ work working works team teams role job jobs candidate candidates company compani
 );
 
 const GENERIC_SKILL_QUALIFIERS = new Set(
-	"service services stack stacks solution solutions system systems application applications development experience خدمات خدمة حزمة حزم حلول حل نظام أنظمة انظمة تطبيق تطبيقات تطوير خبرة خبرات".split(
-		" ",
-	),
+	`tool tools tooling service services stack stacks solution solutions system systems application applications development experience platform platforms
+maintain build use develop write support design
+أداة اداة أدوات ادوات خدمات خدمة حزمة حزم حلول حل نظام أنظمة انظمة تطبيق تطبيقات تطوير خبرة خبرات منصة منصات
+صيانة بناء استخدام كتابة دعم تصميم يصون يبني يستخدم يطور يكتب يدعم يصمم`.split(/\s+/u),
 );
 
 export function isGenericSkillQualifier(word: string): boolean {

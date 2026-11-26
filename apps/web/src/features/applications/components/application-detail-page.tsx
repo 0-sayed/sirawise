@@ -36,6 +36,7 @@ import { useSubmitValidation } from "@reactive-resume/ui/hooks/use-submit-valida
 import { getClosedReasonLabel, getStageLabel, PIPELINE } from "../stages";
 import { useApplicationActions, useInvalidateApplications } from "../use-application-actions";
 import { ApplicationFormSheet } from "./application-form-sheet";
+import { ApplicationText, ApplicationTextLine } from "./application-text";
 import { ApplicationWriteBoundary } from "./application-write-boundary";
 import { Activity } from "./detail/activity";
 import { CloseDialog } from "./detail/close-dialog";
@@ -145,8 +146,8 @@ function Detail({ application, onEditDetails, onDeleted }: DetailProps) {
 			<PageHeader
 				layout="record"
 				titleVariant="functional"
-				title={<span dir="auto">{application.role}</span>}
-				description={<span dir="auto">{[application.company, application.location].filter(Boolean).join(" · ")}</span>}
+				title={<ApplicationText className="block">{application.role}</ApplicationText>}
+				description={<ApplicationTextLine value={application.company} detail={application.location} />}
 				back={
 					<BackNavigation render={<Link to="/dashboard/applications" />}>
 						<Trans>Back to applications</Trans>
@@ -445,8 +446,8 @@ function PostingDialog({ application, open, onOpenChange }: PostingDialogProps) 
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="max-h-[85svh] overflow-y-auto sm:max-w-xl">
 				<DialogHeader>
-					<DialogTitle dir="auto">
-						{application.role} · {application.company}
+					<DialogTitle>
+						<ApplicationTextLine value={application.role} detail={application.company} />
 					</DialogTitle>
 					<DialogDescription>
 						{application.sourceUrl ? (
