@@ -289,9 +289,9 @@
 		--interface-text-align: right;
 	}
 
-	/* Auto direction orders user text; its containing interface still owns the alignment. */
+	/* Auto direction orders user text; its containing interface owns the alignment. */
 	:where([dir="auto"]):not(:where(input, textarea, [contenteditable], [contenteditable] *)) {
-		text-align: var(--interface-text-align);
+		text-align: var(--auto-text-align, var(--interface-text-align));
 	}
 
 	* {
@@ -519,14 +519,20 @@
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
-	block-size: var(--space-16);
 	min-inline-size: var(--space-16);
-	padding-inline: var(--space-4);
 	border-radius: var(--radius-2xl);
 	font-size: var(--type-sidebar-count-size);
 	line-height: var(--type-count-line);
 	font-weight: 600;
 	font-variant-numeric: tabular-nums;
+	&[data-count-digits] {
+		block-size: var(--space-16);
+		padding-inline: var(--space-4);
+	}
+	&[data-count-digits="single"] {
+		inline-size: var(--space-16);
+		padding-inline: 0;
+	}
 }
 
 @utility sidebar-count-corner {
@@ -1181,26 +1187,11 @@ button .success-tick {
 	}
 }
 
-.review-wording[data-review-action="accept"] del {
-	opacity: 0;
-	animation: review-removed var(--d3) var(--ease) both;
-}
-.review-wording[data-review-action="accept"] ins {
+.review-wording[data-review-action="accept"] p {
 	animation: review-inserted var(--d3) var(--ease) both;
 }
-.review-wording[data-review-action="undo"] del {
+.review-wording[data-review-action="undo"] :is(del, ins) {
 	animation: review-inserted var(--d2) var(--ease) both;
-}
-.review-wording[data-review-action="undo"] ins {
-	animation: review-restored var(--d2) var(--ease) both;
-}
-@keyframes review-removed {
-	from {
-		opacity: 1;
-	}
-	to {
-		opacity: 0;
-	}
 }
 @keyframes review-inserted {
 	from {
@@ -1208,14 +1199,6 @@ button .success-tick {
 	}
 	to {
 		opacity: 1;
-	}
-}
-@keyframes review-restored {
-	from {
-		opacity: 1;
-	}
-	to {
-		opacity: 0.5;
 	}
 }
 .preview-edit-highlight[data-review-action] {
@@ -1234,7 +1217,7 @@ button .success-tick {
 	}
 }
 @media (prefers-reduced-motion: reduce) {
-	.review-wording[data-review-action] :is(del, ins) {
+	.review-wording[data-review-action] :is(del, ins, p) {
 		animation: none;
 	}
 	.preview-edit-highlight[data-review-action][data-motion="static"] {
@@ -1244,12 +1227,19 @@ button .success-tick {
 	}
 }
 
-/* Evidence review additions: shared semantic warning role, also distinguished by underline. */
-.wording-added {
-	color: var(--warn-text);
-	background: var(--warn-soft);
-	text-decoration: underline;
-	text-decoration-style: dotted;
+.diff-del,
+.diff-ins {
+	@apply rounded-sm px-0.5;
+	unicode-bidi: isolate;
+}
+.diff-del {
+	@apply bg-danger-soft text-danger-text line-through;
+}
+.diff-ins {
+	@apply bg-accent-soft text-accent-text underline decoration-dotted;
+}
+.diff-punct {
+	@apply px-1;
 }
 
 /* Check return uses the existing edit acknowledgement, with a static reduced-motion cue. */
@@ -1776,9 +1766,14 @@ button .success-tick {
 		}
 	}
 }
+/* Reviewed passages align with their own reading direction. */
+@utility text-content-start {
+	--auto-text-align: start;
+}
+
 @layer utilities {
 	.text-start[dir="auto"]:not(:where(input, textarea, [contenteditable], [contenteditable] *)) {
-		text-align: var(--interface-text-align);
+		text-align: var(--auto-text-align, var(--interface-text-align));
 	}
 
 	[data-slot="segmented-control"][data-wrap="true"] {

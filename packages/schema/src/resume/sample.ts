@@ -10,7 +10,7 @@ export const createSampleResumeData = (
 	const ar = locale.startsWith("ar");
 	const text = (arabic: string, english: string) => (ar ? arabic : english);
 	const male = persona === "male";
-	const slug = male ? "abdullah.alqahtani" : "sara.alotaibi";
+	const slug = male ? "abdulelah.aljabal" : "sara.alotaibi";
 	const location = male
 		? text("جدة، المملكة العربية السعودية", "Jeddah, Saudi Arabia")
 		: text("الرياض، المملكة العربية السعودية", "Riyadh, Saudi Arabia");
@@ -24,8 +24,7 @@ export const createSampleResumeData = (
 			url: male ? "/photos/sample-picture.jpg" : "/photos/sample-woman.jpg",
 		},
 		basics: {
-			name:
-				name?.trim() || (male ? text("عبدالله القحطاني", "Abdullah Alqahtani") : text("سارة العتيبي", "Sara Alotaibi")),
+			name: name?.trim() || (male ? text("عبدالإله الجبل", "Abdulelah Aljabal") : text("سارة العتيبي", "Sara Alotaibi")),
 			headline: male
 				? text("مهندس برمجيات | تطوير تطبيقات الويب", "Software Engineer | Web Applications")
 				: text("مهندسة برمجيات | تطوير تطبيقات الويب", "Software Engineer | Web Applications"),

@@ -6,7 +6,7 @@ import { Input } from "@reactive-resume/ui/components/input";
 import { AuthErrorSummary } from "../components/auth-error-summary";
 import { AuthHeading } from "../components/auth-heading";
 import { useAuthCopy } from "../copy.generated";
-import { authErrorMessage } from "../errors";
+import { validAuthEmail, authErrorMessage } from "../errors";
 import { authClient } from "@/libs/auth/client";
 
 export function ForgotPasswordPage() {
@@ -14,13 +14,21 @@ export function ForgotPasswordPage() {
 	const [email, setEmail] = useState("");
 	const [submitted, setSubmitted] = useState(false);
 	const [pending, setPending] = useState(false);
+	const [invalidEmail, setInvalidEmail] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	async function requestReset() {
 		setError(null);
+		setInvalidEmail(false);
+		if (!validAuthEmail(email)) {
+			setInvalidEmail(true);
+			setError(authErrorMessage("INVALID_EMAIL"));
+			return;
+		}
 		setPending(true);
 		try {
-			const result = await authClient.requestPasswordReset({ email, redirectTo: "/auth/reset-password" });
+			const result = await authClient.requestPasswordReset({ email: email.trim(), redirectTo: "/auth/reset-password" });
 			if (result.error) {
+				setInvalidEmail(result.error.code === "INVALID_EMAIL");
 				setError(authErrorMessage(result.error.code));
 				return;
 			}
@@ -43,7 +51,7 @@ export function ForgotPasswordPage() {
 					{copy(submitted ? "auth.reset.sentHint" : "auth.reset.requestHint", { email })}
 				</p>
 			</div>
-			<AuthErrorSummary message={error} field={submitted ? undefined : "reset-email"} />
+			<AuthErrorSummary message={error} field={!submitted && invalidEmail ? "reset-email" : undefined} />
 			{!submitted && (
 				<form className="grid gap-5" onSubmit={submit}>
 					<label className="grid gap-1.5 type-label">
@@ -52,6 +60,8 @@ export function ForgotPasswordPage() {
 							size="lg"
 							className="font-normal"
 							id="reset-email"
+							aria-invalid={invalidEmail || undefined}
+							aria-errormessage={invalidEmail ? "reset-email-error" : undefined}
 							type="email"
 							name="email"
 							dir="ltr"

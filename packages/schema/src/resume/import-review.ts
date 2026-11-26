@@ -22,5 +22,11 @@ export const importReviewInputSchema = z.strictObject({
 			}),
 		)
 		.max(500),
+	destination: z
+		.discriminatedUnion("kind", [
+			z.strictObject({ kind: z.literal("career") }),
+			z.strictObject({ kind: z.literal("replace"), resumeId: z.string().min(1), expectedUpdatedAt: z.iso.datetime() }),
+		])
+		.optional(),
 });
 export type ImportReviewInput = z.infer<typeof importReviewInputSchema>;

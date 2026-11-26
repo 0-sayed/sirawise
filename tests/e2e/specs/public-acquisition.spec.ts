@@ -76,7 +76,7 @@ test("example language is independent from interface language and saved CV facts
 	await page.getByRole("radio", { name: "النسخة الإنجليزية", exact: true }).click();
 	const english = page.locator('[data-example-language="en"]');
 	await english.scrollIntoViewIfNeeded();
-	await expect(english).toContainText("Abdullah Alqahtani");
+	await expect(english).toContainText("Abdulelah Aljabal");
 	await expect(english).toContainText("Prepare monthly financial reports.");
 	await expect(english.locator('[lang="en-US"][dir="ltr"]')).toHaveCount(1);
 	await expect(page.locator("html")).toHaveAttribute("dir", "rtl");

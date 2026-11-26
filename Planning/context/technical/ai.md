@@ -61,7 +61,31 @@ Validate both shape and meaning. JSON Schema can constrain fields and types, but
 
 ## Analysis and AI editing
 
-The AI functions are deliberately bounded and follow the [usage contract](../business/requirements.md#usage-contract): one delivered user task per operation, no cost for failed/cancelled work or extra cost for automatic retries. Show cost and check/reserve limits before execution; T005 enforces Start, T010 adds paid grants.
+The AI functions follow the [usage contract](../business/requirements.md#usage-contract). A delivered task normally costs one operation. Failed or cancelled operations cost zero. Automatic retries cost nothing extra. Full-CV translation follows the owner-approved start-charge exception below. Show cost and reserve limits before execution. T005 enforces Start. T010 adds paid grants.
+
+### Account and target concurrency
+
+Owner decision, 2026-11-24 (item 95): `MAX_CONCURRENT_AI_OPERATIONS` sets the account limit to three. Administrators and unlimited accounts follow the same limit. `startOperation` holds the database account lock across the active-operation read, target guard, insertion, and existing reservations. Parallel requests cannot bypass either guard. Preflight uses the same transaction path and rolls back its writes.
+
+Queued, running, and cancellation-requested rows hold capacity. Count translation rows by `translationBatch.rootId`, so six parts consume one account slot. Internal continuation reuses that slot. A resumed batch must acquire account capacity again when it has no active parts. A translation can run up to six parts at a time.
+
+Lock a letter by its letter ID. Lock an import by the flow ID on its staged source record, so selections from the same import share one lock. For CV operations, use the target resume ID. Compare IDs independently of revisions and request keys.
+
+Deny a second logical operation on that target with `AI_TARGET_BUSY`. Deny a fourth account operation with `AI_CONCURRENCY_LIMIT` and a current `{reserved}` / `{limit}` balance. Use the shared Arabic/English allowance notice and preserve the draft.
+
+Delivery, failure, and completed cancellation free account capacity. Waiting for review does not hold a slot.
+
+### Platform capacity and queue
+
+The November 25, 2026 owner decision sets the platform limit at 30 running operations. This covers about 50 customers with about 10% active at peak. At one to three jobs each, five active customers create up to 15 jobs. The limit gives about twice that capacity.
+
+Use the Postgres value `ai_platform_capacity.max_running` in local, test, and production environments. The migration sets the default to 30. The worker counts a translation and its concurrent parts as one operation.
+
+When all slots are in use, Postgres keeps requests in first-in, first-out order by request time. The worker takes the oldest eligible request when a slot opens. The interface shows the current queue position when available and offers Cancel in Arabic and English.
+
+A request expires after five minutes without a worker claim. Expiry and cancellation before the first claim release the reservation without a charge. A translation settles one use when its first worker claim succeeds. Ordinary operations still settle one use on successful delivery. The per-call, per-request, and daily cost caps still apply.
+
+D36 evidence for S11 and B-C11. The shared review notice shows the position and Cancel during the wait. The execution timer starts at the first claim. Synthetic browser tests passed in Arabic and English at 1440 and 390 pixels. [Desktop review](https://www.figma.com/design/K3UTevGCFBhsoSLXH7BDni?node-id=30-1445), [mobile review](https://www.figma.com/design/K3UTevGCFBhsoSLXH7BDni?node-id=44-1084), [desktop recovery](https://www.figma.com/design/K3UTevGCFBhsoSLXH7BDni?node-id=52-1255), [mobile recovery](https://www.figma.com/design/K3UTevGCFBhsoSLXH7BDni?node-id=120-10735).
 
 | Operation                     | AI contribution                                                 | Application responsibility                                         |
 | ----------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------ |
@@ -123,6 +147,20 @@ During the paid T006 full benchmark, the default verifier `deepseek/deepseek-v4.
 OpenRouter public provider statistics observed 2026-11-13, not an availability guarantee: Together P50 0.49 s / 203 tok/s (fastest typical), P99 26.29 s / 10 tok/s (worst tail), uptime 99.63%. Lower-tail candidates at the same $0.30/$1.20 per million input/output tokens: Parasail (P50 0.59 s, P99 3.74 s, uptime 100%), Crusoe (0.52 s, 4.16 s, 100%), Baseten (0.49 s, 3.62 s, 99.36%) and CoreWeave (0.67 s, 2.79 s, 98.44%). DeepSeek first-party is listed as not routable and is not a candidate. Source: [OpenRouter DeepSeek V4.1 Flash 1017, providers tab](https://openrouter.ai/deepseek/deepseek-v4.1-flash-1017).
 
 A single pinned verifier endpoint is an availability risk under A13. **Proposal, pending approval:** at most one separately approved, explicitly pinned backup verifier endpoint for the same model, preferably Parasail, selected by our own code after the primary is rate-limited/unavailable; never OpenRouter automatic provider fallback or a silent jurisdiction change. Before approval, verify the exact endpoint's ZDR, no training/data collection, full-precision (not quantized) weights, structured-output support and Arabic verifier quality in a recalibration smoke, and name it in A11/D16 consent and the route bundle. Until approved, primary unavailable means withhold proposals and show unavailable/retry; never present unverified edits.
+
+**Pre-response transient transport retry (owner decision 2026-11-22):** When a provider call fails with a transient transport error before any response (`outcome: "transient"`, no `responseId`, no usage/cost, no HTTP status, not timed out), the worker waits a short jittered delay (1–3 s, bounded to preserve at least 1,000 ms before `deadlineMs`) and automatically retries that call once, granting at most `+1` call allowance on top of `route.maxCalls` per operation. Both attempts keep separate `ai_operation_attempt` rows reconciled against the operation's single reservation and single user-facing credit charge; the retry is skipped if fewer than 1,000 ms remain before `deadlineMs` or if the operation's reservation cannot cover `maxCallCostMicros`. If the retry also fails, the operation stops with `AI_OUTCOME_UNKNOWN`, persisting and logging sanitized transport failure detail (error class, redacted message, cause code, `httpStatus`, `requestSent`; never API keys, headers, prompts, or CV text). Errors with an HTTP status, usage, or `responseId` are unchanged.
+
+**Transport connect budget, unsent connect failures, and batched verifier resilience (2026-11-23):** When using Node's default `fetch` transport, the AI adapter raises Node's happy-eyeballs per-address attempt timeout (`net.setDefaultAutoSelectFamilyAttemptTimeout`) to 2,500 ms (paired with Node `fetch`'s 10 s connect timeout, inside `callTimeoutMs`) so slow dual-stack connections do not fail in 500 ms. Pure connect-phase failures (`connect ETIMEDOUT`, `ECONNREFUSED`, `ENETUNREACH`, `EHOSTUNREACH`, `ENOTFOUND`, `EAI_AGAIN`, `UND_ERR_CONNECT_TIMEOUT`, or an `AggregateError` composed solely of these with `bytesWritten` not positive) prove no request was dispatched and record `requestSent: false` and `costMicros: 0` so they do not consume reservation or daily budget; any post-connect or mixed error remains conservative (`costMicros: null`). Batched verification waves pass `concurrencyLimit: 5` matching `MAX_CONCURRENT_VERIFY_BATCHES` (`MAX_VERIFIER_BATCH_ITEMS = 3`), persist all wave call records before failure handling, retry zero-cost transient batch failures once within reservation/deadline/ordinal bounds, and persist/log sanitized transport failure details on `AI_VERIFIER_UNAVAILABLE`.
+
+**Translation safety, owner decision 2026-11-25:** The writer drafts each part. Code checks each segment against its source before the user reviews and approves the whole draft. The separate copy saves only after explicit approval.
+
+Item 94c changes the call budget to logical steps. A split verification pass uses one attempt ordinal and stores every batch call in `_verifyCalls`. Each call retains its response ID, verdict, usage, cost and sanitized failure details. The worker closes the immutable attempt only after all calls and the bounded batch retry finish. Generation, verification, regeneration and verification use four ordinals for every operation kind, regardless of batch count. Physical requests retain their per-call cost limits and reservation bounds. The reliability contract below defines the current timeouts and deadlines. Unknown costs remain unknown. A missing or pending batch blocks delivery. The worker retries only an incomplete batch and retains successful sibling verdicts. Delivery reloads the current generation and repeats every factual and source check.
+
+Translation recovery notices name each incomplete part and its reason in Arabic or English. Wording explanations, questions and no-change notes use the source CV language, independent of the interface language. A wrong-language response triggers the existing single content retry. Deterministic fabrication checks remain unchanged.
+
+PDF import retains wrapped summary text in one paragraph and preserves mixed Arabic and Latin word boundaries and percentage order. For Forme PDFs, extraction recovers a dropped Arabic letter only from its embedded glyph mapping. It strips direction marks from that mapping and keeps the original extracted text as evidence. An ambiguous match receives no guessed letter.
+
+D36: S21 recovery adds a reason for each failed part because a count alone does not explain recovery. Shared notices, controls and tokens remain in use. Mapped frames: desktop S21 `33:2204`, mobile S21 `47:1531`, translation review `80:30744` and `80:30897`. Adjacent S11 unavailable states are `52:1255` and `120:10735`. Live Figma renders of `80:30744` and `120:10735` were inspected. The translation frame contains term review and a pending-review notice. The recovery frame contains an unavailable notice and a return action.
 
 The T006 benchmark compares variants on frozen fixtures, prompts, scorer and verifier. A later writer candidate needs only its own smoke and full sessions against that same frozen setup (approximately $1–2), compared with stored results; a full rerun is needed only if fixtures, prompts, scorer, guard or verifier change. Incremental single-variant runs are a planned harness follow-up, not yet verified.
 
@@ -325,3 +363,72 @@ Use the [evaluation corpus and release gates](../business/requirements.md#evalua
 - **T-S46 — Alternative local gateway inquiry:** [DEEP.SA alAPI](https://www.deep.sa/products/alapi), [pricing endpoint](https://alapi.deep.sa/pricing). Earlier advertised local/global offering retained as a lead; current pages/pricing were not reliably retrievable in the v0.2 reconciliation. Quote, local route and retention terms required.
 
 Gemini 4 Hydrogen dropped from the T006 study by owner decision on 2026-11-13 on cost/latency/legal grounds; can be re-added as a single-variant run.
+
+## Full-CV translation batches
+
+Full-CV translation costs one AI use at the first worker claim, regardless of part count. The worker runs up to six parts concurrently and refills each free slot. Each part keeps the existing platform cost caps and money reservation. A transient writer failure with known cost can retry once under the same reservation and deadline. Other parts continue. Retrying, failure and cancellation after the first claim keep the initial charge.
+
+Store the combined result separately from immutable operation receipts. Bind each part to source revisions, segment IDs and the plan hash. Recheck ownership, consent, route approval and source revisions for every part and retry. Code checks names, organizations, dates and date ranges, including Arabic month names. It also checks numbers, percentages, emails, URLs, phone numbers, approved aliases, protected terms, target language and segment structure. Unknown or duplicate segment IDs invalidate the part. Missing segments and failed fact checks retain the original text, show a reason and allow a segment-only retry. The user approves the whole draft in one action before the separate copy saves. Retried segments follow this same approval rule.
+
+Show the part count, one AI use, writer progress and elapsed time in Arabic and English. Preserve contact placeholders, terminology review and independent saved language copies.
+
+Job-evidence verification recognizes Arabic mandatory wording and limits absence claims to selected passages. Single-paragraph job ads split into sentence spans so withheld notices can show the relevant span and reason. Cover-letter verification can retry a citation or completeness error once within the existing limits. PDF extraction verifies each extracted candidate against its highlighted source. Wording retention applies to the selected rewrite scope.
+
+Extraction and wording retain per-item verifier withholding and their existing whole-response failure rules. Summary and cover letter still require complete verification. Translation withholds segments using code checks and requires the user to approve the result.
+
+D36 evidence: S11, S20 and S21 reuse shared review controls for real progress, required summary facts and saved reviews per field. The changes clarify execution and recovery without changing shared height or spacing tokens. Synthetic browser validation passed all 37 affected cases, including Arabic and English at 1440 and 390 pixels. The cases cover field history, progress, summary selection, translation batches, recovery, visual states and cover letters. Touched unit and integration tests, delivered-copy tests, format, lint, typecheck and static validation passed. The owner throwaway visual spec remained unchanged.
+
+### Backup verifier evidence (2026-11-24)
+
+OpenRouter lists one Parasail endpoint for `deepseek/deepseek-v4.1-flash-1017`. It reports `parasail/fp8` with FP8 precision and structured output support. The public rates are $0.30 per million input tokens and $1.20 per million output tokens. FP8 fails the full-precision requirement. A call bound still requires approved rates, fees, and enforced limits. [OpenRouter endpoint metadata](https://openrouter.ai/api/v1/models/deepseek/deepseek-v4.1-flash-1017/endpoints)
+
+The backup binding stays empty. If Parasail provides a qualifying endpoint, review the data transfer evidence and qualify the exact job-evidence endpoint. Require fresh Arabic and English consent before the new configuration takes traffic. Keep the route revision and daily spend bucket.
+
+## AI reliability contract, 2026-11-25
+
+The queue expires after five minutes without a claim. The execution deadline starts at the first claim and stays fixed during recovery. Translation allows 90 seconds per call and 300 seconds per part. Job evidence allows 90 seconds per call and 240 seconds per operation. Other reviews retain the 60-second call and 120-second operation limits.
+
+A verifier wave is a group of calls that check separate items concurrently. The normal budget allows two logical steps and zero repairs. The full verifier pass counts as one logical step.
+
+### Measured execution time
+
+The following figures are in seconds for the real-AI route from November 21 through November 25, 2026 UTC. The 50th percentile (p50) is the median. The 95th percentile (p95) is the time within which 95% of the sample finished.
+
+| Feature      | Writer calls | Writer p50 / p95 / max | Verifier calls | Verifier p50 / p95 / max |
+| ------------ | -----------: | ---------------------: | -------------: | -----------------------: |
+| Cover letter |           40 |     10.0 / 12.4 / 16.7 |             31 |       15.2 / 25.8 / 35.1 |
+| Extraction   |           45 |      9.3 / 23.0 / 27.0 |             39 |       10.3 / 22.7 / 32.2 |
+| Job evidence |           68 |     12.6 / 21.0 / 24.9 |            147 |       35.7 / 60.2 / 76.4 |
+| Summary      |           57 |        4.1 / 5.7 / 9.8 |             45 |        9.9 / 15.6 / 22.3 |
+| Tailoring    |           35 |      8.0 / 11.2 / 13.0 |             33 |       19.8 / 31.5 / 37.8 |
+| Translation  |          766 |      9.5 / 14.2 / 27.1 |            982 |       15.3 / 34.9 / 53.9 |
+| Wording      |           41 |      5.3 / 11.8 / 15.7 |             42 |         3.5 / 9.8 / 16.9 |
+
+The source is a read-only join of `ai_operation_attempt.operation_id` to `ai_operation.id` for the `local-real-ai` route. The query uses `finished_at - started_at` and selects rows with a response ID. Writer calls include generation and regeneration. Verifier call statistics exclude rows with `_verifyCalls`, which record the whole pass time.
+
+The 29 journaled translation passes took 36.4 / 51.8 / 55.0 seconds at p50 / p95 / max. The one journaled job-evidence pass took 105.5 seconds. The November 25 server log (`/tmp/sirawise-fixes/real-ai.log`, lines 73651–73664 and 74417–74430) records HTTP 200 with a timeout for both failed verifier passes. The attempt rows place both failures at the former 120-second operation deadline.
+
+The 90-second call limit leaves 29.8 seconds above the highest measured call p95 and 13.6 seconds above the largest completed call. Two writer and verifier cycles at the job-evidence p95 take about 162 seconds when each pass fits in one wave. The four-minute limit leaves about 78 seconds for slot wait, database checks, backoff, or a further wave.
+
+The translation latency table records the former two-model path. The writer p95 is 14.2 seconds per part. Estimate the serial writer time for a CV as part count × 14.2 seconds. Six parts can run concurrently, so elapsed time also depends on queue and worker availability. Translation parts target at most 1,200 projected writer tokens. Scope-sensitive job checks use at most two items per call. Other job batches above 8,000 input bytes use at most three items.
+
+The worker calculates a cost bound before dispatching each job-evidence verifier batch. This includes the message and schema bytes, 4,096 tokens for chat framing and every allowed completion token. The transport repeats the calculation on the request body. [DeepSeek tokenizer](https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017/blob/main/tokenizer.json).
+
+OpenRouter filters the pinned Together route by price. The ceilings are $0.30 per million input tokens, $1.20 per million output tokens, and zero per-request fees. [OpenRouter pricing controls](https://openrouter.ai/docs/guides/routing/provider-selection#max-price), [Together endpoint prices](https://openrouter.ai/api/v1/models/deepseek/deepseek-v4.1-flash-1017/endpoints).
+
+The worker records each bound before dispatch and fits the sum of the bounds inside the remaining reservation. Known costs replace the bounds as calls finish. Unknown costs keep their recorded bounds. The original route call cap and the operation and daily caps still apply.
+
+The worker allows seven logical ordinals and records each verifier dispatch separately. The admitted batch plan and retry policy bound the number of dispatches. The worker enforces call, request, daily, and time limits. It holds unknown costs and reconciles each completed attempt once. Recovery reuses completed batches and requires a complete wave for delivery. The active route caps a request at USD 0.20 and daily spend at USD 50.
+
+The platform can run 30 operations under the capacity and queue rules above. One account can hold three active operations, with one per target. Up to six translation parts can run within the platform budget.
+
+| Pipeline                 | Current status and delivery rule                                                                                                                                                                                             |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Compact translation      | The writer and code checks are active in local and production runtimes. Failed segments retain the original text and allow scoped retries for no extra use. The user reviews and approves the separate copy before it saves. |
+| Compact job evidence     | Paid qualification pending for both paths. Hard guards protect IDs, numbers, and claim scope. The verifier checks the complete selected scope for absence and checks positive findings against cited evidence.               |
+| Selective PDF extraction | Paid qualification pending. The candidate binds each field to exact selected spans. It tolerates safe layout differences and withholds unverifiable fields. The verifier still checks the meaning of each surviving field.   |
+| Wording                  | The current verified path stays active. Whole-scope acceptance and undo use the existing approval actions. The paid extraction suite includes wording controls.                                                              |
+| Local PDF reader         | Active for Forme, Chromium browser print, and LibreOffice fixtures. It resolves line order and joins wrapped paragraphs with source mappings. Word and Google Docs producer coverage is pending.                             |
+| Backup verifier          | Unbound. The synthetic runtime exercises one explicit alternate endpoint. Activation requires exact endpoint qualification, processor evidence, and fresh consent under A11 and D16.                                         |
+
+The current qualification batch covers 32 synthetic cases for job evidence and extraction. The evidence folder retains the earlier 48-case batch with translation. The paid batch and any selector change require owner approval. Offline evidence grants no real-CV processing or release approval.

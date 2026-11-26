@@ -5,6 +5,7 @@ import { Button } from "@reactive-resume/ui/components/button";
 import { Icon } from "@reactive-resume/ui/components/icon";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@reactive-resume/ui/components/tooltip";
 import { formatDuration, interviewTypeLabel } from "../interviews";
+import { ApplicationText } from "./application-text";
 import { getInterfaceDateLocale } from "@/libs/locale";
 export const calendarKindIcon = {
 	screening: "phone",
@@ -58,18 +59,18 @@ export function CalendarEvent({ item, timeZone, presentation, tabIndex, onOpen }
 				)}
 				<Icon name={calendarKindIcon[item.interview.kind]} />
 				<span className="calendar-event-identity">
-					<bdi dir="auto" className="truncate font-semibold">
+					<ApplicationText as="bdi" className="truncate font-semibold">
 						{item.application.company}
-					</bdi>
+					</ApplicationText>
 					<span aria-hidden="true">·</span>
-					<bdi dir="auto" className="truncate">
+					<ApplicationText as="bdi" className="truncate">
 						{item.application.role}
-					</bdi>
+					</ApplicationText>
 				</span>
 			</TooltipTrigger>
 			<TooltipContent className="grid gap-1 wrap-anywhere">
-				<bdi dir="auto">{item.application.company}</bdi>
-				<bdi dir="auto">{item.application.role}</bdi>
+				<ApplicationText as="bdi">{item.application.company}</ApplicationText>
+				<ApplicationText as="bdi">{item.application.role}</ApplicationText>
 				<span>{date}</span>
 				<bdi dir="ltr">
 					{range} · {timeZone}
@@ -77,7 +78,7 @@ export function CalendarEvent({ item, timeZone, presentation, tabIndex, onOpen }
 				<span>
 					{kind} · {formatDuration(item.interview.durationMinutes, i18n.locale)}
 				</span>
-				{item.interview.location && <bdi dir="auto">{item.interview.location}</bdi>}
+				{item.interview.location && <ApplicationText as="bdi">{item.interview.location}</ApplicationText>}
 			</TooltipContent>
 		</Tooltip>
 	);

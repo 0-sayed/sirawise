@@ -26,6 +26,7 @@ import { FontDisplay } from "@/components/typography/font-display";
 import { templates } from "@/dialogs/resume/template/data";
 import { ApplicationPicker } from "@/features/applications/components/application-picker";
 import { applicationsListQueryOptions } from "@/features/applications/queries";
+import { useAssistantCopy } from "@/features/assistant/copy.generated";
 import { useLetterWords } from "@/features/letters/compose";
 import { countWords, LETTER_LENGTH, letterLength } from "@/features/letters/length";
 import { LetterReviewComposer } from "@/features/letters/review";
@@ -128,6 +129,7 @@ type ForSectionProps = {
 
 /** FOR: the application the letter is for. Linking one fills the recipient; without one, drafting uses the resume. */
 function ForSection({ letter, application, applications, disabled }: ForSectionProps) {
+	const copy = useAssistantCopy();
 	const choose = (next: Application | null) => {
 		if ((next?.id ?? null) === letter.sourceApplicationId) return;
 		saveLetterChange({
@@ -140,14 +142,14 @@ function ForSection({ letter, application, applications, disabled }: ForSectionP
 	};
 
 	return (
-		<Section id="letter-for">
+		<Section id="letter-for" title={copy("review.launch.savedJob")}>
 			<ApplicationPicker
 				aria-label={t`Link job application`}
 				className="w-full"
 				applications={applications}
 				value={application?.id ?? null}
 				disabled={disabled}
-				placeholder={t`Link an application`}
+				placeholder={copy("review.launch.chooseJob")}
 				noneLabel={t`No application`}
 				onValueChange={(id) => choose(applications.find((item) => item.id === id) ?? null)}
 			/>

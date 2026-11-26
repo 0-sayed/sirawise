@@ -32,6 +32,52 @@ const RECRUITING_BOILERPLATE =
 	"regard religion remote required requirement requirements responsibilities responsibility role roles salary " +
 	"seeking sex sexual skills status team teams thrive time title veteran welcome work working workplace years";
 
+// Arabic prepositions, pronouns, demonstratives, conjunctions and other function words.
+const ARABIC_FUNCTION_WORDS =
+	"من إلى الى عن على علي في حتى مع بين عند لدى لدي دون خلال نحو حول فوق تحت أمام امام خلف بعد قبل منذ عبر بحسب " +
+	"أجل اجل بالإضافة بالاضافة أيا أية أي اي ايا اية كل كلا كلتا أحد احد إحدى احدى بعض غير سوى مثل نفس ذلك هذا هذه هذان هاتان هؤلاء أولئك اولئك تلك هنا هناك هنالك " +
+	"الذي التي الذين اللاتي اللائي اللواتي اللتان اللذان اللتين اللذين أنا انا أنت انت أنتم انتم أنتن انتن أنتما انتما هو هي هم هن هما نحن إياك إياه اياك اياه " +
+	"إن ان أن كأن كان كانت كانوا يكون تكون يكن ليس ليست لست لن لم لا ما ماذا لماذا كيف أين اين متى هل إذ اذ إذا اذا لما بينما حيث حيثما حين حينما عندما " +
+	"بل لكن ولكن إلا الا أو او أم ام ثم كما وكذلك كذا أيضا ايضا بلى نعم قد وقد فقد لقد لكي كي لعل ربما إما اما أما وإنما وانما طالما " +
+	"بها به بهم فيه فيها منهم منها عليها عليه عليهم إليهم إليها اليهم اليها عنها عنه عنهم معه معها بينهما بعده بعدها عندها عنده بدون " +
+	"وفي ومن وإلى والى وعلى وعن ومع وعند وحتى ولدى وبين وقبل وبعد وخلال وأيضا وايضا ولم ولن ولا وأن وان وإن وإلا والا";
+
 export const JD_STOPWORDS: ReadonlySet<string> = new Set(
-	[...FUNCTION_WORDS.split(" "), ...RECRUITING_BOILERPLATE.split(" ")].filter(Boolean),
+	[...FUNCTION_WORDS.split(" "), ...RECRUITING_BOILERPLATE.split(" "), ...ARABIC_FUNCTION_WORDS.split(" ")].filter(
+		Boolean,
+	),
 );
+
+// These words can be part of a real skill, such as platform engineering or customer service.
+const GENERIC_JOB_WORDS = new Set(
+	`design engineering research explain client clients customer customers stakeholder stakeholders stack stacks ideal modern impact scale mission values platform platforms product products partner partners helping ensuring multiple day daily
+take help existing code growing launch decision decisions technical technology complex
+work working works team teams role job jobs candidate candidates company companies business good great strong excellent effective efficiently ability able responsible responsibilities responsibility required requirements require experience experienced knowledge understanding proven demonstrate demonstrated environment environments opportunity opportunities looking seeking join provide support ensure including include using use used new develop development deliver delivery manage management lead leading driven focus focused passionate passion skill skills communication collaborative collaboration collaborate people person professional highly preferred minimum must need needs want relevant across within various related through achieve contributing contribute maintain drive build building successful success solution solutions process processes tasks daily activities additional value
+عميل عملاء شرح توضيح مثالي مثالية يومي يومية حلول منصة تعمل
+عمل يعمل فريق وظيفة وظائف شركة شركات مطلوب مطلوبة متطلبات خبرة مهارات قدرة قادر يساعد مساعدة دعم تطوير تنفيذ مسؤول مسؤوليات مسؤولية جيد جيدة ممتاز ممتازة قوي قوية تقني تقنية تقنيه تكنولوجيا معقد معقدة قرارات قرار نمو إطلاق حالي حالية موجودة استخدام يستخدم جديد جديدة يعملون مرشح متقدم فرصة فرص بيئة تتضمن تشمل ضمان تحقيق تقديم ادارة اداره ادارية إدارة إداره إدارية`.split(
+		/\s+/u,
+	),
+);
+
+const GENERIC_SKILL_QUALIFIERS = new Set(
+	`tool tools tooling service services stack stacks solution solutions system systems application applications development experience platform platforms
+maintain build use develop write support design
+أداة اداة أدوات ادوات خدمات خدمة حزمة حزم حلول حل نظام أنظمة انظمة تطبيق تطبيقات تطوير خبرة خبرات منصة منصات
+صيانة بناء استخدام كتابة دعم تصميم يصون يبني يستخدم يطور يكتب يدعم يصمم`.split(/\s+/u),
+);
+
+export function isGenericSkillQualifier(word: string): boolean {
+	return GENERIC_SKILL_QUALIFIERS.has(word.replace(/^(?:وال|ال)/u, ""));
+}
+
+export function isGenericJobWord(word: string): boolean {
+	return isGenericSkillQualifier(word) || GENERIC_JOB_WORDS.has(word.replace(/^(?:وال|ال)/u, ""));
+}
+
+export function isEnglishContraction(token: string): boolean {
+	return (
+		/^[a-z]+(?:n't|'(?:d|ll|m|re|ve))$/u.test(token) ||
+		/^(?:he|she|it|that|there|here|what|who|where|when|how|let|someone|something|everyone)'s$/u.test(token) ||
+		token === "y'all"
+	);
+}

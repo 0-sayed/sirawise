@@ -30,6 +30,14 @@
 }
 
 @font-face {
+	font-family: "Noto Sans Arabic";
+	font-style: normal;
+	font-weight: 700;
+	font-display: swap;
+	src: url("/fonts/noto-sans-arabic/2.009/NotoSansArabic-Bold.ttf") format("truetype");
+}
+
+@font-face {
 	font-family: "Noto Sans";
 	font-style: normal;
 	font-weight: 100 900;

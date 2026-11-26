@@ -146,11 +146,11 @@ export async function readResumeFile(
 	if (kind === "docx")
 		throw new ImportError(t`Word import is not available. Import a readable PDF or enter your information manually.`);
 
-	const [{ extractPdfText }, { parseResumeText }] = await Promise.all([
+	const [{ extractPdfText }, { parsePdfResume }] = await Promise.all([
 		import("./pdf-text"),
 		import("@reactive-resume/import/plain-text"),
 	]);
-	const { lines, locale, partial, pages } = await extractPdfText(file, options.signal);
+	const { lines, locale, partial, pages, paragraphUnits } = await extractPdfText(file, options.signal);
 	options.onCoverage?.({ partial, pages });
 	if (lines.length === 0) {
 		throw new ImportError(
@@ -158,7 +158,7 @@ export async function readResumeFile(
 		);
 	}
 	options.onRead?.(t`text layer found`);
-	return parseResumeText(lines.join("\n"), {
+	return parsePdfResume(paragraphUnits, {
 		...(locale ? { locale } : {}),
 		...(options.onUncertain ? { onUncertain: options.onUncertain } : {}),
 	});

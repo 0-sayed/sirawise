@@ -5,18 +5,27 @@ import { hashReviewTarget } from "@reactive-resume/resume/review-evidence";
 import { splitReviewClaims } from "@reactive-resume/schema/resume/ai-review";
 import { experienceItemSchema } from "@reactive-resume/schema/resume/data";
 import { defaultResumeData } from "@reactive-resume/schema/resume/default";
-import { decideReview, getReview, recordReviewAnswer, dismissReviewQuestion } from "./review-decisions";
+import {
+	decideReview,
+	getReview,
+	recordReviewAnswer,
+	dismissReviewQuestion,
+	listResumeReviews,
+} from "./review-decisions";
 import { reviewHandlers } from "./review-handlers";
 import { prepareResumeReview } from "./review-sources";
 import { aiTestDatabase } from "./testing/database";
 
 describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("atomic review decisions", () => {
 	const database = aiTestDatabase();
-	async function fixture(modify?: (result: Extract<ReviewResult, { kind: "wording" }>) => void) {
+	async function fixture(
+		modify?: (result: Extract<ReviewResult, { kind: "wording" }>) => void,
+		content = "<p>Built services.</p>",
+	) {
 		const id = randomUUID();
 		const operationId = `op-${id}`;
 		const data = structuredClone(defaultResumeData);
-		data.summary.content = "<p>Built services.</p>";
+		data.summary.content = content;
 		const row = (
 			await database
 				.admin()
@@ -82,6 +91,186 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("atomic review deci
 			},
 		};
 	}
+	it("lists durable pending reviews per field without changing another field's decisions", async () => {
+		const f = await fixture();
+		const original = await database.run(() => getReview("alice", f.operationId));
+		if (original.result.kind !== "wording") throw new Error("Missing wording fixture");
+		const target = { sectionId: "experience", itemId: "entry", field: "description" };
+		const other = structuredClone(original.result);
+		other.proposals = other.proposals.map((proposal) => ({ ...proposal, target }));
+		other.evidence = other.evidence.map((entry) => ({ ...entry, target }));
+		const otherId = `other-${f.operationId}`;
+		await database
+			.admin()
+			.query(
+				"INSERT INTO ai_operation(id,user_id,request_key,fingerprint,kind,sources,route,consent_version,prompt_version,schema_version,state,result,delivered_at) SELECT $1,user_id,$1,fingerprint,kind,sources,route,consent_version,prompt_version,schema_version,state,$2,now() FROM ai_operation WHERE id=$3",
+				[otherId, JSON.stringify(other), f.operationId],
+			);
+		expect(await database.run(() => listResumeReviews("alice", f.id))).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					operationId: f.operationId,
+					targets: [{ target: { sectionId: "summary", field: "content" }, pendingCount: 1 }],
+				}),
+				expect.objectContaining({ operationId: otherId, targets: [{ target, pendingCount: 1 }] }),
+			]),
+		);
+		await database.run(() =>
+			decideReview("alice", { ...f.input, operationId: otherId, requestKey: `reject-${otherId}`, decision: "reject" }),
+		);
+		const history = await database.run(() => listResumeReviews("alice", f.id));
+		expect(history.find((entry) => entry.operationId === f.operationId)?.targets[0]?.pendingCount).toBe(1);
+		expect(history.find((entry) => entry.operationId === otherId)?.targets[0]?.pendingCount).toBe(0);
+		await expect(database.run(() => listResumeReviews("bob", f.id))).rejects.toMatchObject({ code: "NOT_FOUND" });
+	});
+	it("counts question-only reviews until answered and keeps their timestamp and outcome", async () => {
+		const f = await fixture((result) => {
+			result.proposals = [];
+			result.questions = [
+				{ id: "q", target: { sectionId: "summary", field: "content" }, prompt: "What changed?", evidenceIds: ["e1"] },
+			];
+		});
+		const history = () => database.run(() => listResumeReviews("alice", f.id));
+		expect(await history()).toMatchObject([
+			{
+				operationId: f.operationId,
+				kind: "review.wording",
+				state: "waiting_review",
+				createdAt: expect.any(String),
+				pendingCount: 0,
+				unansweredQuestionCount: 1,
+				answeredCount: 0,
+			},
+		]);
+		await database.run(() =>
+			recordReviewAnswer("alice", {
+				operationId: f.operationId,
+				questionId: "q",
+				requestKey: `answer-${f.id}`,
+				expectedSource: { kind: "resume", id: f.id, revision: f.revision },
+				text: "Reduced waiting time.",
+			}),
+		);
+		expect(await history()).toMatchObject([{ state: "succeeded", unansweredQuestionCount: 0, answeredCount: 1 }]);
+	});
+
+	it("accepts and undoes each repeated block using its original position", async () => {
+		const before = "<p>Built services.</p>";
+		const repeated = before + before;
+		const f = await fixture((result) => {
+			const first = result.proposals[0];
+			if (!first) throw new Error("Missing fixture proposal");
+			result.proposals = [0, 1].map((blockIndex) => ({
+				...first,
+				id: `p${blockIndex + 1}`,
+				blockIndex,
+				targetHash: hashReviewTarget(repeated),
+			}));
+		});
+		await database
+			.admin()
+			.query("UPDATE resume SET data=jsonb_set(data,'{summary,content}',to_jsonb($2::text)) WHERE id=$1", [
+				f.id,
+				repeated,
+			]);
+		const second = await database.run(() => decideReview("alice", { ...f.input, proposalIds: ["p2"] }));
+		expect(second.data.summary.content).toBe(before + "<p>Developed services.</p>");
+		const first = await database.run(() =>
+			decideReview("alice", { ...f.input, requestKey: `first-${f.id}`, expectedUpdatedAt: second.updatedAt }),
+		);
+		expect(first.data.summary.content).toBe("<p>Developed services.</p><p>Developed services.</p>");
+		const restored = await database.run(() =>
+			decideReview("alice", {
+				...f.input,
+				requestKey: `undo-second-${f.id}`,
+				proposalIds: ["p2"],
+				decision: "undo",
+				undoDecisionId: second.decisionId,
+				expectedUpdatedAt: first.updatedAt,
+			}),
+		);
+		expect(restored.data.summary.content).toBe("<p>Developed services.</p>" + before);
+	});
+	it.each([false, true])(
+		"restores a merged span and its later sibling in either acceptance order (%s)",
+		async (mergeFirst) => {
+			const fragment = "<p>Built services that</p><p>handled requests.</p>";
+			const sibling = "<p>Wrote guides.</p>";
+			const f = await fixture((result) => {
+				const base = result.proposals[0];
+				const evidence = result.evidence[0];
+				if (!base || !evidence) throw new Error("Missing fixture proposal");
+				const second = { ...evidence, id: "e2", quote: "handled requests." };
+				const third = { ...second, id: "e3", quote: "Wrote guides." };
+				result.evidence = [{ ...second, id: "e1", quote: "Built services that" }, second, third];
+				result.proposals = [
+					{
+						...base,
+						before: fragment,
+						after: "<p>Built services that handled requests.</p>",
+						blockIndex: 0,
+						evidenceIds: ["e1", "e2"],
+						claims: splitReviewClaims("Built services that handled requests.", ["e1", "e2"]),
+					},
+					{
+						...base,
+						id: "p2",
+						before: sibling,
+						after: "<p>Created guides.</p>",
+						blockIndex: 2,
+						evidenceIds: ["e3"],
+						claims: splitReviewClaims("Created guides.", ["e3"]),
+					},
+				];
+			}, fragment + sibling);
+			const accept = (proposalId: string, revision: string) =>
+				database.run(() =>
+					decideReview("alice", {
+						...f.input,
+						proposalIds: [proposalId],
+						requestKey: randomUUID(),
+						expectedUpdatedAt: revision,
+					}),
+				);
+			const first = await accept(mergeFirst ? "p1" : "p2", f.revision);
+			const second = await accept(mergeFirst ? "p2" : "p1", first.updatedAt);
+			expect(second.data.summary.content).toBe("<p>Built services that handled requests.</p><p>Created guides.</p>");
+			const undo = (proposalId: string, undoDecisionId: string, revision: string) =>
+				database.run(() =>
+					decideReview("alice", {
+						...f.input,
+						proposalIds: [proposalId],
+						requestKey: randomUUID(),
+						expectedUpdatedAt: revision,
+						decision: "undo",
+						undoDecisionId,
+					}),
+				);
+			const restored = await undo("p1", (mergeFirst ? first : second).decisionId, second.updatedAt);
+			expect(restored.data.summary.content).toBe(fragment + "<p>Created guides.</p>");
+			const final = await undo("p2", (mergeFirst ? second : first).decisionId, restored.updatedAt);
+			expect(final.data.summary.content).toBe(fragment + sibling);
+		},
+	);
+	it("blocks a legacy pending proposal whose displayed original omits a cited paragraph", async () => {
+		const before = "<p>Built services.</p><p>Documented releases.</p>";
+		const f = await fixture((result) => {
+			const proposal = result.proposals[0];
+			const evidence = result.evidence[0];
+			if (!proposal || !evidence) throw new Error("Missing fixture proposal");
+			result.evidence.push({ ...evidence, id: "e2", quote: "Documented releases." });
+			proposal.evidenceIds = ["e1", "e2"];
+			proposal.after = "<p>Developed services and wrote release documentation.</p>";
+			proposal.claims = splitReviewClaims("Developed services and wrote release documentation.", proposal.evidenceIds);
+			proposal.blockIndex = 0;
+		}, before);
+		await expect(database.run(() => decideReview("alice", f.input))).rejects.toMatchObject({
+			code: "CONFLICT",
+			data: { reason: "AI_SOURCE_CHANGED" },
+		});
+		const result = await database.admin().query("SELECT data FROM resume WHERE id=$1", [f.id]);
+		expect(result.rows[0].data.summary.content).toBe(before);
+	});
 	async function followUpWithAnswer() {
 		const original = "<p>Built services.</p><p>Built tools.</p>";
 		const f = await fixture((result) => {
@@ -280,6 +469,18 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("atomic review deci
 		const rejected = await database.run(() => decideReview("alice", { ...f.input, decision: "reject" }));
 		expect(rejected.updatedAt).toBe(f.revision);
 		expect(rejected.data.summary.content).toBe("<p>Built services.</p>");
+		expect((await database.run(() => getReview("alice", f.operationId))).undoable).toEqual([
+			{ decisionId: rejected.decisionId, proposalIds: f.input.proposalIds, changes: [], userSupplied: false },
+		]);
+		const restored = await database.run(() =>
+			decideReview("alice", {
+				...f.input,
+				requestKey: `${f.input.requestKey}-undo-reject`,
+				decision: "undo",
+				undoDecisionId: rejected.decisionId,
+			}),
+		);
+		expect(restored).toMatchObject({ updatedAt: f.revision, data: rejected.data, statuses: { p1: "pending" } });
 		expect((await database.admin().query("SELECT id FROM resume_version WHERE resume_id=$1", [f.id])).rows).toEqual([]);
 	});
 	it("undo survives refresh and preserves intervening manual edits, with idempotent replay", async () => {

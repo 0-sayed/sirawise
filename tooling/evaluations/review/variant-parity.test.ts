@@ -47,7 +47,7 @@ it("keeps production writers, verifier payloads and schemas with explicit benchm
 		});
 		if (category === "translation")
 			expect(benchmarkVerifierSpec(fixture).schema.toJSONSchema()).toMatchObject({
-				properties: { quality: { required: expect.arrayContaining(["mqm"]) } },
+				properties: { quality: { required: expect.arrayContaining(["mqm", "assessment"]) } },
 			});
 		expect(variantBenchmarkVerifierVersion).toBe(`${VARIANT_VERIFIER_VERSION}+benchmark-protocol-v4-compact-json`);
 	}

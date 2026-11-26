@@ -137,12 +137,7 @@ export function BrandIcon({
 		<span dir="ltr" className="inline-flex shrink-0 items-center gap-2">
 			{mark}
 			<span data-slot="brand-wordmark" dir={locale.startsWith("ar") ? "rtl" : "ltr"} className="grid whitespace-nowrap">
-				<span
-					data-slot="brand-name"
-					lang={locale}
-					className="type-section"
-					style={{ fontFamily: '"Noto Sans", sans-serif' }}
-				>
+				<span data-slot="brand-name" lang={locale} className="type-section">
 					{getProductName(locale)}
 				</span>
 				{locale.startsWith("ar") && (

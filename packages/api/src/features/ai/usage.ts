@@ -1,5 +1,10 @@
 import type { OwnerTransaction } from "@reactive-resume/db/owner-scope";
-import type { ResumeCreationKind, StartUsageView } from "@reactive-resume/schema/ai-usage";
+import type {
+	AllowanceBalance,
+	AllowanceReason,
+	ResumeCreationKind,
+	StartUsageView,
+} from "@reactive-resume/schema/ai-usage";
 import { ORPCError } from "@orpc/client";
 import { and, eq, inArray, ne, sql } from "drizzle-orm";
 import { withOwnerDatabase } from "@reactive-resume/db/owner-scope";
@@ -8,8 +13,11 @@ import { env } from "@reactive-resume/env/server";
 import { lockDocumentOwner } from "../documents/ownership";
 import { getAiRuntime } from "./route-policy";
 
-export function denyAllowance(reason: string): never {
-	throw new ORPCError("PRECONDITION_FAILED", { message: "The requested allowance is unavailable.", data: { reason } });
+export function denyAllowance(reason: AllowanceReason, allowance?: AllowanceBalance): never {
+	throw new ORPCError("PRECONDITION_FAILED", {
+		message: "The requested allowance is unavailable.",
+		data: { reason, ...(allowance ? { allowance } : {}) },
+	});
 }
 
 async function readUsage(tx: OwnerTransaction, ownerId: string): Promise<StartUsageView> {
@@ -50,8 +58,8 @@ export async function reserveOperation(tx: OwnerTransaction, ownerId: string, op
 		.from(aiUsageLedger)
 		.where(and(eq(aiUsageLedger.userId, ownerId), eq(aiUsageLedger.operationId, operationId)));
 	if (existing.length) return;
-	const { remaining } = (await readUsage(tx, ownerId)).operations;
-	if (remaining !== null && remaining <= 0) denyAllowance("AI_OPERATIONS_LIMIT");
+	const operations = (await readUsage(tx, ownerId)).operations;
+	if (operations.remaining !== null && operations.remaining <= 0) denyAllowance("AI_OPERATIONS_LIMIT", operations);
 	await tx.insert(aiUsageLedger).values({ userId: ownerId, operationId, kind: "reserve" });
 }
 
@@ -103,9 +111,14 @@ export async function admitResumeCreation(
 ): Promise<void> {
 	await lockDocumentOwner(tx, ownerId);
 	const { baseCvs } = await readUsage(tx, ownerId);
-	if (baseCvs.limit !== null && baseCvs.used > baseCvs.limit) denyAllowance("BASE_CV_LIMIT");
+	const baseBalance = {
+		...baseCvs,
+		reserved: 0,
+		remaining: baseCvs.limit === null ? null : Math.max(0, baseCvs.limit - baseCvs.used),
+	};
+	if (baseCvs.limit !== null && baseCvs.used > baseCvs.limit) denyAllowance("BASE_CV_LIMIT", baseBalance);
 	if (creation.variantKind === "base") {
-		if (baseCvs.limit !== null && baseCvs.used >= baseCvs.limit) denyAllowance("BASE_CV_LIMIT");
+		if (baseCvs.limit !== null && baseCvs.used >= baseCvs.limit) denyAllowance("BASE_CV_LIMIT", baseBalance);
 		return;
 	}
 	const normalized = await resolveResumeCreation(tx, ownerId, creation);
@@ -134,5 +147,10 @@ export async function admitResumeCreation(
 			),
 		);
 	if (copies.length + pending.length >= 1)
-		denyAllowance(normalized.variantKind === "language" ? "LANGUAGE_COPY_LIMIT" : "JOB_COPY_LIMIT");
+		denyAllowance(normalized.variantKind === "language" ? "LANGUAGE_COPY_LIMIT" : "JOB_COPY_LIMIT", {
+			limit: 1,
+			used: copies.length,
+			reserved: pending.length,
+			remaining: 0,
+		});
 }

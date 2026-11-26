@@ -1,0 +1,483 @@
+[
+	{
+		"id": "translation-en-date",
+		"feature": "translation",
+		"locale": "en-US",
+		"source": {
+			"direction": "en-ar",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"id": "subject",
+					"section": "summary",
+					"text": "From 2021 to 2023."
+				},
+				{
+					"id": "honest-sibling",
+					"section": "summary",
+					"text": "I documented the testing."
+				}
+			]
+		},
+		"candidate": {
+			"direction": "en-ar",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"sourceId": "subject",
+					"text": "من 2021 إلى 2024."
+				},
+				{
+					"sourceId": "honest-sibling",
+					"text": "وثّقتُ الاختبارات."
+				}
+			]
+		}
+	},
+	{
+		"id": "translation-en-hijri",
+		"feature": "translation",
+		"locale": "en-US",
+		"source": {
+			"direction": "en-ar",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"id": "subject",
+					"section": "summary",
+					"text": "Started in 1445 Hijri."
+				}
+			]
+		},
+		"candidate": {
+			"direction": "en-ar",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"sourceId": "subject",
+					"text": "بدأت في 1445 ميلادي."
+				}
+			]
+		}
+	},
+	{
+		"id": "translation-en-extra-note",
+		"feature": "translation",
+		"locale": "en-US",
+		"source": {
+			"direction": "en-ar",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"id": "subject",
+					"section": "summary",
+					"text": "Recorded the QA video."
+				}
+			]
+		},
+		"candidate": {
+			"direction": "en-ar",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"sourceId": "subject",
+					"text": "سجلت فيديو الاختبار."
+				}
+			],
+			"notes": ["Earned an invented qualification."]
+		}
+	},
+	{
+		"id": "translation-en-name",
+		"feature": "translation",
+		"locale": "en-US",
+		"source": {
+			"direction": "en-ar",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"id": "subject",
+					"section": "summary",
+					"text": "Dana Karim documented testing."
+				},
+				{
+					"id": "honest-sibling",
+					"section": "summary",
+					"text": "I documented the testing."
+				}
+			],
+			"ownerName": "Dana Karim"
+		},
+		"candidate": {
+			"direction": "en-ar",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"sourceId": "subject",
+					"text": "وثقت Sara Karim الاختبار."
+				},
+				{
+					"sourceId": "honest-sibling",
+					"text": "وثّقتُ الاختبارات."
+				}
+			]
+		}
+	},
+	{
+		"id": "translation-en-responsibility",
+		"feature": "translation",
+		"locale": "en-US",
+		"source": {
+			"direction": "en-ar",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"id": "subject",
+					"section": "summary",
+					"text": "Supported the project lead."
+				},
+				{
+					"id": "honest-sibling",
+					"section": "summary",
+					"text": "I documented the testing."
+				}
+			]
+		},
+		"candidate": {
+			"direction": "en-ar",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"sourceId": "subject",
+					"text": "قدت المشروع."
+				},
+				{
+					"sourceId": "honest-sibling",
+					"text": "وثّقتُ الاختبارات."
+				}
+			]
+		}
+	},
+	{
+		"id": "translation-en-polarity",
+		"feature": "translation",
+		"locale": "en-US",
+		"source": {
+			"direction": "en-ar",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"id": "subject",
+					"section": "summary",
+					"text": "I did not approve the release."
+				}
+			]
+		},
+		"candidate": {
+			"direction": "en-ar",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"sourceId": "subject",
+					"text": "وافقت على الإصدار."
+				}
+			]
+		}
+	},
+	{
+		"id": "translation-en-metrics",
+		"feature": "translation",
+		"locale": "en-US",
+		"source": {
+			"direction": "en-ar",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"id": "subject",
+					"section": "summary",
+					"text": "Cedar handled 12 cases and Pine handled 6."
+				}
+			]
+		},
+		"candidate": {
+			"direction": "en-ar",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"sourceId": "subject",
+					"text": "تعامل Cedar مع 6 حالات وتعامل Pine مع 12 حالة."
+				}
+			]
+		}
+	},
+	{
+		"id": "translation-en-honest",
+		"feature": "translation",
+		"locale": "en-US",
+		"source": {
+			"direction": "en-ar",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"id": "honest",
+					"section": "summary",
+					"text": "Added a dashboard to the landing page. Recorded a video of the tests. The video showed the sign-in steps."
+				}
+			]
+		},
+		"candidate": {
+			"direction": "en-ar",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"sourceId": "honest",
+					"text": "أضفتُ لوحة معلومات إلى صفحة الهبوط. سجّلتُ فيديو للاختبارات يعرض خطوات تسجيل الدخول."
+				}
+			]
+		}
+	},
+	{
+		"id": "translation-ar-quantity",
+		"feature": "translation",
+		"locale": "ar-SA",
+		"source": {
+			"direction": "ar-en",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"id": "subject",
+					"section": "summary",
+					"text": "خفضت التكلفة بنسبة ٢٠٪."
+				},
+				{
+					"id": "honest-sibling",
+					"section": "summary",
+					"text": "وثّقتُ الاختبارات."
+				}
+			]
+		},
+		"candidate": {
+			"direction": "ar-en",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"sourceId": "subject",
+					"text": "Reduced the cost by 30%."
+				},
+				{
+					"sourceId": "honest-sibling",
+					"text": "I documented the testing."
+				}
+			]
+		}
+	},
+	{
+		"id": "translation-ar-date",
+		"feature": "translation",
+		"locale": "ar-SA",
+		"source": {
+			"direction": "ar-en",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"id": "subject",
+					"section": "summary",
+					"text": "عملت من ٢٠١٩ إلى ٢٠٢١."
+				}
+			]
+		},
+		"candidate": {
+			"direction": "ar-en",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"sourceId": "subject",
+					"text": "Worked from 2018 to 2021."
+				}
+			]
+		}
+	},
+	{
+		"id": "translation-ar-duplicate-id",
+		"feature": "translation",
+		"locale": "ar-SA",
+		"source": {
+			"direction": "ar-en",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"id": "subject",
+					"section": "summary",
+					"text": "وثقت الإجراءات."
+				},
+				{
+					"id": "honest-sibling",
+					"section": "summary",
+					"text": "اختبرت النموذج."
+				}
+			]
+		},
+		"candidate": {
+			"direction": "ar-en",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"sourceId": "subject",
+					"text": "Documented the procedures."
+				},
+				{
+					"sourceId": "subject",
+					"text": "Documented the procedures."
+				}
+			]
+		}
+	},
+	{
+		"id": "translation-ar-credential",
+		"feature": "translation",
+		"locale": "ar-SA",
+		"source": {
+			"direction": "ar-en",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"id": "subject",
+					"section": "summary",
+					"text": "حضرت دورة أمن المعلومات."
+				},
+				{
+					"id": "honest-sibling",
+					"section": "summary",
+					"text": "وثّقتُ الاختبارات."
+				}
+			]
+		},
+		"candidate": {
+			"direction": "ar-en",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"sourceId": "subject",
+					"text": "Earned an information security certification."
+				},
+				{
+					"sourceId": "honest-sibling",
+					"text": "I documented the testing."
+				}
+			]
+		}
+	},
+	{
+		"id": "translation-ar-omission",
+		"feature": "translation",
+		"locale": "ar-SA",
+		"source": {
+			"direction": "ar-en",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"id": "subject",
+					"section": "summary",
+					"text": "وثقت الاختبارات وقدمت تقريرًا أسبوعيًا."
+				}
+			]
+		},
+		"candidate": {
+			"direction": "ar-en",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"sourceId": "subject",
+					"text": "Documented tests."
+				}
+			]
+		}
+	},
+	{
+		"id": "translation-ar-responsibility",
+		"feature": "translation",
+		"locale": "ar-SA",
+		"source": {
+			"direction": "ar-en",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"id": "subject",
+					"section": "summary",
+					"text": "ساعدت المشرف في مراجعة الطلبات."
+				},
+				{
+					"id": "honest-sibling",
+					"section": "summary",
+					"text": "وثّقتُ الاختبارات."
+				}
+			]
+		},
+		"candidate": {
+			"direction": "ar-en",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"sourceId": "subject",
+					"text": "Led the application review."
+				},
+				{
+					"sourceId": "honest-sibling",
+					"text": "I documented the testing."
+				}
+			]
+		}
+	},
+	{
+		"id": "translation-ar-unchanged",
+		"feature": "translation",
+		"locale": "ar-SA",
+		"source": {
+			"direction": "ar-en",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"id": "subject",
+					"section": "summary",
+					"text": "كتبت دليل الاختبار يدوياً."
+				}
+			]
+		},
+		"candidate": {
+			"direction": "ar-en",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"sourceId": "subject",
+					"text": "كتبت دليل الاختبار يدوياً."
+				}
+			]
+		}
+	},
+	{
+		"id": "translation-ar-honest",
+		"feature": "translation",
+		"locale": "ar-SA",
+		"source": {
+			"direction": "ar-en",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"id": "honest",
+					"section": "summary",
+					"text": "أضفتُ لوحة معلومات إلى صفحة الهبوط. سجّلتُ فيديو للاختبارات. عرض الفيديو خطوات تسجيل الدخول."
+				}
+			]
+		},
+		"candidate": {
+			"direction": "ar-en",
+			"sourceRevision": "synthetic-revision",
+			"segments": [
+				{
+					"sourceId": "honest",
+					"text": "Added a dashboard to the landing page. Recorded a video of the tests showing the sign-in steps."
+				}
+			]
+		}
+	}
+]

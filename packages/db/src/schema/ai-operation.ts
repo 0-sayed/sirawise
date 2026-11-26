@@ -1,4 +1,9 @@
-import type { OperationState, RouteBinding, SourceRevision } from "@reactive-resume/schema/ai-operation";
+import type {
+	OperationRequest,
+	OperationState,
+	RouteBinding,
+	SourceRevision,
+} from "@reactive-resume/schema/ai-operation";
 import { sql } from "drizzle-orm";
 import * as pg from "drizzle-orm/pg-core";
 import { generateId } from "@reactive-resume/utils/string";
@@ -33,6 +38,10 @@ export const aiOperation = pg.pgTable.withRLS(
 		parameters: pg.jsonb("parameters").notNull().$type<Record<string, unknown>>().default({}),
 		state: pg.text("state").notNull().$type<OperationState>().default("queued"),
 		dueAt: timestamp("due_at").notNull().defaultNow(),
+		queueExpiresAt: timestamp("queue_expires_at")
+			.notNull()
+			.default(sql`now() + interval '5 minutes'`),
+		executionStartedAt: timestamp("execution_started_at"),
 		deadlineAt: timestamp("deadline_at")
 			.notNull()
 			.default(sql`now() + interval '120 seconds'`),
@@ -41,10 +50,28 @@ export const aiOperation = pg.pgTable.withRLS(
 		deliveredAt: timestamp("delivered_at"),
 		result: pg.jsonb("result").$type<Record<string, unknown>>(),
 		failureCode: pg.text("failure_code"),
+		failureDetail: pg.jsonb("failure_detail").$type<
+			| { rule: string }
+			| { withheldCount?: number; withheldRules?: string[]; verifyBatchCount?: number }
+			| { httpStatus: number | null; statusMeaning: string; providerErrorCode?: string }
+			| {
+					errorClass: string;
+					message: string;
+					code?: string;
+					causeCode?: string;
+					httpStatus: number | null;
+					bytesReceived: boolean;
+					requestSent: boolean;
+					timedOut?: boolean;
+					providerErrorCode?: string;
+					causes?: { errorClass: string; message: string; code?: string }[];
+			  }
+		>(),
 		copyClaim: pg.jsonb("copy_claim").$type<{ variantKind: "language" | "job"; baseResumeId: string }>(),
 		budgetId: pg.text("budget_id"),
 		reservedMicros: pg.bigint("reserved_micros", { mode: "number" }).notNull().default(0),
 		actualMicros: pg.bigint("actual_micros", { mode: "number" }),
+		unknownBookedMicros: pg.bigint("unknown_booked_micros", { mode: "number" }),
 		budgetClosed: pg.boolean("budget_closed").notNull().default(false),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
 	},
@@ -55,6 +82,10 @@ export const aiOperation = pg.pgTable.withRLS(
 		pg.unique().on(t.userId, t.requestKey),
 		pg.index().on(t.state, t.dueAt),
 		pg.index().on(t.userId, t.state),
+		pg
+			.index("ai_operation_waiting_order")
+			.on(t.createdAt, t.id)
+			.where(sql`${t.state}='queued'`),
 		pg.check(
 			"ai_operation_state_valid",
 			sql`${t.state} IN ('queued','running','waiting_review','succeeded','failed','cancel_requested','cancelled')`,
@@ -63,6 +94,39 @@ export const aiOperation = pg.pgTable.withRLS(
 			"ai_operation_delivery_valid",
 			sql`(${t.state} IN ('waiting_review','succeeded')) = (${t.deliveredAt} IS NOT NULL AND ${t.result} IS NOT NULL)`,
 		),
+	],
+);
+
+/** Reviewable aggregate across bounded translation operations, including retried failed parts. */
+export const aiTranslationBatch = pg.pgTable.withRLS(
+	"ai_translation_batch",
+	{
+		rootOperationId: pg.text("root_operation_id").primaryKey(),
+		userId: owner(),
+		total: pg.integer("total").notNull(),
+		plan: pg.jsonb("plan").$type<Record<string, unknown>>(),
+		execution: pg.jsonb("execution").$type<
+			Pick<OperationRequest, "route" | "consentVersion"> & {
+				retryFailedOperationIds?: string[];
+				reviewWithheldSegmentIds?: string[];
+			}
+		>(),
+		state: pg.text("state").notNull().$type<"running" | "paused" | "complete">(),
+		failureCode: pg.text("failure_code"),
+		result: pg.jsonb("result").$type<Record<string, unknown>>(),
+		reviewState: pg.text("review_state").notNull().$type<"waiting_review" | "succeeded">().default("waiting_review"),
+	},
+	(t) => [
+		ownerPolicy(t.userId),
+		discoveryPolicy(),
+		pg.index().on(t.userId),
+		pg
+			.foreignKey({ columns: [t.userId, t.rootOperationId], foreignColumns: [aiOperation.userId, aiOperation.id] })
+			.onDelete("cascade"),
+		pg.check("ai_translation_batch_total_valid", sql`${t.total} > 0`),
+		pg.check("ai_translation_batch_state_valid", sql`${t.state} IN ('running','paused','complete')`),
+		pg.check("ai_translation_batch_result_valid", sql`(${t.state} = 'complete') = (${t.result} IS NOT NULL)`),
+		pg.check("ai_translation_batch_review_valid", sql`${t.reviewState} IN ('waiting_review','succeeded')`),
 	],
 );
 
@@ -91,7 +155,7 @@ export const aiOperationAttempt = pg.pgTable.withRLS(
 		pg
 			.foreignKey({ columns: [t.userId, t.operationId], foreignColumns: [aiOperation.userId, aiOperation.id] })
 			.onDelete("cascade"),
-		pg.check("ai_attempt_ordinal", sql`${t.ordinal} BETWEEN 1 AND 5`),
+		pg.check("ai_attempt_ordinal", sql`${t.ordinal} BETWEEN 1 AND 7`),
 		pg.check("ai_attempt_cost", sql`${t.costMicros} IS NULL OR ${t.costMicros} >= 0`),
 	],
 );
@@ -138,6 +202,20 @@ export const aiProcessingConsent = pg.pgTable.withRLS(
 		revokedAt: timestamp("revoked_at"),
 	},
 	(t) => [ownerPolicy(t.userId), pg.unique().on(t.userId, t.routeId, t.routeRevision, t.noticeVersion, t.purpose)],
+);
+
+/** Shared platform capacity is writable only by a database administrator. */
+export const aiPlatformCapacity = pg.pgTable.withRLS(
+	"ai_platform_capacity",
+	{
+		singleton: pg.boolean().primaryKey().default(true),
+		maxRunning: pg.integer("max_running").notNull(),
+	},
+	(t) => [
+		pg.pgPolicy("capacity_owner", { for: "all", to: "current_user", using: sql`true`, withCheck: sql`true` }),
+		pg.check("ai_platform_capacity_singleton_check", sql`${t.singleton}`),
+		pg.check("ai_platform_capacity_max_running_check", sql`${t.maxRunning} BETWEEN 1 AND 100`),
+	],
 );
 
 /** No runtime table privileges. Budget admission is through narrow owner-checking functions. */

@@ -9,7 +9,7 @@ export function AuthErrorSummary({ message, field }: { message: string | null; f
 	if (!message) return null;
 	return (
 		<Alert variant="error" ref={ref} role="alert" tabIndex={-1} className="outline-offset-4">
-			<AlertDescription>
+			<AlertDescription id={field ? `${field}-error` : undefined}>
 				{field ? (
 					<a
 						href={`#${field}`}

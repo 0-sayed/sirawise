@@ -4,7 +4,41 @@ import { sourceRevisionSchema } from "../ai-operation";
 import { masterFactInputSchema, masterSectionSchema } from "../career-master";
 import { resumeDataSchema } from "./data";
 
-const id = z.string().trim().min(1).max(200);
+const maxReviewIdLength = 200;
+
+const withheldReviewItemSchema = z.strictObject({
+	id: z
+		.string()
+		.min(1)
+		.max(maxReviewIdLength + "question:".length),
+	spanIds: z.array(z.string().min(1).max(200)).max(20).optional(),
+	reason: z.string().min(1).max(100).optional(),
+	text: z.string().trim().min(1).max(2000).optional(),
+	partIndex: z.number().int().nonnegative().optional(),
+	field: z.string().min(1).max(100).optional(),
+	section: z.string().min(1).max(100).optional(),
+});
+
+export const withheldReviewItemsSchema = z.strictObject({
+	count: z.number().int().positive(),
+	rules: z.array(z.string().min(1).max(100)).min(1).max(20),
+	items: z.array(withheldReviewItemSchema).max(50).optional(),
+});
+export type WithheldReviewItems = z.infer<typeof withheldReviewItemsSchema>;
+
+export const withheldJobEvidenceSchema = withheldReviewItemsSchema.extend({
+	// The writer can return up to 50 requirements and 10 notes. Both have their own limit.
+	items: z
+		.array(withheldReviewItemSchema)
+		.max(60)
+		.refine((items) => {
+			const notes = items.filter(({ id }) => /^note:\d+$/u.test(id)).length;
+			return notes <= 10 && items.length - notes <= 50;
+		})
+		.optional(),
+});
+
+const id = z.string().trim().min(1).max(maxReviewIdLength);
 const safeId = id.refine(
 	(value) => !["__proto__", "prototype", "constructor"].includes(value) && !/[./\\]/u.test(value),
 	"Invalid target identifier",
@@ -83,6 +117,7 @@ export const reviewProposalSchema = z
 		target: reviewTargetSchema,
 		location: z.string().min(1).max(500),
 		before: z.string().max(32000),
+		blockIndex: z.number().int().nonnegative().optional(),
 		after: z.string().min(1).max(32000),
 		why: z.string().trim().min(1).max(4000),
 		status: z.literal("pending"),
@@ -154,6 +189,7 @@ const common = {
 	sourceRevision: sourceRevisionSchema,
 	evidence: z.array(reviewEvidenceSchema).max(100),
 	questions: z.array(questionSchema).max(20),
+	withheld: withheldReviewItemsSchema.optional(),
 };
 export const reviewResultSchema = z.discriminatedUnion("kind", [
 	z.strictObject({
@@ -204,10 +240,14 @@ export const reviewAnswerInputSchema = z.strictObject({
 export type ReviewAnswerInput = z.infer<typeof reviewAnswerInputSchema>;
 
 export const reviewQuestionDismissalSchema = z.strictObject({ operationId: id, questionId: id, requestKey: id });
+export const questionAnswersSchema = z.array(z.strictObject({ questionId: id, evidence: reviewEvidenceSchema }));
+
 export const reviewViewSchema = z.strictObject({
 	result: reviewResultSchema,
 	statuses: z.record(z.string(), z.enum(["pending", "accepted", "rejected"])),
 	answers: z.array(reviewEvidenceSchema),
+	questionAnswers: questionAnswersSchema.optional(),
+	remainingAnswerSlots: z.number().int().nonnegative().optional(),
 	dismissedQuestionIds: z.array(id),
 	answeredQuestionIds: z.array(id),
 	undoable: z.array(

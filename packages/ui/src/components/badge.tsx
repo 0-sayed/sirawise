@@ -1,7 +1,9 @@
 import type { VariantProps } from "class-variance-authority";
+import type { ReactNode } from "react";
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { cva } from "class-variance-authority";
+import { isValidElement } from "react";
 import { cn } from "@reactive-resume/utils/style";
 
 /** Status pills. Color always pairs with text; never use a badge as the only signal. */
@@ -35,7 +37,26 @@ const badgeVariants = cva(
 );
 
 function CountBadge(props: React.ComponentProps<typeof Badge>) {
-	return <Badge variant="accent" {...props} className={cn("h-6 font-semibold tabular-nums", props.className)} />;
+	const digits = countDigits(props.children);
+	return (
+		<Badge
+			variant="accent"
+			{...props}
+			data-count-digits={digits}
+			className={cn(
+				"h-6 min-w-6 font-semibold tabular-nums",
+				digits === "single" ? "w-6 px-0" : "px-2",
+				props.className,
+			)}
+		/>
+	);
+}
+
+function countDigits(children: ReactNode): "single" | "multiple" {
+	if (isValidElement<{ children?: ReactNode }>(children)) return countDigits(children.props.children);
+	return (typeof children === "number" || typeof children === "string") && /^\d$/u.test(String(children))
+		? "single"
+		: "multiple";
 }
 
 type SidebarCountBadgeProps = { variant?: "accent" | "neutral"; count: number; current?: boolean; rail?: boolean };
@@ -48,6 +69,7 @@ function SidebarCountBadge({ count, current = false, rail = false, variant = "ac
 			variant={variant}
 			shape={rail ? "dot" : "pill"}
 			data-slot="sidebar-count-badge"
+			data-count-digits={rail ? undefined : count < 10 ? "single" : "multiple"}
 			aria-hidden="true"
 			className={cn(
 				rail ? "sidebar-count-corner" : "sidebar-count-badge",

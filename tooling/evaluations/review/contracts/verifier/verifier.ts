@@ -1,5 +1,6 @@
 import type { TaskVerifierAdapter } from "../runtime";
 import type { Claim, TaskCase } from "../types";
+import type { TasksVerification } from "./schema";
 import { readFileSync } from "node:fs";
 import { isDeepStrictEqual } from "node:util";
 import { normalizeFact } from "@reactive-resume/api/features/ai/hard-facts";
@@ -9,6 +10,7 @@ import {
 	variantVerificationInventory,
 } from "@reactive-resume/api/features/ai/variant-verifier";
 import { buildModelPayload } from "../../production";
+import { canonicalVerifierVerdict } from "../../verifier-protocol";
 import { interviewQuestionAssessment, OUTSIDE_INTERVIEW_QUESTIONS_ID } from "../interview-prep/question-assessment";
 import { isProductionVariantCase, taskContractFor } from "../runtime";
 import { provenUnchangedTailoring, variantSnapshot } from "../variant-adapter";
@@ -200,6 +202,46 @@ const quoteText = (text: string) =>
 		.replace(/[^\p{L}\p{N}]+/gu, " ")
 		.trim();
 
+/** Replay the full-response verdict protocol used by archived canary receipts. */
+export function auditArchivedCanary(
+	c: TaskCase,
+	output: Record<string, unknown>,
+	raw: TasksVerification,
+): string | null {
+	if (!isProductionVariantCase(c)) return auditFault(c, output, raw);
+	const snapshot = variantSnapshot(c);
+	const inventory = variantVerificationInventory(snapshot, output);
+	const verdict = canonicalVerifierVerdict(raw);
+	if (
+		!sameIds(
+			inventory.claims.map(({ id }) => id),
+			verdict.verdicts.map(({ claimId }) => claimId),
+		) ||
+		!sameIds(
+			inventory.premises.map(({ id }) => id),
+			verdict.premises.map(({ id }) => id),
+		) ||
+		!sameIds(
+			inventory.absence.map(({ id }) => id),
+			verdict.absence.map(({ id }) => id),
+		)
+	)
+		return "AI_VERIFICATION_INCOMPLETE";
+	const requiresRetention = c.category === "translation" || c.category === "tailoring";
+	if (requiresRetention !== (verdict.retention !== null)) return "AI_VERIFICATION_RETENTION_SCOPE";
+	const claims = new Map(inventory.claims.map((claim) => [claim.id, claim]));
+	if (
+		verdict.verdicts.some(
+			({ claimId, evidenceIds }) =>
+				new Set(evidenceIds).size !== evidenceIds.length ||
+				evidenceIds.some((id) => !claims.get(claimId)?.evidenceIds.includes(id)),
+		) ||
+		verdict.retention?.evidenceIds.some((id) => !snapshot.cv.some((fact) => fact.id === id))
+	)
+		return "AI_VERIFICATION_CITATION";
+	return c.category === "translation" ? translationQualityFault(output, raw) : null;
+}
+
 function auditFault(c: TaskCase, output: Record<string, unknown>, raw: unknown): string | null {
 	if (isProductionVariantCase(c)) {
 		try {
@@ -324,7 +366,11 @@ function fakeVerdict(c: TaskCase, output: Record<string, unknown>): Record<strin
 		quality: {
 			status: gold ? "appropriate" : "unclear",
 			reason: c.category === "translation" && gold ? '{"mqm":[]}' : reason,
-			...(c.category === "translation" ? { mqm: [] } : isProductionVariantCase(c) ? {} : { mqm: null }),
+			...(c.category === "translation"
+				? { assessment: "translation_language_quality", mqm: [] }
+				: isProductionVariantCase(c)
+					? {}
+					: { mqm: null }),
 		},
 	};
 }

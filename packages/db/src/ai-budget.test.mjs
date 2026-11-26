@@ -64,6 +64,22 @@ describe("ensureAiBudget", () => {
 						concurrency: route.concurrency,
 					})),
 				);
+				const updated = await pool.query(
+					`UPDATE ai_platform_budget SET spent_micros=12345, reserved_micros=200000, active=1
+					 WHERE route_id=$1 AND window_date=(SELECT min(window_date) FROM ai_platform_budget WHERE route_id=$1)`,
+					[testRoute.routeId],
+				);
+				expect(updated.rowCount).toBe(1);
+				const before = await pool.query("SELECT * FROM ai_platform_budget WHERE route_id=$1 ORDER BY window_date", [
+					testRoute.routeId,
+				]);
+				expect(await ensureAiBudget(database, { ...testRoute, configRevision: "translation-timeout-reviewed" })).toBe(
+					0,
+				);
+				const after = await pool.query("SELECT * FROM ai_platform_budget WHERE route_id=$1 ORDER BY window_date", [
+					testRoute.routeId,
+				]);
+				expect(after.rows).toEqual(before.rows);
 			} finally {
 				await pool.end();
 				await admin.query(`DROP DATABASE "${databaseName}"`);

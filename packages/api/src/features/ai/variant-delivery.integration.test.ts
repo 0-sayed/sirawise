@@ -1,12 +1,18 @@
 import { beforeAll, expect, it } from "vite-plus/test";
+import { withDatabaseOwner } from "@reactive-resume/db/owner-scope";
 import { defaultResumeData } from "@reactive-resume/schema/resume/default";
+import { variantOperationParameters } from "@reactive-resume/schema/resume/variants";
 import { saveJobTarget, selectResumeJob } from "../career/job-targets";
 import { resumeService } from "../resume/service";
+import { createVariant } from "../resume/variants";
 import { runAiOperations } from "./operation-worker";
 import { operationService } from "./operations";
+import { prepareReviewContinuation } from "./review-continuation";
+import { recordReviewAnswer } from "./review-decisions";
 import { withAiRuntime } from "./route-policy";
 import { aiTestDatabase } from "./testing/database";
 import { syntheticReviewRuntime } from "./testing/runtime";
+import { decideVariantReview, getVariantReview } from "./variant-decisions";
 import { prepareVariantReview } from "./variant-sources";
 
 const database = aiTestDatabase();
@@ -14,7 +20,7 @@ let cv: string;
 let revision: string;
 let job: Awaited<ReturnType<typeof saveJobTarget>>;
 let selection: Awaited<ReturnType<typeof selectResumeJob>>;
-let mode: "supported" | "missing" | "unavailable" | "changed" | "fabricated" = "supported";
+let mode: "supported" | "missing" | "unavailable" | "changed" | "fabricated" | "partial" = "supported";
 let calls: Record<string, unknown>[] = [];
 const runtime = {
 	...syntheticReviewRuntime,
@@ -55,7 +61,13 @@ const runtime = {
 					verdict: "supported",
 					reason: "Synthetic checked",
 				})),
-				retention: null,
+				retention: inventory.retention
+					? {
+							status: "retained",
+							evidenceIds: inventory.claims.flatMap((claim: { evidenceIds: string[] }) => claim.evidenceIds),
+							reason: "Synthetic retained",
+						}
+					: null,
 				coverage: { status: "complete", reason: "Synthetic complete" },
 				quality: { status: "appropriate", reason: "Advisory only" },
 			};
@@ -66,24 +78,54 @@ const runtime = {
 			const jobContext = JSON.parse(
 				payload.selections.find((entry: { id: string }) => entry.id === "variant-job-context").text,
 			);
-			output = {
-				requirements: [
-					{
-						id: "react",
-						spanIds: [jobContext.segments[0].id],
-						importance: "essential",
-						verdict: "supported",
-						evidenceIds: [cvEvidence[0].id],
-						explanation: mode === "fabricated" ? "Used React and SAP and increased revenue 30%." : "Used React.",
-					},
-				],
-				notes: [],
-			};
+			const writerTask = JSON.parse(
+				payload.selections.find((entry: { id: string }) => entry.id === "variant-task").text,
+			);
+			const field = writerTask.variant?.fields.find((field: { sectionId: string }) => field.sectionId === "summary");
+			output =
+				writerTask.category === "tailoring"
+					? {
+							resumeId: writerTask.resumeId,
+							baseRevision: writerTask.sourceRevision,
+							patches: [
+								{
+									id: "summary",
+									target: {
+										resumeId: writerTask.resumeId,
+										baseRevision: writerTask.sourceRevision,
+										sectionId: field.sectionId,
+										itemId: field.itemId,
+										roleId: field.roleId,
+										field: field.field,
+									},
+									before: field.text,
+									after: "Used React!",
+									why: "Keep confirmed wording.",
+									evidenceIds: field.evidenceIds,
+									claims: [{ id: "summary", text: "Used React!", evidenceIds: field.evidenceIds, kind: "fact" }],
+								},
+							],
+							order: [],
+							notes: [],
+						}
+					: {
+							requirements: [
+								{
+									id: "react",
+									spanIds: [jobContext.segments[0].id],
+									importance: "essential",
+									verdict: mode === "partial" ? "partial" : "supported",
+									evidenceIds: [cvEvidence[0].id],
+									explanation: mode === "fabricated" ? "Used React and SAP and increased revenue 30%." : "Used React.",
+								},
+							],
+							notes: [],
+						};
 		}
 		return Response.json({
 			id: "scripted-variant",
-			model: "synthetic/model",
-			provider: "Test",
+			model: body.model,
+			provider: body.provider.only[0],
 			choices: [{ index: 0, message: { role: "assistant", content: JSON.stringify(output) }, finish_reason: "stop" }],
 			usage: { prompt_tokens: 5, completion_tokens: 5, total_tokens: 10, cost: 0.00001 },
 		});
@@ -93,8 +135,20 @@ const run = <T>(work: () => T) => database.run(() => withAiRuntime(runtime, work
 beforeAll(async () => {
 	const data = structuredClone(defaultResumeData);
 	data.summary.content = "<p>Used React.</p>";
+	data.sections.experience.hidden = false;
+	data.sections.experience.items = Array.from({ length: 60 }, (_, index) => ({
+		id: `role-${index}`,
+		hidden: false,
+		company: `Archive ${index}`,
+		position: "Analyst",
+		location: "",
+		period: "",
+		website: { url: "", label: "", inlineLink: false },
+		description: `<p>Reviewed records for department ${index}.</p>`,
+		roles: [],
+	}));
 	data.summary.hidden = false;
-	data.metadata.layout.pages = [{ fullWidth: false, main: ["summary"], sidebar: [] }];
+	data.metadata.layout.pages = [{ fullWidth: false, main: ["summary", "experience"], sidebar: [] }];
 	data.basics.name = "Private Name";
 	data.basics.email = "private@example.test";
 	data.basics.phone = "+966501234567";
@@ -125,7 +179,7 @@ beforeAll(async () => {
 		);
 });
 
-async function start(requestKey: string) {
+async function start(requestKey: string, includeSpanVersion = true) {
 	const prepared = await run(() =>
 		prepareVariantReview("alice", {
 			kind: "review.job-evidence",
@@ -136,10 +190,13 @@ async function start(requestKey: string) {
 			expectedSelectionRevision: selection.revision,
 		}),
 	);
+	const { jobSpanVersion, ...legacyParameters } = variantOperationParameters["review.job-evidence"].parse(
+		prepared.parameters,
+	);
 	return run(() =>
 		operationService.start("alice", {
 			kind: prepared.kind,
-			parameters: prepared.parameters,
+			parameters: includeSpanVersion ? { ...legacyParameters, jobSpanVersion } : legacyParameters,
 			sources: prepared.sources,
 			requestKey,
 			route: { routeId: "synthetic", routeRevision: "1", configRevision: "1" },
@@ -150,7 +207,9 @@ async function start(requestKey: string) {
 
 it("delivers complete independently verified evidence once without changing the CV", async () => {
 	calls = [];
-	const operation = await start("complete");
+	const operation = await start("complete", false);
+	const stored = await database.admin().query("SELECT parameters FROM ai_operation WHERE id = $1", [operation.id]);
+	expect(stored.rows[0]?.parameters.jobSpanVersion).toBe("requirements-v2");
 	await run(() => runAiOperations());
 	expect(await run(() => operationService.get("alice", operation.id))).toMatchObject({
 		state: "waiting_review",
@@ -161,6 +220,12 @@ it("delivers complete independently verified evidence once without changing the 
 		output: { requirements: [{ id: "react" }] },
 	});
 	expect(calls).toHaveLength(2);
+	const input = writerInput();
+	const evidence = JSON.parse(
+		input.selections.find((entry: { id: string }) => entry.id === "variant-cv-evidence").text,
+	);
+	expect(evidence.length).toBeGreaterThan(49);
+	expect([...JSON.stringify(input)].length).toBeLessThanOrEqual(16000);
 	for (const secret of ["Private Name", "private@example.test", "+966501234567"])
 		expect(JSON.stringify(calls)).not.toContain(secret);
 	expect(calls[0]).toMatchObject({
@@ -208,3 +273,135 @@ it.each(["missing", "unavailable", "fabricated", "changed"] as const)(
 		mode = "supported";
 	},
 );
+
+it("attaches a saved answer to the same job evidence review without a second charge", async () => {
+	mode = "partial";
+	const operation = await start("clarify-job");
+	await run(() => runAiOperations());
+	mode = "supported";
+	const answer = await run(() =>
+		recordReviewAnswer("alice", {
+			operationId: operation.id,
+			questionId: "react",
+			requestKey: "answer-job",
+			expectedSource: { kind: "resume", id: cv, revision },
+			text: "Used React for a reporting project.",
+		}),
+	);
+	const prepared = await run(() => prepareReviewContinuation("alice", operation.id, answer.id));
+	calls = [];
+	const follow = await run(() =>
+		operationService.start("alice", {
+			...prepared,
+			kind: "review.job-evidence",
+			requestKey: "continue-job",
+			route: { routeId: "synthetic", routeRevision: "1", configRevision: "1" },
+			consentVersion: "1",
+		}),
+	);
+	await run(() => runAiOperations());
+	const input = writerInput();
+	const evidence = JSON.parse(
+		input.selections.find((entry: { id: string }) => entry.id === "variant-cv-evidence").text,
+	);
+	expect(evidence).toContainEqual(
+		expect.objectContaining({
+			id: answer.id,
+			text: answer.quote,
+			confirmation: "user_supplied",
+		}),
+	);
+	expect(await run(() => operationService.get("alice", follow.id))).toMatchObject({ state: "waiting_review" });
+	const ledger = await database
+		.admin()
+		.query("SELECT operation_id FROM ai_usage_ledger WHERE operation_id IN ($1,$2) AND kind='settle'", [
+			operation.id,
+			follow.id,
+		]);
+	expect(ledger.rows).toEqual([{ operation_id: operation.id }]);
+});
+
+it("saves accepted wording only to the reopened tailored CV and uses two calls for a full CV", async () => {
+	const source = (await database.admin().query("SELECT data,updated_at FROM resume WHERE id=$1", [cv])).rows[0];
+	const copy = await run(() =>
+		createVariant("alice", {
+			variantKind: "job",
+			sourceResumeId: cv,
+			expectedUpdatedAt: source.updated_at.toISOString(),
+			requestKey: "large-tailoring-copy",
+			jobId: job.jobId,
+			jobRevision: job.revision,
+		}),
+	);
+	const selected = (
+		await database.admin().query("SELECT updated_at FROM resume_job_selection WHERE resume_id=$1", [copy.resumeId])
+	).rows[0];
+	await database
+		.admin()
+		.query(
+			"INSERT INTO ai_processing_consent(id,user_id,route_id,route_revision,notice_version,purpose,config_revision) VALUES ('tailoring-consent','alice','synthetic','1','1','review.tailoring','1')",
+		);
+	const prepared = await run(() =>
+		prepareVariantReview("alice", {
+			kind: "review.tailoring",
+			resumeId: copy.resumeId,
+			expectedUpdatedAt: copy.updatedAt,
+			jobId: job.jobId,
+			jobRevision: job.revision,
+			expectedSelectionRevision: selected.updated_at.toISOString(),
+		}),
+	);
+	calls = [];
+	const operation = await run(() =>
+		operationService.start("alice", {
+			kind: prepared.kind,
+			parameters: prepared.parameters,
+			sources: prepared.sources,
+			requestKey: "large-tailoring",
+			route: { routeId: "synthetic", routeRevision: "1", configRevision: "1" },
+			consentVersion: "1",
+		}),
+	);
+	await run(() => runAiOperations());
+	expect(await run(() => operationService.get("alice", operation.id))).toMatchObject({
+		state: "waiting_review",
+		failureCode: null,
+	});
+	expect(calls).toHaveLength(2);
+	const input = writerInput();
+	expect([...JSON.stringify(input)].length).toBeLessThanOrEqual(16000);
+	expect((await database.admin().query("SELECT data FROM resume WHERE id=$1", [copy.resumeId])).rows[0].data).toEqual(
+		source.data,
+	);
+	const review = await run(() => getVariantReview("alice", operation.id));
+	const accepted = await run(() =>
+		decideVariantReview("alice", {
+			operationId: operation.id,
+			requestKey: "accept-tailored-wording",
+			expectedUpdatedAt: review.updatedAt,
+			expectedDecisionId: review.latestDecisionId,
+			subjectIds: ["summary"],
+			decision: "accept",
+		}),
+	);
+	expect(accepted.resumeId).toBe(copy.resumeId);
+	const reopen = (id: string) =>
+		run(() => withDatabaseOwner("alice", () => resumeService.getById({ id, userId: "alice" })));
+	const reopened = await reopen(copy.resumeId);
+	expect(reopened.data.summary.content).toBe("<p>Used React!</p>");
+	expect((await reopen(cv)).data).toEqual(source.data);
+
+	expect(
+		(
+			await database
+				.admin()
+				.query("SELECT kind FROM ai_usage_ledger WHERE operation_id=$1 ORDER BY created_at", [operation.id])
+		).rows.map((row) => row.kind),
+	).toEqual(["reserve", "settle"]);
+});
+
+function writerInput() {
+	const call = calls[0];
+	if (!call) throw new Error("Writer was not called");
+	return JSON.parse((call.messages as Array<{ content: string }>).at(-1)?.content ?? "{}");
+}

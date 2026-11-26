@@ -117,6 +117,7 @@
 			"entry": ["src/deploy-migrations.mjs", "src/deploy-runtime-role.mjs", "src/deploy-ai-budget.mjs"]
 		},
 		"tooling": {
+			"ignoreBinaries": ["libreoffice"],
 			"ignoreExportsUsedInFile": true,
 			"entry": [
 				"**/*.mjs",

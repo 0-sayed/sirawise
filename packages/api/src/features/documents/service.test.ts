@@ -38,10 +38,27 @@ beforeEach(() => {
 		mock.mockReset();
 	dbMock.transaction.mockImplementation(async (callback: (tx: unknown) => Promise<unknown>) =>
 		callback({
-			select: () => ({ from: () => ({ where: () => ({ for: async () => [{ id: "u1" }] }) }) }),
+			select: (fields: Record<string, unknown>) =>
+				"isLocked" in fields
+					? dbMock.select(fields)
+					: { from: () => ({ where: () => ({ for: async () => [{ id: "u1" }] }) }) },
 			update: dbMock.update,
 		}),
 	);
+});
+
+it("writes one normalized spelling per tag in first-occurrence order", async () => {
+	dbMock.select.mockReturnValueOnce(rows([{ isLocked: false, trashedAt: null, tags: [] }]));
+	const set = updates();
+
+	await documentsService.setTags({
+		userId: "u1",
+		type: "resume",
+		id: "r1",
+		tags: ["  Product   Design ", "product design", "بحث\tوظائف", "بحث وظائف", "  "],
+	});
+
+	expect(set).toHaveBeenCalledExactlyOnceWith({ tags: ["Product Design", "بحث وظائف"] });
 });
 
 describe("Trash", () => {

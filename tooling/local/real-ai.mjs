@@ -1,11 +1,14 @@
 import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
+import { assertFreshWebDist } from "./web-dist-freshness.mjs";
 
 // Load before importing any app modules; an explicit override permits fake-key verification
 // without opening the owner's credential file.
 if (process.env.NODE_ENV === "production") throw new Error("LOCAL_REAL_AI_DEV_ONLY");
+assertFreshWebDist(fileURLToPath(new URL("../../", import.meta.url)));
 const { values } = parseArgs({ options: { "env-file": { type: "string" } } });
 if (existsSync(".env.runtime.local")) process.loadEnvFile(resolve(".env.runtime.local"));
 process.loadEnvFile(resolve(".env.local"));
@@ -19,4 +22,5 @@ process.env.APP_URL = "http://localhost:3060";
 const { register } = createRequire(new URL("../../apps/server/package.json", import.meta.url))("tsx/esm/api");
 register({ tsconfig: resolve("tsconfig.json") });
 // @boundaries-ignore Dev-only composition entry lives outside production workspace packages.
-await import("../../tests/e2e/dev-real-ai-server.ts");
+const { startRealAiServer } = await import("../../tests/e2e/dev-real-ai-server.ts");
+await startRealAiServer();

@@ -58,3 +58,19 @@ export function prepareFontBytes(bytes: Uint8Array): Uint8Array {
 	const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
 	return view.getUint32(0) === WOFF ? woffToSfnt(bytes) : bytes;
 }
+
+/** The Arabic bit in the OpenType OS/2 table's first Unicode range field. */
+export function declaresArabicCoverage(bytes: Uint8Array): boolean | undefined {
+	const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+	if (view.byteLength < 12) return undefined;
+	const tableCount = view.getUint16(4);
+	for (let index = 0; index < tableCount; index++) {
+		const record = 12 + index * 16;
+		if (record + 16 > view.byteLength) return undefined;
+		if (view.getUint32(record) !== 0x4f532f32) continue; // OS/2
+		const start = view.getUint32(record + 8);
+		if (view.getUint32(record + 12) < 46 || start + 46 > view.byteLength) return undefined;
+		return (view.getUint32(start + 42) & (1 << 13)) !== 0;
+	}
+	return undefined;
+}

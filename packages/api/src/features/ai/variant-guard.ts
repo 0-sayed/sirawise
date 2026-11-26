@@ -1,4 +1,6 @@
-import type { Claim, CvFact, GuardPolicy, GuardResult, GuardContext } from "./variant-types";
+import type { Claim, CvFact, GuardPolicy, GuardResult, GuardContext, VariantSnapshot } from "./variant-types";
+import type { JobEvidenceOutput } from "@reactive-resume/schema/resume/variant-outputs";
+import { normalizeNumericDigits } from "@reactive-resume/utils/string";
 import {
 	assertHardFacts,
 	evidenceExplanation,
@@ -10,10 +12,83 @@ import {
 
 export const tasksGuardVersion = `tasks-guard-v5-shared-factual-paraphrases:${HARD_FACTS_VERSION}`;
 
+export function hasCompleteJobCv(snapshot: VariantSnapshot): boolean {
+	const selection = snapshot.evidenceSelection;
+	return (
+		!selection ||
+		(selection.totalPassages === snapshot.cv.length &&
+			selection.omittedPassages === 0 &&
+			selection.excerptedPassageIds.length === 0)
+	);
+}
+
+/** High-confidence scope violations. The verifier still checks every assertion for less explicit forms. */
+export function hasOverbroadJobAbsence(text: string): boolean {
+	const normalized = normalizeFact(text);
+	const englishDocumentAbsence =
+		/\b(?:cv|r[eé]sum[eé])\s+(?:(?:does not|doesn't|did not|cannot)\s+(?:show|mention|document|contain|establish|record|provide|list|confirm)|(?:contains?|lists?|shows?|mentions?|documents?)\s+no|lacks?|has no)\b|\b(?:nowhere|no (?:evidence|mention|record|documentation)|not (?:mentioned|documented|recorded|listed))\b.*\b(?:in|throughout)\s+(?:(?:the|this|their|my|his|her|whole|full|entire|complete)\s+)*(?:cv|r[eé]sum[eé])\b/iu;
+	const arabicDocumentAbsence =
+		/السيرة(?: الذاتية)?(?:\s+(?:الكاملة|كاملة|كلها|باكملها))?\s+(?:(?:لا|لم)\s+(?:تذكر|توثق|تثبت|توضح|تظهر|تتضمن|تحتوي|تورد|تحدد)|تخلو|خالية)(?!\p{L})|(?:تخلو|يخلو)\s+السيرة|(?:لا|لم)\s+(?:يوجد|توجد|يذكر|تذكر|يرد|ترد|يظهر|تظهر|يوثق|توثق)\s+(?:.*?\s+)?(?:في|من)\s+(?:هذه\s+)?السيرة/iu;
+	const selectedMaterial =
+		/\b(?:selected|supplied|cited|reviewed|provided)\s+(?:(?:cv|r[eé]sum[eé])\s+)?(?:passages?|excerpts?|segments?|evidence)\b|(?:المقاطع|الفقرات|المقتطفات|النصوص|الادلة)\s+(?:المختارة|المنتقاة|المقدمة|المستشهد بها|المتاحة)/iu;
+	const explicitlyWhole =
+		/\b(?:whole|entire|full|complete)\s+(?:cv|r[eé]sum[eé])\b|السيرة(?: الذاتية)?\s+(?:الكاملة|كاملة|كلها|باكملها)/iu;
+	const personalUniversal = /\b(?:never|at no time)\b|(?<!\p{L})قط(?!\p{L})/iu;
+	return normalized.split(/\.(?=\s|$)|[!?؟;؛،,]|\s+(?:but|however|لكن(?:ها)?|ولكن(?:ها)?)\s+/iu).some((clause) => {
+		if (personalUniversal.test(clause) && !selectedMaterial.test(clause)) return true;
+		if (!englishDocumentAbsence.test(clause) && !arabicDocumentAbsence.test(clause)) return false;
+		// A reference to a CV passage is bounded unless the clause also asserts full-document scope.
+		return explicitlyWhole.test(clause) || !selectedMaterial.test(clause);
+	});
+}
+
+export function guardJobEvidenceItem(
+	snapshot: VariantSnapshot,
+	item:
+		| { kind: "requirement"; value: JobEvidenceOutput["requirements"][number] }
+		| { kind: "note"; id: string; text: string },
+): void {
+	const text = item.kind === "note" ? item.text : item.value.explanation;
+	if (/<[^>]*>/u.test(text)) throw new Error("AI_UNSUPPORTED_CLAIM");
+	const normalized = normalizeFact(text);
+	if (
+		/\b(?:(?:ats|match|compatibility|hiring) (?:score|probability|chance)|match\s+\d+|you lack|(?:candidate|applicant|you) (?:cannot|can't|is unable to|does not know|lacks?))\b|احتمال التوظيف|نسبة المطابقة|درجة التوافق|يفتقر|(?:المرشح|المتقدم|انت)\s+(?:لا\s+(?:يجيد|يعرف|يمتلك|يستطيع)|غير قادر)/u.test(
+			normalized,
+		)
+	)
+		throw new Error("JOB_INVALID_ASSESSMENT");
+	const selection = snapshot.evidenceSelection;
+	if (
+		item.kind === "requirement" &&
+		item.value.verdict === "no_evidence" &&
+		selection &&
+		(selection.omittedPassages > 0 || selection.excerptedPassageIds.length > 0)
+	)
+		throw new Error("JOB_PARTIAL_EVIDENCE_ABSENCE");
+	const evidence =
+		item.kind === "note" ? snapshot.cv : snapshot.cv.filter((entry) => item.value.evidenceIds.includes(entry.id));
+	const metadata =
+		item.kind === "note" && selection
+			? [
+					selection.totalPassages,
+					selection.omittedPassages,
+					selection.excerptedPassageIds.length,
+					snapshot.cv.length,
+				].join(" ")
+			: "";
+	const numbers = (value: string) =>
+		normalizeNumericDigits(value)
+			.match(/[+\-−]?\d+(?:[.,٫٬]\d+)*(?:\s*[%٪])?/gu)
+			?.map((number) => number.replace(/\s+/gu, "").replace(/٪/gu, "%")) ?? [];
+	const allowed = new Set([...evidence.flatMap((entry) => numbers(entry.text)), ...numbers(metadata)]);
+	if (numbers(text).some((number) => !allowed.has(number))) throw new Error("AI_UNSUPPORTED_CLAIM");
+}
+
 /** Absence describes the supplied document, never the person's ability. */
 export function boundedEvidenceAbsence(text: string): boolean {
 	const normalized = normalizeFact(text);
-	const scope = /\b(?:(?:this|the|supplied|the supplied)\s+)?(?:cv|resume)\b|(?:هذه\s+)?السيرة(?:\s+الذاتية)?/u;
+	const scope =
+		/\b(?:(?:this|the|supplied|the supplied)\s+)?(?:cv|resume)\b|\b(?:the\s+)?(?:selected|supplied)\s+(?:passages?|segments?|excerpts?|evidence)\b|(?:هذه\s+)?السيرة(?:\s+الذاتية)?|(?:المقاطع|الفقرات|الأدلة|الادلة|المعلومات)\s+(?:المختارة|المقدمة|المتاحة|المذكورة)/u;
 	const absence =
 		/\b(?:is|was)\s+not\s+(?:documented|recorded|shown|used)\b|\bno\s+(?:(?:supporting|matching|relevant)\s+)?evidence\b|\b(?:does\s+not|doesn't)\s+(?:show|provide|contain|document)\b|\bno\b.*\b(?:documented|recorded|shown)\b|لا\s+(?:يوجد|توجد|يظهر|تظهر|تتضمن|تقدم|توثق|تذكر)|لم\s+(?:تذكر|يستخدم|استخدم)/u;
 	const inability =
@@ -148,6 +223,27 @@ function assertTranslationEntities(
 		}
 }
 
+function scriptOf(text: string): "arabic" | "latin" | null {
+	const arabic = (text.match(/\p{Script=Arabic}/gu) ?? []).length;
+	const latin = (text.match(/\p{Script=Latin}/gu) ?? []).length;
+	if (!arabic && !latin) return null;
+	return arabic >= latin ? "arabic" : "latin";
+}
+
+function isCleanCrossScriptRoleLabel(role: string, job: string): boolean {
+	const roleScript = scriptOf(role);
+	const jobScript = scriptOf(job);
+	if (!roleScript || !jobScript || roleScript === jobScript) return false;
+	if (/\d/u.test(role)) return false;
+	if (
+		/\b(?:i|me|my|mine|we|our|ours|candidate|applicant|who|which|that)\b|(?:خبرتي|مهاراتي|مسؤولياتي|انا|أنا|نحن|لدي|عندي)/iu.test(
+			role,
+		)
+	)
+		return false;
+	return translationEntities(role).length === 0;
+}
+
 /**
  * Only these non-assertive bridge grammars separate a job-duty reference from candidate evidence.
  * Arbitrary prose, including possessive skill claims, still goes through the CV-only guard.
@@ -157,14 +253,18 @@ function applicationContext(c: GuardContext, text: string): string {
 	if (c.category !== "cover-letter") return text;
 	const job = c.jobAd?.segments.map((span) => factualEvidence(span.text)).join("\n") ?? "";
 	const target = (role: string, employer: string) => {
-		if (!contains(canonical(job), canonical(role)) || !contains(canonical(job), canonical(employer)))
-			throw new Error("AI_UNSUPPORTED_CLAIM");
+		const employerOk = contains(canonical(job), canonical(employer));
+		const roleOk = contains(canonical(job), canonical(role)) || isCleanCrossScriptRoleLabel(role, job);
+		if (!employerOk || !roleOk) throw new Error("AI_UNSUPPORTED_CLAIM");
 	};
 	return text
-		.replace(/^I am interested in the (.+?) role at (.+?),\s*/u, (_all, role: string, employer: string) => {
-			target(role, employer);
-			return "";
-		})
+		.replace(
+			/^I(?:\s+am|['’]m)\s+interested in the (.+?) role at (.+?)(?:,\s*|\s+because\s+)/u,
+			(_all, role: string, employer: string) => {
+				target(role, employer);
+				return "";
+			},
+		)
 		.replace(
 			/(?:,?\s+and\s+)?would welcome the opportunity to discuss how this experience relates to the (.+?) position at (.+?)\.$/u,
 			(_all, role: string, employer: string) => {
@@ -185,12 +285,43 @@ function applicationContext(c: GuardContext, text: string): string {
 		});
 }
 
+function jobCandidateText(c: GuardContext, claim: Claim): string {
+	const spans = claim.jobSpanIds ?? c.jobAd?.segments.map((span) => span.id) ?? [];
+	if (!spans.length && claim.jobSpanIds === undefined) return evidenceExplanation(claim.text);
+	if (!spans.length || new Set(spans).size !== spans.length) throw new Error("AI_INVALID_EVIDENCE");
+	const job = spans
+		.map((id) => {
+			const matches = c.jobAd?.segments.filter((span) => span.id === id) ?? [];
+			if (matches.length !== 1 || c.cv.some((fact) => fact.id === id)) throw new Error("AI_INVALID_EVIDENCE");
+			return matches[0]?.text ?? "";
+		})
+		.join(" ");
+	return claim.text
+		.split(/(?<=[.!?؟;؛])\s+|\s+(?:but|however|while)\s+|,\s*(?=(?:with no|no evidence)\b)|،\s*(?:لكن|ولا)\s+/iu)
+		.map((clause) => {
+			const reference = clause
+				.trim()
+				.match(
+					/^(?:(?:(?:the|this|supplied|the supplied) (?:CV|resume)|(?:the )?(?:supplied|selected) passages|it)\s+)?(?:(?:does not|doesn't|do not)\s+(?:explicitly\s+)?(?:establish|document|show|provide|record|prove|demonstrate|confirm|describe|specify)|(?:with\s+)?no(?:\s+(?:evidence|record|documentation)(?:\s+of|\s+for)?)?|without(?:\s+evidence\s+of)?|(?:السيرة(?: الذاتية)?\s+)?(?:لا|لم)\s+(?:تثبت|توثق|تذكر|توضح|تظهر)|لا يوجد دليل على|the (?:job|role|posting|requirement) (?:requires|asks for|calls for)|(?:الوظيفة|الإعلان|المتطلب) (?:يتطلب|يطلب))\s+(.+?)[.!?؟]?$/iu,
+				);
+			if (reference) {
+				// This clause describes the job criterion, not a candidate assertion.
+				// Check its names, numbers and protected facts against the cited job spans.
+				// The independent verifier still checks the complete absence assessment.
+				assertHardFacts("", (reference[1] ?? "").replace(/\s+in the supplied passages[.!?]?$/iu, ""), job);
+				return "";
+			}
+			return evidenceExplanation(clause);
+		})
+		.join(" ");
+}
+
 function candidateText(c: GuardContext, claim: Claim): string {
+	if (c.category === "job-evidence") return jobCandidateText(c, claim);
 	const match = claim.text.match(
 		/^(?:This experience relates to the ([^.!?؟\n]+) duties described in your posting\.|وترتبط هذه الخبرة بمهام ([^.!?؟\n]+) الواردة في إعلانكم\.|هذا يرتبط بمهام ([^.!?؟\n]+) المذكورة في إعلانكم\.)$/u,
 	);
-	if (!match && claim.jobSpanIds === undefined)
-		return c.category === "job-evidence" ? evidenceExplanation(claim.text) : applicationContext(c, claim.text);
+	if (!match && claim.jobSpanIds === undefined) return applicationContext(c, claim.text);
 	if (!match || (c.category !== "cover-letter" && c.category !== "tailoring") || claim.kind !== "fact")
 		throw new Error("AI_UNSUPPORTED_CLAIM");
 	const ids = claim.jobSpanIds;

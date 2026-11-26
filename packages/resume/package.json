@@ -18,7 +18,8 @@
 		"./stylesheet": "./src/stylesheet/index.ts",
 		"./stylesheet/registry": "./src/stylesheet/registry/index.ts",
 		"./stylesheet/types": "./src/stylesheet/semantic-types.ts",
-		"./translation": "./src/translation.ts"
+		"./translation": "./src/translation.ts",
+		"./wording-diff": "./src/wording-diff.ts"
 	},
 	"scripts": {
 		"typecheck": "tsrs --noEmit",
@@ -31,7 +32,9 @@
 		"@bramus/specificity": "^2.4.3",
 		"@reactive-resume/schema": "workspace:*",
 		"@reactive-resume/utils": "workspace:*",
+		"bidi-js": "1.1.0",
 		"css-tree": "^3.2.1",
+		"diff": "catalog:",
 		"fast-json-patch": "^3.1.1",
 		"wink-porter2-stemmer": "2.0.1",
 		"zod": "catalog:"

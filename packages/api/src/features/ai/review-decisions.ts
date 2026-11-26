@@ -9,17 +9,24 @@ import type {
 } from "@reactive-resume/schema/resume/ai-review";
 import { createHash } from "node:crypto";
 import { ORPCError } from "@orpc/client";
-import { and, asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { withOwnerDatabase } from "@reactive-resume/db/owner-scope";
 import { aiOperation, aiReviewDecision, careerFact, resume } from "@reactive-resume/db/schema";
-import { applyTo, readTarget, replaceBlockText, splitBlocks, writeTarget } from "@reactive-resume/resume/proposals";
-import { applyReviewProposals, rebaseReviewProposal } from "@reactive-resume/resume/review-evidence";
+import { applyTo, readTarget, splitBlocks, writeTarget } from "@reactive-resume/resume/proposals";
+import {
+	applyReviewProposals,
+	hasCompleteReviewScope,
+	replaceReviewPassageText,
+	reviewProposalPosition,
+	rebaseReviewProposal,
+} from "@reactive-resume/resume/review-evidence";
 import { splitReviewClaims } from "@reactive-resume/schema/resume/ai-review";
 import {
 	reviewAnswerInputSchema,
 	reviewDecisionInputSchema,
 	reviewQuestionDismissalSchema,
 	reviewResultSchema,
+	reviewTargetSchema,
 } from "@reactive-resume/schema/resume/ai-review";
 import { variantReviewResultSchema } from "@reactive-resume/schema/resume/variants";
 import { parseResumeDataForWrite } from "@reactive-resume/schema/resume/write";
@@ -44,7 +51,7 @@ const decisionsFor = (tx: OwnerTransaction, ownerId: string, operationId: string
 		.from(aiReviewDecision)
 		.where(and(eq(aiReviewDecision.userId, ownerId), eq(aiReviewDecision.operationId, operationId)))
 		.orderBy(asc(aiReviewDecision.createdAt), asc(aiReviewDecision.id));
-function statusesFor(result: ReviewResult, decisions: Decision[]): Statuses {
+function statusesFor(result: ReviewResult, decisions: readonly Pick<Decision, "event" | "subjectIds">[]): Statuses {
 	const statuses: Statuses = Object.fromEntries(
 		result.kind === "wording" ? result.proposals.map((proposal) => [proposal.id, "pending"]) : [],
 	);
@@ -54,6 +61,40 @@ function statusesFor(result: ReviewResult, decisions: Decision[]): Statuses {
 				statuses[id] = decision.event === "undo" ? "pending" : decision.event === "reject" ? "rejected" : "accepted";
 	return statuses;
 }
+
+const acceptedReviewDecision = (decision: Pick<Decision, "event">) =>
+	decision.event === "accept" || decision.event === "accept_edited";
+type ReviewHistoryDecision = Pick<
+	Decision,
+	"id" | "operationId" | "event" | "subjectIds" | "previousDecisionId" | "changes" | "afterRevision"
+>;
+const activeReviewChanges = (decisions: readonly ReviewHistoryDecision[]) => {
+	const undone = new Set(decisions.map((decision) => decision.previousDecisionId));
+	return decisions
+		.filter((decision) => acceptedReviewDecision(decision) && !undone.has(decision.id))
+		.flatMap((decision) => decision.changes);
+};
+const rightToLeft = (changes: readonly ReviewProposal[]) =>
+	changes.toSorted((a, b) => (b.blockIndex ?? -1) - (a.blockIndex ?? -1));
+const inverseReviewChange = (change: ReviewProposal) => ({ ...change, before: change.after, after: change.before });
+
+function expectedUndoField(accepted: Decision, decisions: readonly Decision[], target: ReviewProposal["target"]) {
+	let expected = accepted.response ? readTarget(accepted.response.data, target) : undefined;
+	const key = canonicalJson(target);
+	for (let index = decisions.indexOf(accepted) + 1; index < decisions.length; index++) {
+		const later = decisions[index];
+		if (!later || (later.event !== "undo" && !acceptedReviewDecision(later))) continue;
+		const changes = later.changes.filter((change) => canonicalJson(change.target) === key);
+		if (!changes.length) continue;
+		const active = activeReviewChanges(decisions.slice(0, index));
+		for (const change of rightToLeft(changes)) {
+			const positioned = reviewProposalPosition(change, active);
+			expected = applyTo(expected, later.event === "undo" ? inverseReviewChange(positioned) : positioned);
+		}
+	}
+	return expected;
+}
+
 async function ownedReview(tx: OwnerTransaction, ownerId: string, operationId: string, variantQuestions = false) {
 	const [operation] = await tx
 		.select()
@@ -163,33 +204,32 @@ async function closeResolved(
 
 export function getReview(ownerId: string, operationId: string) {
 	return withOwnerDatabase(ownerId, async (tx) => {
-		const { result, decisions } = await ownedReview(tx, ownerId, operationId);
+		const { operation, result, decisions } = await ownedReview(tx, ownerId, operationId);
 		const statuses = statusesFor(result, decisions);
-		const currentAnswers = new Map<string, ReviewEvidence>();
-		for (const decision of decisions)
-			if (decision.event === "answer" && decision.evidence)
-				for (const id of decision.subjectIds) currentAnswers.set(id, decision.evidence);
+		const questionAnswers = savedQuestionAnswers(decisions);
 		return {
 			result,
 			statuses,
 			answeredQuestionIds: decisions
 				.filter((decision) => decision.event === "answer")
 				.flatMap((decision) => decision.subjectIds),
-			answers: [...currentAnswers.values()],
+			answers: questionAnswers.map(({ evidence }) => evidence),
+			questionAnswers,
+			remainingAnswerSlots: Math.max(0, 10 - operation.sources.length - questionAnswers.length),
 			dismissedQuestionIds: decisions
 				.filter((decision) => decision.event === "dismiss_question")
 				.flatMap((decision) => decision.subjectIds),
 			undoable: decisions
 				.filter(
 					(decision) =>
-						["accept", "accept_edited"].includes(decision.event) &&
+						(acceptedReviewDecision(decision) || decision.event === "reject") &&
 						!decisions.some((later) => later.previousDecisionId === decision.id) &&
-						decision.subjectIds.every((id) => statuses[id] === "accepted"),
+						decision.subjectIds.every((id) => statuses[id] === (decision.event === "reject" ? "rejected" : "accepted")),
 				)
 				.map((decision) => ({
 					decisionId: decision.id,
 					proposalIds: decision.subjectIds,
-					changes: decision.changes,
+					changes: decision.event === "reject" ? [] : decision.changes,
 					userSupplied: decision.event === "accept_edited",
 				})),
 		};
@@ -219,6 +259,167 @@ export function getLatestResumeReview(ownerId: string, resumeId: string) {
 	});
 }
 
+export const resumeReviewKinds = [
+	"review.wording",
+	"review.summary",
+	"review.job-evidence",
+	"review.tailoring",
+	"review.translation",
+] as const;
+
+export function savedQuestionAnswers(decisions: readonly Pick<Decision, "event" | "subjectIds" | "evidence">[]) {
+	const answers = new Map<string, ReviewEvidence>();
+	for (const decision of decisions) {
+		const evidence = decision.evidence;
+		if (decision.event === "answer" && evidence) for (const id of decision.subjectIds) answers.set(id, evidence);
+	}
+	return [...answers].map(([questionId, evidence]) => ({ questionId, evidence }));
+}
+
+export function listResumeReviews(ownerId: string, resumeId: string) {
+	return withOwnerDatabase(ownerId, async (tx) => {
+		const [document] = await tx
+			.select()
+			.from(resume)
+			.where(and(eq(resume.userId, ownerId), eq(resume.id, resumeId), isNull(resume.trashedAt)));
+		if (!document) throw new ORPCError("NOT_FOUND");
+		const operations = await tx
+			.select({
+				id: aiOperation.id,
+				kind: aiOperation.kind,
+				state: aiOperation.state,
+				createdAt: aiOperation.createdAt,
+				failureCode: aiOperation.failureCode,
+				deliveredAt: aiOperation.deliveredAt,
+				result: aiOperation.result,
+				parameters: aiOperation.parameters,
+				sources: aiOperation.sources,
+			})
+			.from(aiOperation)
+			.where(
+				and(
+					eq(aiOperation.userId, ownerId),
+					inArray(aiOperation.kind, resumeReviewKinds),
+					sql`${aiOperation.sources} @> ${JSON.stringify([{ kind: "resume", id: resumeId }])}::jsonb`,
+					sql`coalesce(${aiOperation.parameters}->>'resumeId', ${aiOperation.sources}->0->>'id') = ${resumeId}`,
+					sql`coalesce(${aiOperation.parameters}->'translationBatch'->>'index', '0') = '0'`,
+				),
+			)
+			.orderBy(desc(aiOperation.createdAt), desc(aiOperation.id));
+		if (!operations.length) return [];
+		const events = await tx
+			.select({
+				id: aiReviewDecision.id,
+				operationId: aiReviewDecision.operationId,
+				event: aiReviewDecision.event,
+				subjectIds: aiReviewDecision.subjectIds,
+				previousDecisionId: aiReviewDecision.previousDecisionId,
+				changes: aiReviewDecision.changes,
+				afterRevision: aiReviewDecision.afterRevision,
+			})
+			.from(aiReviewDecision)
+			.where(
+				and(
+					eq(aiReviewDecision.userId, ownerId),
+					inArray(
+						aiReviewDecision.operationId,
+						operations.map(({ id }) => id),
+					),
+				),
+			)
+			.orderBy(asc(aiReviewDecision.createdAt), asc(aiReviewDecision.id));
+		const byOperation = new Map<string, ReviewHistoryDecision[]>();
+		for (const event of events) {
+			const group = byOperation.get(event.operationId);
+			if (group) group.push(event);
+			else byOperation.set(event.operationId, [event]);
+		}
+		const continued = new Set(
+			operations.filter((operation) => operation.deliveredAt).map((operation) => operation.parameters.continuationOf),
+		);
+		return operations.map((operation) => {
+			const kind = operation.kind as (typeof resumeReviewKinds)[number];
+			const wording = kind === "review.wording" ? reviewResultSchema.safeParse(operation.result).data : undefined;
+			const result = wording?.kind === "wording" ? wording : undefined;
+			const variant =
+				kind !== "review.wording" ? variantReviewResultSchema.safeParse(operation.result).data : undefined;
+			const decisions = byOperation.get(operation.id) ?? [];
+			const statuses = result ? statusesFor(result, decisions) : {};
+			if (variant?.kind === "review.summary" && variant.output.summary.text.trim()) statuses.summary = "pending";
+			for (const event of decisions) {
+				if (!variant || !["accept", "accept_edited", "reject", "undo"].includes(event.event)) continue;
+				for (const id of event.subjectIds)
+					statuses[id] = event.event === "undo" ? "pending" : event.event === "reject" ? "rejected" : "accepted";
+			}
+			const targets = new Map<string, { target: ReviewProposal["target"]; pendingCount: number }>();
+			const rawTargets = operation.parameters.targets;
+			for (const raw of [
+				...(Array.isArray(rawTargets) ? rawTargets : []),
+				...(result?.evidence.map(({ target }) => target) ?? []),
+				...(result?.proposals.map(({ target }) => target) ?? []),
+				...(result?.questions.map(({ target }) => target) ?? []),
+			]) {
+				const parsed = reviewTargetSchema.safeParse(raw);
+				if (parsed.success) targets.set(canonicalJson(parsed.data), { target: parsed.data, pendingCount: 0 });
+			}
+			const source = result?.sourceRevision ?? variant?.sourceRevision ?? operation.sources[0];
+			const revisionChanged = source?.revision !== document.updatedAt.toISOString();
+			const activeChanges = activeReviewChanges(decisions);
+			let stale = false;
+			for (const proposal of result?.proposals ?? []) {
+				if (statuses[proposal.id] !== "pending") continue;
+				const entry = targets.get(canonicalJson(proposal.target));
+				if (revisionChanged) {
+					try {
+						rebaseReviewProposal(document.data, proposal, activeChanges);
+					} catch {
+						stale = true;
+						continue;
+					}
+				}
+				if (entry) entry.pendingCount++;
+			}
+			const questions = result?.questions ?? (variant?.kind === "review.summary" ? variant.output.questions : []);
+			const answered = new Set(
+				decisions.filter(({ event }) => event === "answer").flatMap(({ subjectIds }) => subjectIds),
+			);
+			const dismissed = new Set(
+				decisions.filter(({ event }) => event === "dismiss_question").flatMap(({ subjectIds }) => subjectIds),
+			);
+			const unanswered = questions.filter(({ id }) => !answered.has(id) && !dismissed.has(id)).length;
+			const summaryPending = variant?.kind === "review.summary" && statuses.summary === "pending";
+			const ownRevision = decisions.some(({ afterRevision }) => afterRevision === document.updatedAt.toISOString());
+			const pendingSummary = summaryPending && (!revisionChanged || ownRevision);
+			stale ||=
+				revisionChanged &&
+				!ownRevision &&
+				(unanswered > 0 || (answered.size > 0 && !continued.has(operation.id)) || (summaryPending && !pendingSummary));
+			return {
+				operationId: operation.id,
+				kind,
+				state: operation.state,
+				createdAt: operation.createdAt.toISOString(),
+				failureCode: operation.failureCode,
+				targets: [...targets.values()],
+				stale,
+				pendingCount: [...targets.values()].reduce(
+					(total, target) => total + target.pendingCount,
+					Number(pendingSummary),
+				),
+				unansweredQuestionCount: revisionChanged ? 0 : unanswered,
+				answeredCount: answered.size,
+				acceptedCount: Object.values(statuses).filter((status) => status === "accepted").length,
+				rejectedCount: Object.values(statuses).filter((status) => status === "rejected").length,
+				continued: continued.has(operation.id),
+				continuationOf:
+					typeof operation.parameters.continuationOf === "string" ? operation.parameters.continuationOf : null,
+				continuationAvailable: answered.size > 0 && !revisionChanged && !continued.has(operation.id),
+				hasResult: Boolean(operation.deliveredAt),
+			};
+		});
+	});
+}
+
 export async function decideReview(ownerId: string, raw: ReviewDecisionInput): Promise<ReviewDecisionView> {
 	const input = reviewDecisionInputSchema.parse(raw);
 	let changed = false;
@@ -244,70 +445,60 @@ export async function decideReview(ownerId: string, raw: ReviewDecisionInput): P
 		const originalData = parseResumeDataForWrite(document.data);
 		let data = originalData;
 		if (input.decision === "undo") {
-			const accepted = decisions.find((decision) => decision.id === input.undoDecisionId);
+			const previous = decisions.find((decision) => decision.id === input.undoDecisionId);
 			if (
-				!accepted ||
-				!["accept", "accept_edited"].includes(accepted.event) ||
-				canonicalJson([...accepted.subjectIds].sort()) !== canonicalJson([...input.proposalIds].sort()) ||
-				decisions.some((decision) => decision.previousDecisionId === accepted.id)
+				!previous ||
+				(!acceptedReviewDecision(previous) && previous.event !== "reject") ||
+				canonicalJson([...previous.subjectIds].sort()) !== canonicalJson([...input.proposalIds].sort()) ||
+				decisions.some((decision) => decision.previousDecisionId === previous.id)
 			)
 				return conflict();
-			if (selected.some((proposal) => statuses[proposal.id] !== "accepted")) return conflict();
-			selected = accepted.changes;
-			data = structuredClone(originalData);
-			for (const proposal of selected) {
+			const rejected = previous.event === "reject";
+			if (selected.some((proposal) => statuses[proposal.id] !== (rejected ? "rejected" : "accepted")))
+				return conflict();
+			selected = rejected ? [] : previous.changes;
+			if (selected.length) data = structuredClone(originalData);
+			const active = activeReviewChanges(decisions);
+			for (const change of rightToLeft(selected)) {
+				const proposal = reviewProposalPosition(change, active);
 				const value = readTarget(originalData, proposal.target);
 				// The accepted snapshot binds Undo to its passage and adjacent context, never
 				// to a replacement string found elsewhere in a manually edited field.
-				let expected = accepted.response ? readTarget(accepted.response.data, proposal.target) : undefined;
-				for (const later of decisions.slice(decisions.indexOf(accepted) + 1)) {
-					for (const change of later.changes) {
-						if (canonicalJson(change.target) !== canonicalJson(proposal.target)) continue;
-						if (["accept", "accept_edited", "undo"].includes(later.event)) {
-							expected = applyTo(
-								expected,
-								later.event === "undo" ? { before: change.after, after: change.before } : change,
-							);
-						}
-					}
-				}
+				const expected = expectedUndoField(previous, decisions, proposal.target);
 				if (expected === undefined || value === undefined) return conflict("AI_UNDO_CHANGED");
 				const savedBlocks = splitBlocks(expected);
 				const currentBlocks = splitBlocks(value);
-				const index = savedBlocks.findIndex((block) => block.html === proposal.after);
+				const index = proposal.blockIndex ?? savedBlocks.findIndex((block) => block.html === proposal.after);
 				if (
 					index < 0 ||
+					savedBlocks[index]?.html !== proposal.after ||
 					savedBlocks.length !== currentBlocks.length ||
 					[index - 1, index, index + 1].some((i) => savedBlocks[i]?.html !== currentBlocks[i]?.html)
 				)
 					return conflict("AI_UNDO_CHANGED");
-				const restored = applyTo(readTarget(data, proposal.target), { before: proposal.after, after: proposal.before });
+				const restored = applyTo(readTarget(data, proposal.target), inverseReviewChange(proposal));
 				if (restored === undefined) return conflict("AI_UNDO_CHANGED");
 				writeTarget(data, proposal.target, restored);
 			}
 			data = parseResumeDataForWrite(data);
 		} else {
 			if (selected.some((proposal) => statuses[proposal.id] !== "pending")) return conflict();
-			if (input.decision !== "reject") await assertEvidence(tx, ownerId, result, selected, decisions);
+			if (input.decision !== "reject") {
+				if (selected.some((proposal) => !hasCompleteReviewScope(proposal, result.evidence)))
+					return conflict("AI_SOURCE_CHANGED");
+				await assertEvidence(tx, ownerId, result, selected, decisions);
+			}
 			const editedText = input.editedText;
 			if (input.decision === "accept_edited" && editedText !== undefined)
 				selected = selected.map((proposal) => ({
 					...proposal,
-					after: replaceBlockText(proposal.before, editedText),
+					after: replaceReviewPassageText(proposal.before, editedText),
 					claims: splitReviewClaims(editedText, proposal.evidenceIds),
 				}));
 			// Dismissal only records the pending proposal's disposition; it never applies old text.
 			if (input.decision !== "reject") {
 				try {
-					const activeChanges = decisions
-						.filter(
-							(decision) =>
-								["accept", "accept_edited"].includes(decision.event) &&
-								!decisions.some((later) => later.previousDecisionId === decision.id),
-						)
-						.flatMap((decision) => decision.changes);
-					selected = selected.map((proposal) => rebaseReviewProposal(originalData, proposal, activeChanges));
-					data = applyReviewProposals(originalData, selected);
+					data = applyReviewProposals(originalData, selected, activeReviewChanges(decisions));
 				} catch {
 					return conflict("AI_SOURCE_CHANGED");
 				}
@@ -315,7 +506,7 @@ export async function decideReview(ownerId: string, raw: ReviewDecisionInput): P
 		}
 		let updatedAt = document.updatedAt.toISOString();
 		let historyVersionId: string | null = null;
-		if (input.decision !== "reject") {
+		if (input.decision !== "reject" && selected.length > 0) {
 			const saved = await updateResumeTx(tx, {
 				id: document.id,
 				userId: ownerId,
@@ -391,6 +582,9 @@ export function recordReviewAnswer(ownerId: string, raw: ReviewAnswerInput): Pro
 			await loadVariantSnapshot(tx, ownerId, operation);
 		const question = result.questions.find((question) => question.id === input.questionId);
 		if (!question) throw new ORPCError("NOT_FOUND");
+		const saved = savedQuestionAnswers(decisions);
+		if (operation.sources.length + saved.length >= 10 && !saved.some(({ questionId }) => questionId === question.id))
+			return conflict("AI_REVIEW_ANSWER_LIMIT");
 		if (
 			decisions.some((decision) => decision.event === "dismiss_question" && decision.subjectIds.includes(question.id))
 		)

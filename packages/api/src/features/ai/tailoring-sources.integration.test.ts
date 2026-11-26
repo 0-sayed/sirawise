@@ -59,3 +59,54 @@ it("prepares tailoring from decoded visible rich text after escaped content is s
 		(await database.admin().query("SELECT data FROM resume WHERE id=$1", [copy.resumeId])).rows[0].data.summary.content,
 	).toBe("<p>Used React &amp; Node.js.</p>");
 });
+
+it("prepares tailoring for a job variant linked by baseResumeId even when resume_variant_source is absent", async () => {
+	const data = structuredClone(defaultResumeData);
+	data.summary.content = "<p>Led service operations across 10 teams.</p>";
+	data.summary.hidden = false;
+	data.metadata.layout.pages = [{ fullWidth: false, main: ["summary"], sidebar: [] }];
+	const sourceResumeId = await database.run(() =>
+		resumeService.create({ userId: "bob", name: "Base Arabic", tags: [], data, locale: "ar-SA" }),
+	);
+	const expectedUpdatedAt = (
+		await database.admin().query("SELECT updated_at FROM resume WHERE id=$1", [sourceResumeId])
+	).rows[0].updated_at.toISOString();
+	const job = await database.run(() =>
+		saveJobTarget("bob", { role: "Operations Manager", employer: "", text: "Service operations required." }),
+	);
+	const copy = await database.run(() =>
+		createVariant("bob", {
+			sourceResumeId,
+			expectedUpdatedAt,
+			requestKey: "tailoring-legacy-job-copy",
+			variantKind: "job",
+			jobId: job.jobId,
+			jobRevision: job.revision,
+		}),
+	);
+	await database.admin().query("DELETE FROM resume_variant_source WHERE resume_id=$1", [copy.resumeId]);
+	const selected = (
+		await database.admin().query("SELECT updated_at FROM resume_job_selection WHERE resume_id=$1", [copy.resumeId])
+	).rows[0].updated_at.toISOString();
+	const revision = (
+		await database.admin().query("SELECT updated_at FROM resume WHERE id=$1", [copy.resumeId])
+	).rows[0].updated_at.toISOString();
+	const prepared = await database.run(() =>
+		prepareVariantReview("bob", {
+			kind: "review.tailoring",
+			resumeId: copy.resumeId,
+			expectedUpdatedAt: revision,
+			jobId: job.jobId,
+			jobRevision: job.revision,
+			expectedSelectionRevision: selected,
+		}),
+	);
+	expect(prepared.kind).toBe("review.tailoring");
+	expect(prepared.sources).toEqual(
+		expect.arrayContaining([
+			{ kind: "resume", id: copy.resumeId, revision },
+			{ kind: "resume", id: sourceResumeId, revision: expectedUpdatedAt },
+			{ kind: "job", id: job.jobId, revision: job.revision },
+		]),
+	);
+});

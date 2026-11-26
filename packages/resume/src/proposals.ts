@@ -17,8 +17,10 @@ export type Proposal = {
 	target: ProposalTarget;
 	/** Where it lands, for people: "Experience · Studio Kettle · bullet 1". */
 	location: string;
-	/** The passage as it is now: a whole `<p>` or `<li>` block, exactly as stored in the field. */
+	/** The original block or adjacent paragraph span, exactly as stored in the field. */
 	before: string;
+	/** Zero-based leaf block position for guarded durable reviews. */
+	blockIndex?: number | undefined;
 	/** The block to put in its place. An addition keeps `before` and adds the new block after it. */
 	after: string;
 	/** One line on why. */
@@ -65,11 +67,24 @@ export function writeTarget(draft: ResumeData, target: ProposalTarget, value: st
 }
 
 /** A pending proposal can be applied only while its passage is still in the text, word for word. */
-export function canApplyTo(value: string | undefined, { before }: Pick<Proposal, "before">) {
+export function proposalStart(value: string, { before, blockIndex }: Pick<Proposal, "before" | "blockIndex">): number {
+	if (blockIndex === undefined) {
+		const index = value.indexOf(before);
+		return index >= 0 && value.indexOf(before, index + 1) < 0 ? index : -1;
+	}
+	if (!Number.isInteger(blockIndex) || blockIndex < 0) return -1;
+	let index = 0;
+	for (const match of value.matchAll(LEAF_BLOCK)) {
+		if (!blockText(match[2] ?? "")) continue;
+		if (index++ === blockIndex)
+			return before.startsWith(match[0]) && value.startsWith(before, match.index) ? match.index : -1;
+	}
+	return -1;
+}
+export function canApplyTo(value: string | undefined, proposal: Pick<Proposal, "before" | "blockIndex">) {
 	if (value === undefined) return false;
-	if (!before) return value === "";
-	const index = value.indexOf(before);
-	return index >= 0 && value.indexOf(before, index + 1) < 0;
+	if (!proposal.before) return value === "" && proposal.blockIndex === undefined;
+	return proposalStart(value, proposal) >= 0;
 }
 
 export const canApply = (data: ResumeData, proposal: Proposal) =>
@@ -90,10 +105,10 @@ export const getProposalState = (data: ResumeData, proposal: Proposal): Proposal
 	getStateIn(readTarget(data, proposal.target) ?? "", proposal);
 
 /** The text with `after` in place of `before`, or `undefined` when the proposal is out of date. */
-export function applyTo(value: string | undefined, proposal: Pick<Proposal, "before" | "after">) {
+export function applyTo(value: string | undefined, proposal: Pick<Proposal, "before" | "after" | "blockIndex">) {
 	if (value === undefined || !canApplyTo(value, proposal)) return undefined;
-	// A replacer function, so "$&" or "$1" in the new text stay literal.
-	return value.replace(proposal.before, () => proposal.after);
+	const start = proposal.before ? proposalStart(value, proposal) : 0;
+	return value.slice(0, start) + proposal.after + value.slice(start + proposal.before.length);
 }
 
 /** Puts `after` in place of `before`. Returns false (changing nothing) when the proposal is out of date. */
@@ -143,21 +158,24 @@ export function additionAfter(value: string, passageHtml: string, text: string) 
 // A paragraph or list item with no paragraph or list item inside it: `<li><p>…</p></li>` yields the `<p>`.
 const LEAF_BLOCK = /<(p|li)(?:\s[^>]*)?>((?:(?!<\/?(?:p|li)[\s>])[\s\S])*?)<\/\1>/gi;
 
+/** Extract rich-text passages while preserving visible spaces and line breaks. */
+export const passageSpacing = (html: string) =>
+	decodeHtmlEntities(
+		html.replace(/(?:<\/?(?:p|li|ul|ol|div|h[1-6]|blockquote)\b[^>]*>)+|<br\b[^>]*>/giu, "\n").replace(/<[^>]*>/g, ""),
+	);
+
 /** The visible text of some HTML, on one line. */
-export const blockText = (html: string) =>
-	decodeHtmlEntities(html.replace(/<[^>]*>/g, ""))
-		.replace(/\s+/g, " ")
-		.trim();
+export const blockText = (html: string) => passageSpacing(html).replace(/\s+/gu, " ").trim();
 
 export type Block = { html: string; text: string; bullet: boolean };
 
 /** The leaf paragraphs and list items of rich text, in order, skipping empty ones. */
-export function splitBlocks(html: string): Block[] {
+export function splitBlocks(html: string, { includeEmpty = false } = {}): Block[] {
 	const blocks: Block[] = [];
 
 	for (const match of html.matchAll(LEAF_BLOCK)) {
 		const text = blockText(match[2] ?? "");
-		if (!text) continue;
+		if (!text && !includeEmpty) continue;
 
 		// Inside a list when more <li> have opened than closed before this block.
 		const preceding = html.slice(0, match.index);

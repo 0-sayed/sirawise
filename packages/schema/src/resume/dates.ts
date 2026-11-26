@@ -76,8 +76,10 @@ export const resumeDatesToPeriod = (dates: ResumeDates): ParsedPeriod | null =>
 			}
 		: null;
 
-export const toYearMonth = ({ year, month }: PeriodEndpoint): YearMonth =>
-	month === undefined ? String(year) : `${year}-${String(month).padStart(2, "0")}`;
+export const toYearMonth = ({ year, month }: PeriodEndpoint): YearMonth => {
+	const yearText = String(year).padStart(4, "0");
+	return month === undefined ? yearText : `${yearText}-${String(month).padStart(2, "0")}`;
+};
 
 // Seasons and days don't fit a year-month exactly, so readings that use them keep the original text.
 const isExact = (reading: EndpointReading | undefined) =>
@@ -214,7 +216,13 @@ function formatMonth(year: number, month: number, locale: string, style: "short"
 		}
 		monthFormatters.set(key, formatter);
 	}
-	return formatter.format(Date.UTC(year, month - 1, 1));
+	const date = new Date(0);
+	date.setUTCFullYear(year, month - 1, 1);
+	if (year >= 1000) return formatter.format(date);
+	return formatter
+		.formatToParts(date)
+		.map((part) => (part.type === "year" ? String(year).padStart(4, "0") : part.value))
+		.join("");
 }
 
 /** One date in the chosen format: Mar 2022, March 2022, 03/2022 or 2022-03. Year-only dates print the year. */

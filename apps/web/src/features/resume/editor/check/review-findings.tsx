@@ -139,7 +139,7 @@ export function ReviewFindings({ tab }: { tab: Extract<ReviewTab, "ats" | "writi
 				</div>
 			)}
 			{tab === "writing" && (
-				<div className="grid gap-3" aria-label={t`Data check`}>
+				<div className="grid gap-3" aria-label={t`Information completeness`}>
 					{writing.length === 0 && (
 						<p role="status" tabIndex={-1} data-review-empty>{t`No data findings in this check.`}</p>
 					)}

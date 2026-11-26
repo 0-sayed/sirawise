@@ -112,9 +112,12 @@ export function AppShell({ children }: AppShellProps) {
 	const matchRoute = useMatchRoute();
 	const welcome = Boolean(matchRoute({ to: "/dashboard/welcome" }));
 	const careerInformation = Boolean(matchRoute({ to: "/dashboard/career/information" }));
-	// Select the destination width before its outlet mounts, including the Settings index redirect.
+	// Pending navigation changes the URL before the currently rendered shell unmounts.
 	const pageWidth = useRouterState({
-		select: (state) => (state.location.pathname === "/help" ? "wide" : dashboardWidth(state.location.pathname)),
+		select: (state) => {
+			const pathname = state.matches.at(-1)?.pathname ?? state.location.pathname;
+			return pathname === "/help" ? "wide" : dashboardWidth(pathname);
+		},
 	});
 	const documents = Boolean(matchRoute({ to: "/dashboard", fuzzy: false }));
 	const workspaceTitle = careerInformation

@@ -137,11 +137,11 @@ it.each([undefined, null])("keeps the unavailable AI tab label without a visible
 	expect(tab.querySelector('[data-slot="tabs-count"]')).toBeNull();
 });
 
-it("preserves a real zero AI count", () => {
+it("does not render a badge for a real zero AI count", () => {
 	documentState.aiCount = 0;
 	panel();
-	const tab = screen.getByRole("tab", { name: "AI 0" });
-	expect(tab.querySelector('[data-slot="tabs-count"]')).toHaveTextContent("0");
+	const tab = screen.getByRole("tab", { name: "AI" });
+	expect(tab.querySelector('[data-slot="tabs-count"]')).toBeNull();
 });
 
 it("opens findings immediately with counts, one severity control, and no summary step", async () => {
@@ -149,7 +149,7 @@ it("opens findings immediately with counts, one severity control, and no summary
 	documentState.findings = true;
 	panel();
 	expect(screen.queryByRole("button", { name: "Open full review" })).toBeNull();
-	expect(screen.getByRole("tab", { name: "ATS check 3" })).toBeVisible();
+	expect(screen.getByRole("tab", { name: "Machine readability (ATS) 3" })).toBeVisible();
 	expect(screen.getAllByRole("tab")).toHaveLength(3);
 	expect(screen.getAllByRole("radiogroup", { name: "Severity filter" })).toHaveLength(1);
 	expect(screen.getByRole("heading", { name: "Export a PDF with selectable text" })).toBeVisible();
@@ -162,7 +162,7 @@ it.each(["stale", "checking", "failed"])("does not show old counts while %s", (s
 	documentState.findings = true;
 	panel();
 	expect(screen.queryByText(/Blocker \(1\)/)).not.toBeInTheDocument();
-	const tab = screen.getByRole("tab", { name: /ATS check/ });
+	const tab = screen.getByRole("tab", { name: /Machine readability \(ATS\)/ });
 	expect(tab.textContent).not.toMatch(/[–—-]/);
 	if (state === "checking") expect(tab).toHaveAttribute("aria-busy", "true");
 });
@@ -177,12 +177,18 @@ it.each(["ar-SA", "en-US"] as const)(
 			"href",
 			`/dashboard/review-guide?locale=${locale}#undefined`,
 		);
-		expect(screen.getByRole("tab", { name: locale === "ar-SA" ? "فحص ATS" : "ATS check" })).toBeVisible();
+		expect(
+			screen.getByRole("tab", {
+				name: locale === "ar-SA" ? "قابلية القراءة الآلية (ATS)" : "Machine readability (ATS)",
+			}),
+		).toBeVisible();
 		expect(screen.getByRole("tab", { name: locale === "ar-SA" ? /الذكاء الاصطناعي/ : /AI/ })).toBeVisible();
-		expect(screen.getByRole("tab", { name: locale === "ar-SA" ? /^فحص البيانات/ : /^Data check/ })).toBeVisible();
+		expect(
+			screen.getByRole("tab", { name: locale === "ar-SA" ? /^اكتمال المعلومات/ : /^Information completeness/ }),
+		).toBeVisible();
 		expect(screen.getAllByRole("tab").map((element) => element.textContent)).toEqual([
-			expect.stringContaining(locale === "ar-SA" ? "فحص ATS" : "ATS check"),
-			expect.stringContaining(locale === "ar-SA" ? "فحص البيانات" : "Data check"),
+			expect.stringContaining(locale === "ar-SA" ? "قابلية القراءة الآلية (ATS)" : "Machine readability (ATS)"),
+			expect.stringContaining(locale === "ar-SA" ? "اكتمال المعلومات" : "Information completeness"),
 			expect.stringContaining(locale === "ar-SA" ? "الذكاء الاصطناعي" : "AI"),
 		]);
 		expect(documentState.locale).toBe("en-US");
@@ -211,4 +217,12 @@ it("returns to the same Download session", async () => {
 		shareTab: "download",
 		exportHistorySession: { fileName: "سارة CV", reviewReturn: false },
 	});
+});
+
+it("explains only the active check tab", async () => {
+	panel();
+	expect(screen.getByText("Can hiring systems read your CV file: text, headings, layout")).toBeVisible();
+	await userEvent.click(screen.getByRole("tab", { name: /Information completeness/ }));
+	expect(screen.getByText("Are dates, details and sections complete and consistent")).toBeVisible();
+	expect(screen.queryByText("Can hiring systems read your CV file: text, headings, layout")).toBeNull();
 });

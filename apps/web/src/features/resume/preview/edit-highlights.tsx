@@ -17,16 +17,6 @@ export function EditHighlights({ pageIndex, pageMap, targets, feedback }: EditHi
 	const reduced = useReducedMotion();
 	const first = useRef<HTMLSpanElement>(null);
 	const [visible, setVisible] = useState(!feedback || Boolean(reduced));
-	useEffect(() => {
-		if (!feedback) return;
-		const delay = reduced ? 0 : Math.max(0, D3 * 1000 - (Date.now() - feedback.startedAt));
-		const show = window.setTimeout(() => setVisible(true), delay);
-		const clear = window.setTimeout(() => setVisible(false), delay + REVIEW_HIGHLIGHT_MS);
-		return () => {
-			window.clearTimeout(show);
-			window.clearTimeout(clear);
-		};
-	}, [feedback, reduced]);
 	const nodes = pageMap?.nodes.filter((node) =>
 		targets.some((target) =>
 			isSameSelection(
@@ -39,6 +29,23 @@ export function EditHighlights({ pageIndex, pageMap, targets, feedback }: EditHi
 			),
 		),
 	);
+	const page = pageMap?.pages[pageIndex];
+	const hasTarget = Boolean(
+		page && page.width > 0 && page.height > 0 && nodes?.some((node) => node.page === pageIndex),
+	);
+	useEffect(() => {
+		if (!feedback || !hasTarget) return;
+		const delay = reduced ? 0 : Math.max(0, D3 * 1000 - (Date.now() - feedback.startedAt));
+		let clear: number | undefined;
+		const show = window.setTimeout(() => {
+			setVisible(true);
+			clear = window.setTimeout(() => setVisible(false), REVIEW_HIGHLIGHT_MS);
+		}, delay);
+		return () => {
+			window.clearTimeout(show);
+			window.clearTimeout(clear);
+		};
+	}, [feedback, hasTarget, reduced]);
 	const firstPage = nodes?.[0]?.page;
 	useEffect(() => {
 		if (!visible || !feedback || pageIndex !== firstPage) return;
@@ -55,8 +62,7 @@ export function EditHighlights({ pageIndex, pageMap, targets, feedback }: EditHi
 			});
 		}
 	}, [visible, feedback, pageIndex, firstPage, reduced]);
-	const page = pageMap?.pages[pageIndex];
-	if (!visible || !page || page.width <= 0 || page.height <= 0) return null;
+	if (!visible || !page || !hasTarget) return null;
 	return (
 		<div aria-hidden="true" className="pointer-events-none absolute inset-0">
 			{nodes

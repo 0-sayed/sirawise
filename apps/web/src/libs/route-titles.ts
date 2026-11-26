@@ -22,6 +22,7 @@ const pageNames: Record<string, MessageDescriptor> = {
 	"/auth/resume-password": msg`This resume is password protected`,
 	"/dashboard": msg({ message: "My documents", context: "editor.navigation.documentsTitle" }),
 	"/dashboard/welcome": msg({ message: "Welcome {name}, let us start your CV", context: "auth.welcome.title" }),
+	"/dashboard/resumes/$resumeId/job": msg({ message: "Job comparison", context: "jobs.comparison.title" }),
 	"/dashboard/career/information": msg({ message: "Career information", context: "editor.navigation.career" }),
 	"/dashboard/applications": msg({ message: "Applications", context: "editor.navigation.applications" }),
 	"/dashboard/settings": msg({ message: "Settings", context: "account.navigation.settings" }),

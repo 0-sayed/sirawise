@@ -1,11 +1,13 @@
 import { request as playwrightRequest } from "@playwright/test";
 import { Pool } from "pg";
 import { createAuthenticatedContext } from "../fixtures/auth";
+import { copyMessage } from "../fixtures/copy";
 import { createAccount } from "../fixtures/data";
 import { deleteE2EUser } from "../fixtures/db";
 import { createSampleResumeFromDashboard } from "../fixtures/resume";
 import { openReview } from "../fixtures/reviewable-ai";
 import { expect, test } from "../fixtures/test";
+import { readProcessingNotice } from "../fixtures/variants";
 
 test("browser HTTP delivers five retried tasks once each and blocks the sixth", async ({
 	authPage: page,
@@ -59,12 +61,10 @@ test("browser HTTP delivers five retried tasks once each and blocks the sixth", 
 			status: 412,
 			body: { data: { reason: "AI_CONSENT_REQUIRED" } },
 		});
-		expect(
-			(await request("/api/openapi/ai/processing-consent", { route, purpose: "review", noticeVersion: "1" })).status,
-		).toBe(200);
-		expect(
-			(await request("/api/openapi/ai/processing-consent", { route, purpose: "hold", noticeVersion: "1" })).status,
-		).toBe(200);
+		const { acceptance: reviewConsent } = await readProcessingNotice(page, "review");
+		expect((await request("/api/openapi/ai/processing-consent", reviewConsent)).status).toBe(200);
+		const { acceptance: holdConsent } = await readProcessingNotice(page, "hold");
+		expect((await request("/api/openapi/ai/processing-consent", holdConsent)).status).toBe(200);
 		const cancelled = await request("/api/openapi/ai/operations", { ...operation("cancelled"), kind: "hold" });
 		expect(cancelled.status).toBe(200);
 		await expect
@@ -79,9 +79,8 @@ test("browser HTTP delivers five retried tasks once each and blocks the sixth", 
 			.poll(async () => (await request(`/api/openapi/ai/operations/${cancelled.body.id}`)).body.state)
 			.toBe("cancelled");
 		expect((await request("/api/openapi/ai/usage")).body.operations.used).toBe(0);
-		expect(
-			(await request("/api/openapi/ai/processing-consent", { route, purpose: "failure", noticeVersion: "1" })).status,
-		).toBe(200);
+		const { acceptance: failureConsent } = await readProcessingNotice(page, "failure");
+		expect((await request("/api/openapi/ai/processing-consent", failureConsent)).status).toBe(200);
 		const failure = await request("/api/openapi/ai/operations", { ...operation("failure"), kind: "failure" });
 		expect(failure.status).toBe(200);
 		await expect
@@ -153,13 +152,8 @@ test("browser HTTP delivers five retried tasks once each and blocks the sixth", 
 			.poll(async () => (await (await page.request.get(`/api/openapi/resumes/${resumeId}`)).json()).data.basics.name)
 			.toBe("Editing remains available");
 		await openReview(page, 1440, "ai");
-		await expect(
-			page.getByText(
-				"You used all available assistant operations. Your draft is kept. Review your allowance in account settings.",
-				{ exact: true },
-			),
-		).toBeVisible();
-		await expect(page.getByRole("button", { name: "Review wording", exact: true })).toHaveCount(0);
+		await expect(page.getByRole("alert").filter({ hasText: copyMessage("allowance.ai.title") })).toBeVisible();
+		await expect(page.getByRole("button", { name: "Review wording", exact: true })).toBeDisabled();
 		const download = page.waitForEvent("download");
 		await page.getByRole("button", { name: "Download PDF", exact: true }).click();
 		expect((await download).suggestedFilename()).toMatch(/\.pdf$/);

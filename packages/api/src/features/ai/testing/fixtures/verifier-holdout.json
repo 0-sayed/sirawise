@@ -1,0 +1,70 @@
+[
+	{
+		"id": "ar-document-scope",
+		"locale": "ar",
+		"type": "job",
+		"selected": "أعدت مريم قوائم الشحن الأسبوعية.",
+		"additional": "تحمل مريم رخصة تشغيل الرافعات الشوكية.",
+		"candidate": "تخلو السيرة الذاتية من أي ذكر لتشغيل الرافعات الشوكية.",
+		"expected": "contradicted"
+	},
+	{
+		"id": "ar-universal-scope",
+		"locale": "ar",
+		"type": "job",
+		"selected": "نسّق فهد تسليم المواد للمخزن.",
+		"additional": "أشرف فهد على أعمال الجرد السنوي.",
+		"candidate": "لم يشرف فهد قط على أي جرد.",
+		"expected": "contradicted"
+	},
+	{
+		"id": "ar-date-name",
+		"locale": "ar",
+		"type": "translation",
+		"source": "انضمت ليان الشمري إلى فريق الأرشفة في ١٢ فبراير ٢٠٢٢.",
+		"target": "Layan Al-Shammari joined the archiving team on February 12, 2022.",
+		"expected": null
+	},
+	{
+		"id": "ar-credential",
+		"locale": "ar",
+		"type": "translation",
+		"source": "حضرت دلال ورشة أساسيات الإسعافات الأولية.",
+		"target": "Dalal holds a first aid certification.",
+		"expected": "credential_upgrade"
+	},
+	{
+		"id": "en-document-scope",
+		"locale": "en",
+		"type": "job",
+		"selected": "Reconciled the receiving log every Friday.",
+		"additional": "Completed a hazardous materials handling course.",
+		"candidate": "Nowhere in the CV is hazardous materials handling mentioned.",
+		"expected": "contradicted"
+	},
+	{
+		"id": "en-selected-scope",
+		"locale": "en",
+		"type": "job",
+		"selected": "Recorded freezer temperatures at the end of each shift.",
+		"additional": "Calibrated temperature probes in the packing area.",
+		"candidate": "The selected passage does not document probe calibration.",
+		"expected": "confirmed_absent"
+	},
+	{
+		"id": "en-date-name",
+		"locale": "en",
+		"type": "translation",
+		"source": "Noura Al-Qahtani joined the dispatch team in October 2021.",
+		"target": "انضمت نورة القحطاني إلى فريق الإرسال في أكتوبر ٢٠٢١.",
+		"expected": null
+	},
+	{
+		"id": "en-credential",
+		"locale": "en",
+		"type": "translation",
+		"source": "Attended a seminar on municipal procurement.",
+		"target": "حصلت على اعتماد مهني في المشتريات البلدية.",
+		"expected": "credential_upgrade"
+	}
+]

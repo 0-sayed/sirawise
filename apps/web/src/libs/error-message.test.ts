@@ -38,3 +38,33 @@ describe("localized error messages", () => {
 		expect(getResumeErrorMessage(new ORPCError(code))).toMatch(/[\u0600-\u06ff]/);
 	});
 });
+
+it.each([
+	"BASE_CV_LIMIT",
+	"LANGUAGE_COPY_LIMIT",
+	"JOB_COPY_LIMIT",
+	"AI_OPERATIONS_LIMIT",
+	"AI_BUDGET_LIMIT",
+	"AI_PLATFORM_BUSY",
+	"AI_CONCURRENCY_LIMIT",
+	"AI_TARGET_BUSY",
+])("maps %s for every document creation error caller", (reason) => {
+	i18n.loadAndActivate({ locale: "en-US", messages: {} });
+	const error = new ORPCError("PRECONDITION_FAILED", { data: { reason }, message: "private upstream failure" });
+	const message = getOrpcErrorMessage(error, { fallback: "creation fallback" });
+	expect(message).not.toBe("creation fallback");
+	expect(message).not.toContain("private upstream failure");
+	expect(getResumeErrorMessage(error)).toBe(message);
+});
+
+it("preserves the exact server allowance counts for toast consumers", () => {
+	i18n.loadAndActivate({ locale: "en-US", messages: {} });
+	expect(
+		getOrpcErrorMessage(
+			new ORPCError("PRECONDITION_FAILED", {
+				data: { reason: "BASE_CV_LIMIT", allowance: { limit: 1, used: 1, reserved: 0, remaining: 0 } },
+			}),
+			{ fallback: "fallback" },
+		),
+	).toContain("1 of 1 base CVs used.");
+});

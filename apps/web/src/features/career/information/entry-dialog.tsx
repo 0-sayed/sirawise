@@ -1,9 +1,11 @@
 import type { Section } from "./model";
 import type { MasterFact } from "@reactive-resume/schema/career-master";
 import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
 import { Trans } from "@lingui/react/macro";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { yearMonthSchema } from "@reactive-resume/schema/resume/dates";
 import { Button } from "@reactive-resume/ui/components/button";
 import { Input } from "@reactive-resume/ui/components/input";
 import {
@@ -20,6 +22,7 @@ import { useCareerCopy } from "../copy.generated";
 import { useSessionDraft } from "../hooks";
 import { LanguageField, ProficiencyField } from "./entry-fields";
 import { draftSchema, entryInputs, formatFactValue, initialDraft, mergeLatestDraft, sectionFields } from "./model";
+import { MonthYearInput } from "@/components/input/month-year-input";
 import { AuthErrorSummary } from "@/features/auth/components/auth-error-summary";
 import { client, orpc } from "@/libs/orpc/client";
 
@@ -55,6 +58,8 @@ type Props = {
 };
 export function CareerEntryDialog({ section, entityId, facts, profileRevision, onClose, onSaved }: Props) {
 	const copy = useCareerCopy();
+	const { i18n } = useLingui();
+	const [invalidDates, setInvalidDates] = useState<Record<string, boolean>>({});
 	const queryClient = useQueryClient();
 	const draft = useSessionDraft(`master:${entityId}`, initialDraft(facts, profileRevision), (value) => {
 		const parsed = draftSchema.safeParse(value);
@@ -68,6 +73,7 @@ export function CareerEntryDialog({ section, entityId, facts, profileRevision, o
 	const fields = sectionFields[section];
 	const hasDates = section === "experience" || section === "education" || section === "certifications";
 	const values = draft.value.values;
+	const hasInvalidDate = invalidDates.start || (values.present !== "true" && invalidDates.end);
 	function change(field: string, value: string) {
 		const normalized = field === "start" || field === "end" ? normalizeNumericDigits(value) : value;
 		draft.setValue((previous) => ({ ...previous, review: false, values: { ...previous.values, [field]: normalized } }));
@@ -79,6 +85,7 @@ export function CareerEntryDialog({ section, entityId, facts, profileRevision, o
 	}
 	async function review(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
+		if (hasInvalidDate) return;
 		setError(null);
 		setConflict(false);
 		setPending(true);
@@ -339,19 +346,21 @@ export function CareerEntryDialog({ section, entityId, facts, profileRevision, o
 								<>
 									<div className="grid grid-cols-2 gap-3">
 										{["start", "end"].map((field) => (
-											<label key={field} className="grid gap-2 type-body">
-												{fieldLabel(field)}
-												<Input
+											<div key={field} className="grid gap-2 type-body">
+												<label htmlFor={`career-${field}`}>{fieldLabel(field)}</label>
+												<MonthYearInput
+													key={field === "end" ? values.present : field}
 													id={`career-${field}`}
 													name={field}
-													dir="ltr"
-													placeholder="2024-03"
-													pattern="[0-9]{4}(-(?:0[1-9]|1[0-2]))?"
-													value={values[field] ?? ""}
+													label={fieldLabel(field)}
+													locale={i18n.locale}
+													value={yearMonthSchema.safeParse(values[field]).data ?? null}
 													disabled={field === "end" && values.present === "true"}
-													onChange={(e) => change(field, e.target.value)}
+													placeholderValue={field === "end" && values.present === "true" ? t`Present` : undefined}
+													onCommit={(value) => change(field, value ?? "")}
+													onInvalid={(invalid) => setInvalidDates((previous) => ({ ...previous, [field]: invalid }))}
 												/>
-											</label>
+											</div>
 										))}
 									</div>
 									<label className="flex min-h-11 items-center gap-2">
@@ -359,6 +368,7 @@ export function CareerEntryDialog({ section, entityId, facts, profileRevision, o
 											type="checkbox"
 											checked={values.present === "true"}
 											onChange={(e) => {
+												setInvalidDates((previous) => ({ ...previous, end: false }));
 												draft.setValue((previous) => ({
 													...previous,
 													review: false,
@@ -374,16 +384,24 @@ export function CareerEntryDialog({ section, entityId, facts, profileRevision, o
 									</label>
 								</>
 							)}
+							{hasInvalidDate && <p role="alert" className="type-body text-danger-text">{t`Choose a valid date.`}</p>}
 							<TaskOverlayFooter>
 								{facts.length > 0 && (
-									<Button variant="ghost" disabled={pending} onClick={() => setRemoving(true)}>
+									<Button
+										variant="ghost"
+										disabled={pending}
+										onClick={() => {
+											setInvalidDates({});
+											setRemoving(true);
+										}}
+									>
 										<Trans>Remove entry</Trans>
 									</Button>
 								)}
 								<Button variant="secondary" disabled={pending} onClick={onClose}>
 									<Trans>Cancel</Trans>
 								</Button>
-								<Button type="submit" loading={pending} disabled={conflict}>
+								<Button type="submit" loading={pending} disabled={conflict || !!hasInvalidDate}>
 									<Trans>Review changes</Trans>
 								</Button>
 							</TaskOverlayFooter>

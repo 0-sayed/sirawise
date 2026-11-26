@@ -9,6 +9,7 @@ import tasksFreeze from "./tasks-study.json";
 const billingPaths = ["attempt.ts", "production.ts", "runner.ts", "verifier.ts", "freeze.ts", "cli.ts"].map(
 	(file) => `tooling/evaluations/review/${file}`,
 );
+const billingAmendmentPath = "tooling/evaluations/review/billing-amendment.json";
 
 export const frozenStudy = freeze;
 export const frozenStudyFor = (study: StudyName) => (study === "core" ? freeze : tasksFreeze);
@@ -29,6 +30,19 @@ export function assertFrozenStudy(
 	const current = Object.fromEntries(Object.keys(files).map((path) => [path, digest(path)]));
 	if (study !== "tasks-v1") {
 		if (!Object.entries(files).every(([path, expected]) => current[path] === expected))
+			throw new Error("STUDY_FREEZE_CHANGED");
+		return freeze;
+	}
+	if (Object.hasOwn(files, billingAmendmentPath)) {
+		// A new study seals the prior amendment as history and pins all current bytes.
+		const identity = createHash("sha256").update(JSON.stringify(freeze.files)).digest("hex").slice(0, 12);
+		if (
+			tasksFreeze.approvalStatus !== "UNAPPROVED" ||
+			freeze.studyId === billingAmendment.studyId ||
+			freeze.studyId !== `tasks-v1-personal-career-${identity}` ||
+			billingPaths.some((path) => !Object.hasOwn(files, path)) ||
+			!Object.entries(files).every(([path, expected]) => current[path] === expected)
+		)
 			throw new Error("STUDY_FREEZE_CHANGED");
 		return freeze;
 	}

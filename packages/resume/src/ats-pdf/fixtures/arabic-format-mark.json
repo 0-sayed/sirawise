@@ -1,0 +1,357 @@
+{
+	"items": [
+		{
+			"str": "",
+			"dir": "ltr",
+			"transform": [10, 0, 0, 10, 30.31, 708.74],
+			"width": 0,
+			"height": 0,
+			"fontRef": "arabic-font",
+			"hasEol": true
+		},
+		{
+			"str": "بالذ كاء",
+			"dir": "rtl",
+			"transform": [10, 0, 0, 10, 30.31, 708.74],
+			"width": 25.420000000000005,
+			"height": 10,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": "التطوير",
+			"dir": "rtl",
+			"transform": [10, 0, 0, 10, 55.82, 708.74],
+			"width": 27.380000000000006,
+			"height": 10,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": " ",
+			"dir": "ltr",
+			"transform": [10, 0, 0, 10, 83.2, 708.74],
+			"width": 3.0600000000000023,
+			"height": 0,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": "ف ي",
+			"dir": "rtl",
+			"transform": [10, 0, 0, 10, 86.26, 708.74],
+			"width": 12.220000000000006,
+			"height": 10,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": "للمساعدة",
+			"dir": "rtl",
+			"transform": [10, 0, 0, 10, 98.53, 708.74],
+			"width": 31.73,
+			"height": 10,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": " ",
+			"dir": "ltr",
+			"transform": [10, 0, 0, 10, 130.26, 708.74],
+			"width": 1.8600000000000136,
+			"height": 0,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": "يوميا",
+			"dir": "rtl",
+			"transform": [10, 0, 0, 10, 132.12, 708.74],
+			"width": 19.649999999999995,
+			"height": 10,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": " ",
+			"dir": "ltr",
+			"transform": [10, 0, 0, 10, 151.77, 708.74],
+			"width": 1.4699999999999989,
+			"height": 0,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": "Codex",
+			"dir": "ltr",
+			"transform": [10, 0, 0, 10, 153.24, 708.74],
+			"width": 29.18,
+			"height": 10,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": " ",
+			"dir": "ltr",
+			"transform": [10, 0, 0, 10, 182.42000000000004, 708.74],
+			"width": 2.3199999999999648,
+			"height": 0,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": "ويستخ دم",
+			"dir": "rtl",
+			"transform": [10, 0, 0, 10, 184.74, 708.74],
+			"width": 37.710000000000015,
+			"height": 10,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": "،",
+			"dir": "ltr",
+			"transform": [10, 0, 0, 10, 221.69, 708.74],
+			"width": 2.12,
+			"height": 10,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": "React",
+			"dir": "ltr",
+			"transform": [10, 0, 0, 10, 223.81, 708.74],
+			"width": 26.23,
+			"height": 10,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": "و",
+			"dir": "rtl",
+			"transform": [10, 0, 0, 10, 250.04, 708.74],
+			"width": 4.68,
+			"height": 10,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": " ",
+			"dir": "ltr",
+			"transform": [10, 0, 0, 10, 254.72, 708.74],
+			"width": 2.3200000000000216,
+			"height": 0,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": "PostgreSQL",
+			"dir": "ltr",
+			"transform": [10, 0, 0, 10, 257.04, 708.74],
+			"width": 54.510000000000005,
+			"height": 10,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": "و",
+			"dir": "rtl",
+			"transform": [10, 0, 0, 10, 311.55, 708.74],
+			"width": 4.68,
+			"height": 10,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": " ",
+			"dir": "ltr",
+			"transform": [10, 0, 0, 10, 316.23, 708.74],
+			"width": 2.319999999999993,
+			"height": 0,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": "TypeScript",
+			"dir": "ltr",
+			"transform": [10, 0, 0, 10, 318.55, 708.74],
+			"width": 51.63,
+			"height": 10,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": "و",
+			"dir": "rtl",
+			"transform": [10, 0, 0, 10, 370.18, 708.74],
+			"width": 4.68,
+			"height": 10,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": " ",
+			"dir": "ltr",
+			"transform": [10, 0, 0, 10, 374.86, 708.74],
+			"width": 2.319999999999993,
+			"height": 0,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": "Node.js",
+			"dir": "ltr",
+			"transform": [10, 0, 0, 10, 377.18, 708.74],
+			"width": 35.45,
+			"height": 10,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": " ",
+			"dir": "ltr",
+			"transform": [10, 0, 0, 10, 412.62999999999994, 708.74],
+			"width": 2.320000000000107,
+			"height": 0,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": "باستخ دام",
+			"dir": "rtl",
+			"transform": [10, 0, 0, 10, 414.95000000000005, 708.74],
+			"width": 37.59999999999997,
+			"height": 10,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": " ",
+			"dir": "ltr",
+			"transform": [10, 0, 0, 10, 452.55, 708.74],
+			"width": 2.230000000000018,
+			"height": 0,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": "ويب",
+			"dir": "rtl",
+			"transform": [10, 0, 0, 10, 454.78000000000003, 708.74],
+			"width": 16.590000000000003,
+			"height": 10,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": " ",
+			"dir": "ltr",
+			"transform": [10, 0, 0, 10, 471.37000000000006, 708.74],
+			"width": 0.8199999999999363,
+			"height": 0,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": "تطبيقات",
+			"dir": "rtl",
+			"transform": [10, 0, 0, 10, 472.19, 708.74],
+			"width": 32.86999999999999,
+			"height": 10,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": "يطور",
+			"dir": "rtl",
+			"transform": [10, 0, 0, 10, 502.68, 708.74],
+			"width": 18.569999999999943,
+			"height": 10,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": " ",
+			"dir": "ltr",
+			"transform": [10, 0, 0, 10, 521.2499999999999, 708.74],
+			"width": 4.200000000000159,
+			"height": 0,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": "برمج يات",
+			"dir": "rtl",
+			"transform": [10, 0, 0, 10, 525.45, 708.74],
+			"width": 35.93000000000005,
+			"height": 10,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		},
+		{
+			"str": "هندس",
+			"dir": "rtl",
+			"transform": [10, 0, 0, 10, 557.44, 708.74],
+			"width": 22.45000000000002,
+			"height": 10,
+			"fontRef": "arabic-font",
+			"hasEol": false
+		}
+	],
+	"operators": {
+		"fnArray": [31, 37, 44, 70, 44, 44, 44, 71, 32],
+		"argsArray": [
+			null,
+			["arabic-font", 10],
+			[
+				[
+					{
+						"unicode": " ",
+						"width": 232
+					}
+				]
+			],
+			["Span", null],
+			[
+				[
+					{
+						"unicode": "س",
+						"width": 1013
+					},
+					{
+						"unicode": "د",
+						"width": 474
+					},
+					-85
+				]
+			],
+			[
+				[
+					{
+						"unicode": "​",
+						"width": 0
+					},
+					85
+				]
+			],
+			[
+				[
+					{
+						"unicode": "ن",
+						"width": 292
+					},
+					{
+						"unicode": "ه",
+						"width": 381
+					},
+					{
+						"unicode": "م‏",
+						"width": 456
+					}
+				]
+			],
+			null,
+			null
+		]
+	}
+}

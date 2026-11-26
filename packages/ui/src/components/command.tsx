@@ -37,12 +37,15 @@ function CommandInput({ className, hint, ...props }: CommandInputProps) {
 	);
 }
 
-function CommandList({ className, ...props }: React.ComponentProps<typeof CommandPrimitive.List>) {
+type CommandListProps = React.ComponentProps<typeof CommandPrimitive.List> & { fixedHeight?: boolean };
+
+function CommandList({ className, fixedHeight = false, ...props }: CommandListProps) {
 	return (
 		<CommandPrimitive.List
 			data-slot="command-list"
 			className={cn(
-				"no-scrollbar max-h-[min(420px,60svh)] scroll-py-1.5 overflow-x-hidden overflow-y-auto p-1.5 outline-none",
+				"no-scrollbar scroll-py-1.5 overflow-x-hidden overflow-y-auto p-1.5 outline-none",
+				fixedHeight ? "h-56 shrink-0 overscroll-contain" : "max-h-[min(420px,60svh)]",
 				className,
 			)}
 			{...props}

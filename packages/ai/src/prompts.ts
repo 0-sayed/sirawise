@@ -7,6 +7,7 @@ const readPrompt = (filename: string) => {
 };
 
 export const reviewVerifierPrompt = `${safetySystemPrompt}\n\n${readPrompt("review-verifier.md")}`;
+export const reviewExtractionVerifierPrompt = `${safetySystemPrompt}\n\n${readPrompt("review-extraction-verifier.md")}`;
 
 export const reviewSystemPrompt = `${safetySystemPrompt}\n\n${readPrompt("review-system.md")}`;
 export const extractionReviewSystemPrompt = `${safetySystemPrompt}\n\n${readPrompt("extraction-review-system.md")}`;

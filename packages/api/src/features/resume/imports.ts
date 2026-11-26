@@ -1,5 +1,6 @@
 import { call, ORPCError } from "@orpc/server";
 import z from "zod";
+import { PDF_IMPORT_OPERATOR_BUDGET_MS } from "@reactive-resume/resume/ats-pdf";
 import { protectedProcedure } from "../../context";
 import { storageUploadRateLimit } from "../../middleware/rate-limit";
 import { crudRouter } from "./crud";
@@ -26,15 +27,15 @@ export const importResumeFile = protectedProcedure
 		let data;
 		try {
 			if (input.format === "PDF") {
-				const [{ extractPdf }, { pdfImportText }, { parseResumeText }] = await Promise.all([
+				const [{ extractPdf }, { pdfImportText }, { parsePdfResume }] = await Promise.all([
 					import("./pdf-analysis"),
 					import("@reactive-resume/import/pdf-lines"),
 					import("@reactive-resume/import/plain-text"),
 				]);
-				const raw = await extractPdf(input.file, signal, 0);
-				const { lines, locale } = pdfImportText(raw);
+				const raw = await extractPdf(input.file, signal, PDF_IMPORT_OPERATOR_BUDGET_MS);
+				const { lines, paragraphUnits, locale } = pdfImportText(raw);
 				if (lines.length === 0) throw new Error("The PDF has no readable text layer.");
-				data = parseResumeText(lines.join("\n"), locale ? { locale } : {});
+				data = parsePdfResume(paragraphUnits, locale ? { locale } : {});
 			} else if (input.format === "LINKEDIN") {
 				const { parseLinkedInExport } = await import("@reactive-resume/import/linkedin");
 				data = parseLinkedInExport(new Uint8Array(await input.file.arrayBuffer()));

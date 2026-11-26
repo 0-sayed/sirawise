@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { expect, it } from "vite-plus/test";
 import { z } from "zod";
 import { buildVariantWriterPayload } from "@reactive-resume/api/features/ai/variant-contracts";
-import { variantVerificationInventory } from "@reactive-resume/api/features/ai/variant-verifier";
+import { MAX_VARIANT_INPUT_CODE_POINTS } from "@reactive-resume/schema/resume/variant-outputs";
 import { loadModels } from "../../config";
 import { cases as coreCases } from "../../corpus";
 import { assertTaskGoldFits, evaluateOutput, prepareCase } from "../../execution";
@@ -211,9 +211,16 @@ it("claims cover candidate explanations, while no_evidence uses an independent a
 	expect(context.retention).toBe("not_applicable");
 	expect(context.absenceChecks).toEqual([{ id: "absence:req-sap", claim: expect.stringContaining("SAP") }]);
 	const input = tasksVerifier.buildInput(c, gold());
-	expect(input.selections.map((s) => JSON.parse(s.text))).toContainEqual(
-		expect.objectContaining(variantVerificationInventory(variantSnapshot(c), gold())),
-	);
+	const selection = (id: string) =>
+		JSON.parse(required(input.selections.find((entry) => "id" in entry && entry.id === id)).text);
+	expect(selection("variant-verification-task")).toMatchObject({
+		claims: [{ id: "requirement:req-excel", evidenceIds: ["cv-reports"] }],
+		premises: [{ id: "requirement:req-excel" }, { id: "requirement:req-sap" }],
+		absence: [{ id: "absence:req-sap" }],
+		retention: false,
+		evidenceScope: { completeCv: true, absence: "selected_passages_only" },
+	});
+	expect(selection("variant-response")).toEqual(gold());
 	const raw = tasksVerifier.fakeVerdict(c, gold());
 	expect(tasksVerifier.assess(c, gold(), raw).accepted).toBe(true);
 	raw.absence = [{ id: "absence:req-sap", verdict: "present" }];
@@ -277,12 +284,26 @@ it("missing job is not checked rather than fabricated requirements", () => {
 	expect(score(gold(), input).safetyDeterministic.pass).toBe(false);
 });
 
-it("enforces the production 49-passage boundary", () => {
+it("caps the writer evidence and reports omissions when the source exceeds the production budget", () => {
+	const text = "Prepared reports for the finance team. ".repeat(18).trim();
 	const input = {
 		...c,
-		cv: Array.from({ length: 50 }, (_, i) => ({ id: `f-${i}`, section: "experience", text: "Prepared reports." })),
+		cv: Array.from({ length: 50 }, (_, i) => ({ id: `f-${i}`, section: "experience", text })),
 	};
-	expect(() => prepareCase(input)).toThrow("AI_INPUT_LIMIT");
+	const { payload } = prepareCase(input);
+	expect([...JSON.stringify(payload)].length).toBeLessThanOrEqual(MAX_VARIANT_INPUT_CODE_POINTS / 2);
+	const selection = (id: string) =>
+		JSON.parse(required(payload.selections.find((entry) => "id" in entry && entry.id === id)).text);
+	const retained = selection("variant-cv-evidence");
+	expect(retained.length).toBeGreaterThan(0);
+	expect(retained.length).toBeLessThan(input.cv.length);
+	expect(retained).toEqual(input.cv.slice(0, retained.length));
+	expect(selection("variant-task").evidenceSelection).toEqual({
+		totalPassages: 50,
+		omittedPassages: 50 - retained.length,
+		excerptedPassageIds: [],
+	});
+	expect(() => buildVariantWriterPayload(variantSnapshot(input), 100)).toThrow("AI_INPUT_LIMIT");
 });
 
 it("synthetic fixtures meet tuning and holdout counts with gold/honest/mutant controls", () => {

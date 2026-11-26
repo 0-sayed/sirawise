@@ -6,6 +6,7 @@ import { operationService } from "./operations";
 import { withAiRuntime } from "./route-policy";
 import { aiTestDatabase } from "./testing/database";
 import { syntheticRuntime } from "./testing/runtime";
+import { usageService } from "./usage";
 
 describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("review operation regressions", () => {
 	const database = aiTestDatabase();
@@ -56,6 +57,29 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("review operation r
 			expect(await database.run(() => operationService.get(owner, operation.id))).toMatchObject({
 				state: "waiting_review",
 			});
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+	it("releases an expired ordinary queue reservation without sending a request or charging a use", async () => {
+		const owner = "expired-queue";
+		const request = await prepare(owner);
+		const currentUsage = () => database.run(() => usageService.getStartUsage(owner));
+		const initial = await currentUsage();
+		const fetch = vi.fn(syntheticRuntime.fetch);
+		const runtime = { ...syntheticRuntime, fetch };
+		vi.setSystemTime(Date.now() - 31 * 60000);
+		try {
+			const operation = await database.run(() => withAiRuntime(runtime, () => operationService.start(owner, request)));
+			vi.useRealTimers();
+			expect((await currentUsage()).operations).toMatchObject({ used: 0, reserved: 1 });
+			await database.run(() => withAiRuntime(runtime, () => runAiOperations()));
+			expect(await database.run(() => operationService.get(owner, operation.id))).toMatchObject({
+				state: "failed",
+				failureCode: "AI_QUEUE_EXPIRED",
+			});
+			expect(fetch).not.toHaveBeenCalled();
+			expect(await currentUsage()).toEqual(initial);
 		} finally {
 			vi.useRealTimers();
 		}

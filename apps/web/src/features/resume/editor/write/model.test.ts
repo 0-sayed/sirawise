@@ -3,7 +3,14 @@ import { describe, expect, it } from "vite-plus/test";
 import { produce } from "immer";
 import { customSectionItemDefinitionByType } from "@reactive-resume/schema/resume/data";
 import { defaultResumeData } from "@reactive-resume/schema/resume/default";
-import { CUSTOM_SECTION_TYPES, createEntry, getOutlineRows, isSectionHidden, moveSection } from "./model";
+import {
+	CUSTOM_SECTION_TYPES,
+	createEntry,
+	describeEntry,
+	getOutlineRows,
+	isSectionHidden,
+	moveSection,
+} from "./model";
 
 const resume = (edit?: (data: ResumeData) => void) => {
 	const data = structuredClone(defaultResumeData);
@@ -29,6 +36,25 @@ describe("createEntry", () => {
 		const entry = createEntry(type);
 		expect(customSectionItemDefinitionByType[type].schema.safeParse(entry).success).toBe(true);
 	});
+});
+
+describe("experience summaries", () => {
+	it.each(["Present", "حتى الآن"])(
+		"shows %s from the interface for an ongoing entry with stale legacy text",
+		(label) => {
+			const entry = {
+				...createEntry("experience"),
+				company: "Example",
+				position: "Engineer",
+				period: "Apr 2026 – Jul 2026",
+				dates: { start: "2026-04", end: "2026-07", present: true },
+			};
+			expect(describeEntry("experience", entry, { locale: "en-US", presentLabel: label }).meta).toBe(
+				`Example · Apr 2026 – ${label}`,
+			);
+			expect(entry.dates.end).toBe("2026-07");
+		},
+	);
 });
 
 describe("outline", () => {

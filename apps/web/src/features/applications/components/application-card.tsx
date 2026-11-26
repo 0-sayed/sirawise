@@ -4,6 +4,7 @@ import { Icon } from "@reactive-resume/ui/components/icon";
 import { cn } from "@reactive-resume/utils/style";
 import { describeNextStep, getNextStep } from "../next-step";
 import { ApplicationActionsMenu } from "./application-actions-menu";
+import { ApplicationText } from "./application-text";
 
 type ApplicationCardProps = {
 	application: Application;
@@ -41,12 +42,8 @@ export function ApplicationCard({
 					onClick={onClick}
 					className="grid min-w-0 flex-1 text-start after:absolute after:inset-0 after:rounded-[10px]"
 				>
-					<span dir="auto" className="line-clamp-2 type-body font-semibold">
-						{application.role}
-					</span>
-					<span dir="auto" className="line-clamp-2 type-metadata text-ink-3">
-						{application.company}
-					</span>
+					<ApplicationText className="line-clamp-2 type-body font-semibold">{application.role}</ApplicationText>
+					<ApplicationText className="line-clamp-2 type-metadata text-ink-3">{application.company}</ApplicationText>
 				</button>
 				{withMenu && <ApplicationActionsMenu application={application} className="relative z-10 -me-1.5 -mt-1.5" />}
 			</div>
@@ -57,7 +54,7 @@ export function ApplicationCard({
 				)}
 			>
 				<Icon name={next.icon} size={15} className="shrink-0" />
-				<span className="truncate">{next.title}</span>
+				<ApplicationText className="truncate">{next.title}</ApplicationText>
 			</span>
 		</div>
 	);

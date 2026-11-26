@@ -15,7 +15,7 @@ export type OperatorListLike = {
 
 type Matrix = readonly [number, number, number, number, number, number];
 
-const IDENTITY: Matrix = [1, 0, 0, 1, 0, 0];
+export const IDENTITY: Matrix = [1, 0, 0, 1, 0, 0];
 
 /** Text rendering modes whose fill colour is actually painted. */
 const FILLING_TEXT_RENDER_MODES = new Set([0, 2, 4, 6]);
@@ -30,7 +30,7 @@ type GraphicsState = {
 };
 
 /** pdf.js `Util.transform`: apply `next` in the coordinate system `current` already establishes. */
-function multiply(current: Matrix, next: Matrix): Matrix {
+export function multiply(current: Matrix, next: Matrix): Matrix {
 	return [
 		current[0] * next[0] + current[2] * next[1],
 		current[1] * next[0] + current[3] * next[1],
@@ -46,7 +46,7 @@ function unitSquareArea(ctm: Matrix): number {
 	return Math.abs(ctm[0] * ctm[3] - ctm[1] * ctm[2]);
 }
 
-function toMatrix(value: unknown): Matrix | null {
+export function toMatrix(value: unknown): Matrix | null {
 	if (!isNumericArray(value) || value.length < 6) return null;
 
 	const [a, b, c, d, e, f] = value;

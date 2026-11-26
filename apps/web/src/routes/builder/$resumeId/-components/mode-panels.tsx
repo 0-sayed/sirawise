@@ -38,7 +38,7 @@ export function ModePanel({ mode }: { mode: EditorMode }) {
 	return (
 		<>
 			<OfflineBanner className="mx-4 mt-4 w-auto" />
-			{resumeId && <VariantBanner resumeId={resumeId} />}
+			{resumeId && <VariantBanner resumeId={resumeId} className="mx-4 mt-4 w-auto" />}
 			{mode === "design" ? <DesignPanel /> : mode === "check" ? <CheckPanel /> : <WriteMode />}
 		</>
 	);

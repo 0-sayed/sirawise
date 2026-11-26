@@ -6,9 +6,9 @@ import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 import { demoCredentials, demoAccountName } from "../../../tooling/local/demo-fixture";
 import { loginViaUi } from "../fixtures/auth";
+import { expect, test } from "../fixtures/demo-test";
 import { privacyDatabase } from "../fixtures/privacy";
 import { settleScreen } from "../fixtures/screen";
-import { expect, test } from "../fixtures/test";
 
 function api(page: Page): RouterClient<typeof router> {
 	return createORPCClient(
@@ -225,7 +225,9 @@ for (const locale of ["ar-SA", "en-US"] as const)
 			});
 		}
 
-test("synthetic demo workspace actions agree without changing saved facts", async ({ page }, info) => {
+test("synthetic demo workspace actions agree without changing saved facts", async ({ page, demoLock }, info) => {
+	test.setTimeout(300_000);
+	await demoLock();
 	// Seed only the disposable database created by the isolated runner, never an owner's runtime.
 	await privacyDatabase(async () => {});
 	execFileSync(process.execPath, ["tooling/local/demo-seed.mjs"], {

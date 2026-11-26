@@ -1,3 +1,5 @@
+export const syntheticNativePdfLocales = ["en-US", "ar-SA"] as const;
+
 /** Independently authored text runs exercise contact boundaries and source links. */
 export function ownerImportPdf() {
 	const lines = [

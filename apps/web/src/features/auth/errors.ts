@@ -1,4 +1,5 @@
 import { t } from "@lingui/core/macro";
+import { z } from "zod";
 
 /** Codes are stable API contracts; server exception text is never product copy. */
 export function authErrorMessage(
@@ -6,6 +7,23 @@ export function authErrorMessage(
 	fallback = t`We could not complete this request. Please try again.`,
 ): string {
 	switch (code) {
+		case "INVALID_EMAIL":
+			return t({ context: "auth.validation.email", message: "Enter a valid email address, such as name@example.com." });
+		case "INVALID_USERNAME":
+		case "USERNAME_IS_INVALID":
+		case "USERNAME_TOO_SHORT":
+		case "USERNAME_TOO_LONG":
+			return t({
+				context: "auth.validation.username",
+				message: "Use 3 to 64 lowercase letters, digits, dots, underscores or hyphens for your username.",
+			});
+		case "PASSWORD_TOO_SHORT":
+		case "PASSWORD_TOO_LONG":
+		case "PASSWORD_TOO_WEAK":
+		case "WEAK_PASSWORD":
+		case "PASSWORD_COMPROMISED":
+			return t({ context: "auth.validation.password", message: "Use a stronger password with 8 to 64 characters." });
+
 		case "INVALID_PASSWORD":
 		case "INCORRECT_PASSWORD":
 			return t`Check your current password, then try again.`;
@@ -28,6 +46,8 @@ export function authErrorMessage(
 			return t`Unable to create this account. Try signing in or use another email.`;
 		case "USERNAME_IS_ALREADY_TAKEN":
 			return t`This username is unavailable. Choose another.`;
+		case "RATE_LIMITED":
+		case "RATE_LIMIT_EXCEEDED":
 		case "TOO_MANY_REQUESTS":
 			return t`Please wait before trying again.`;
 		case "INVALID_TOKEN":
@@ -45,4 +65,29 @@ export function accountErrorMessage(error: unknown): string {
 			? error.code
 			: undefined;
 	return authErrorMessage(code);
+}
+
+export function validAuthEmail(email: string): boolean {
+	return z.email().safeParse(email.trim()).success;
+}
+export function authErrorField(code: string | undefined): "email" | "username" | "password" | null {
+	if (["INVALID_EMAIL", "USER_ALREADY_EXISTS", "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL"].includes(code ?? ""))
+		return "email";
+	if (
+		[
+			"INVALID_USERNAME",
+			"USERNAME_IS_INVALID",
+			"USERNAME_TOO_SHORT",
+			"USERNAME_TOO_LONG",
+			"USERNAME_IS_ALREADY_TAKEN",
+		].includes(code ?? "")
+	)
+		return "username";
+	if (
+		["PASSWORD_TOO_SHORT", "PASSWORD_TOO_LONG", "PASSWORD_TOO_WEAK", "WEAK_PASSWORD", "PASSWORD_COMPROMISED"].includes(
+			code ?? "",
+		)
+	)
+		return "password";
+	return null;
 }

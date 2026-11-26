@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 
 import type { ComponentProps } from "react";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { i18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
@@ -17,6 +17,8 @@ const mocks = vi.hoisted(() => ({
 	verifyTotp: vi.fn(),
 	verifyBackupCode: vi.fn(),
 	signup: vi.fn(),
+	requestPasswordReset: vi.fn(),
+	publicClient: { client_name: "Named client" },
 	continueOAuth: vi.fn(),
 	queryClient: { clear: vi.fn(), invalidateQueries: vi.fn(async () => {}) },
 }));
@@ -24,8 +26,11 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/features/locale/provider", () => ({ useUiLocale: () => ({ locale: "en-US" }) }));
 
 vi.mock("@tanstack/react-query", () => ({
-	useQuery: () => ({
-		data: { google: "Google", github: "GitHub", linkedin: "LinkedIn", custom: "SSO", passkey: true },
+	useQuery: ({ queryKey }: { queryKey?: string[] }) => ({
+		data:
+			queryKey?.[0] === "oauth-client"
+				? mocks.publicClient
+				: { google: "Google", github: "GitHub", linkedin: "LinkedIn", custom: "SSO", passkey: true },
 	}),
 	useQueryClient: () => mocks.queryClient,
 	useMutation: () => ({ mutate: vi.fn(), isPending: false }),
@@ -43,6 +48,7 @@ vi.mock("@/libs/orpc/client", () => ({ orpc: { auth: { providers: { list: { quer
 vi.mock("@/libs/auth/client", () => ({
 	authClient: {
 		signUp: { email: mocks.signup },
+		requestPasswordReset: mocks.requestPasswordReset,
 		oauth2: { continue: mocks.continueOAuth },
 		twoFactor: { verifyTotp: mocks.verifyTotp, verifyBackupCode: mocks.verifyBackupCode },
 		signIn: { email: mocks.email, username: mocks.username, social: mocks.social, passkey: mocks.passkey },
@@ -50,9 +56,12 @@ vi.mock("@/libs/auth/client", () => ({
 }));
 vi.mock("@reactive-resume/ui/components/toast", () => ({ toast: { add: vi.fn(), close: vi.fn() } }));
 
+import { OAuthConsentPage } from "./pages/consent";
+import { ForgotPasswordPage } from "./pages/forgot-password";
 import { LoginPage } from "./pages/login";
 import { RegisterPage } from "./pages/register";
 import { VerifyTwoFactorBackupPage, VerifyTwoFactorPage } from "./pages/verify-2fa";
+import { getUiLocaleMessages } from "@/libs/locale";
 
 beforeEach(() => {
 	vi.clearAllMocks();
@@ -90,6 +99,67 @@ function submitLogin(container: HTMLElement, identifier: string, passwordValue =
 	fireEvent.change(password, { target: { value: passwordValue } });
 	fireEvent.submit(form);
 }
+
+it("shows the public client ID when the OAuth application is unnamed", () => {
+	mocks.publicClient.client_name = "   ";
+	render(
+		<I18nProvider i18n={i18n}>
+			<OAuthConsentPage oauthQuery="client_id=public-client-123&sig=fixture" email="user@example.test" />
+		</I18nProvider>,
+	);
+	expect(screen.getByText("Unknown application")).toBeVisible();
+	expect(screen.getByText("public-client-123")).toHaveAttribute("dir", "ltr");
+});
+
+it.each(["TOO_MANY_REQUESTS", "PASSWORD_COMPROMISED", "INVALID_EMAIL_OR_PASSWORD"])(
+	"marks the password invalid only for a password error (%s)",
+	async (code) => {
+		mocks.email.mockResolvedValueOnce({ error: { code } });
+		const { container } = renderLogin();
+		submitLogin(container, "user@example.test");
+		const summary = await screen.findByRole("alert");
+		const password = container.querySelector('input[name="password"]');
+		if (code === "PASSWORD_COMPROMISED") expect(password).toHaveAttribute("aria-invalid", "true");
+		else expect(password).not.toHaveAttribute("aria-invalid");
+		if (code === "INVALID_EMAIL_OR_PASSWORD")
+			expect(within(summary).getByRole("link")).toHaveAttribute("href", "#login-password");
+	},
+);
+
+it.each(["TOO_MANY_REQUESTS", "INVALID_EMAIL"])(
+	"marks the reset email invalid only for an invalid-email response (%s)",
+	async (code) => {
+		mocks.requestPasswordReset.mockResolvedValueOnce({ error: { code } });
+		const { container } = render(
+			<I18nProvider i18n={i18n}>
+				<ForgotPasswordPage />
+			</I18nProvider>,
+		);
+		const email = screen.getByRole("textbox");
+		fireEvent.change(email, { target: { value: "user@example.test" } });
+		const form = container.querySelector("form");
+		if (!form) throw new Error("Reset form is missing");
+		fireEvent.submit(form);
+		await screen.findByRole("alert");
+		if (code === "INVALID_EMAIL") expect(email).toHaveAttribute("aria-invalid", "true");
+		else expect(email).not.toHaveAttribute("aria-invalid");
+	},
+);
+
+it.each(["en-US", "ar-SA"] as const)(
+	"keeps the sign-in email label accessible in %s with validation",
+	async (locale) => {
+		i18n.loadAndActivate(await getUiLocaleMessages(locale));
+		const { container } = renderLogin();
+		const name = locale === "en-US" ? "Email address" : "البريد الإلكتروني";
+		const email = screen.getByRole("textbox", { name });
+		expect(screen.getByLabelText(name, { exact: true })).toBe(email);
+		submitLogin(container, "a@a.a");
+		await waitFor(() => expect(email).toHaveAttribute("aria-invalid", "true"));
+		expect(screen.getByRole("textbox", { name })).toBe(email);
+		expect(mocks.email).not.toHaveBeenCalled();
+	},
+);
 
 describe("OAuth callback after sign-in", () => {
 	it("continues account creation only after verified password sign-in", async () => {

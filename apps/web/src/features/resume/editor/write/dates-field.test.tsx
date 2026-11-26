@@ -1,12 +1,15 @@
 // @vitest-environment happy-dom
 import type { ResumeDates } from "@reactive-resume/schema/resume/dates";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { beforeAll, describe, expect, it, vi } from "vite-plus/test";
+import userEvent from "@testing-library/user-event";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { i18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
+import { messages as arabicMessages } from "../../../../../locales/ar-SA.po";
 import { DatesField } from "./dates-field";
 
-beforeAll(() => {
+beforeEach(() => {
+	i18n.load("ar-SA", arabicMessages);
 	i18n.loadAndActivate({ locale: "en-US", messages: {} });
 });
 
@@ -39,7 +42,7 @@ describe("DatesField", () => {
 
 	it("opens the month picker from the field and commits a selected month", async () => {
 		const onChange = renderField({ start: "2016-06", end: null, present: false });
-		fireEvent.focus(screen.getByRole("textbox", { name: "Start" }));
+		fireEvent.click(screen.getByRole("textbox", { name: "Start" }));
 		const month = await screen.findByRole("button", { name: "July" });
 		fireEvent.click(month);
 		expect(onChange).toHaveBeenCalledWith({ start: "2016-07", end: null, present: false });
@@ -60,5 +63,22 @@ describe("DatesField", () => {
 		fireEvent.click(calendarButton);
 		fireEvent.click(await screen.findByRole("button", { name: "July" }));
 		expect(onChange).toHaveBeenCalledWith({ start: "2016-07", end: null, present: false });
+	});
+
+	it("uses the interface's Present label for an ongoing entry in an English CV", () => {
+		i18n.activate("ar-SA");
+		const onChange = renderField({ start: "2026-04", end: "2026-07", present: true });
+		expect(screen.getByRole("switch", { name: "حتى الآن", checked: true })).toBeVisible();
+		const [start, end] = screen.getAllByRole("textbox");
+		expect(start).toHaveValue("Apr 2026");
+		expect(end).toHaveValue("حتى الآن");
+		expect(end).toBeDisabled();
+		expect(onChange).not.toHaveBeenCalled();
+	});
+
+	it("stores no end date when the user marks the entry as ongoing", async () => {
+		const onChange = renderField({ start: "2026-04", end: "2026-07", present: false });
+		await userEvent.click(screen.getByRole("switch", { name: "Present", checked: false }));
+		expect(onChange).toHaveBeenCalledExactlyOnceWith({ start: "2026-04", end: null, present: true });
 	});
 });

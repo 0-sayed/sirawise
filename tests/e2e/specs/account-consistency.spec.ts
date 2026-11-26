@@ -567,10 +567,14 @@ for (const locale of ["ar-SA", "en-US"] as const)
 				await shot("email-methods-unavailable");
 				await dialog.getByRole("button", { name: /^(Cancel|إلغاء)$/u }).click();
 				await page.goto("/dashboard/settings/privacy");
-				await expect(page.getByRole("alert")).toBeVisible();
+				const exportSection = page.locator("#data-export");
+				const exportStatusUnavailable = exportSection.getByRole("alert").filter({
+					hasText: locale === "en-US" ? "Export status is unavailable" : "حالة النسخة غير متاحة",
+				});
+				await expect(exportStatusUnavailable).toBeVisible();
 				await shot("export-status-unavailable");
 				await page.unroute("**/api/rpc/**");
-				await retry();
+				await exportStatusUnavailable.getByRole("button", { name: /^(Try again|حاول مرة أخرى)$/u }).click();
 				await expect(
 					page.getByRole("button", { name: /^(Request a copy of my data|طلب نسخة من بياناتي)$/u }),
 				).toBeVisible();
@@ -589,7 +593,7 @@ for (const locale of ["ar-SA", "en-US"] as const)
 				await dialog.locator('input[type="password"]').fill(account.password);
 				await dialog.locator('button[type="submit"]').click();
 				await expect(dialog).toHaveCount(0);
-				await expect(page.getByRole("alert")).toBeVisible();
+				await expect(exportSection.getByRole("alert")).toBeVisible();
 				await shot("export-request-unconfirmed");
 				await page.unroute("**/api/rpc/privacy/requestExport");
 				await page.route("**/api/rpc/**", (route) =>

@@ -241,7 +241,8 @@ test("mobile preview and real Review preserve the filename, snapshot, and focus"
 	await panel.getByRole("tab", { name: "History", exact: true }).focus();
 	for (let index = 0; index < 12; index++) {
 		await page.keyboard.press("Tab");
-		expect(await panel.evaluate((node) => node.contains(document.activeElement))).toBe(true);
+		// The sheet's focus guard wraps Tab on the next animation frame.
+		await expect.poll(() => panel.evaluate((node) => node.contains(document.activeElement))).toBe(true);
 	}
 	await page.keyboard.press("Escape");
 	await expect(panel).toHaveCount(0);

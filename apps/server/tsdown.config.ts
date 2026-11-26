@@ -42,6 +42,7 @@ const bundledInteropPackages = new Set([
 	"launder",
 	"dayjs",
 	"wink-porter2-stemmer",
+	"bidi-js",
 ]);
 
 const packageNameOf = (id: string) =>

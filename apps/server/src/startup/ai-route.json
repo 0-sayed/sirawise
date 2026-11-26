@@ -1,7 +1,7 @@
 {
 	"routeId": "sirawise-pilot-openrouter",
 	"routeRevision": "1",
-	"configRevision": "pilot-writers-2026-11-20-v1",
+	"configRevision": "pilot-writers-full-cv-2026-11-21-v4",
 	"endpoint": "https://openrouter.ai/api/v1",
 	"model": "openai/gpt-6-luna",
 	"downstreamProvider": "azure",
@@ -26,7 +26,7 @@
 	"evidenceVersion": "pilot-2026-11-20-owner-approved",
 	"maxCalls": 2,
 	"maxRepairs": 0,
-	"callTimeoutMs": 30000,
+	"callTimeoutMs": 60000,
 	"deadlineMs": 120000,
 	"maxInputCodePoints": 32000,
 	"maxOutputTokens": 4096,
@@ -37,11 +37,14 @@
 	"verifier": {
 		"evidenceVersion": "pilot-2026-11-20-owner-approved",
 		"maxOutputTokens": 16384,
+		"boundByTogetherPricing": true,
+		"backup": null,
 		"maxCallCostMicros": 100000,
 		"policy": {
 			"model": "deepseek/deepseek-v4.1-flash-1017",
 			"downstreamProvider": "together",
 			"reasoningEffort": "low"
 		}
-	}
+	},
+	"transientRetries": 1
 }

@@ -293,7 +293,7 @@ it("contains a task judge rejection without crashing the benchmark", async () =>
 
 it("passes the per-contract timeout into the actual adapter", async () => {
 	const { vi } = await import("vite-plus/test");
-	const timeout = vi.spyOn(AbortSignal, "timeout");
+	const timeout = vi.spyOn(globalThis, "setTimeout");
 	try {
 		await withTaskRuntime(runtime, () =>
 			runBenchmark({
@@ -305,7 +305,7 @@ it("passes the per-contract timeout into the actual adapter", async () => {
 				openaiBudgetUsd: 100,
 			}),
 		);
-		expect(timeout.mock.calls.filter(([ms]) => ms === 110_000)).toHaveLength(2);
+		expect(timeout.mock.calls.filter(([, ms]) => ms === 110_000)).toHaveLength(2);
 	} finally {
 		timeout.mockRestore();
 	}

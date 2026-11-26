@@ -1,3 +1,4 @@
+import { setImmediate } from "node:timers/promises";
 import { afterEach, expect, it, vi } from "vite-plus/test";
 const work = vi.hoisted(() => ({
 	discover: vi.fn(),
@@ -16,6 +17,7 @@ vi.mock("./operations", () => ({
 	assertSourceRevisions: vi.fn(),
 	deliverOperation: vi.fn(),
 	operationRequest: vi.fn(),
+	MAX_TRANSLATION_CONCURRENT_PARTS: 6,
 }));
 import { runAiOperations } from "./operation-worker";
 afterEach(() => vi.resetAllMocks());
@@ -23,7 +25,12 @@ it("starts all admitted owners concurrently and drains every active lease on shu
 	const owners = Array.from({ length: 100 }, (_, i) => `owner-${i}`);
 	work.discover.mockResolvedValue(owners);
 	work.reconcile.mockResolvedValue(undefined);
-	work.claim.mockImplementation(async (ownerId: string) => ({ ownerId, operationId: ownerId, token: ownerId }));
+	const claimedOwners = new Set<string>();
+	work.claim.mockImplementation(async (ownerId: string) => {
+		if (claimedOwners.has(ownerId)) return null;
+		claimedOwners.add(ownerId);
+		return { ownerId, operationId: ownerId, token: ownerId };
+	});
 	const pending: Array<() => void> = [];
 	work.lease.mockImplementation(
 		() => new Promise((_resolve, reject) => pending.push(() => reject(new Error("Synthetic lease finished")))),
@@ -45,12 +52,16 @@ it("starts all admitted owners concurrently and drains every active lease on shu
 	}
 	expect(drained).toBe(true);
 	expect(work.failed).toHaveBeenCalledTimes(100);
+	expect(claimedOwners).toEqual(new Set(owners));
 });
 
 it("drains other leases before reporting a failed claim", async () => {
 	work.discover.mockResolvedValue(["unavailable-owner", "active-owner"]);
 	work.reconcile.mockResolvedValue(undefined);
+	const claimed = new Set<string>();
 	work.claim.mockImplementation(async (ownerId: string) => {
+		if (claimed.has(ownerId)) return null;
+		claimed.add(ownerId);
 		if (ownerId === "unavailable-owner") throw new Error("Synthetic claim failure");
 		return { ownerId, operationId: ownerId, token: ownerId };
 	});
@@ -77,4 +88,27 @@ it("drains other leases before reporting a failed claim", async () => {
 	expect(error).toBeInstanceOf(AggregateError);
 	expect((error as AggregateError).errors).toEqual([new Error("Synthetic claim failure")]);
 	expect(work.failed).toHaveBeenCalledTimes(1);
+});
+
+it("rescans if the last active lease finishes during a scan for waiting work", async () => {
+	const activeLease = Promise.withResolvers<never>();
+	work.discover.mockResolvedValue(["active-owner", "waiting-owner"]);
+	work.reconcile.mockResolvedValue(undefined);
+	work.claim
+		.mockResolvedValueOnce({ ownerId: "active-owner", operationId: "active", token: "active" })
+		.mockResolvedValueOnce(null)
+		.mockResolvedValueOnce(null)
+		.mockResolvedValueOnce(null)
+		.mockImplementationOnce(async () => {
+			activeLease.reject(new Error("Synthetic active lease finished"));
+			await setImmediate();
+			return null;
+		})
+		.mockResolvedValueOnce(null)
+		.mockResolvedValueOnce({ ownerId: "waiting-owner", operationId: "waiting", token: "waiting" })
+		.mockResolvedValue(null);
+	work.lease.mockReturnValueOnce(activeLease.promise).mockRejectedValueOnce(new Error("Synthetic waiter finished"));
+	work.failed.mockResolvedValue(undefined);
+	await runAiOperations(undefined, 2);
+	expect(work.lease).toHaveBeenCalledTimes(2);
 });

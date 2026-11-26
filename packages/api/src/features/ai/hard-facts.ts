@@ -1,7 +1,40 @@
 import { normalizeNumericDigits } from "@reactive-resume/utils/string";
 
-export const HARD_FACTS_VERSION = "hard-facts-v11-scoped-paraphrases";
+export const HARD_FACTS_VERSION = "hard-facts-v13-percentage-metric-bindings";
 const gregorianMonths = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+const arabicGregorianMonths = [
+	["يناير", "كانون الثاني"],
+	["فبراير", "شباط"],
+	["مارس", "اذار"],
+	["ابريل", "نيسان"],
+	["مايو", "ايار"],
+	["يونيو", "حزيران"],
+	["يوليو", "تموز"],
+	["اغسطس", "اب"],
+	["سبتمبر", "ايلول"],
+	["اكتوبر", "تشرين الاول"],
+	["نوفمبر", "تشرين الثاني"],
+	["ديسمبر", "كانون الاول"],
+];
+const arabicGregorianMonth =
+	/(?<![\p{L}\p{M}])((?:(?:كانون|تشرين)\s+)?[\p{Script=Arabic}\p{M}]+)\s+(\d{4})(?![\p{L}\p{N}]|[./-]\d{1,2}(?!\d))/gu;
+const englishMonthName =
+	"jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?";
+const namedGregorianDayFirst = new RegExp(
+	String.raw`(?<![\p{L}\p{N}./-])(0?[1-9]|[12]\d|3[01])\s+(${englishMonthName}|(?:(?:كانون|تشرين)\s+)?[\p{Script=Arabic}\p{M}]+)\s+(\d{4})(?![\p{L}\p{N}]|[./-]\d)`,
+	"giu",
+);
+const namedGregorianMonthFirst = new RegExp(
+	String.raw`\b(${englishMonthName})\s+(0?[1-9]|[12]\d|3[01]),?\s+(\d{4})(?![\p{L}\p{N}]|[./-]\d)`,
+	"giu",
+);
+function canonicalNamedGregorianDate(match: string, day: string, month: string, year: string): string {
+	const normalized = normalizeFact(month);
+	const index = /^\p{Script=Arabic}/u.test(normalized)
+		? arabicGregorianMonths.findIndex((names) => names.includes(normalized))
+		: gregorianMonths.indexOf(normalized.slice(0, 3));
+	return index < 0 ? match : [year, String(index + 1).padStart(2, "0"), day.padStart(2, "0")].join("-");
+}
 /** Exact calendar notation only; no inferred day, month, calendar or interval. */
 export const normalizeFactDates = (text: string): string =>
 	text
@@ -12,14 +45,33 @@ export const normalizeFactDates = (text: string): string =>
 		)
 		.replace(/(\d{4})\s*[–—-]\s*(\d{4})(?!\d)/gu, "from $1 to $2")
 		.replace(/(\d{4}-\d{2})\s*[–—]\s*(?=\d{4}-\d{2})/gu, "$1 to ");
-export const normalizeFact = (text: string): string =>
-	normalizeNumericDigits(text)
-		.normalize("NFKC")
-		.toLowerCase()
+
+export const normalizeTranslationFactDates = (text: string): string =>
+	normalizeFactDates(
+		normalizeNumericDigits(text)
+			.replace(namedGregorianDayFirst, canonicalNamedGregorianDate)
+			.replace(namedGregorianMonthFirst, (match, month: string, day: string, year: string) =>
+				canonicalNamedGregorianDate(match, day, month, year),
+			),
+	)
+		.replace(arabicGregorianMonth, (match, month: string, year: string) => {
+			const normalized = normalizeFact(month);
+			const number = arabicGregorianMonths.findIndex((names) => names.includes(normalized)) + 1;
+			return number ? `${year}-${String(number).padStart(2, "0")}` : match;
+		})
+		.replace(
+			/(?<![\p{L}\p{N}./:])(0?[1-9]|1[0-2])\/(\d{4})(?![\p{L}\p{N}/:]|\.\d)/gu,
+			(_match, month: string, year: string) => `${year}-${month.padStart(2, "0")}`,
+		)
+		.replace(/(?<!\d)(\d{4}-(?:0[1-9]|1[0-2]))\s*[–—-]\s*(?=\d{4}-(?:0[1-9]|1[0-2])(?!\d|[./-]\d))/gu, "$1 to ");
+export const normalizeFact = (text: string, { preserveCase = false } = {}): string => {
+	const normalized = normalizeNumericDigits(text).normalize("NFKC");
+	return (preserveCase ? normalized : normalized.toLowerCase())
 		.replace(/[\u064B-\u065F\u0670\u0640]/gu, "")
 		.replace(/[أإآٱ]/gu, "ا")
 		.replace(/\s+/gu, " ")
 		.trim();
+};
 const wordPattern = /[\p{L}\p{N}]+(?:[._/+:#’'-][\p{L}\p{N}]+)*(?:\+{1,2}|#)?/gu;
 const words = (text: string): string[] => normalizeFact(text).match(wordPattern) ?? [];
 const stem = (word: string) =>
@@ -28,8 +80,51 @@ const stem = (word: string) =>
 		.replace(/(?:ها|هم|هن|هما|كم|كن|نا)$/u, "")
 		.replace(/(?:ات|ون|ين|ا|ت)$/u, "")
 		.replace(/(?:ies|s)$/u, "");
+const numberWordEntries: readonly [RegExp, string][] = [
+	[/(?<!\p{L})(?:احد عشر|احدى عشر|احدى عشرة)(?!\p{L})/gu, "11"],
+	[/(?<!\p{L})(?:اثنا عشر|اثني عشر|اثنتا عشرة|اثنتي عشرة)(?!\p{L})/gu, "12"],
+	[/(?<!\p{L})(?:ثلاثة عشر|ثلاث عشرة)(?!\p{L})/gu, "13"],
+	[/(?<!\p{L})(?:اربعة عشر|اربع عشرة)(?!\p{L})/gu, "14"],
+	[/(?<!\p{L})(?:خمسة عشر|خمس عشرة)(?!\p{L})/gu, "15"],
+	[/(?<!\p{L})(?:ستة عشر|ست عشرة)(?!\p{L})/gu, "16"],
+	[/(?<!\p{L})(?:سبعة عشر|سبع عشرة)(?!\p{L})/gu, "17"],
+	[/(?<!\p{L})(?:ثمانية عشر|ثماني عشرة)(?!\p{L})/gu, "18"],
+	[/(?<!\p{L})(?:تسعة عشر|تسع عشرة)(?!\p{L})/gu, "19"],
+	[/(?<!\p{L})(?:zero|صفر)(?!\p{L})/gu, "0"],
+	[/(?<!\p{L})(?:one|واحد|واحدة)(?!\p{L})/gu, "1"],
+	[/(?<!\p{L})(?:two|اثنان|اثنين|اثنتان|اثنتين)(?!\p{L})/gu, "2"],
+	[/(?<!\p{L})(?:three|ثلاثة|ثلاث)(?!\p{L})/gu, "3"],
+	[/(?<!\p{L})(?:four|اربعة|اربع)(?!\p{L})/gu, "4"],
+	[/(?<!\p{L})(?:five|خمسة|خمس)(?!\p{L})/gu, "5"],
+	[/(?<!\p{L})(?:six|ستة|ست)(?!\p{L})/gu, "6"],
+	[/(?<!\p{L})(?:seven|سبعة|سبع)(?!\p{L})/gu, "7"],
+	[/(?<!\p{L})(?:eight|ثمانية|ثماني|ثمان)(?!\p{L})/gu, "8"],
+	[/(?<!\p{L})(?:nine|تسعة|تسع)(?!\p{L})/gu, "9"],
+	[/(?<!\p{L})(?:ten|عشرة|عشر)(?!\p{L})/gu, "10"],
+	[/(?<!\p{L})eleven(?!\p{L})/gu, "11"],
+	[/(?<!\p{L})twelve(?!\p{L})/gu, "12"],
+	[/(?<!\p{L})thirteen(?!\p{L})/gu, "13"],
+	[/(?<!\p{L})fourteen(?!\p{L})/gu, "14"],
+	[/(?<!\p{L})fifteen(?!\p{L})/gu, "15"],
+	[/(?<!\p{L})sixteen(?!\p{L})/gu, "16"],
+	[/(?<!\p{L})seventeen(?!\p{L})/gu, "17"],
+	[/(?<!\p{L})eighteen(?!\p{L})/gu, "18"],
+	[/(?<!\p{L})nineteen(?!\p{L})/gu, "19"],
+	[/(?<!\p{L})(?:twenty|عشرون|عشرين)(?!\p{L})/gu, "20"],
+	[/(?<!\p{L})(?:thirty|ثلاثون|ثلاثين)(?!\p{L})/gu, "30"],
+	[/(?<!\p{L})(?:forty|اربعون|اربعين)(?!\p{L})/gu, "40"],
+	[/(?<!\p{L})(?:fifty|خمسون|خمسين)(?!\p{L})/gu, "50"],
+	[/(?<!\p{L})(?:sixty|ستون|ستين)(?!\p{L})/gu, "60"],
+	[/(?<!\p{L})(?:seventy|سبعون|سبعين)(?!\p{L})/gu, "70"],
+	[/(?<!\p{L})(?:eighty|ثمانون|ثمانين)(?!\p{L})/gu, "80"],
+	[/(?<!\p{L})(?:ninety|تسعون|تسعين)(?!\p{L})/gu, "90"],
+	[/(?<!\p{L})(?:hundred|مئة|مائة)(?!\p{L})/gu, "100"],
+];
+export const normalizeNumberWords = (text: string) =>
+	numberWordEntries.reduce((value, [pattern, digits]) => value.replace(pattern, digits), text);
 const number = /[+-]?\p{Nd}+(?:[.,:/-]\p{Nd}+)*(?:\s*[%٪])?/gu;
-const numeric = (text: string) => [...normalizeFact(text).matchAll(number)].map((m) => m[0].replace(/\s/gu, ""));
+const numeric = (text: string) =>
+	[...normalizeNumberWords(normalizeFact(text)).matchAll(number)].map((m) => m[0].replace(/\s/gu, ""));
 const separator = /^(?:for|at|in|across|with|and|to|from|during|per|of|في|من|الى|عبر|لدى|خلال|على|و)$/u;
 const clauses = (text: string, entityTokens?: ReadonlySet<string>) =>
 	text
@@ -104,8 +199,9 @@ function quantities(text: string): string[] {
 		const allRoles = localRoles.length ? localRoles : documentRoles;
 		const aggregatePrefix = line.match(/^([^\d]+)(?:from|من)\s+\d{4}\s+(?:to|until|الى|حتى)\s+\d{4}/iu)?.[1] ?? "";
 		const aggregateRange = words(aggregatePrefix).filter((word) => roleOf(word)).length > 1;
-		return clauses(line).flatMap((clause) =>
-			[...clause.matchAll(number)]
+		return clauses(line).flatMap((rawClause) => {
+			const clause = normalizeNumberWords(rawClause);
+			return [...clause.matchAll(number)]
 				.filter((m) => {
 					const letter = /(?:^|[^\p{L}\p{N}])([b-hj-z])\s*$/u.exec(clause.slice(0, m.index))?.[1];
 					return !letter || !codes.has(letter + m[0]);
@@ -135,6 +231,42 @@ function quantities(text: string): string[] {
 									: "point";
 						return `${m[0]}:year:${role ?? ""}:${endpoint}`;
 					}
+					if (m[0].endsWith("%") || m[0].endsWith("٪")) {
+						const verbal = prefix.match(
+							/\b(reduc(?:e[sd]?|ing)|decreas(?:e[sd]?|ing)|increas(?:e[sd]?|ing))\s+([^.!?;]+?)\s+by\s*$/u,
+						);
+						const nominal = suffix.match(/^\s*(reduction|decrease|increase)\s+in\s+([^.!?;,]+)/u);
+						const passive = prefix.match(
+							/\b([^.!?;]+?)\s+(?:was|were|is|are)\s+(reduced|decreased|increased)\s+by\s*$/u,
+						);
+						const change = verbal ?? nominal ?? (passive ? [passive[0], passive[2], passive[1]] : null);
+						if (change) {
+							const direction = change[1]?.startsWith("increas") ? "increase" : "reduction";
+							// Bind the percentage to the metric's noun head, not trailing means
+							// such as "using operational data". Qualification still reaches the verifier.
+							const metric = lexical((change[2] ?? "").split(/\s+(?:using|with|through|by)\s+/u)[0] ?? "").slice(-2);
+							if (metric.length) return `${m[0].replace(/\s/gu, "")}:change-${direction}:${metric.join(" ")}`;
+						}
+						const arabicVerbal = prefix.match(
+							/(?:^|[^\p{L}])(خفضت?|قلصت?|زادت?|رفعت?)\s+([^.!?;،]+?)\s+(?:بنسبة|بمقدار)\s*$/u,
+						);
+						const arabicNominal = prefix.match(
+							/(?:^|[^\p{L}])(انخفاضا?|تخفيضا?|تقليصا?|زيادة|ارتفاعا?)\s+(?:بنسبة|بمقدار)\s*$/u,
+						);
+						const arabicNominalTarget = arabicNominal ? suffix.match(/^\s*(?:في|من)\s+([^.!?;،]+)/u)?.[1] : undefined;
+						const arabicChange = arabicVerbal
+							? [arabicVerbal[1], arabicVerbal[2]]
+							: arabicNominal && arabicNominalTarget
+								? [arabicNominal[1], arabicNominalTarget]
+								: null;
+						if (arabicChange) {
+							const direction = /^(?:زاد|رفع|زياد|ارتفاع)/u.test(arabicChange[0] ?? "") ? "increase" : "reduction";
+							const metric = lexical(
+								(arabicChange[1] ?? "").split(/\s+(?:من خلال|عبر|باستخدام|بواسطة)\s+/u)[0] ?? "",
+							).slice(-2);
+							if (metric.length) return `${m[0].replace(/\s/gu, "")}:change-${direction}:${metric.join(" ")}`;
+						}
+					}
 					const label = prefix.match(/([^,:=،]+)[:=،,]\s*$/u)?.[1];
 					const following = suffix.split(/[,.;،؛!?؟\n]|\p{Nd}/u)[0] ?? "";
 					let noun = words(following)
@@ -143,7 +275,14 @@ function quantities(text: string): string[] {
 							(_, i, all) =>
 								!all
 									.slice(0, i + 1)
-									.some((w, j) => separator.test(w) || (j > 0 && /(?:[a-z]{3}ed|[\u0600-\u06ff]+(?<!ا)ت)$/u.test(w))),
+									.some(
+										(w, j) =>
+											separator.test(w) ||
+											(j > 0 &&
+												(/(?:[a-z]{3}ed|[\u0600-\u06ff]+(?<!ا)ت)$/u.test(w) ||
+													/^و[\u0600-\u06ff]{2,}/u.test(w) ||
+													/^(?:تشمل|يشمل|تتضمن|يتضمن|تغطي|يغطي)$/u.test(w))),
+									),
 						)
 						.map(stem);
 					if (label && !noun.length) noun = lexical(label).slice(-2);
@@ -152,8 +291,8 @@ function quantities(text: string): string[] {
 						if (trailing.length >= 2) noun = trailing.slice(-2);
 					}
 					return `${m[0].replace(/\s/gu, "")}:${noun.join(" ")}`;
-				}),
-		);
+				});
+		});
 	});
 }
 const months =
@@ -278,7 +417,7 @@ function entities(text: string): string[] {
 		) ?? [];
 	return [
 		...identifierCodes(text),
-		...products.map(normalizeFact),
+		...products.map((product) => normalizeFact(product)),
 		...cities.map((city) => cityEquivalents[city] ?? city),
 		...latin.map((t) => t.replace(/[.]+$/u, "")),
 		...arabic.map(
@@ -288,7 +427,7 @@ function entities(text: string): string[] {
 				)[0] ?? e,
 		),
 	]
-		.map(normalizeFact)
+		.map((entity) => normalizeFact(entity))
 		.map((entity) => cityEquivalents[entity] ?? entity)
 		.filter((entity) => !/^(?:مؤسسة|شركة|مكتب|مركز(?: تدريب)?) افتراضي(?:ة)?$/u.test(entity));
 }
@@ -436,7 +575,10 @@ function assertActionBindings(before: string, after: string) {
 					entity: entities(text).includes(tokens[0] ?? ""),
 				};
 			})
-			.filter((binding) => !binding.entity);
+			// A coordinated time modifier ("and quarterly service reviews") is not an action.
+			.filter(
+				(binding) => !binding.entity && !/^(?:daily|weekly|monthly|quarterly|yearly|annual)$/u.test(binding.verb),
+			);
 	const supplied = bindings(before);
 	for (const proposed of bindings(after)) {
 		const own = supplied.filter((s) => s.verb === proposed.verb);
@@ -466,7 +608,10 @@ export function evidenceExplanation(text: string): string {
 			".",
 		)
 		.replace(/^(?:السيرة(?: الذاتية)?\s+(?:تذكر|تثبت|توضح)\s+)/u, "")
-		.replace(/^(?:The (?:CV|resume) (?:states|shows|documents|records|lists|says)(?: that)?\s+)/iu, "")
+		.replace(
+			/^(?:The (?:CV|resume) (?:states|shows|documents|records|lists|says|describes|reports)(?: that)?\s+)/iu,
+			"",
+		)
 		.replace(/^(?:(?:تذكر|تثبت|توضح)\s+(?:هذه المعلومة|السيرة(?: الذاتية)?)\s+)/u, "")
 		.replace(/،\s*لكنها لا (?:تثبت|توثق|تذكر)[^.!?؟]*(?:[.!?؟]|$)/u, ".");
 }

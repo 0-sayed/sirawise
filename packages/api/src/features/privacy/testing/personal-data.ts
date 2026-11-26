@@ -308,6 +308,16 @@ export async function seedPersonalData(pool: Pool, owner: "alice" | "bob") {
 				output: { text: id("ATTEMPT_SENTINEL") },
 			},
 		],
+		ai_translation_batch: [
+			{
+				root_operation_id: id("operation"),
+				user_id: owner,
+				total: 1,
+				state: "complete",
+				result: { text: id("TRANSLATION_BATCH_SENTINEL") },
+				review_state: "succeeded",
+			},
+		],
 		ai_usage_ledger: [{ id: id("ledger"), user_id: owner, operation_id: id("operation"), kind: "reserve" }],
 		ai_processing_consent: [
 			{

@@ -92,6 +92,22 @@ it.each(
 			);
 		}
 		expect(data).toEqual(snapshot);
+		if (id === "hijri") {
+			const layout = execFileSync("pdftotext", ["-layout", "-enc", "UTF-8", "-", "-"], {
+				input: bytes,
+				encoding: "utf8",
+			});
+			for (const [reader, text] of [
+				["PDF.js", pdfjs],
+				["Poppler", poppler],
+				["Poppler layout", layout],
+			] as const) {
+				const entry = text.split("\n").find((line) => line.includes("مشروع التقويم"));
+				expect
+					.soft(entry?.replace(/[\u202a-\u202e\u2066-\u2069]/gu, "").replace(/\s+/gu, " "), reader)
+					.toContain(expected);
+			}
+		}
 		for (const [reader, text] of [
 			["PDF.js", pdfjs],
 			["Poppler", poppler],
@@ -109,3 +125,18 @@ it.each(
 		}
 	},
 );
+
+it("draws numeric percentages left to right inside Arabic prose", async () => {
+	const data = structuredClone(defaultResumeData);
+	data.metadata.page.locale = "ar-SA";
+	data.metadata.typography.body.fontFamily = "Noto Sans Arabic";
+	data.metadata.typography.heading.fontFamily = "Noto Sans Arabic";
+	data.metadata.layout.pages = [{ fullWidth: true, main: ["summary"], sidebar: [] }];
+	data.summary.content = "<p>خفض زمن إعداد التقارير بنسبة 22% عبر توحيد البيانات.</p>";
+	const file = await act(() => createResumePdfFile({ data, filename: "percentage.pdf" }));
+	const layout = execFileSync("pdftotext", ["-bbox-layout", "-", "-"], {
+		input: new Uint8Array(await file.arrayBuffer()),
+		encoding: "utf8",
+	});
+	expect(layout).toMatch(/<word [^>]+>22%<\/word>/u);
+});

@@ -1,8 +1,10 @@
 // @vitest-environment happy-dom
-import { fireEvent, render, screen } from "@testing-library/react";
+import type { ChipInputHandle } from "./chip-input";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeAll, expect, it, vi } from "vite-plus/test";
 import { i18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
+import { createRef } from "react";
 import { ChipInput } from "./chip-input";
 
 beforeAll(() => {
@@ -47,4 +49,20 @@ it("retains comma-separated bulk entry for tags", () => {
 	const input = screen.getByRole("textbox", { name: "Add keyword" });
 	fireEvent.change(input, { target: { value: "first,second," } });
 	expect(onChange).toHaveBeenLastCalledWith(["first", "second"]);
+});
+
+it("commits the pending keyword unchanged when it contains a comma", () => {
+	const ref = createRef<ChipInputHandle>();
+	const onChange = vi.fn();
+	render(
+		<I18nProvider i18n={i18n}>
+			<ChipInput ref={ref} allowCommas defaultValue={["Existing"]} onChange={onChange} />
+		</I18nProvider>,
+	);
+	const input = screen.getByRole("textbox", { name: "Add keyword" });
+	fireEvent.change(input, { target: { value: "Systems, distributed" } });
+	expect(onChange).not.toHaveBeenCalled();
+	act(() => expect(ref.current?.commit()).toEqual(["Existing", "Systems, distributed"]));
+	expect(onChange).toHaveBeenCalledExactlyOnceWith(["Existing", "Systems, distributed"]);
+	expect(input).toHaveValue("");
 });

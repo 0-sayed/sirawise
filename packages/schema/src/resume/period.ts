@@ -142,7 +142,6 @@ function getMonthLookup(locale: string): ReadonlyMap<string, MonthName> {
 }
 
 function toEndpoint(year: number, month?: number): PeriodEndpoint | null {
-	if (!Number.isInteger(year) || year < MIN_YEAR || year > MAX_YEAR) return null;
 	if (month === undefined) return { year };
 	if (!Number.isInteger(month) || month < 1 || month > 12) return null;
 	return { year, month };
@@ -154,26 +153,28 @@ function read(endpoint: PeriodEndpoint | null, style: EndpointStyle): EndpointRe
 
 type Tokens = { months: ReadonlyMap<string, MonthName>; present: ReadonlySet<string> };
 
-function parseEndpoint(raw: string, { months, present }: Tokens): EndpointResult | null {
+function parseEndpoint(raw: string, { months, present }: Tokens, allowAnyYear = false): EndpointResult | null {
+	const endpoint = (year: number, month?: number) =>
+		allowAnyYear || (year >= MIN_YEAR && year <= MAX_YEAR) ? toEndpoint(year, month) : null;
 	const value = normalizeWhitespace(raw);
 	if (!value) return null;
 	if (present.has(value.replace(/\p{P}+$/u, ""))) return "ongoing";
 
 	const yearOnly = /^(\d{4})$/.exec(value);
-	if (yearOnly?.[1]) return read(toEndpoint(Number(yearOnly[1])), "year");
+	if (yearOnly?.[1]) return read(endpoint(Number(yearOnly[1])), "year");
 
 	const iso = /^(\d{4})-(\d{1,2})(?:-(\d{1,2}))?$/.exec(value);
-	if (iso?.[1] && iso[2]) return read(toEndpoint(Number(iso[1]), Number(iso[2])), iso[3] ? "day" : "iso");
+	if (iso?.[1] && iso[2]) return read(endpoint(Number(iso[1]), Number(iso[2])), iso[3] ? "day" : "iso");
 
 	const monthYear = /^(\d{1,2})[/.](\d{4})$/.exec(value);
-	if (monthYear?.[1] && monthYear[2]) return read(toEndpoint(Number(monthYear[2]), Number(monthYear[1])), "numeric");
+	if (monthYear?.[1] && monthYear[2]) return read(endpoint(Number(monthYear[2]), Number(monthYear[1])), "numeric");
 
 	const dayMonthYear = /^(\d{1,2})[/.](\d{1,2})[/.](\d{4})$/.exec(value);
 	if (dayMonthYear?.[1] && dayMonthYear[2] && dayMonthYear[3]) {
 		const year = Number(dayMonthYear[3]);
 		const first = Number(dayMonthYear[1]);
 		const second = Number(dayMonthYear[2]);
-		return read(toEndpoint(year, first) ?? toEndpoint(year, second), "day");
+		return read(endpoint(year, first) ?? endpoint(year, second), "day");
 	}
 
 	const named = /^(\p{L}+\.?)\s+(\d{1,2},?\s+)?(\d{4})$/u.exec(value);
@@ -181,9 +182,9 @@ function parseEndpoint(raw: string, { months, present }: Tokens): EndpointResult
 		const token = normalizeToken(named[1]);
 		const year = Number(named[3]);
 		const month = months.get(token);
-		if (month) return read(toEndpoint(year, month.month), named[2] ? "day" : month.style);
+		if (month) return read(endpoint(year, month.month), named[2] ? "day" : month.style);
 		const season = SEASON_MONTHS[token];
-		return season === undefined ? null : read(toEndpoint(year, season), "season");
+		return season === undefined ? null : read(endpoint(year, season), "season");
 	}
 
 	return null;
@@ -267,11 +268,11 @@ export function readPeriod(value: string, locale = "en-US", presentWords?: reado
 }
 
 /** Reads a single date such as "Mar 2020" and reports how it was written. */
-export function readSingleDate(value: string, locale = "en-US"): EndpointReading | null {
+export function readSingleDate(value: string, locale = "en-US", { allowAnyYear = false } = {}): EndpointReading | null {
 	const normalized = normalizeWhitespace(value);
 	if (!normalized) return null;
 
-	const result = parseEndpoint(normalized, getTokens(locale));
+	const result = parseEndpoint(normalized, getTokens(locale), allowAnyYear);
 	return result && result !== "ongoing" ? result : null;
 }
 

@@ -1,0 +1,202 @@
+[
+	{
+		"id": "job-en-honest",
+		"mode": "semantic",
+		"caught": [],
+		"retainedIds": ["honest"]
+	},
+	{
+		"id": "job-en-scope-and-importance",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "false-full-cv-absence",
+				"issueClass": "JOB_PARTIAL_EVIDENCE_ABSENCE",
+				"stage": "deterministic"
+			},
+			{
+				"itemId": "invented-importance",
+				"issueClass": "importance",
+				"stage": "semantic"
+			}
+		],
+		"retainedIds": ["honest-selected-passages"]
+	},
+	{
+		"id": "job-en-credential",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "credential",
+				"issueClass": "unsupported_claim",
+				"stage": "semantic"
+			}
+		],
+		"retainedIds": ["honest-selected-passages"]
+	},
+	{
+		"id": "job-en-responsibility",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "role",
+				"issueClass": "unsupported_claim",
+				"stage": "semantic"
+			}
+		],
+		"retainedIds": ["honest-selected-passages"]
+	},
+	{
+		"id": "job-en-polarity",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "polarity",
+				"issueClass": "unsupported_claim",
+				"stage": "semantic"
+			}
+		],
+		"retainedIds": ["honest-selected-passages"]
+	},
+	{
+		"id": "job-en-notes",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "note:0",
+				"issueClass": "AI_UNSUPPORTED_CLAIM",
+				"stage": "deterministic"
+			},
+			{
+				"itemId": "note:2",
+				"issueClass": "JOB_INVALID_ASSESSMENT",
+				"stage": "deterministic"
+			}
+		],
+		"retainedIds": ["honest-selected-passages", "note:1"]
+	},
+	{
+		"id": "job-en-textual-absence",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "overbroad",
+				"issueClass": "absence_scope",
+				"stage": "semantic"
+			}
+		],
+		"retainedIds": ["honest-selected-passages"]
+	},
+	{
+		"id": "job-en-citations",
+		"mode": "deterministic",
+		"caught": [
+			{
+				"itemId": "bad-citation",
+				"issueClass": "AI_INVALID_EVIDENCE",
+				"stage": "deterministic"
+			}
+		],
+		"retainedIds": []
+	},
+	{
+		"id": "job-ar-honest",
+		"mode": "semantic",
+		"caught": [],
+		"retainedIds": ["honest"]
+	},
+	{
+		"id": "job-ar-scope-and-importance",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "false-full-cv-absence",
+				"issueClass": "JOB_PARTIAL_EVIDENCE_ABSENCE",
+				"stage": "deterministic"
+			},
+			{
+				"itemId": "invented-importance",
+				"issueClass": "importance",
+				"stage": "semantic"
+			}
+		],
+		"retainedIds": ["honest-selected-passages"]
+	},
+	{
+		"id": "job-ar-credential",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "credential",
+				"issueClass": "unsupported_claim",
+				"stage": "semantic"
+			}
+		],
+		"retainedIds": ["honest-selected-passages"]
+	},
+	{
+		"id": "job-ar-responsibility",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "role",
+				"issueClass": "unsupported_claim",
+				"stage": "semantic"
+			}
+		],
+		"retainedIds": ["honest-selected-passages"]
+	},
+	{
+		"id": "job-ar-polarity",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "polarity",
+				"issueClass": "unsupported_claim",
+				"stage": "semantic"
+			}
+		],
+		"retainedIds": ["honest-selected-passages"]
+	},
+	{
+		"id": "job-ar-notes",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "note:0",
+				"issueClass": "AI_UNSUPPORTED_CLAIM",
+				"stage": "deterministic"
+			},
+			{
+				"itemId": "note:2",
+				"issueClass": "JOB_INVALID_ASSESSMENT",
+				"stage": "deterministic"
+			}
+		],
+		"retainedIds": ["honest-selected-passages", "note:1"]
+	},
+	{
+		"id": "job-ar-textual-absence",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "overbroad",
+				"issueClass": "absence_scope",
+				"stage": "semantic"
+			}
+		],
+		"retainedIds": ["honest-selected-passages"]
+	},
+	{
+		"id": "job-ar-citations",
+		"mode": "deterministic",
+		"caught": [
+			{
+				"itemId": "bad-citation",
+				"issueClass": "AI_INVALID_EVIDENCE",
+				"stage": "deterministic"
+			}
+		],
+		"retainedIds": []
+	}
+]

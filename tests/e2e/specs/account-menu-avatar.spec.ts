@@ -125,6 +125,7 @@ for (const locale of ["ar-SA", "en-US"] as const) {
 					const preferences = page.locator('a[href="/dashboard/settings/preferences"]').filter({ visible: true });
 					await expect(preferences).toHaveCount(1);
 					await preferences.click();
+					await expect(page.getByRole("menu")).toBeHidden();
 					await expect(
 						page
 							.getByRole("radiogroup", { name: locale === "ar-SA" ? "المظهر" : "Theme", exact: true })

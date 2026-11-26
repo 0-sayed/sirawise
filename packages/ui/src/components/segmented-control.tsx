@@ -25,16 +25,18 @@ function SegmentedControl({ className, size = "default", variant = "default", ..
 			const items = [...element.querySelectorAll<HTMLElement>('[data-slot="segmented-control-item"]')];
 			const allHaveIcons =
 				items.length > 0 && items.every((item) => item.querySelector('[data-slot="segmented-control-icon"]'));
-			const required = items.reduce((total, item) => {
+			const widest = items.reduce((width, item) => {
 				const label = item.querySelector<HTMLElement>('[data-slot="segmented-control-label"]');
 				const style = getComputedStyle(item);
-				return (
-					total +
+				return Math.max(
+					width,
 					(label?.scrollWidth ?? 0) +
-					Number.parseFloat(style.paddingInlineStart || "0") +
-					Number.parseFloat(style.paddingInlineEnd || "0")
+						Number.parseFloat(style.paddingInlineStart || "0") +
+						Number.parseFloat(style.paddingInlineEnd || "0"),
 				);
 			}, 0);
+			// Equal columns each reserve the widest complete icon/label and both inline paddings.
+			const required = widest * items.length;
 			const style = getComputedStyle(element);
 			const available =
 				element.clientWidth -
@@ -55,7 +57,7 @@ function SegmentedControl({ className, size = "default", variant = "default", ..
 			data-slot="segmented-control"
 			data-variant={variant}
 			className={cn(
-				"inline-flex min-h-9 max-w-full flex-wrap items-stretch gap-0.5 rounded-md bg-sunken p-1 pointer-coarse:min-h-12",
+				"inline-grid min-h-9 max-w-full auto-cols-fr grid-flow-col items-stretch gap-0.5 rounded-md bg-sunken p-1 data-[wrap=true]:grid-flow-row pointer-coarse:min-h-12",
 				size === "toolbar" && "min-h-11",
 				className,
 			)}
@@ -87,7 +89,7 @@ function SegmentedControlItem({
 						aria-label={props["aria-label"] ?? (label || undefined)}
 						title={props.title ?? (label || undefined)}
 						className={cn(
-							"touch-target relative inline-flex min-h-[calc(1lh+var(--space-8))] min-w-0 flex-1 basis-0 items-center justify-center gap-1.5 rounded-sm px-3 type-label whitespace-nowrap text-ink-2 transition-[background-color,color,box-shadow] duration-quick not-data-checked:hover:text-ink pointer-coarse:min-h-0 pointer-coarse:min-w-0 data-checked:bg-raised data-checked:text-ink data-checked:shadow-e1 in-data-[variant=accent]:data-checked:bg-accent in-data-[variant=accent]:data-checked:text-on-accent data-disabled:pointer-events-none data-disabled:text-ink-3",
+							"touch-target relative inline-flex min-h-[calc(1lh+var(--space-8))] min-w-0 flex-1 items-center justify-center gap-1.5 rounded-sm px-3 type-label whitespace-nowrap text-ink-2 transition-[background-color,color,box-shadow] duration-quick not-data-checked:hover:text-ink pointer-coarse:min-h-0 pointer-coarse:min-w-0 data-checked:bg-raised data-checked:text-ink data-checked:shadow-e1 in-data-[variant=accent]:data-checked:bg-accent in-data-[variant=accent]:data-checked:text-on-accent data-disabled:pointer-events-none data-disabled:text-ink-3",
 							className,
 						)}
 						{...props}
@@ -100,7 +102,7 @@ function SegmentedControlItem({
 					data-overflow={labelOverflow}
 					className={cn(
 						"inline-flex min-w-0 items-center justify-center gap-1.5 text-center [&>svg]:shrink-0",
-						icon ? "whitespace-nowrap" : "whitespace-normal",
+						icon ? "shrink-0 whitespace-nowrap" : "whitespace-normal",
 					)}
 				>
 					{children}

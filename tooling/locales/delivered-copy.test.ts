@@ -3,6 +3,48 @@ import { expect, it } from "vite-plus/test";
 import { formatter } from "@lingui/format-po";
 import { type CopyContractInput, validateCopyBindings } from "./copy-contract";
 
+it("delivers allowance limits and neutral platform recovery in both locales", async () => {
+	const deck = JSON.parse(
+		await readFile(new URL("../../Planning/context/design/copy-deck.json", import.meta.url), "utf8"),
+	) as CopyContractInput["deck"];
+	for (const key of [
+		"allowance.ai.title",
+		"allowance.ai.usage",
+		"allowance.ai.next",
+		"allowance.base.usage",
+		"allowance.language.usage",
+		"allowance.job.usage",
+		"allowance.concurrent.usage",
+		"allowance.busy.next",
+		"allowance.provider.next",
+	]) {
+		const entry = deck.entries.find((candidate) => candidate.key === key);
+		expect(entry, key).toBeDefined();
+		for (const locale of ["ar-SA", "en-US"] as const) expect(entry?.messages[locale], `${key}:${locale}`).toBeTruthy();
+	}
+});
+
+it("delivers import recovery, manual tour and translation bulk actions in both locales", async () => {
+	const deck = JSON.parse(
+		await readFile(new URL("../../Planning/context/design/copy-deck.json", import.meta.url), "utf8"),
+	);
+	for (const key of [
+		"documents.baseCvLimit.message",
+		"review.import.baseCvLimit",
+		"review.import.replaceExisting",
+		"review.import.saveFactsOnly",
+		"review.import.guide.show",
+		"review.import.guide.step",
+		"review.translation.failedParts",
+		"review.translation.retryFailedParts",
+		"language.terms.keepAllNames",
+	]) {
+		const entry = deck.entries.find((candidate: { key: string }) => candidate.key === key);
+		expect(entry, key).toBeDefined();
+		for (const locale of ["ar-SA", "en-US"] as const) expect(entry?.messages[locale], `${key}:${locale}`).toBeTruthy();
+	}
+});
+
 it("keeps public entry and draft legal promises aligned in both locales", async () => {
 	const deck = JSON.parse(
 		await readFile(new URL("../../Planning/context/design/copy-deck.json", import.meta.url), "utf8"),

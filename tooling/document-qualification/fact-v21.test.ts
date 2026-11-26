@@ -12,6 +12,37 @@ const load = async () =>
 			await readFile(new URL("tooling/document-qualification/fixtures/regressions/holdout-5.json", root), "utf8"),
 		),
 	);
+it("rejects extra direction marks inside a Hijri range", () => {
+	const value = "1445 هـ - 1446 هـ";
+	const observed = "\u202b\u202a 1445\u202cهـ \u200f \u202a -\u202c\u200f \u202a 1446\u202cهـ\u202c";
+	const title = "مشروع التقويم";
+	const gold = {
+		review: { status: "draft" as const },
+		text: `${title} ${value}`,
+		fields: [
+			{ id: "title", value: title },
+			{ id: "period", value, match: "date" as const },
+		],
+		associations: [{ id: "project", fields: ["title", "period"] }],
+		entrySpans: [{ id: "project", anchor: title, dates: [value], next: [] }],
+		order: [],
+		forbidden: [],
+	};
+	const text = `${title} ${observed}`;
+	for (const policy of ["strict v1", "fact-level v2", "fact-level v2.1"] as const) {
+		expect(compareQualification(gold, gold.text, policy).passed).toBe(true);
+		expect(compareQualification(gold, text, policy)).toMatchObject({ observed: text, passed: false });
+	}
+	for (const corrupt of [
+		gold.text.replace("1445", "1447"),
+		gold.text.replace(/144[56]/gu, (year) => (year === "1445" ? "1446" : "1445")),
+		gold.text.replace("-", "/"),
+		gold.text.replace("هـ", ""),
+		gold.text.replace("1445", "14\u200f45"),
+	]) {
+		expect(compareQualification(gold, corrupt, "fact-level v2.1").passed).toBe(false);
+	}
+});
 it("rejects the saved H5-EN-14 terminal project date after Skills, without changing v2/strict", async () => {
 	const input = (await load()).find((x) => x.id === "H5-EN-14");
 	assert(input);

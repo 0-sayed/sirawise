@@ -1,5 +1,5 @@
 import { expect, it } from "vite-plus/test";
-import { startUsageViewSchema, resumeCreationKindSchema } from "./ai-usage";
+import { allowanceFailureSchema, startUsageViewSchema, resumeCreationKindSchema } from "./ai-usage";
 
 it("preserves once-only Start limits and consistent available operations", () => {
 	const usage = {
@@ -38,4 +38,30 @@ it("validates the scoped local allowance without accepting inconsistent balances
 	expect(startUsageViewSchema.safeParse({ ...usage, operations: { ...usage.operations, remaining: 45 } }).success).toBe(
 		false,
 	);
+});
+
+it("accepts only known allowance reasons and consistent public balances", () => {
+	for (const reason of [
+		"AI_OPERATIONS_LIMIT",
+		"BASE_CV_LIMIT",
+		"LANGUAGE_COPY_LIMIT",
+		"JOB_COPY_LIMIT",
+		"AI_CONCURRENCY_LIMIT",
+		"AI_TARGET_BUSY",
+		"AI_PROVIDER_CHANGED",
+		"AI_BUDGET_LIMIT",
+	])
+		expect(allowanceFailureSchema.parse({ reason })).toEqual({ reason });
+	const failure = {
+		reason: "AI_OPERATIONS_LIMIT",
+		allowance: { limit: 5, used: 4, reserved: 1, remaining: 0 },
+	};
+	expect(allowanceFailureSchema.parse(failure)).toEqual(failure);
+	for (const invalid of [
+		{ reason: "UNKNOWN_LIMIT" },
+		{ ...failure, allowance: { ...failure.allowance, remaining: 1 } },
+		{ ...failure, allowance: { ...failure.allowance, resetAt: "tomorrow" } },
+		{ reason: "AI_BUDGET_LIMIT", spentMicros: 10000 },
+	])
+		expect(allowanceFailureSchema.safeParse(invalid).success).toBe(false);
 });

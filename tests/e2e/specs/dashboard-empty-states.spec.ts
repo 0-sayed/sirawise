@@ -98,9 +98,14 @@ for (const locale of ["en-US", "ar-SA"] as const)
 					continue;
 				}
 				if (name === "export-empty") {
-					await expect(page.locator('main [role="status"]')).toContainText(
-						locale === "en-US" ? "No data copy requested yet" : "لم تطلب نسخة من بياناتك بعد",
-					);
+					await expect(
+						page
+							.locator("#data-export")
+							.getByRole("status")
+							.filter({
+								hasText: locale === "en-US" ? "No data copy requested yet" : "لم تطلب نسخة من بياناتك بعد",
+							}),
+					).toBeVisible();
 				} else await expect(page.locator('[data-slot="empty-state"]').first()).toBeVisible();
 				await shot(name);
 			}

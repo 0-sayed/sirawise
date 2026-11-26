@@ -84,6 +84,19 @@ it("reduced motion shows a static highlight immediately and clears without anima
 	act(() => vi.advanceTimersByTime(1200));
 	expect(container.querySelector('[data-slot="preview-edit-highlight"]')).toBeNull();
 });
+it("keeps the full highlight when rendering the updated page takes longer than the pulse", () => {
+	const feedback = { id: "slow", action: "accept" as const, startedAt: Date.now() };
+	const { container, rerender } = render(
+		<EditHighlights pageIndex={0} pageMap={undefined} targets={targets} feedback={feedback} />,
+	);
+	act(() => vi.advanceTimersByTime(2000));
+	rerender(<EditHighlights pageIndex={0} pageMap={map} targets={targets} feedback={feedback} />);
+	act(() => vi.advanceTimersByTime(0));
+	expect(container.querySelector('[data-slot="preview-edit-highlight"]')).toHaveAttribute("data-item-id", "two");
+	act(() => vi.advanceTimersByTime(1200));
+	expect(container.querySelector('[data-slot="preview-edit-highlight"]')).toBeNull();
+});
+
 it("scrolls only the preview scroller when an accepted block is offscreen", () => {
 	const scroll = vi.fn();
 	vi.spyOn(HTMLElement.prototype, "scrollTo").mockImplementation(scroll);

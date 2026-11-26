@@ -9,6 +9,7 @@ const contentRejections = new Set([
 	"AI_UNVERIFIED_NEGATION",
 	"AI_INVALID_EVIDENCE",
 	"AI_INVALID_MARKUP",
+	"AI_WRONG_LANGUAGE",
 	"AI_SOURCE_BINDING",
 	"AI_UNSUPPORTED_DATE",
 	"AI_AMBIGUOUS_DATE",
@@ -18,6 +19,9 @@ const contentRejections = new Set([
 	"AI_VERIFICATION_FAILED",
 	"AI_FACT_RETENTION_FAILED",
 	"LETTER_VERIFICATION_REJECTED",
+	"TRANSLATION_UNCOVERED_TEXT",
+	"SUMMARY_UNCOVERED_TEXT",
+	"TAILORING_UNCOVERED_TEXT",
 ]);
 
 export function isContentRejection(error: unknown): boolean {

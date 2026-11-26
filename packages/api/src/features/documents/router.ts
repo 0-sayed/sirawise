@@ -63,6 +63,16 @@ export const documentsRouter = {
 			documentsService.counts({ userId: context.user.id, includeLetters: getPersonalToolsAvailability().coverLetters }),
 		),
 
+	tags: protectedProcedure
+		.route(
+			route("GET", "/documents/tags", "listDocumentTags", "List tags", "Counts tags on the user's live documents."),
+		)
+		.input(z.object({}).optional())
+		.output(documentsDto.tags.output)
+		.handler(({ context }) =>
+			documentsService.tags({ userId: context.user.id, includeLetters: getPersonalToolsAvailability().coverLetters }),
+		),
+
 	rename: protectedProcedure
 		.route(route("POST", "/documents/rename", "renameDocument", "Rename a document", "Renames a resume or letter."))
 		.input(documentsDto.rename.input)
@@ -88,7 +98,11 @@ export const documentsRouter = {
 		.output(documentsDto.setTags.output)
 		.handler(({ context, input }) => {
 			if (input.type === "letter") requirePersonalTool("coverLetters");
-			return documentsService.setTags({ ...input, userId: context.user.id });
+			return documentsService.setTags({
+				...input,
+				userId: context.user.id,
+				includeLetters: getPersonalToolsAvailability().coverLetters,
+			});
 		}),
 
 	setLocked: protectedProcedure

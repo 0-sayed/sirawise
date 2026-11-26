@@ -103,7 +103,10 @@ async function mount(hash = "", loader: () => Promise<readonly GuideEntry[]> = a
 }
 it.each(["en-US", "ar-SA"] as const)("uses direction-aware arrow keys and URL history in %s", async (locale) => {
 	i18n.loadAndActivate(await getUiLocaleMessages(locale));
-	const router = await mount("?tab=ats");
+	// The catalog tests cover the full rule lists. Navigation needs one rule per tab.
+	const router = await mount("?tab=ats", async () =>
+		entries.filter(({ code }) => code === "NO_EMAIL" || code === "MISSING_EMAIL"),
+	);
 	const tabs = screen.getAllByRole("tab");
 	tabs[0]?.focus();
 	await userEvent.keyboard(locale === "ar-SA" ? "{ArrowLeft}{Enter}" : "{ArrowRight}{Enter}");
@@ -120,7 +123,7 @@ it("changes URL tabs from the keyboard and preserves rule query deep links", asy
 	await waitFor(() => expect(router.state.location.search.tab).toBe("data"));
 	expect(router.state.location.search.rule).toBe("MISSING_EMAIL");
 	expect((document.getElementById("rule-MISSING_EMAIL") as HTMLDetailsElement)?.open).toBe(true);
-	screen.getByRole("tab", { name: "Data check" }).focus();
+	screen.getByRole("tab", { name: "Information completeness" }).focus();
 	await userEvent.keyboard("{End}{Enter}");
 	await waitFor(() => expect(router.state.location.search.tab).toBe("ai"));
 	expect(router.state.location.search.rule).toBeUndefined();
@@ -254,7 +257,9 @@ it.each(["en-US", "ar-SA"] as const)("shows named sources and catalog totals in 
 	const total = within(table).getByRole("row", { name: locale === "ar-SA" ? "المجموع 76" : "Total 76" });
 	expect(total.parentElement?.tagName).toBe("TFOOT");
 	expect(
-		within(table).getByRole("columnheader", { name: locale === "ar-SA" ? "فحص ATS" : "ATS check" }),
+		within(table).getByRole("columnheader", {
+			name: locale === "ar-SA" ? "قابلية القراءة الآلية (ATS)" : "Machine readability (ATS)",
+		}),
 	).toBeInTheDocument();
 });
 
@@ -333,7 +338,7 @@ it.each(["en-US", "ar-SA"] as const)(
 			if (!row) throw new Error(`Missing rule ${entry.code}`);
 			const effect = row.querySelector("[data-guide-effect]")?.textContent?.replace(/[\u2066-\u2069]/g, "");
 			if (entry.source === "editor")
-				expect(effect).toBe(locale === "ar-SA" ? "لا يؤثر في درجة فحص ATS." : "No ATS score effect.");
+				expect(effect).toBe(locale === "ar-SA" ? "لا يؤثر في درجة قابلية القراءة الآلية (ATS)." : "No ATS score effect.");
 			else if (entry.cap !== null) expect(effect).toContain(String(entry.cap));
 			else if (entry.deduction > 0)
 				expect(effect).toBe(`−${entry.deduction} ${locale === "ar-SA" ? "نقطة من الفئة" : "category points"}`);
@@ -357,7 +362,7 @@ it.each(["en-US", "ar-SA"] as const)(
 it.each(["en-US", "ar-SA"] as const)("keeps tab URL state and catalogs separate in %s", async (locale) => {
 	i18n.loadAndActivate(await getUiLocaleMessages(locale));
 	const router = await mount();
-	const data = screen.getByRole("tab", { name: locale === "ar-SA" ? "فحص البيانات" : "Data check" });
+	const data = screen.getByRole("tab", { name: locale === "ar-SA" ? "اكتمال المعلومات" : "Information completeness" });
 	fireEvent.click(data);
 	await waitFor(() => expect(router.state.location.search.tab).toBe("data"));
 	expect(data).toHaveAttribute("aria-selected", "true");
@@ -380,7 +385,9 @@ it.each(["en-US", "ar-SA"] as const)("names each rule family once in %s", async 
 	i18n.loadAndActivate(await getUiLocaleMessages(locale));
 	await mount("#rule-NO_PHONE");
 	const summary = document.querySelector("#rule-NO_PHONE summary") as HTMLElement;
-	expect(within(summary).getAllByText(locale === "ar-SA" ? /فحص ATS/ : /ATS check/)).toHaveLength(1);
+	expect(
+		within(summary).getAllByText(locale === "ar-SA" ? /قابلية القراءة الآلية \(ATS\)/ : /Machine readability \(ATS\)/),
+	).toHaveLength(1);
 });
 
 it.each(["ats", "data"] as const)(

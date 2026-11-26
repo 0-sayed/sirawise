@@ -9,6 +9,7 @@ vi.mock("../../context", async () => {
 vi.mock("../../redis", () => ({ createRateLimiter: () => ({ limit: mocks.limit }) }));
 vi.mock("@reactive-resume/env/server", () => ({ env: { FLAG_DISABLE_API_RATE_LIMIT: false } }));
 vi.mock("./variants", () => ({ createVariant: mocks.create, getVariantFreshness: vi.fn(), listVariants: vi.fn() }));
+vi.mock("../ai/variant-decisions", () => ({ createReviewedJobVariant: vi.fn() }));
 afterEach(() => vi.unstubAllEnvs());
 it("throttles language-copy creation before any document or fact-link persistence", async () => {
 	vi.stubEnv("NODE_ENV", "production");

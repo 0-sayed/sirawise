@@ -77,6 +77,7 @@ export function CheckPanel({ phone = false, active = true }: { phone?: boolean; 
 					</div>
 					<TabsList layout="equal" variant="line" size="review" aria-label={t`Review sections`}>
 						<TabsTrigger
+							data-review-tab="ats"
 							aria-label={`${i18n._(reviewTabs[0].label)}${count !== null ? ` ${count}` : ""}`}
 							value="ats"
 							aria-busy={results.pdf.state === "checking" || undefined}
@@ -89,19 +90,29 @@ export function CheckPanel({ phone = false, active = true }: { phone?: boolean; 
 								<Icon name="spinner" className="animate-spin motion-reduce:animate-none" />
 							) : null}
 						</TabsTrigger>
-						<TabsTrigger aria-label={`${i18n._(reviewTabs[1].label)} ${check.issues.length}`} value="writing">
+						<TabsTrigger
+							data-review-tab="writing"
+							aria-label={`${i18n._(reviewTabs[1].label)} ${check.issues.length}`}
+							value="writing"
+						>
 							<Icon name={reviewTabs[1].icon} />
 							<span data-review-label>{i18n._(reviewTabs[1].label)}</span> <TabsCount>{check.issues.length}</TabsCount>
 						</TabsTrigger>
 						<TabsTrigger
-							aria-label={`${i18n._(reviewTabs[2].label)} ${ai.pendingCount ?? t`AI unavailable`}`}
+							data-review-tab="ai"
+							aria-label={`${i18n._(reviewTabs[2].label)}${ai.pendingCount === 0 ? "" : ` ${ai.pendingCount ?? t`AI unavailable`}`}`}
 							value="ai"
 						>
 							<Icon name={reviewTabs[2].icon} />
 							<span data-review-label>{i18n._(reviewTabs[2].label)}</span>{" "}
-							{typeof ai.pendingCount === "number" ? <TabsCount>{ai.pendingCount}</TabsCount> : null}
+							{ai.pendingCount ? <TabsCount>{ai.pendingCount}</TabsCount> : null}
 						</TabsTrigger>
 					</TabsList>
+					{tab !== "ai" && (
+						<p id="review-tab-description" className="type-metadata text-ink-2">
+							{i18n._(guideCopy[tab === "ats" ? "atsDescription" : "dataDescription"])}
+						</p>
+					)}
 					<div className="flex flex-wrap items-center justify-between gap-2">
 						{tab !== "ai" && (
 							<SeverityFilter
@@ -130,7 +141,9 @@ export function CheckPanel({ phone = false, active = true }: { phone?: boolean; 
 					</div>
 				</EditorPanelHeader>
 				<EditorPanelBody ref={ref} onScroll={onScroll} tabIndex={-1} aria-label={t`Findings list`}>
-					<TabsContent value={tab}>{tab === "ai" ? <WritingTab /> : <ReviewFindings tab={tab} />}</TabsContent>
+					<TabsContent value={tab} aria-describedby={tab !== "ai" ? "review-tab-description" : undefined}>
+						{tab === "ai" ? <WritingTab /> : <ReviewFindings tab={tab} />}
+					</TabsContent>
 				</EditorPanelBody>
 			</EditorPanel>
 		</Tabs>

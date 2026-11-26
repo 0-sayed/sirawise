@@ -705,6 +705,7 @@ export const resumeService = {
 			.select({
 				id: schema.resume.id,
 				name: schema.resume.name,
+				variantKind: schema.resume.variantKind,
 				slug: schema.resume.slug,
 				tags: schema.resume.tags,
 				isPublic: schema.resume.isPublic,

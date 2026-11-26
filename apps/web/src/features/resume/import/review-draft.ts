@@ -40,6 +40,22 @@ const stateSchema = z.object({
 			result: reviewResultSchema.nullable(),
 			draftGeneration: z.string(),
 			appliedCandidateIds: z.array(z.string()).default([]),
+			earlierFieldKeys: z.array(z.string()).optional(),
+			appliedChanges: z
+				.array(
+					z.object({
+						candidateId: z.string(),
+						section: z.string(),
+						entryId: z.string(),
+						field: z.string(),
+						before: z.unknown(),
+						after: z.unknown(),
+						appendedKeyword: z.string().optional(),
+						retained: z.boolean().optional(),
+						createdEntry: z.boolean(),
+					}),
+				)
+				.optional(),
 		})
 		.optional(),
 });

@@ -70,19 +70,21 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("durable AI operati
 			state: "waiting_review",
 		});
 	});
-	it("preflights the same concurrency and platform limits without reserving anything", async () => {
+	it("preflights target and spend limits and allows queueing without reserving anything", async () => {
 		const queued = await run(() => operationService.start("alice", request("preflight-active")));
 		expect(await run(() => operationService.preflight("alice", request("preflight-blocked")))).toMatchObject({
 			available: false,
-			reason: "AI_CONCURRENCY_LIMIT",
+			reason: "AI_TARGET_BUSY",
 		});
 		await run(() => operationService.cancel("alice", queued.id));
 		await database
 			.admin()
 			.query("UPDATE ai_platform_budget SET reserved_micros=cap_micros-spent_micros WHERE id='budget'");
-		expect(await run(() => operationService.preflight("alice", request("preflight-budget")))).toMatchObject({
-			available: false,
-			reason: "AI_BUDGET_LIMIT",
+		const platformDenial = await run(() => operationService.preflight("alice", request("preflight-budget")));
+		expect(platformDenial).toMatchObject({ available: false, reason: "AI_BUDGET_LIMIT" });
+		expect(platformDenial).not.toHaveProperty("allowance");
+		await expect(run(() => operationService.start("alice", request("preflight-budget")))).rejects.toMatchObject({
+			data: { reason: "AI_BUDGET_LIMIT" },
 		});
 		await database.admin().query("UPDATE ai_platform_budget SET reserved_micros=0 WHERE id='budget'");
 		await database.run(() =>
@@ -103,6 +105,26 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("durable AI operati
 				},
 			),
 		);
+		await database.admin().query("UPDATE ai_platform_capacity SET max_running=1 WHERE singleton");
+		await database.admin().query(
+			`INSERT INTO ai_operation(id,user_id,request_key,fingerprint,kind,sources,route,consent_version,
+			 prompt_version,schema_version,state,lease_until)
+			 VALUES ('other-owner-active','bob','other-owner-active','other-owner-active','review','[]',
+			 '{"routeId":"synthetic","routeRevision":"1","configRevision":"1"}','1','1','1','running',now()+interval '1 minute')`,
+		);
+		try {
+			expect(await run(() => operationService.preflight("alice", request("preflight-platform-wait")))).toMatchObject({
+				available: true,
+				operationCost: 1,
+			});
+			const waiting = await run(() => operationService.start("alice", request("wait-at-capacity")));
+			expect(waiting.state).toBe("queued");
+			expect(await run(() => claimNextOperation("alice"))).toBeNull();
+			await run(() => operationService.cancel("alice", waiting.id));
+		} finally {
+			await database.admin().query("UPDATE ai_operation SET state='failed' WHERE id='other-owner-active'");
+			await database.admin().query("UPDATE ai_platform_capacity SET max_running=30 WHERE singleton");
+		}
 		expect(await run(() => operationService.preflight("alice", request("preflight-ready")))).toMatchObject({
 			available: true,
 			operationCost: 1,
@@ -338,9 +360,10 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("durable AI operati
 				expect(await operationService.preflight("bob", bobRequest("sixth"))).toMatchObject({
 					available: false,
 					reason: "AI_OPERATIONS_LIMIT",
+					allowance: { limit: 5, used: 5, reserved: 0, remaining: 0 },
 				});
 				await expect(operationService.start("bob", bobRequest("sixth"))).rejects.toMatchObject({
-					data: { reason: "AI_OPERATIONS_LIMIT" },
+					data: { reason: "AI_OPERATIONS_LIMIT", allowance: { limit: 5, used: 5, reserved: 0, remaining: 0 } },
 				});
 			}),
 		);

@@ -73,7 +73,7 @@ function UploadArt() {
 				>
 					<Icon name="file-pdf" size={18} className="text-danger-text" />
 					<bdi dir="ltr" className="truncate type-metadata whitespace-nowrap text-ink">
-						abdullah-cv.pdf
+						abdulelah-cv.pdf
 					</bdi>
 				</div>
 				<div className="h-1.5 w-3/4 overflow-hidden rounded-full bg-line">
@@ -84,7 +84,7 @@ function UploadArt() {
 	);
 }
 
-/** One line of Abdullah's CV with its suggested wording, accepted with a tick. */
+/** One line of Abdulelah's CV with its suggested wording, accepted with a tick. */
 function ReviewArt() {
 	const { locale } = useUiLocale();
 	const cv = landingExample[exampleLanguageFor(locale)];

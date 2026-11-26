@@ -11,6 +11,7 @@ const state = vi.hoisted(() => ({
 	breakpoint: "desktop",
 	collapsed: false,
 	path: "/dashboard",
+	renderedPath: null as string | null,
 	trash: 0,
 	count: 1,
 	applicationsEnabled: true,
@@ -70,7 +71,7 @@ vi.mock("@tanstack/react-router", () => ({
 		};
 	},
 	useRouterState: ({ select }: { select: (value: unknown) => unknown }) =>
-		select({ location: { pathname: state.path } }),
+		select({ location: { pathname: state.path }, matches: [{ pathname: state.renderedPath ?? state.path }] }),
 	useRouter: () => ({ invalidate: vi.fn() }),
 }));
 vi.mock("@reactive-resume/ui/hooks/use-breakpoint", () => ({ useBreakpoint: () => state.breakpoint }));
@@ -112,6 +113,7 @@ afterEach(() => {
 	state.collapsed = false;
 	state.breakpoint = "desktop";
 	state.path = "/dashboard";
+	state.renderedPath = null;
 	state.trash = 0;
 	state.count = 1;
 	state.applicationsEnabled = true;
@@ -311,4 +313,12 @@ it("retains the header on the application detail page", () => {
 	show();
 	expect(screen.getByRole("complementary")).toBeDefined();
 	expect(screen.getByRole("button", { name: "New CV" })).toBeDefined();
+});
+
+it("keeps the rendered documents canvas while the editor destination is pending", () => {
+	state.path = "/builder/cv";
+	state.renderedPath = "/dashboard";
+	show();
+	expect(document.querySelector('[data-slot="dashboard-page"]')).toHaveAttribute("data-width", "wide");
+	expect(document.querySelector("header[data-width]")).toHaveAttribute("data-width", "wide");
 });

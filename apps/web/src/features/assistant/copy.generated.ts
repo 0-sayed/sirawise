@@ -2,6 +2,76 @@
 import { msg } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 const messages = {
+	"review.diff.view": msg({ message: "Suggestion view", context: "review.diff.view" }),
+	"review.diff.showChanges": msg({ message: "Show changes", context: "review.diff.showChanges" }),
+	"review.diff.showFinal": msg({ message: "Show final", context: "review.diff.showFinal" }),
+	"review.diff.formatting": msg({ message: "Formatting only", context: "review.diff.formatting" }),
+	"review.diff.showSpacing": msg({ message: "Show spacing", context: "review.diff.showSpacing" }),
+	"review.diff.punctuation": msg({ message: "Punctuation only", context: "review.diff.punctuation" }),
+	"review.diff.rewrite": msg({ message: "Full rewrite", context: "review.diff.rewrite" }),
+	"review.diff.original": msg({ message: "Original", context: "review.diff.original" }),
+	"review.diff.proposed": msg({ message: "Proposed", context: "review.diff.proposed" }),
+	"review.diff.shortcuts": msg({
+		message: "A accepts and R rejects the focused edit. ↑ and ↓ move between edits.",
+		context: "review.diff.shortcuts",
+	}),
+	"review.translation.failedParts": msg({
+		message:
+			"{count, plural, one {# part failed. Completed parts are kept.} other {# parts failed. Completed parts are kept.}}",
+		context: "review.translation.failedParts",
+	}),
+	"review.translation.retryFailedParts": msg({
+		message: "Retry failed parts",
+		context: "review.translation.retryFailedParts",
+	}),
+	"review.progress.queued": msg({
+		message: "Your request is waiting. It will start shortly.",
+		context: "review.progress.queued",
+	}),
+	"review.progress.queuePosition": msg({
+		message: "Position in queue: {position}",
+		context: "review.progress.queuePosition",
+	}),
+	"review.progress.queueNoCharge": msg({ message: "No AI use was charged.", context: "review.progress.queueNoCharge" }),
+	"review.progress.queueExpired": msg({
+		message: "This request expired while waiting to start.",
+		context: "review.progress.queueExpired",
+	}),
+	"review.progress.drafting": msg({ message: "Drafting suggestions…", context: "review.progress.drafting" }),
+	"review.progress.checking": msg({ message: "Checking facts against your CV…", context: "review.progress.checking" }),
+	"review.progress.cancelling": msg({ message: "Cancelling…", context: "review.progress.cancelling" }),
+	"review.progress.elapsed": msg({ message: "Elapsed: {seconds}s", context: "review.progress.elapsed" }),
+	"review.progress.part": msg({ message: "Part {part} of {total}", context: "review.progress.part" }),
+	"review.progress.completedParts": msg({
+		message: "{completed} of {total} parts complete",
+		context: "review.progress.completedParts",
+	}),
+	"review.beta": msg({ message: "Beta", context: "review.beta" }),
+	"review.wording.pendingCount": msg({
+		message: "Pending suggestions: {count}",
+		context: "review.wording.pendingCount",
+	}),
+	"review.wording.savedReviews": msg({ message: "Saved reviews", context: "review.wording.savedReviews" }),
+	"review.wording.savedReview": msg({
+		message: "Review {number} · pending suggestions: {count}",
+		context: "review.wording.savedReview",
+	}),
+	"review.translation.batchCost": msg({
+		message:
+			"This translation has {total} parts. It uses one AI use, including retries. Review and approve the translation before it is saved. Segments that fail the checks keep their original text.",
+		context: "review.translation.batchCost",
+	}),
+	"review.translation.startChargedFailure": msg({
+		message: "This translation stopped. Its single AI use was charged when it started. Your CV is unchanged.",
+		context: "review.translation.startChargedFailure",
+	}),
+	"review.translation.partialFailure": msg({
+		message:
+			"Part {part} of {total} stopped. Retry this part to continue. Review and approve the translation before saving it.",
+		context: "review.translation.partialFailure",
+	}),
+	"review.translation.retryPart": msg({ message: "Retry this part", context: "review.translation.retryPart" }),
+	"review.translation.prepare": msg({ message: "Review translation parts", context: "review.translation.prepare" }),
 	"privacy.ai.scope.wording": msg({
 		message:
 			"This review sends the selected CV passages and any answers you provide to the processing provider. Suggestions are optional. Review the results before you apply or use them.",
@@ -39,8 +109,30 @@ const messages = {
 	}),
 	"privacy.ai.overseasNotice": msg({
 		message:
-			"AI is optional. You must consent before first use. We send only necessary CV text without contact details through OpenRouter. OpenRouter sends requests to Microsoft Azure for OpenAI Luna and Terra. It sends requests to Together AI for the DeepSeek checker. Both services process requests outside Saudi Arabia. Requests use zero data retention (ZDR) routing and deny data collection for training. Provider terms govern actual handling.",
+			"AI is optional. Give consent once for this processing notice. If the notice changes, we ask again. For CV review, import, translation and cover letters, we send only the necessary text. This can include CV passages, job descriptions, your answers, and language or length choices. We exclude contact details and original files. OpenRouter routes requests to Microsoft Azure and Together AI for processing outside Saudi Arabia. We request zero data retention and block data collection for training. Provider terms govern how they handle data. You can withdraw consent in Settings.",
 		context: "privacy.ai.overseasNotice",
+	}),
+	"privacy.ai.title": msg({ message: "AI and privacy", context: "privacy.ai.title" }),
+	"privacy.ai.details": msg({ message: "AI details", context: "privacy.ai.details" }),
+	"privacy.ai.startConsent": msg({
+		message: "By selecting Start review, you agree to this processing notice.",
+		context: "privacy.ai.startConsent",
+	}),
+	"privacy.ai.retryConsent": msg({
+		message: "By selecting the retry button, you agree to this processing notice.",
+		context: "privacy.ai.retryConsent",
+	}),
+	"privacy.ai.grantedAt": msg({ message: "Consent given on {date}", context: "privacy.ai.grantedAt" }),
+	"privacy.ai.noConsent": msg({ message: "No active consent.", context: "privacy.ai.noConsent" }),
+	"privacy.ai.withdraw": msg({ message: "Withdraw consent", context: "privacy.ai.withdraw" }),
+	"privacy.ai.withdrawFailed": msg({ message: "Could not withdraw consent.", context: "privacy.ai.withdrawFailed" }),
+	"privacy.ai.statusUnavailable": msg({
+		message: "Could not load your AI consent.",
+		context: "privacy.ai.statusUnavailable",
+	}),
+	"review.launch.loadingConsent": msg({
+		message: "Loading the processing notice…",
+		context: "review.launch.loadingConsent",
 	}),
 	"review.launch.budgetReached": msg({
 		message: "The daily AI budget is reached. Try again tomorrow. Your draft is kept.",
@@ -60,6 +152,15 @@ const messages = {
 			"The source and language copy have different sections or text blocks. Open the saved CV and align its structure with the source before requesting a translation.",
 		context: "review.launch.translationStructure",
 	}),
+	"review.launch.translationUnsupported": msg({
+		message:
+			"Translation does not support these sections yet: {sections}. Hide them in the source CV and language copy. Alternatively, move their text into supported sections in both CVs. Then try again. Your draft is kept.",
+		context: "review.launch.translationUnsupported",
+	}),
+	"review.launch.inputTooLarge": msg({
+		message: "Shorten the job ad or the longest CV description, then try again. Your CV is unchanged.",
+		context: "review.launch.inputTooLarge",
+	}),
 	"review.launch.busy": msg({
 		message: "Another AI operation is in progress. Wait for it to finish. Your draft is kept.",
 		context: "review.launch.busy",
@@ -71,6 +172,86 @@ const messages = {
 	"review.launch.requestChanged": msg({
 		message: "This request needs changes before it can start. Cancel and review the selected text. Your draft is kept.",
 		context: "review.launch.requestChanged",
+	}),
+	"review.launch.saveRequired": msg({
+		message:
+			"Save the current draft before starting this review. If saving fails, reload the saved document. Your edits are kept.",
+		context: "review.launch.saveRequired",
+	}),
+	"review.launch.jobRequired": msg({
+		message:
+			"Choose a saved job with a job description before reviewing this letter. Use the job link beside the review button.",
+		context: "review.launch.jobRequired",
+	}),
+	"review.launch.jobTextRequired": msg({
+		message: "The linked job has no job description. Add the job description to that saved job, then start the review.",
+		context: "review.launch.jobTextRequired",
+	}),
+	"review.launch.cvRequired": msg({
+		message: "Link a saved CV to this letter before starting the review. Choose a CV in the sender section.",
+		context: "review.launch.cvRequired",
+	}),
+	"review.launch.languageRequired": msg({
+		message:
+			"This review supports Arabic and English documents. Choose one of these document languages before starting.",
+		context: "review.launch.languageRequired",
+	}),
+	"review.launch.sourceChanged": msg({
+		message:
+			"The CV, letter, selected text, or job changed. Cancel this request, reload the saved source, and start a new review. Your draft is kept.",
+		context: "review.launch.sourceChanged",
+	}),
+	"review.launch.sourceUnavailable": msg({
+		message:
+			"A source document or saved job is unavailable. Open the saved source or choose another one, then start a new review.",
+		context: "review.launch.sourceUnavailable",
+	}),
+	"review.launch.sourceExpired": msg({
+		message:
+			"The import review session expired. Import the file again and select the text to review. Your saved CV is unchanged.",
+		context: "review.launch.sourceExpired",
+	}),
+	"review.launch.sourceLocked": msg({
+		message:
+			"The source document is locked or already submitted. Unlock an editable document or create an editable copy before requesting a review.",
+		context: "review.launch.sourceLocked",
+	}),
+	"review.launch.invalidSelection": msg({
+		message:
+			"The review selection is incomplete or invalid. Cancel and select the text or facts again, then start a new review.",
+		context: "review.launch.invalidSelection",
+	}),
+	"review.launch.ambiguousPassage": msg({
+		message: "The selected text matches more than one passage. Select one text block and request a new review.",
+		context: "review.launch.ambiguousPassage",
+	}),
+	"review.launch.requestReused": msg({
+		message:
+			"This request belongs to an earlier selection. Cancel it and start a new review for your current selection.",
+		context: "review.launch.requestReused",
+	}),
+	"review.launch.batchIncomplete": msg({
+		message:
+			"Some translation parts are unfinished. Open the language review and retry the failed parts before confirming.",
+		context: "review.launch.batchIncomplete",
+	}),
+	"review.launch.unexpectedError": msg({
+		message:
+			"An unexpected application error prevented this review from starting. Your draft is kept. Reload the page and try again. If it continues, contact support.",
+		context: "review.launch.unexpectedError",
+	}),
+	"review.launch.chooseJob": msg({ message: "Choose or save a job", context: "review.launch.chooseJob" }),
+	"review.launch.savedJob": msg({ message: "Saved job", context: "review.launch.savedJob" }),
+	"review.launch.editJob": msg({ message: "Add the job description", context: "review.launch.editJob" }),
+	"review.launch.linkedJob": msg({ message: "Saved job for this letter: {job}", context: "review.launch.linkedJob" }),
+	"review.launch.linkingHint": msg({
+		message:
+			"Link a saved job in the job selector above, or choose a job for the linked CV. A job description is required for AI review.",
+		context: "review.launch.linkingHint",
+	}),
+	"review.launch.cvJobLink": msg({
+		message: "Choose or change the job for this CV",
+		context: "review.launch.cvJobLink",
 	}),
 	"review.launch.reviewConsent": msg({ message: "Review consent", context: "review.launch.reviewConsent" }),
 	"review.launch.documentLimit": msg({

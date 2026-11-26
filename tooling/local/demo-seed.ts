@@ -240,6 +240,13 @@ export async function populateDemoWorkspace(
 				);
 			const jobs = [];
 			for (const job of demoFixture.jobs) jobs.push(await client.career.jobTargets.save(job));
+			// The transaction rolls this marker back on failure. Pin variants after the last source save.
+			const finalBase = await client.resume.getById({ id: baseId });
+			await client.resume.update({
+				id: baseId,
+				tags: [...finalBase.tags, completionTag],
+				expectedUpdatedAt: finalBase.updatedAt,
+			});
 			const base = await client.resume.getById({ id: baseId });
 			const english = await client.resume.variants.create({
 				sourceResumeId: baseId,
@@ -359,12 +366,6 @@ export async function populateDemoWorkspace(
 				throw new Error(
 					`DEMO_READBACK_FAILED:${JSON.stringify(result)}:stories=${(await careerService.stories({ userId: user.id, applicationId: null })).length}`,
 				);
-			const finalBase = await client.resume.getById({ id: baseId });
-			await client.resume.update({
-				id: baseId,
-				tags: [...finalBase.tags, completionTag],
-				expectedUpdatedAt: finalBase.updatedAt,
-			});
 			return result;
 		});
 		committed = true;

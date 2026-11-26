@@ -11,7 +11,19 @@ vi.mock("@reactive-resume/ui/components/toast", () => ({ toast: { add: fixture.n
 vi.mock("@/features/locale/provider", () => ({ useUiLocale: () => ({ locale: "en-US" }) }));
 vi.mock("@/libs/orpc/client", () => ({
 	client: { privacy: { requestExport: fixture.request } },
-	orpc: { privacy: { latestExport: { queryOptions: () => ({ queryKey: ["export"], queryFn: fixture.latest }) } } },
+	orpc: {
+		privacy: { latestExport: { queryOptions: () => ({ queryKey: ["export"], queryFn: fixture.latest }) } },
+		ai: {
+			processing: {
+				status: {
+					queryOptions: () => ({
+						queryKey: ["ai-consent"],
+						queryFn: async () => ({ notices: [], canWithdraw: false }),
+					}),
+				},
+			},
+		},
+	},
 }));
 vi.mock("@tanstack/react-router", () => ({
 	Link: ({ children, to, search, ...props }: { children: ReactNode; to: string; search?: Record<string, string> }) => (

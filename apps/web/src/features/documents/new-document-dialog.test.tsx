@@ -97,7 +97,10 @@ it("keeps the selected job and copy name inline after a quota denial", async () 
 			updatedAt: new Date(),
 		} as Application,
 	]);
-	mutations.copy.mockRejectedValue({ code: "PRECONDITION_FAILED", data: { reason: "JOB_COPY_LIMIT" } });
+	mutations.copy.mockRejectedValue({
+		code: "PRECONDITION_FAILED",
+		data: { reason: "JOB_COPY_LIMIT", allowance: { limit: 1, used: 1, reserved: 0, remaining: 0 } },
+	});
 	render(
 		<I18nProvider i18n={i18n}>
 			<QueryClientProvider client={queryClient}>
@@ -111,7 +114,7 @@ it("keeps the selected job and copy name inline after a quota denial", async () 
 		target: { value: "Keep this unsaved copy name" },
 	});
 	fireEvent.click(screen.getByRole("button", { name: "Create and open" }));
-	await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("job copy"));
+	await screen.findByText("1 of 1 job copies used for this base CV. 0 being created.");
 	expect(screen.getByLabelText("Name", { exact: true })).toHaveValue("Keep this unsaved copy name");
 	expect(screen.getByRole("combobox", { name: "For which job?" })).toHaveTextContent("Synthetic Company");
 });
@@ -146,7 +149,10 @@ it("continues to the exact-job workflow without creating a copy or opening an as
 			updatedAt: new Date(),
 		} as Application,
 	]);
-	mutations.copy.mockRejectedValue({ code: "PRECONDITION_FAILED", data: { reason: "JOB_COPY_LIMIT" } });
+	mutations.copy.mockRejectedValue({
+		code: "PRECONDITION_FAILED",
+		data: { reason: "JOB_COPY_LIMIT", allowance: { limit: 1, used: 1, reserved: 0, remaining: 0 } },
+	});
 	render(
 		<I18nProvider i18n={i18n}>
 			<QueryClientProvider client={queryClient}>

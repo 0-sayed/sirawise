@@ -116,6 +116,9 @@ function ReviewSession({ draft }: { draft: ReviewDraft | null }) {
 					partial={draft.partial}
 					issues={draft.issues}
 					onCheckpoint={checkpoint}
+					onOpenExisting={(resumeId) => {
+						void navigate({ to: "/builder/$resumeId", params: { resumeId }, search: { mode: "write" } });
+					}}
 					onBack={() => void leave()}
 					onSaved={(id) => {
 						celebrateCreated();

@@ -25,3 +25,11 @@ it("email-change approval receipts stay out of account downloads", async () => {
 	expect(personalDataInventory.account_email_change.exportColumns).not.toContain("approvedTokenHash");
 	expect(personalDataInventory.account_email_change.excludedColumns).toContain("approvedTokenHash");
 });
+it("keeps internal verification rules and translation scheduling metadata out of account downloads", async () => {
+	const { personalDataInventory } = await import("./inventory");
+	expect(personalDataInventory.ai_operation.exportColumns).not.toContain("failureDetail");
+	expect(personalDataInventory.ai_operation.excludedColumns).toContain("failureDetail");
+	expect(personalDataInventory.ai_translation_batch.excludedColumns).toEqual(
+		expect.arrayContaining(["plan", "execution"]),
+	);
+});

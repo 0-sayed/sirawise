@@ -1,6 +1,6 @@
 import type { RouterOutput } from "@/libs/orpc/client";
 import type { UiLocale } from "@reactive-resume/utils/locale";
-import { normalizeSearchText } from "@reactive-resume/utils/ui-format";
+import { countDocumentTags, normalizeSearchText } from "@reactive-resume/utils/ui-format";
 
 export type DocumentSummary = RouterOutput["documents"]["list"][number];
 export type DocumentTypeFilter = "all" | "resume" | "letter";
@@ -46,6 +46,8 @@ export const collectTags = (documents: readonly DocumentSummary[], uiLocale: UiL
 	[...new Set(documents.flatMap((document) => document.tags))].sort(
 		new Intl.Collator(uiLocale, { numeric: true, sensitivity: "variant" }).compare,
 	);
+
+export const collectTagCounts = (documents: readonly DocumentSummary[]) => countDocumentTags(documents);
 
 /** Days until a document in Trash is deleted for good (at least 0). */
 export function daysLeftInTrash(trashedAt: Date, now = Date.now()) {

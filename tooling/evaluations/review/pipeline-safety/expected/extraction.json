@@ -1,0 +1,170 @@
+[
+	{
+		"id": "extraction-en-honest",
+		"mode": "semantic",
+		"caught": [],
+		"retainedIds": ["field-valid", "position"]
+	},
+	{
+		"id": "extraction-en-mixed",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "field-invalid",
+				"issueClass": "AI_UNSUPPORTED_CLAIM",
+				"stage": "deterministic"
+			}
+		],
+		"retainedIds": ["field-valid", "question:source-question"]
+	},
+	{
+		"id": "extraction-en-symbols",
+		"mode": "deterministic",
+		"caught": [
+			{
+				"itemId": "wrong-symbol",
+				"issueClass": "AI_UNSUPPORTED_CLAIM",
+				"stage": "deterministic"
+			}
+		],
+		"retainedIds": []
+	},
+	{
+		"id": "extraction-en-signs",
+		"mode": "deterministic",
+		"caught": [
+			{
+				"itemId": "wrong-sign",
+				"issueClass": "AI_UNSUPPORTED_CLAIM",
+				"stage": "deterministic"
+			}
+		],
+		"retainedIds": []
+	},
+	{
+		"id": "extraction-en-dates",
+		"mode": "semantic",
+		"caught": [],
+		"retainedIds": ["field-valid"]
+	},
+	{
+		"id": "extraction-en-question",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "question:source-question",
+				"issueClass": "AI_VERIFICATION_CLAIM_SUPPORT",
+				"stage": "semantic"
+			}
+		],
+		"retainedIds": ["field-valid"]
+	},
+	{
+		"id": "extraction-en-field-binding",
+		"mode": "deterministic",
+		"caught": [
+			{
+				"itemId": "wrong-field",
+				"issueClass": "AI_UNSUPPORTED_CLAIM",
+				"stage": "deterministic"
+			}
+		],
+		"retainedIds": []
+	},
+	{
+		"id": "wording-en-retention",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "wording",
+				"issueClass": "AI_FACT_RETENTION_FAILED",
+				"stage": "semantic"
+			}
+		],
+		"retainedIds": []
+	},
+	{
+		"id": "extraction-ar-honest",
+		"mode": "semantic",
+		"caught": [],
+		"retainedIds": ["field-valid", "position"]
+	},
+	{
+		"id": "extraction-ar-mixed",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "field-invalid",
+				"issueClass": "AI_UNSUPPORTED_CLAIM",
+				"stage": "deterministic"
+			}
+		],
+		"retainedIds": ["field-valid", "question:source-question"]
+	},
+	{
+		"id": "extraction-ar-symbols",
+		"mode": "deterministic",
+		"caught": [
+			{
+				"itemId": "wrong-symbol",
+				"issueClass": "AI_UNSUPPORTED_CLAIM",
+				"stage": "deterministic"
+			}
+		],
+		"retainedIds": []
+	},
+	{
+		"id": "extraction-ar-signs",
+		"mode": "deterministic",
+		"caught": [
+			{
+				"itemId": "wrong-sign",
+				"issueClass": "AI_UNSUPPORTED_CLAIM",
+				"stage": "deterministic"
+			}
+		],
+		"retainedIds": []
+	},
+	{
+		"id": "extraction-ar-dates",
+		"mode": "semantic",
+		"caught": [],
+		"retainedIds": ["field-valid"]
+	},
+	{
+		"id": "extraction-ar-question",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "question:source-question",
+				"issueClass": "AI_VERIFICATION_CLAIM_SUPPORT",
+				"stage": "semantic"
+			}
+		],
+		"retainedIds": ["field-valid"]
+	},
+	{
+		"id": "extraction-ar-field-binding",
+		"mode": "deterministic",
+		"caught": [
+			{
+				"itemId": "wrong-field",
+				"issueClass": "AI_UNSUPPORTED_CLAIM",
+				"stage": "deterministic"
+			}
+		],
+		"retainedIds": []
+	},
+	{
+		"id": "wording-ar-retention",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "wording",
+				"issueClass": "AI_FACT_RETENTION_FAILED",
+				"stage": "semantic"
+			}
+		],
+		"retainedIds": []
+	}
+]

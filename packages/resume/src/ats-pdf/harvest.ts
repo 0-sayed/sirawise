@@ -7,8 +7,10 @@ import type {
 	RawLinkAnnotation,
 	RawPage,
 	RawTextItem,
+	PdfStructureBlock,
 } from "./types";
 import { summarizePageOperators } from "./analyze/operators";
+import { restoreFormatMarkGlyphs } from "./extract";
 
 // ---------------------------------------------------------------------------
 // Structural views of the reader API.
@@ -28,7 +30,9 @@ type PdfTextItemLike = {
 	hasEOL?: unknown;
 };
 
-type PdfTextContentLike = { items?: unknown };
+type PdfTextContentLike = { items?: unknown; styles?: Record<string, unknown> };
+
+type PdfStructureNode = { role?: unknown; type?: unknown; id?: unknown; children?: unknown };
 
 type PdfCommonObjsLike = {
 	has?: (id: string) => boolean;
@@ -49,6 +53,7 @@ export type PdfPageLike = {
 	view?: unknown;
 	commonObjs: PdfCommonObjsLike;
 	getTextContent: (options: { disableNormalization: boolean; includeMarkedContent: boolean }) => Promise<unknown>;
+	getStructTree?: () => Promise<unknown>;
 	getAnnotations: (options?: { intent: string }) => Promise<unknown>;
 	getOperatorList: () => Promise<unknown>;
 	cleanup?: () => void;
@@ -83,6 +88,9 @@ export const HARVEST_DEFAULTS = {
 	operatorBudgetMs: 30_000,
 	operatorBudgetPerPageMs: 10_000,
 } as const;
+export const PDF_IMPORT_OPERATOR_BUDGET_MS = 0;
+const GLYPH_RECOVERY_DOCUMENT_MS = 5000;
+const GLYPH_RECOVERY_PAGE_MS = 1000;
 
 class HarvestAbortedError extends Error {
 	constructor() {
@@ -115,17 +123,78 @@ function toRawTextItem(value: unknown): RawTextItem | null {
 	if (typeof item.str !== "string") return null;
 
 	const transform = asNumberTuple6(item.transform);
-	if (!transform) return null;
 
 	return {
 		str: item.str,
 		...(item.dir === "rtl" || item.dir === "ltr" || item.dir === "ttb" ? { dir: item.dir } : {}),
-		transform,
-		width: typeof item.width === "number" ? item.width : 0,
-		height: typeof item.height === "number" ? item.height : 0,
+		transform: transform ?? [0, 0, 0, 0, 0, 0],
+		width: finiteNumber(item.width) ?? 0,
+		height: finiteNumber(item.height) ?? 0,
 		fontRef: typeof item.fontName === "string" ? item.fontName : "",
 		hasEol: asBoolean(item.hasEOL),
 	};
+}
+
+function finiteNumber(value: unknown) {
+	return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function textItems(content: PdfTextContentLike) {
+	const items: RawTextItem[] = [];
+	const markedContent: (string | undefined)[] = [];
+	let offset = 0;
+	if (!Array.isArray(content.items)) return items;
+	for (const entry of content.items) {
+		if (!entry || typeof entry !== "object") continue;
+		if (entry.type === "beginMarkedContent" || entry.type === "beginMarkedContentProps") {
+			markedContent.push(asString(entry.id) ?? markedContent.at(-1));
+			continue;
+		}
+		if (entry.type === "endMarkedContent") {
+			markedContent.pop();
+			continue;
+		}
+		const item = toRawTextItem(entry);
+		if (!item) continue;
+		const id = markedContent.at(-1);
+		const style = content.styles?.[item.fontRef] as { ascent?: unknown; descent?: unknown } | undefined;
+		const ascent = finiteNumber(style?.ascent);
+		const descent = finiteNumber(style?.descent);
+		const [a, b, , d] = item.transform;
+		const geometryUncertain = Boolean(item.str.trim()) && (item.width <= 0 || a <= 0 || d <= 0 || Math.abs(b) > 0.01);
+		items.push({
+			...item,
+			rawStart: offset,
+			rawEnd: offset + item.str.length,
+			...(id ? { markedContentId: id } : {}),
+			...(ascent !== undefined && descent !== undefined ? { fontMetrics: { ascent, descent } } : {}),
+			...(geometryUncertain ? { geometryUncertain } : {}),
+		});
+		offset += item.str.length;
+	}
+	return items;
+}
+
+function structureBlocks(value: unknown): PdfStructureBlock[] {
+	const blocks: { role: string; contentIds: string[] }[] = [];
+	const pending: { value: unknown; block?: (typeof blocks)[number]; depth: number }[] = [{ value, depth: 0 }];
+	while (pending.length > 0) {
+		const next = pending.pop();
+		if (!next || !next.value || typeof next.value !== "object" || next.depth > 64) continue;
+		const node = next.value as PdfStructureNode;
+		const role = asString(node.role);
+		let { block } = next;
+		if (role && /^(?:P|H[1-6]?|LI|LBody|T[DH]|Caption)$/u.test(role)) {
+			block = { role, contentIds: [] };
+			blocks.push(block);
+		}
+		if (node.type === "content" && block && typeof node.id === "string") block.contentIds.push(node.id);
+		if (!Array.isArray(node.children)) continue;
+		for (let index = node.children.length - 1; index >= 0; index--) {
+			pending.push({ value: node.children[index], depth: next.depth + 1, ...(block ? { block } : {}) });
+		}
+	}
+	return blocks.filter((block) => block.contentIds.length > 0);
 }
 
 function toLinkAnnotations(value: unknown, pageNumber: number): RawLinkAnnotation[] {
@@ -295,6 +364,7 @@ export async function harvestPdfDocument(document: PdfDocumentLike, options: Har
 	const operatorStartedAt = Date.now();
 	let operatorsAttempted = false;
 	let operatorsSucceeded = false;
+	let remainingRecoveryMs = GLYPH_RECOVERY_DOCUMENT_MS;
 
 	for (let pageNumber = 1; pageNumber <= harvestedPageCount; pageNumber += 1) {
 		throwIfAborted();
@@ -314,8 +384,9 @@ export async function harvestPdfDocument(document: PdfDocumentLike, options: Har
 		try {
 			const box = pageBox(page);
 
-			const [textContent, annotations] = await Promise.all([
-				page.getTextContent({ disableNormalization: true, includeMarkedContent: false }).catch(() => {
+			const [textContent, annotations, structure] = await Promise.all([
+				// Keep presentation ligatures intact until layout can decode their logical order.
+				page.getTextContent({ disableNormalization: true, includeMarkedContent: true }).catch(() => {
 					state.text = "failed";
 					reasons.push(`page-${pageNumber}-text-failed`);
 					return null;
@@ -325,7 +396,14 @@ export async function harvestPdfDocument(document: PdfDocumentLike, options: Har
 					reasons.push(`page-${pageNumber}-annotations-failed`);
 					return null;
 				}),
+				page.getStructTree
+					? withTimeout(
+							page.getStructTree().catch(() => null),
+							perPageBudgetMs,
+						)
+					: null,
 			]);
+			throwIfAborted();
 
 			const rawItems = (textContent as PdfTextContentLike | null)?.items;
 			if (!Array.isArray(annotations) && state.annotations !== "failed") {
@@ -336,14 +414,35 @@ export async function harvestPdfDocument(document: PdfDocumentLike, options: Har
 				state.text = "failed";
 				reasons.push(`page-${pageNumber}-text-invalid`);
 			}
-			const items: RawTextItem[] = [];
+			let items: RawTextItem[] = [];
 
 			if (Array.isArray(rawItems)) {
-				for (const entry of rawItems) {
-					const item = toRawTextItem(entry);
-					if (!item) continue;
-					items.push(item);
-					if (item.fontRef) fontRefs.add(item.fontRef);
+				items = textItems(textContent as PdfTextContentLike);
+				for (const item of items) if (item.fontRef) fontRefs.add(item.fontRef);
+				if (items.some((item) => item.geometryUncertain)) {
+					state.text = "partial";
+					reasons.push(`page-${pageNumber}-text-geometry-uncertain`);
+				}
+			}
+			// Forme can map a visible Arabic letter and a direction mark to one glyph.
+			// PDF.js drops that entire glyph. Keep this bounded recovery separate from optional ATS diagnostics.
+			let operatorRequest: Promise<unknown> | undefined;
+			const readOperators = () => (operatorRequest ??= page.getOperatorList().catch(() => null));
+			if (metadata.producer === "Forme" && items.some((item) => item.dir === "rtl" && item.str.trim())) {
+				const budget = Math.min(perPageBudgetMs, GLYPH_RECOVERY_PAGE_MS, remainingRecoveryMs);
+				const startedAt = Date.now();
+				const glyphOperators = budget > 0 ? toOperatorList(await withTimeout(readOperators(), budget)) : null;
+				remainingRecoveryMs = Math.max(0, remainingRecoveryMs - (Date.now() - startedAt));
+				throwIfAborted();
+				if (glyphOperators) {
+					items = [...restoreFormatMarkGlyphs(items, glyphOperators)];
+					if (items.some((item) => item.glyphRecoveryUncertain)) {
+						state.text = "partial";
+						reasons.push(`page-${pageNumber}-glyph-recovery-ambiguous`);
+					}
+				} else {
+					state.text = "partial";
+					reasons.push(`page-${pageNumber}-glyph-recovery-failed`);
 				}
 			}
 
@@ -357,10 +456,7 @@ export async function harvestPdfDocument(document: PdfDocumentLike, options: Har
 				operatorsAttempted = true;
 				options.onProgress?.({ phase: "operators", page: pageNumber, pageCount: harvestedPageCount });
 
-				const operatorList = await withTimeout(
-					page.getOperatorList().catch(() => null),
-					remaining,
-				);
+				const operatorList = await withTimeout(readOperators(), remaining);
 				const parsed = toOperatorList(operatorList);
 				if (parsed) {
 					state.operators = "complete";
@@ -388,6 +484,7 @@ export async function harvestPdfDocument(document: PdfDocumentLike, options: Har
 				height: box.height,
 				rotation: typeof page.rotate === "number" ? page.rotate : 0,
 				items,
+				structure: structureBlocks(structure),
 				operators,
 			});
 		} finally {

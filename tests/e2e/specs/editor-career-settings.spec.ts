@@ -4,11 +4,11 @@ import { execFileSync } from "node:child_process";
 import { writeFile } from "node:fs/promises";
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
-import { demoCredentials, demoAccountName } from "../../../tooling/local/demo-fixture";
+import { demoCredentials, demoAccountName, demoFixture } from "../../../tooling/local/demo-fixture";
 import { loginViaUi } from "../fixtures/auth";
+import { test, expect } from "../fixtures/demo-test";
 import { detectAuthenticatedPage } from "../fixtures/design-detector";
 import { settleScreen } from "../fixtures/screen";
-import { test, expect } from "../fixtures/test";
 
 function seedDemo(reset = false) {
 	execFileSync(process.execPath, ["tooling/local/demo-seed.mjs", ...(reset ? ["--reset"] : [])], {
@@ -23,8 +23,10 @@ test("dense career, design, and device controls remain usable in both directions
 	account,
 	baseURL,
 	browser,
+	demoLock,
 }, info) => {
 	test.setTimeout(300_000);
+	await demoLock();
 	if (!baseURL) throw new Error("BROWSER_BASE_URL_REQUIRED");
 	seedDemo();
 	await loginViaUi(page, { ...demoCredentials, name: demoAccountName });
@@ -53,7 +55,14 @@ test("dense career, design, and device controls remain usable in both directions
 	);
 	const resumes = await api.resume.list({});
 	expect(resumes).toHaveLength(15);
-	const resumeId = resumes[0].id;
+	const denseResumes = (await api.documents.list({ trashed: false })).filter(
+		(document) =>
+			document.type === "resume" &&
+			document.name === "السيرة الأساسية" &&
+			document.metadata?.locale === demoFixture.resumes[0].metadata.page.locale,
+	);
+	expect(denseResumes).toHaveLength(1);
+	const resumeId = denseResumes[0].id;
 	const master = await api.career.master.read({});
 	if (!master.contact) throw new Error("DEMO_CONTACT_REQUIRED");
 	const before = await api.resume.getById({ id: resumeId });
@@ -163,7 +172,9 @@ test("dense career, design, and device controls remain usable in both directions
 			await expect(
 				devicePage.getByText(locale === "ar-SA" ? "هذا الجهاز" : "This device", { exact: true }),
 			).toBeVisible();
-			await expect(devicePage.getByRole("button", { name: /10/ })).toBeVisible();
+			await expect(
+				devicePage.getByRole("button", { name: locale === "ar-SA" ? "عرض الكل (10)" : "Show all 10", exact: true }),
+			).toBeVisible();
 			await expect(devicePage.locator('[data-slot="settings-row"][data-density="compact"]')).toHaveCount(5);
 			const deviceRow = devicePage.locator('[data-slot="settings-row"][data-density="compact"]').nth(1);
 			const aligned = await deviceRow.evaluate((row) => {
@@ -220,8 +231,12 @@ test("dense career, design, and device controls remain usable in both directions
 	);
 });
 
-test("career rings and navigation totals fit expanded, collapsed, and mobile layouts", async ({ page }, info) => {
+test("career rings and navigation totals fit expanded, collapsed, and mobile layouts", async ({
+	page,
+	demoLock,
+}, info) => {
 	test.setTimeout(180_000);
+	await demoLock();
 	seedDemo();
 	await loginViaUi(page, { ...demoCredentials, name: demoAccountName });
 	for (const locale of ["ar-SA", "en-US"]) {
@@ -315,9 +330,10 @@ test("career rings and navigation totals fit expanded, collapsed, and mobile lay
 	}
 });
 
-test("live editor detector scans one authenticated URL at a time", async ({ page, baseURL }, info) => {
+test("live editor detector scans one authenticated URL at a time", async ({ page, baseURL, demoLock }, info) => {
 	test.skip(!process.env.IMPECCABLE_BIN, "This local review requires an explicit detector binary.");
 	test.setTimeout(300_000);
+	await demoLock();
 	if (!baseURL) throw new Error("BROWSER_BASE_URL_REQUIRED");
 	seedDemo();
 	await loginViaUi(page, { ...demoCredentials, name: demoAccountName });

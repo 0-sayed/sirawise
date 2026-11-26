@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { ORPCError } from "@orpc/server";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import z from "zod";
 import { withOwnerDatabase } from "@reactive-resume/db/client";
 import * as t from "@reactive-resume/db/schema";
@@ -13,7 +13,8 @@ import { resumeMutationRateLimit } from "../../middleware/rate-limit";
 import { careerMasterService } from "../career/master";
 import { lockDocumentOwner } from "../documents/ownership";
 import { importedProfileData } from "./import-profile";
-import { createResumeInTransaction, notifyResumeUpdated } from "./service";
+import { createResumeInTransaction, notifyResumeUpdated, updateResumeTx } from "./service";
+import { writeVersion } from "./version-history";
 
 const canonical = (value: unknown): string => {
 	if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
@@ -32,19 +33,37 @@ export async function confirmImport(userId: string, value: ImportReviewInput) {
 	);
 	const result = await withOwnerDatabase(userId, async (tx) => {
 		await lockDocumentOwner(tx, userId);
+		const careerOnly = input.destination?.kind === "career";
 		const [existing] = await tx
 			.select()
 			.from(t.resume)
 			.where(and(eq(t.resume.userId, userId), eq(t.resume.importFlowId, input.flowId)));
-		if (existing) {
+		if (existing && !careerOnly) {
 			if (existing.importFlowHash !== hash || existing.trashedAt) throw new ORPCError("CONFLICT");
 			const current = await careerMasterService.read(userId);
 			return { resumeId: existing.id, profileRevision: current.profileRevision };
 		}
 		let master = await careerMasterService.read(userId);
-		if (master.profileRevision !== input.expectedProfileRevision)
+		const previouslySaved = careerOnly
+			? master.facts.filter(
+					(saved) => saved.structured?.source.kind === "manual" && saved.structured.source.id === input.flowId,
+				)
+			: [];
+		const sameFact = (saved: (typeof master.facts)[number], fact: ImportReviewInput["acceptedFacts"][number]["fact"]) =>
+			saved.confirmation === "confirmed" &&
+			saved.structured?.section === fact.section &&
+			saved.structured.entityId === fact.entityId &&
+			saved.structured.field === fact.field &&
+			canonical(saved.structured.value) === canonical(fact.value);
+		const newFacts = input.acceptedFacts.filter((accepted) => accepted.decision.kind === "new");
+		const alreadySaved =
+			careerOnly &&
+			newFacts.length > 0 &&
+			previouslySaved.length === newFacts.length &&
+			newFacts.every(({ fact }) => previouslySaved.some((saved) => sameFact(saved, fact)));
+		if (master.profileRevision !== input.expectedProfileRevision && !alreadySaved)
 			throw new ORPCError("IMPORT_REVIEW_CONFLICT", { status: 409 });
-		const id = generateId();
+		const id = input.destination?.kind === "replace" ? input.destination.resumeId : generateId();
 		const candidates = buildCareerFactCandidates(input.data, { kind: "resume", id, quote: "" });
 		const keys = new Set<string>();
 		for (const { fact } of input.acceptedFacts) {
@@ -62,21 +81,40 @@ export async function confirmImport(userId: string, value: ImportReviewInput) {
 				throw new ORPCError("BAD_REQUEST", { message: "Review facts against the CV before confirming." });
 			keys.add(key);
 		}
-		await createResumeInTransaction(tx, {
-			id,
-			userId,
-			name: input.name,
-			tags: [],
-			locale: localeSchema.parse(input.data.metadata.page.locale),
-			data: input.data,
-			origin: "import",
-		});
-		await tx
-			.update(t.resume)
-			.set({ importFlowId: input.flowId, importFlowHash: hash })
-			.where(and(eq(t.resume.id, id), eq(t.resume.userId, userId)));
+		if (input.destination?.kind === "replace") {
+			const [target] = await tx
+				.select()
+				.from(t.resume)
+				.where(and(eq(t.resume.id, id), eq(t.resume.userId, userId), isNull(t.resume.trashedAt)))
+				.for("update");
+			if (!target || target.variantKind !== "base") throw new ORPCError("NOT_FOUND");
+			await updateResumeTx(tx, {
+				id,
+				userId,
+				name: input.name,
+				data: input.data,
+				expectedUpdatedAt: new Date(input.destination.expectedUpdatedAt),
+			});
+			await writeVersion(tx, { resumeId: id, userId, data: target.data, kind: "named", name: target.name });
+			await writeVersion(tx, { resumeId: id, userId, data: input.data, kind: "import" });
+		} else if (!careerOnly)
+			await createResumeInTransaction(tx, {
+				id,
+				userId,
+				name: input.name,
+				tags: [],
+				locale: localeSchema.parse(input.data.metadata.page.locale),
+				data: input.data,
+				origin: "import",
+			});
+		if (!careerOnly)
+			await tx
+				.update(t.resume)
+				.set({ importFlowId: input.flowId, importFlowHash: hash })
+				.where(and(eq(t.resume.id, id), eq(t.resume.userId, userId)));
 		const links: Array<{ factId: string; acceptedRevision: number }> = [];
 		for (const group of newGroups) {
+			if (alreadySaved) break;
 			const pending = [];
 			for (const { fact, decision } of input.acceptedFacts) {
 				if (decision.kind !== "new" || `${fact.section}:${fact.entityId}` !== group) continue;
@@ -85,8 +123,8 @@ export async function confirmImport(userId: string, value: ImportReviewInput) {
 					{
 						...fact,
 						source: {
-							kind: "resume",
-							id,
+							kind: careerOnly ? "manual" : "resume",
+							id: careerOnly ? input.flowId : id,
 							quote:
 								fact.source.quote ||
 								(typeof fact.value === "string"
@@ -125,7 +163,7 @@ export async function confirmImport(userId: string, value: ImportReviewInput) {
 				throw new ORPCError("BAD_REQUEST");
 			links.push({ factId: saved.id, acceptedRevision: saved.revision });
 		}
-		if (newGroups.size > 0) {
+		if (newGroups.size > 0 && !careerOnly) {
 			const [profile] = await tx.select().from(t.careerProfile).where(eq(t.careerProfile.userId, userId)).for("update");
 			if (!profile || profile.profileRevision !== master.profileRevision)
 				throw new ORPCError("IMPORT_REVIEW_CONFLICT", { status: 409 });
@@ -141,16 +179,17 @@ export async function confirmImport(userId: string, value: ImportReviewInput) {
 					.where(eq(t.careerProfile.userId, userId));
 			}
 		}
-		await careerMasterService.linkResumeFacts(userId, { resumeId: id, links });
-		return { resumeId: id, profileRevision: master.profileRevision };
+		if (!careerOnly) await careerMasterService.linkResumeFacts(userId, { resumeId: id, links });
+		return { resumeId: careerOnly ? null : id, profileRevision: master.profileRevision };
 	});
-	await notifyResumeUpdated({
-		type: "resume.updated",
-		resumeId: result.resumeId,
-		userId,
-		updatedAt: new Date().toISOString(),
-		mutation: "create",
-	});
+	if (result.resumeId)
+		await notifyResumeUpdated({
+			type: "resume.updated",
+			resumeId: result.resumeId,
+			userId,
+			updatedAt: new Date().toISOString(),
+			mutation: input.destination?.kind === "replace" ? "update" : "create",
+		});
 	return result;
 }
 export const confirmImportProcedure = protectedProcedure
@@ -163,5 +202,5 @@ export const confirmImportProcedure = protectedProcedure
 	})
 	.input(importReviewInputSchema)
 	.use(resumeMutationRateLimit)
-	.output(z.object({ resumeId: z.string(), profileRevision: z.number().int().nonnegative() }))
+	.output(z.object({ resumeId: z.string().nullable(), profileRevision: z.number().int().nonnegative() }))
 	.handler(({ context, input }) => confirmImport(context.user.id, input));

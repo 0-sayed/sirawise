@@ -33,6 +33,7 @@ import { buildIcs } from "../../ics";
 import { dayKey } from "../../interviews";
 import { describeNextStep, getNextStep } from "../../next-step";
 import { useInvalidateApplications } from "../../use-application-actions";
+import { ApplicationText, ApplicationTextLine } from "../application-text";
 import { CalendarDateInput } from "@/components/input/calendar-date-input";
 import { orpc } from "@/libs/orpc/client";
 
@@ -76,12 +77,20 @@ export function NextStepCard({ application, onScheduleInterview, onReopen }: Nex
 			</SectionCardTitle>
 			<div className="flex flex-wrap items-center gap-3">
 				<div className="grid min-w-0 flex-1 basis-full gap-1 sm:basis-0">
-					<strong dir="auto" className="type-label wrap-anywhere">
+					<ApplicationText as="strong" className="type-label wrap-anywhere">
 						{step.kind === "closed" ? <Trans>Closed</Trans> : dated ? text.title : <Trans>Choose your next step</Trans>}
-					</strong>
-					<span dir="auto" className="type-metadata text-accent-text">
-						{dated ? text.sub : step.kind === "closed" ? "" : text.title}
-					</span>
+					</ApplicationText>
+					{step.kind === "interview" ? (
+						<ApplicationTextLine
+							value={text.sub}
+							detail={step.interview.location}
+							className="type-metadata text-accent-text"
+						/>
+					) : (
+						<ApplicationText className="type-metadata text-accent-text">
+							{dated ? text.sub : step.kind === "closed" ? "" : text.title}
+						</ApplicationText>
+					)}
 				</div>
 				{step.kind === "closed" ? (
 					<Button onClick={onReopen}>

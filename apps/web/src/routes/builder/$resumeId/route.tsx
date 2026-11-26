@@ -29,6 +29,8 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/builder/$resumeId")({
 	component: RouteComponent,
+	// Keep the previous route visible while this CV loads during navigation.
+	pendingMs: Infinity,
 	pendingComponent: () => <RouteSkeleton shape="editor" />,
 	validateSearch: searchSchema,
 	beforeLoad: ({ context, location }) => {

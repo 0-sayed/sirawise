@@ -9,8 +9,8 @@ const identity = {
 	contentHash: "h1",
 	jobId: "job",
 	jobRevision: "j1",
-	rubricVersion: "literal-v1",
-	normalizationVersion: "matching-v2",
+	rubricVersion: "literal-v2",
+	normalizationVersion: JOB_NORMALIZATION_VERSION,
 };
 const passage = (text: string, id = "summary") => ({ id, target: { sectionId: "summary", field: "content" }, text });
 
@@ -22,6 +22,15 @@ it("reports distinct literal React/SAP coverage without inferring ability", () =
 		["sap", false],
 	]);
 	expect(jobTermReportSchema.parse(report)).toEqual(report);
+	expect(
+		analyzeJobTerms({ identity, jobText: "React SAP", passages: [passage("React")] }).terms.map((term) => [
+			term.term,
+			term.matched,
+		]),
+	).toEqual([
+		["react", true],
+		["sap", false],
+	]);
 	expect(
 		analyzeJobTerms({ identity, jobText: "React, REACT.js, react, SAP, sap", passages: [passage("React")] })
 			.denominator,
@@ -52,7 +61,7 @@ it("keeps empty and unusable jobs unknown and discloses selection limits", () =>
 
 it.each([
 	["React.js, C++, C#", "😀 REACT, C++, C#"],
-	["إِدَارَة, تحليل", "😀 إِدَارَة وتحليل"],
+	["إِحْصَاء, تحليل", "😀 إِحْصَاء وتحليل"],
 	["مهارة١٢, مـهارة", "مهارة12، مهارة"],
 	["ﬁnance, Ｒｅａｃｔ, café", "finance; React; café"],
 	["React, React", "“React” — React"],
@@ -122,4 +131,103 @@ it("cites Greek uppercase terms using whole-word lowercase normalization", () =>
 	expect(report).toMatchObject({ matchedCount: 1 });
 	expect(report.terms[0]?.jobSpans).toEqual([{ id: "job-0-0", start: 0, end: 4, quote: "ΟΔΟΣ" }]);
 	expect(report.terms[0]?.cvSpans).toContainEqual(expect.objectContaining({ start: 3, end: 7, quote: "ΟΔΟΣ" }));
+});
+
+it("keeps meaningful job terms and drops generic wording from selected and excluded lists", () => {
+	const report = analyzeJobTerms({
+		identity,
+		jobText:
+			"take, help, existing, code, growing, launch, decisions, technical, technology, complex, React, Kubernetes, financial services, cloud security",
+		passages: [passage("React cloud security")],
+	});
+	const terms = [...report.terms.map((t) => t.term), ...report.excludedTerms];
+	for (const word of [
+		"take",
+		"help",
+		"existing",
+		"code",
+		"growing",
+		"launch",
+		"decisions",
+		"technical",
+		"technology",
+		"complex",
+	])
+		expect(terms).not.toContain(word);
+	expect(terms).toContain("react");
+	expect(terms).toContain("kubernetes");
+	expect(terms).toContain("financial services");
+	expect(report.matchedCount).toBe(report.terms.filter((t) => t.matched).length);
+});
+
+it("excludes Arabic function words and phrases made from them from literal coverage", () => {
+	const report = analyzeJobTerms({
+		identity,
+		jobText: "على، في، إلى، مع، الذي، من أجل، وقد، بالإضافة إلى، Kubernetes",
+		passages: [passage("على في إلى مع الذي من أجل وقد بالإضافة إلى")],
+	});
+	expect(report.terms.map(({ term, matched }) => [term, matched])).toEqual([["kubernetes", false]]);
+});
+
+it.each([
+	[
+		"TypeScript services, TypeScript stack, TypeScript solutions, TypeScript systems, TypeScript applications, TypeScript development, TypeScript experience, TypeScript tools, TypeScript tooling, TypeScript platform, maintain TypeScript, build TypeScript, use TypeScript, develop TypeScript, write TypeScript, support TypeScript, design TypeScript, product engineering",
+	],
+	[
+		"خدمات TypeScript، TypeScript حلول، أنظمة TypeScript، تطبيقات TypeScript، تطوير TypeScript، خبرة TypeScript، حزمة TypeScript، أدوات TypeScript، منصة TypeScript، صيانة TypeScript، بناء TypeScript، استخدام TypeScript، كتابة TypeScript، دعم TypeScript، تصميم TypeScript",
+	],
+])("drops generic skill phrases while preserving named skills (%s)", (examples) => {
+	const skills = "system design, machine learning, React Native, product management";
+	const text = `${examples}, ${skills}`;
+	const report = analyzeJobTerms({ identity, jobText: text, passages: [passage(text)] });
+	const matches = report.terms.filter((term) => term.matched).map((term) => term.term);
+	expect(matches).toEqual(
+		expect.arrayContaining(["typescript", "system design", "machine-learning", "react-native", "product-management"]),
+	);
+	expect(
+		[...report.terms.map((term) => term.term), ...report.excludedTerms].filter((term) => term.includes("typescript")),
+	).toEqual(["typescript"]);
+	expect([...report.terms.map(({ term }) => term), ...report.excludedTerms]).not.toContain("product engineering");
+});
+
+it.each([
+	{
+		// Adapted from Parloa's Lead Solutions Engineer posting and the ZynoStack engineering ad.
+		jobText:
+			"Work with clients and explain each client's needs across modern technology stacks. Requirements: AWS, React, Kubernetes, system design, React Native, product management, mobile, SQL, Figma, SAP, customer service, platform engineering.",
+		kept: [
+			"aws",
+			"react",
+			"kubernetes",
+			"system design",
+			"react-native",
+			"product-management",
+			"mobile",
+			"sql",
+			"figma",
+			"sap",
+			"customer-service",
+			"platform-engineering",
+		],
+		noise: ["client", "clients", "explain", "technology stacks", "modern technology", "customer", "platform"],
+	},
+	{
+		// Adapted from Taqweed's Ecommerce Project Manager posting.
+		jobText:
+			"توضيح الحلول مع عملاء سعوديين في بيئة عمل مثالية على منصة تعمل على مدار الساعة. المتطلبات: إدارة المشاريع، متجر إلكتروني، SAP.",
+		kept: ["إدارة المشاريع", "متجر إلكتروني", "sap"],
+		noise: ["توضيح", "عملاء", "بيئة عمل", "منصة", "مثالية"],
+	},
+])("keeps real job skills and omits boilerplate: $jobText", ({ jobText, kept, noise }) => {
+	const report = analyzeJobTerms({ identity, jobText, passages: [] });
+	const terms = [...report.terms.map(({ term }) => term), ...report.excludedTerms];
+	expect(terms).toEqual(expect.arrayContaining(kept));
+	for (const term of noise) expect(terms).not.toContain(term);
+	expect(report.identity.normalizationVersion).toBe("matching-v4");
+});
+
+it("ranks curated skills before repeated free text and requirements before other free text", () => {
+	const jobText = "widgets, widgets, widgets, widgets, AWS.\nQualifications: SQL, microbiology.";
+	const report = analyzeJobTerms({ identity, jobText, passages: [] });
+	expect(report.terms.map(({ term }) => term)).toEqual(["sql", "aws", "microbiology", "widgets"]);
 });

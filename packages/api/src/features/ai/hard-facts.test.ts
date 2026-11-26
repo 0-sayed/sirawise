@@ -239,7 +239,27 @@ describe("cited hard facts (independent examples)", () => {
 		["راجعت جميع الفواتير دون مسؤولية عن الصرف.", "دون مسؤولية عن الصرف، راجعت جميع الفواتير."],
 		["Recorded ٢٧ devices in 6 clinics.", "Recorded 27 devices in ٦ clinics."],
 		["Used SAP and Oracle.", "Used Oracle and SAP."],
+		["Operations director with twenty years of experience.", "Operations director with 20 years of experience."],
+		["Coordinated monthly reviews with eight teams.", "Coordinated monthly reviews with 8 teams."],
+		["خبرة عشرين سنة في تحليل البيانات مع ثماني فرق.", "خبرة 20 سنة في تحليل البيانات مع 8 فرق."],
+		["خبرة 20 سنة في تحليل البيانات.", "خبرة عشرون سنة في تحليل البيانات."],
+		[
+			"نسق مراجعات شهرية مع 15 فريقًا وربط مؤشرات الخدمة بسجل القرارات والمخاطر وخطة التحسين.",
+			"نسق مراجعات شهرية مع 15 فريقًا، وربط مؤشرات الخدمة بسجل القرارات والمخاطر وخطة التحسين.",
+		],
 	])("allows honest paraphrase: %s", (source, claim) => {
 		expect(() => assertHardFacts(source, claim, source)).not.toThrow();
+	});
+	it.each([
+		["Operations director with twenty years of experience.", "Operations director with 25 years of experience."],
+		["Coordinated monthly reviews with eight teams.", "Coordinated monthly reviews with 12 teams."],
+		["خبرة عشرين سنة في تحليل البيانات.", "خبرة 15 سنة في تحليل البيانات."],
+		["خبرة ثماني فرق في تحليل البيانات.", "خبرة 5 فرق في تحليل البيانات."],
+		[
+			"نسق مراجعات شهرية مع 15 فريقًا وربط مؤشرات الخدمة بسجل القرارات والمخاطر وخطة التحسين.",
+			"نسق مراجعات شهرية مع 15 مشروعًا، وربط مؤشرات الخدمة بسجل القرارات والمخاطر وخطة التحسين.",
+		],
+	])("still rejects mismatched numbers when source uses number words: %s", (source, claim) => {
+		expect(() => assertHardFacts(source, claim, source)).toThrow("AI_UNSUPPORTED_CLAIM");
 	});
 });

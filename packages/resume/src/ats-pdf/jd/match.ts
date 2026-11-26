@@ -12,7 +12,7 @@ const KNOWN_SKILL_BOOST = 2;
 /** Each additional word makes a phrase more specific, and slightly more worth matching. */
 const PHRASE_BONUS_PER_WORD = 0.4;
 const REQUIREMENTS_HEADING =
-	/\b(?:requirement|qualification|must[- ]have|nice[- ]to[- ]have|what you(?:'| a|)ll (?:need|bring|do)|about you|we(?:'| a|)re looking for|your (?:profile|background)|you (?:have|bring)|minimum|preferred)\b/;
+	/\b(?:requirements?|qualifications?|must[- ]have|nice[- ]to[- ]have|what you(?:'| a|)ll (?:need|bring|do)|about you|we(?:'| a|)re looking for|your (?:profile|background)|you (?:have|bring)|minimum|preferred)\b/;
 
 const DEFAULT_MAX_TERMS = 35;
 
@@ -46,7 +46,7 @@ function collectJdTerms(jobDescription: string): Map<string, JdTerm> {
 
 	for (const run of runs) {
 		// A heading flips the section on; it does not itself contribute terms worth counting.
-		if (REQUIREMENTS_HEADING.test(run)) inRequirements = true;
+		if (REQUIREMENTS_HEADING.test(run) || /^(?:المتطلبات|المؤهلات|الشروط)(?:\s|:|$)/u.test(run)) inRequirements = true;
 
 		for (const ngram of buildNgrams(tokenize(run))) {
 			const term = canonicalize(ngram);
@@ -116,15 +116,23 @@ const weigh = (entry: JdTerm) =>
  * gaps would triple-count one missing skill.
  */
 function selectTerms(entries: readonly JdTerm[], maxTerms: number): JdTerm[] {
-	const ranked = [...entries].sort((a, b) => weigh(b) - weigh(a) || a.term.localeCompare(b.term));
+	const ranked = [...entries].sort(
+		(a, b) =>
+			Number(b.isSkill) - Number(a.isSkill) ||
+			Number(b.inRequirements) - Number(a.inRequirements) ||
+			b.count - a.count ||
+			b.words - a.words ||
+			a.term.localeCompare(b.term),
+	);
 	const selected: JdTerm[] = [];
+	const phrase = (term: string) => " " + term.replaceAll("-", " ") + " ";
 
 	for (const entry of ranked) {
 		if (selected.length >= maxTerms) break;
 
-		const subsumed = selected.some(
-			(chosen) => (chosen.term.includes(entry.term) || entry.term.includes(chosen.term)) && entry.count <= chosen.count,
-		);
+		const subsumed =
+			!entry.isSkill &&
+			selected.some((chosen) => entry.count <= chosen.count && phrase(chosen.term).includes(phrase(entry.term)));
 		if (subsumed) continue;
 
 		selected.push(entry);

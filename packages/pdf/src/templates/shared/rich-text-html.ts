@@ -245,13 +245,9 @@ export const normalizeRichTextHtml = (
 	const normalizedHtml = normalized.join("");
 	if (direction !== "rtl") return normalizedHtml;
 
-	// RTL pseudo-bullets must become real list items before both the semantic
-	// descriptor and renderer traverse the HTML. RLM anchors each independent
-	// react-pdf-html text frame without changing element ancestry or indices.
-	return convertPseudoBulletParagraphs(normalizedHtml, direction).replace(
-		/<(p|li)\b([^>]*)>/gi,
-		(_match, tag, rest) => `<${tag}${rest}>‏`,
-	);
+	// Keep list structure in the shared HTML. Forme receives RTL direction in the text style.
+	// A leading RLM can join the first letter's glyph cluster and cause PDF.js to skip it.
+	return convertPseudoBulletParagraphs(normalizedHtml, direction);
 };
 
 export const parseNormalizedRichTextHtml = (html: string, options?: NormalizeRichTextHtmlOptions) =>

@@ -12,6 +12,7 @@ import { Alert, AlertTitle, AlertDescription, AlertActions } from "@reactive-res
 import { Button } from "@reactive-resume/ui/components/button";
 import { Icon } from "@reactive-resume/ui/components/icon";
 import { SectionCard, SectionCardHeader, SectionCardRow } from "@reactive-resume/ui/components/section-card";
+import { StickyActions } from "@reactive-resume/ui/components/sticky-actions";
 import { Tabs, TabsList, TabsTrigger } from "@reactive-resume/ui/components/tabs";
 import { cn } from "@reactive-resume/utils/style";
 import { EntryFields } from "../editor/write/entries";
@@ -25,11 +26,15 @@ import {
 	getPrimaryField,
 } from "../editor/write/model";
 import { RichTextEditor } from "../editor/write/rich-text-editor";
+import { useVariantsCopy } from "../variants/copy.generated";
 import { ImportAssistance } from "./ai-assistance-panel";
 import { fieldLabel } from "./field-label";
 import { reuseConfirmedFacts } from "./reuse-master";
 import { createReviewState, type ReviewState } from "./review-draft";
 import { SourcePreview } from "./source-preview";
+import { BaseCvLimitNotice } from "@/features/documents/base-cv-limit";
+import { isBaseCvLimit } from "@/features/documents/creation-error";
+import { useConfirm } from "@/hooks/use-confirm";
 import { getOrpcErrorMessage } from "@/libs/error-message";
 import { client } from "@/libs/orpc/client";
 import { getSectionTitle } from "@/libs/resume/section";
@@ -53,6 +58,7 @@ export function ImportReview({
 	file,
 	state,
 	onCheckpoint,
+	onOpenExisting,
 }: {
 	initial: ResumeData;
 	flowId: string;
@@ -66,7 +72,10 @@ export function ImportReview({
 	file?: File | undefined;
 	state?: ReviewState | undefined;
 	onCheckpoint?: ((state: ReviewState) => Promise<void>) | undefined;
+	onOpenExisting?: ((id: string) => void) | undefined;
 }) {
+	const ask = useConfirm();
+	const copy = useVariantsCopy();
 	const panelId = useId();
 	const [aiReview, setAiReview] = useState(state?.aiReview);
 	const [data, setData] = useState(state?.data ?? initial);
@@ -81,7 +90,8 @@ export function ImportReview({
 	const revision = useRef(state?.revision);
 	const confirmationFlow = useRef(state?.confirmationFlow ?? flowId);
 	const submission = useRef(state?.submission);
-	const [submitted, setSubmitted] = useState(!!state?.submission);
+	const [submittedFacts, setSubmittedFacts] = useState(state?.submission?.acceptedFacts.length ?? null);
+	const submitted = submittedFacts !== null;
 	const [needsReconciliation, setNeedsReconciliation] = useState(state?.needsReconciliation ?? false);
 	const [changedMasterFacts, setChangedMasterFacts] = useState<string[]>(state?.changedMasterFacts ?? []);
 	const lifetime = useRef(new AbortController());
@@ -92,6 +102,8 @@ export function ImportReview({
 	}, []);
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [baseCvLimit, setBaseCvLimit] = useState<{ error: unknown; saveCareer: boolean } | null>(null);
+	const [factsSaved, setFactsSaved] = useState(false);
 	const [undoData, setUndoData] = useState<ResumeData | null>(null);
 	const snapshot = useCallback(
 		(): ReviewState => ({
@@ -130,6 +142,7 @@ export function ImportReview({
 		[data, flowId],
 	);
 	const write = (change: (draft: ResumeData) => void) => {
+		setFactsSaved(false);
 		setUndoData(data);
 		const next = produce(data, change);
 		const changed = new Set(
@@ -158,10 +171,27 @@ export function ImportReview({
 			),
 		);
 		submission.current = undefined;
-		setSubmitted(false);
+		setSubmittedFacts(null);
 		setData(next);
 	};
 	const keyOf = (fact: (typeof candidates)[number]) => `${fact.section}:${fact.entityId}:${fact.field}`;
+	const confirmFacts = (facts: typeof candidates) => {
+		setConfirmed((current) => {
+			const next = { ...current };
+			for (const fact of facts) {
+				const saved = reused.find((saved) => saved.structured && keyOf(saved.structured) === keyOf(fact));
+				if (
+					saved &&
+					(changedMasterFacts.includes(saved.id) ||
+						JSON.stringify(saved.structured?.value) !== JSON.stringify(fact.value))
+				)
+					continue;
+				next[keyOf(fact)] = JSON.stringify(fact.value);
+			}
+			return next;
+		});
+	};
+	const acceptedCandidates = candidates.filter((fact) => confirmed[keyOf(fact)] === JSON.stringify(fact.value));
 	const withSource = (fact: (typeof candidates)[number]) => {
 		const value = typeof fact.value === "string" ? fact.value.trim() : fact.value.raw;
 		const page = value ? uniqueSourcePage(value, pages) : undefined;
@@ -173,12 +203,13 @@ export function ImportReview({
 			},
 		};
 	};
-	const confirm = async () => {
-		if (busy || needsReconciliation || (partial && reviewedCount < total)) return;
+	const confirm = async (destination?: NonNullable<ReviewState["submission"]>["destination"], saveCareer = true) => {
+		if (busy || needsReconciliation || (reviewRequired && destination?.kind !== "career")) return;
 		const controller = lifetime.current;
 		const currentSignal = signal ? AbortSignal.any([signal, controller.signal]) : controller.signal;
 		setBusy(true);
 		setError(null);
+		setFactsSaved(false);
 		try {
 			if (revision.current === undefined)
 				revision.current = (await client.career.master.read({}, { signal: currentSignal })).profileRevision;
@@ -189,45 +220,90 @@ export function ImportReview({
 					name: (data.basics.name.trim() || t`CV`).slice(0, 100),
 					data,
 					expectedProfileRevision: revision.current,
-					acceptedFacts: candidates
-						.filter((f) => confirmed[keyOf(f)] === JSON.stringify(f.value))
-						.map((fact) => ({
-							fact: withSource(fact),
-							decision: (() => {
-								const saved = reused.find(
-									(saved) =>
-										saved.structured?.section === fact.section &&
-										saved.structured.entityId === fact.entityId &&
-										saved.structured.field === fact.field &&
-										JSON.stringify(saved.structured.value) === JSON.stringify(fact.value),
-								);
-								return saved
-									? {
-											kind: "existing" as const,
-											id: saved.id,
-											expectedRevision: saved.revision,
-											expectedDraftRevision: saved.draftRevision,
-										}
-									: { kind: "new" as const };
-							})(),
-						})),
+					acceptedFacts: (saveCareer ? acceptedCandidates : []).map((fact) => ({
+						fact: withSource(fact),
+						decision: (() => {
+							const saved = reused.find(
+								(saved) =>
+									saved.structured?.section === fact.section &&
+									saved.structured.entityId === fact.entityId &&
+									saved.structured.field === fact.field &&
+									JSON.stringify(saved.structured.value) === JSON.stringify(fact.value),
+							);
+							return saved
+								? {
+										kind: "existing" as const,
+										id: saved.id,
+										expectedRevision: saved.revision,
+										expectedDraftRevision: saved.draftRevision,
+									}
+								: { kind: "new" as const };
+						})(),
+					})),
 				};
-			setSubmitted(true);
+			if (destination) submission.current = { ...submission.current, destination };
+			setSubmittedFacts(submission.current.acceptedFacts.length);
 			await onCheckpoint?.(snapshot());
 			currentSignal.throwIfAborted();
 			const result = await client.resume.confirmImport(submission.current, { signal: currentSignal });
 			currentSignal.throwIfAborted();
-			onSaved(result.resumeId);
+			if (result.resumeId) onSaved(result.resumeId);
+			else {
+				const master = await client.career.master.read({}, { signal: currentSignal });
+				currentSignal.throwIfAborted();
+				revision.current = master.profileRevision;
+				setReused(master.facts.filter((fact) => fact.confirmation === "confirmed"));
+				submission.current = undefined;
+				confirmationFlow.current = crypto.randomUUID();
+				setSubmittedFacts(null);
+				setFactsSaved(true);
+			}
 		} catch (error) {
 			if (currentSignal.aborted) return;
+			if (isBaseCvLimit(error)) {
+				setBaseCvLimit({ error, saveCareer: (submission.current?.acceptedFacts.length ?? 0) > 0 });
+				submission.current = undefined;
+				setSubmittedFacts(null);
+				return;
+			}
 			if (error instanceof ORPCError && error.code === "IMPORT_REVIEW_CONFLICT") {
 				submission.current = undefined;
-				setSubmitted(false);
+				setSubmittedFacts(null);
 				setNeedsReconciliation(true);
 			}
 			setError(getOrpcErrorMessage(error, { fallback: t`Could not save. Your review is still here. Try again.` }));
 		} finally {
 			if (!currentSignal.aborted) setBusy(false);
+		}
+	};
+	const replace = async (id: string) => {
+		if (busy || !baseCvLimit || reviewRequired) return;
+		setBusy(true);
+		setError(null);
+		try {
+			const currentSignal = signal ? AbortSignal.any([signal, lifetime.current.signal]) : lifetime.current.signal;
+			const target = await client.resume.getById({ id }, { signal: currentSignal });
+			currentSignal.throwIfAborted();
+			const name = target.name;
+			const approved = await ask(t({ context: "review.import.replaceTitle", message: "Replace this base CV?" }), {
+				description: t({
+					context: "review.import.replaceDescription",
+					message: `The reviewed CV will replace the contents of “${name}”. Its saved history and copies are kept.`,
+				}),
+				confirmText: t({ context: "review.import.replaceExisting", message: "Replace existing base CV" }),
+				variant: "danger",
+			});
+			setBusy(false);
+			if (approved && !currentSignal.aborted)
+				await confirm(
+					{ kind: "replace", resumeId: id, expectedUpdatedAt: target.updatedAt.toISOString() },
+					baseCvLimit.saveCareer,
+				);
+		} catch {
+			setError(
+				t({ context: "documents.baseCvLimit.loadExisting", message: "Could not load your existing CV. Try again." }),
+			);
+			setBusy(false);
 		}
 	};
 	const reuse = async () => {
@@ -344,6 +420,12 @@ export function ImportReview({
 			return next;
 		});
 	};
+	const confirmField = (section: string, entryId: string, field: string) => {
+		resolveUncertainty(section, entryId, field);
+		confirmFacts(
+			candidates.filter((fact) => fact.section === section && fact.entityId === entryId && fact.field === field),
+		);
+	};
 	const uncertain = (field: string, value: unknown, section = "basics", entryId = "") =>
 		issues?.some(
 			(issue, index) =>
@@ -354,19 +436,34 @@ export function ImportReview({
 				issue.field === field &&
 				(!value || issue.source.includes(String(value)) || String(value).includes(issue.source)),
 		) ?? false;
+	const aiUncertain = (section: string, entry: { id: string }, field?: string) => {
+		const key = entryKey(section, entry.id);
+		if (!aiReview || reviewed[key] === JSON.stringify(entry)) return false;
+		return (
+			aiReview.appliedChanges?.some(
+				(change) => change.section === section && change.entryId === entry.id && (!field || change.field === field),
+			) ||
+			aiReview.earlierFieldKeys?.some((earlier) =>
+				field ? earlier === `${key}:${field}` : earlier.startsWith(`${key}:`),
+			) ||
+			false
+		);
+	};
 	const missing = (value: unknown) => typeof value !== "string" || !value.trim();
-	const entryUncertain = (section: string, entry: Record<string, unknown>) => {
+	const entryUncertain = (section: string, entry: { id: string }) => {
 		const resolved = resolveSection(data, section);
 		const required = resolved && getPrimaryField(resolved.type);
+		const fields = entry as unknown as Record<string, unknown>;
 		return (
-			(!!required && missing(entry[required])) ||
-			Object.entries(entry).some(([field, value]) => uncertain(field, value, section, String(entry.id ?? ""))) ||
-			(resolved?.type === "experience" && missing(entry.position))
+			(!!required && missing(fields[required])) ||
+			aiUncertain(section, entry) ||
+			Object.entries(fields).some(([field, value]) => uncertain(field, value, section, entry.id)) ||
+			(resolved?.type === "experience" && missing(fields.position))
 		);
 	};
 	const accept = (ids: string[], safeOnly = false) => {
 		const next = { ...reviewed };
-		const accepted = { ...confirmed };
+		const accepted: typeof candidates = [];
 		for (const id of ids) {
 			if (safeOnly && partial) continue;
 			if (id === "basics" || id === "summary") {
@@ -382,42 +479,23 @@ export function ImportReview({
 			const section = sections.find((section) => section.id === id);
 			if (!section) continue;
 			for (const entry of getEntries(data, section)) {
-				if (safeOnly && entryUncertain(id, entry as unknown as Record<string, unknown>)) continue;
+				if (safeOnly && entryUncertain(id, entry)) continue;
 				next[entryKey(id, entry.id)] = JSON.stringify(entry);
-				for (const fact of candidates.filter((fact) => fact.section === id && fact.entityId === entry.id)) {
-					const saved = reused.find((saved) => saved.structured && keyOf(saved.structured) === keyOf(fact));
-					if (
-						saved &&
-						(changedMasterFacts.includes(saved.id) ||
-							JSON.stringify(saved.structured?.value) !== JSON.stringify(fact.value))
-					)
-						continue;
-					accepted[keyOf(fact)] = JSON.stringify(fact.value);
-				}
+				accepted.push(...candidates.filter((fact) => fact.section === id && fact.entityId === entry.id));
 			}
 		}
 		setReviewed(next);
-		setConfirmed(accepted);
+		confirmFacts(accepted);
 	};
 	const acceptEntry = (section: string, entry: { id: string }) => {
 		setReviewed((current) => ({ ...current, [entryKey(section, entry.id)]: JSON.stringify(entry) }));
-		setConfirmed((current) => {
-			const next = { ...current };
-			for (const fact of candidates.filter((fact) => fact.section === section && fact.entityId === entry.id)) {
-				const saved = reused.find((saved) => saved.structured && keyOf(saved.structured) === keyOf(fact));
-				if (
-					saved &&
-					(changedMasterFacts.includes(saved.id) ||
-						JSON.stringify(saved.structured?.value) !== JSON.stringify(fact.value))
-				)
-					continue;
-				next[keyOf(fact)] = JSON.stringify(fact.value);
-			}
-			return next;
-		});
+		confirmFacts(candidates.filter((fact) => fact.section === section && fact.entityId === entry.id));
 	};
 	const reviewedCount = groups.filter(isReviewed).length;
 	const total = groups.length;
+	const pdfReview = Boolean(partial || pages?.length);
+	const reviewRequired = pdfReview && reviewedCount < total;
+	const savingCareer = (submittedFacts ?? acceptedCandidates.length) > 0;
 	const openIssues = (issues ?? []).filter((issue, index) => {
 		if (resolvedIssues[index]) return false;
 		return !isReviewed(issueSection(issue));
@@ -485,7 +563,36 @@ export function ImportReview({
 			</Button>
 		) : null;
 	return (
-		<div className="grid min-w-0 gap-4">
+		<StickyActions
+			hint={reviewRequired && <p className="type-metadata text-ink-2">{copy("review.import.confirmBeforeCreate")}</p>}
+			actions={
+				<>
+					<Button
+						loading={busy}
+						disabled={!!baseCvLimit || needsReconciliation || reviewRequired}
+						onClick={() => void confirm()}
+					>
+						{savingCareer ? (
+							<Trans context="review.import.saveAndContinue">Create CV and save career information</Trans>
+						) : (
+							<Trans context="review.import.createOnly">Create CV only</Trans>
+						)}
+					</Button>
+					{pdfReview && !reviewRequired && !submitted && savingCareer && (
+						<Button
+							variant="secondary"
+							disabled={busy || !!baseCvLimit || needsReconciliation}
+							onClick={() => void confirm(undefined, false)}
+						>
+							<Trans context="review.import.createOnly">Create CV only</Trans>
+						</Button>
+					)}
+					<Button variant="secondary" disabled={busy} onClick={onBack}>
+						<Trans>Cancel</Trans>
+					</Button>
+				</>
+			}
+		>
 			{pages && (
 				<fieldset disabled={busy || submitted} className="min-w-0">
 					<ImportAssistance
@@ -502,6 +609,7 @@ export function ImportReview({
 						}}
 						flowId={flowId}
 						pages={pages}
+						onSourcePage={setSourcePage}
 						partial={partial ?? false}
 						onChange={(next) => {
 							if (busy || submitted) return;
@@ -511,7 +619,7 @@ export function ImportReview({
 							setAiReview(next.aiReview);
 							confirmationFlow.current = next.confirmationFlow;
 							submission.current = next.submission;
-							setSubmitted(Boolean(next.submission));
+							setSubmittedFacts(next.submission?.acceptedFacts.length ?? null);
 						}}
 					/>
 				</fieldset>
@@ -604,7 +712,11 @@ export function ImportReview({
 					))}
 				</nav>
 				<div className="flex flex-wrap items-center gap-3">
-					<Button variant="secondary" disabled={partial} onClick={() => accept(groups, true)}>
+					<Button
+						variant="secondary"
+						disabled={partial || reviewedCount === total}
+						onClick={() => accept(groups, true)}
+					>
 						<Trans>Confirm all remaining</Trans>
 					</Button>
 					<p className="type-meta text-ink-3">
@@ -636,7 +748,16 @@ export function ImportReview({
 						<SectionCard>
 							<SectionCardHeader>
 								<h2 className="min-w-0 flex-1 type-section">{sectionTitle(selected)}</h2>
-								<Button variant={isReviewed(selected) ? "ghost" : "secondary"} onClick={() => accept([selected])}>
+								<Button
+									variant={
+										isReviewed(selected)
+											? "ghost"
+											: selected === "basics" || selected === "summary"
+												? "primary"
+												: "secondary"
+									}
+									onClick={() => accept([selected])}
+								>
 									{isReviewed(selected) ? (
 										<Trans context="review.fact.status.confirmed">Confirmed</Trans>
 									) : (
@@ -674,7 +795,7 @@ export function ImportReview({
 														flagged ? (
 															<span className="flex items-center gap-2 text-warn-text">
 																<Trans>Please confirm this information</Trans>
-																<Button variant="link" onClick={() => resolveUncertainty("basics", "", field)}>
+																<Button variant="link" onClick={() => confirmField("basics", "", field)}>
 																	<Trans>Confirm</Trans>
 																</Button>
 															</span>
@@ -725,7 +846,11 @@ export function ImportReview({
 													([field, value]) =>
 														!["id", "hidden", "icon", "iconColor", "level"].includes(field) &&
 														(field !== "period" || !("dates" in entry && displayValue("dates", entry.dates, data))) &&
-														(typeof value === "string" ? !!value.trim() : typeof value === "object" && value !== null),
+														(uncertain(field, value, section.id, entry.id) ||
+															aiUncertain(section.id, entry, field) ||
+															(typeof value === "string"
+																? !!value.trim()
+																: typeof value === "object" && value !== null)),
 												);
 												if (required && !values.some(([field]) => field === required)) values.unshift([required, ""]);
 												if (section.type === "experience" && !values.some(([field]) => field === "position"))
@@ -784,7 +909,7 @@ export function ImportReview({
 																			</span>
 																			<Button
 																				variant="link"
-																				onClick={() => resolveUncertainty(section.id, entry.id, issue.field)}
+																				onClick={() => confirmField(section.id, entry.id, issue.field)}
 																			>
 																				<Trans>Confirm</Trans>
 																			</Button>
@@ -807,11 +932,13 @@ export function ImportReview({
 															<dl className="grid gap-3">
 																{values.map(([field, value]) => {
 																	const display = displayValue(field, value, data);
-																	if (!display && field !== required && field !== "position") return null;
-																	const flagged =
+																	const suggested = aiUncertain(section.id, entry, field);
+																	const parserFlagged =
 																		uncertain(field, value, section.id, entry.id) ||
 																		((field === required || (section.type === "experience" && field === "position")) &&
 																			missing(value));
+																	const flagged = parserFlagged || suggested;
+																	if (!display && !flagged) return null;
 																	return (
 																		<div
 																			key={field}
@@ -824,15 +951,16 @@ export function ImportReview({
 																			)}
 																		>
 																			<dt className="type-meta">{fieldLabel(field)}</dt>
-																			<dd className="type-body wrap-anywhere" dir="auto">
+																			<dd className="type-body wrap-anywhere text-content-start" dir="auto">
 																				{display || <Trans>Missing information</Trans>}
 																			</dd>
-																			{flagged && (
+																			{suggested && <p className="type-meta">{copy("review.import.aiUncertain")}</p>}
+																			{parserFlagged && (
 																				<p className="type-meta">
 																					<Trans>Please confirm this information</Trans>
 																					<Button
 																						variant="link"
-																						onClick={() => resolveUncertainty(section.id, entry.id, field)}
+																						onClick={() => confirmField(section.id, entry.id, field)}
 																					>
 																						<Trans>Confirm</Trans>
 																					</Button>
@@ -845,7 +973,7 @@ export function ImportReview({
 															</dl>
 														)}
 														<Button
-															variant={reviewed[id] === JSON.stringify(entry) ? "ghost" : "secondary"}
+															variant={reviewed[id] === JSON.stringify(entry) ? "ghost" : "primary"}
 															onClick={() => acceptEntry(section.id, entry)}
 														>
 															{reviewed[id] === JSON.stringify(entry) ? (
@@ -908,15 +1036,58 @@ export function ImportReview({
 					)}
 				</div>
 			</fieldset>
-			<p className="type-meta text-ink-3">
-				<Trans>
-					Confirm an entry or section to add its supported facts to your career information. Unreviewed information
-					stays in this CV only.
-				</Trans>
-			</p>
+			{!pdfReview && (
+				<p className="type-meta text-ink-3">
+					<Trans>
+						Confirm an entry or section to add its supported facts to your career information. Unreviewed information
+						stays in this CV only.
+					</Trans>
+				</p>
+			)}
 			{reused.length > 0 && (
 				<p className="type-meta text-ink-3">
 					<Trans>Changes to reused facts stay in this CV. Update your career information separately.</Trans>
+				</p>
+			)}
+			{!!baseCvLimit && (
+				<BaseCvLimitNotice
+					error={baseCvLimit.error}
+					busy={busy}
+					replaceDisabled={needsReconciliation || reviewRequired}
+					description={
+						<Trans context="review.import.baseCvLimit">
+							Your plan includes 1 base CV. Replace your existing base CV, save only confirmed facts to Career
+							information, or open your existing CV. Your review is kept.
+						</Trans>
+					}
+					onReplace={(id) => void replace(id)}
+					onOpen={(id) => {
+						void (async () => {
+							await onCheckpoint?.(snapshot());
+							onOpenExisting?.(id);
+						})().catch(() => setError(t`Could not keep this review on this device. Try again.`));
+					}}
+				>
+					<Button
+						variant="secondary"
+						disabled={
+							busy ||
+							needsReconciliation ||
+							acceptedCandidates.length === 0 ||
+							factsSaved ||
+							(partial && reviewedCount < total)
+						}
+						onClick={() => void confirm({ kind: "career" })}
+					>
+						<Trans context="review.import.saveFactsOnly">Save confirmed facts only</Trans>
+					</Button>
+				</BaseCvLimitNotice>
+			)}
+			{factsSaved && (
+				<p role="status" className="type-body text-ink-2">
+					<Trans context="review.import.factsSaved">
+						Confirmed facts saved to Career information. Your existing CV and import review are kept.
+					</Trans>
 				</p>
 			)}
 			{error && (
@@ -939,20 +1110,7 @@ export function ImportReview({
 					</AlertActions>
 				</Alert>
 			)}
-
-			<footer className="flex flex-wrap justify-end gap-3 border-t border-line pt-4">
-				<Button variant="secondary" disabled={busy} onClick={onBack}>
-					<Trans>Cancel</Trans>
-				</Button>
-				<Button
-					loading={busy}
-					disabled={needsReconciliation || (partial && reviewedCount < total)}
-					onClick={() => void confirm()}
-				>
-					<Trans context="review.import.saveAndContinue">Create CV and open editor</Trans>
-				</Button>
-			</footer>
-		</div>
+		</StickyActions>
 	);
 }
 

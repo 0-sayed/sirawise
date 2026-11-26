@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
-import { copyFile, mkdir, mkdtemp } from "node:fs/promises";
+import { once } from "node:events";
+import { mkdir, mkdtemp } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { createConnection } from "node:net";
 import { availableParallelism, freemem } from "node:os";
@@ -48,6 +49,7 @@ export function ciBrowserEnvironment({ parent, databaseUrl, migrationUrl, direct
 		PATH: resolve(repository, ".cache/document-toolchain/bin") + ":" + parent.PATH,
 		HOME: parent.HOME,
 		TMPDIR: directory,
+		PLAYWRIGHT_JUNIT_OUTPUT_FILE: resolve(directory, "junit.xml"),
 		...(parent.E2E_PUBLIC_EVIDENCE_DIR ? { E2E_PUBLIC_EVIDENCE_DIR: parent.E2E_PUBLIC_EVIDENCE_DIR } : {}),
 		...(parent.IMPECCABLE_BIN ? { IMPECCABLE_BIN: parent.IMPECCABLE_BIN } : {}),
 		NODE_OPTIONS: `--import=${new URL("./test-isolation.mjs", import.meta.url).href}`,
@@ -177,22 +179,13 @@ async function main() {
 			throw new Error("Production build failed");
 	}
 	// Synthetic retention policy is runner-only; production startup stays disabled.
-	const retentionWorker = spawn(
-		"pnpm",
-		[
-			"--config.verifyDepsBeforeRun=false",
-			"--filter",
-			"server",
-			"exec",
-			"tsx",
-			"../../tests/e2e/privacy-retention-worker.ts",
-		],
-		{
-			cwd: repository,
-			env,
-			stdio: "inherit",
-		},
-	);
+	const retentionWorker = spawn(process.execPath, ["--import", "tsx", "../../tests/e2e/privacy-retention-worker.ts"], {
+		cwd: resolve(repository, "apps/server"),
+		env: { ...env, TSX_TSCONFIG_PATH: "../../tsconfig.json" },
+		stdio: "inherit",
+	});
+	const retentionClosed = once(retentionWorker, "close");
+	void retentionClosed.catch(() => {});
 	try {
 		process.exitCode = await run([
 			...ciBrowserTestCommand(args.filter((arg) => arg !== "--skip-build")),
@@ -201,8 +194,8 @@ async function main() {
 		]);
 	} finally {
 		retentionWorker.kill("SIGTERM");
+		await retentionClosed;
 	}
-	await copyFile(resolve(repository, "test-results/e2e-junit.xml"), resolve(directory, "junit.xml"));
 	// Retain only this new synthetic database/storage for failure investigation; never reuse it on the next run.
 }
 

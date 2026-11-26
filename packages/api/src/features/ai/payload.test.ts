@@ -1,5 +1,12 @@
 import { expect, it } from "vite-plus/test";
-import { buildModelPayload } from "./payload";
+import { buildModelPayload, redactModelText } from "./payload";
+
+it("keeps earlier redactions intact when a shorter contact resembles a redaction marker", () => {
+	expect(redactModelText("Taylor Example worked with Ed.", ["Taylor Example", "Ed"])).toEqual({
+		text: "[redacted] work[redacted] with [redacted].",
+		redactedValues: ["Taylor Example", "ed", "Ed"],
+	});
+});
 
 it("keeps opaque provenance for explicitly unconfirmed sources without relabelling facts", () => {
 	expect(

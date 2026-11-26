@@ -1,13 +1,12 @@
 import { z } from "zod";
 import { sourceRevisionSchema } from "../ai-operation";
-import { JOB_TEXT_LIMIT } from "../job-evidence";
-import { reviewDecisionViewSchema } from "./ai-review";
+import { questionAnswersSchema, reviewDecisionViewSchema } from "./ai-review";
 import { resumeDataSchema } from "./data";
 import {
 	jobEvidenceSchema,
 	summaryOutputSchema,
 	tailoringOutputSchema,
-	translationOutputSchema,
+	translationReviewOutputSchema,
 } from "./variant-outputs";
 
 const id = z
@@ -27,29 +26,76 @@ export const variantOperationKindSchema = z.enum([
 	"review.summary",
 ]);
 export type VariantOperationKind = z.infer<typeof variantOperationKindSchema>;
+const clarificationContinuation = {
+	continuationOf: id.optional(),
+	answerIds: z
+		.array(id)
+		.min(1)
+		.max(9)
+		.refine((ids) => new Set(ids).size === ids.length)
+		.optional(),
+};
 const operationCommon = { resumeId: id, expectedUpdatedAt: z.iso.datetime() };
-const operationJob = { ...operationCommon, jobId: id, jobRevision: id, expectedSelectionRevision: z.iso.datetime() };
+const operationJob = {
+	...operationCommon,
+	jobId: id,
+	jobRevision: id,
+	expectedSelectionRevision: z.iso.datetime(),
+	interfaceLocale: documentLocaleSchema.optional(),
+};
 export const variantOperationParameters = {
-	"review.job-evidence": z.strictObject(operationJob),
+	"review.job-evidence": z.strictObject({
+		...operationJob,
+		...clarificationContinuation,
+		jobSpanVersion: z.literal("requirements-v2").optional(),
+	}),
 	"review.tailoring": z.strictObject(operationJob),
-	"review.translation": z.strictObject({ ...operationCommon, expectedSourceRevision: z.iso.datetime() }),
+	"review.translation": z.strictObject({
+		...operationCommon,
+		expectedSourceRevision: z.iso.datetime(),
+		translationBatch: z
+			.strictObject({
+				rootId: id,
+				index: z.number().int().nonnegative(),
+				total: z.number().int().positive(),
+				planVersion: z.literal("compact-v1").optional(),
+				planHash: z.string().regex(/^[a-f0-9]{64}$/u),
+				retrySegmentIds: z.array(id).min(1).max(49).optional(),
+			})
+			.optional(),
+	}),
 	"review.summary": z.strictObject({
 		...operationCommon,
+		...clarificationContinuation,
+		interfaceLocale: documentLocaleSchema.optional(),
 		selectedEvidenceIds: z
 			.array(id)
+			.min(1)
 			.max(49)
 			.refine((ids) => new Set(ids).size === ids.length),
 	}),
 } as const;
 export const prepareVariantReviewInputSchema = z.discriminatedUnion("kind", [
-	variantOperationParameters["review.job-evidence"].extend({ kind: z.literal("review.job-evidence") }),
+	variantOperationParameters["review.job-evidence"]
+		.omit({ jobSpanVersion: true, continuationOf: true, answerIds: true })
+		.extend({ kind: z.literal("review.job-evidence") }),
 	variantOperationParameters["review.tailoring"].extend({ kind: z.literal("review.tailoring") }),
-	variantOperationParameters["review.translation"].extend({ kind: z.literal("review.translation") }),
-	variantOperationParameters["review.summary"].extend({ kind: z.literal("review.summary") }),
+	variantOperationParameters["review.translation"]
+		.omit({ translationBatch: true })
+		.extend({ kind: z.literal("review.translation") }),
+	variantOperationParameters["review.summary"]
+		.omit({ continuationOf: true, answerIds: true })
+		.extend({ kind: z.literal("review.summary") }),
 ]);
 const copyFields = { sourceResumeId: id, expectedUpdatedAt: z.iso.datetime(), requestKey: id };
 export const createVariantInputSchema = z.discriminatedUnion("variantKind", [
-	z.strictObject({ ...copyFields, variantKind: z.literal("job"), jobId: id, jobRevision: id }),
+	z.strictObject({
+		...copyFields,
+		variantKind: z.literal("job"),
+		jobId: id,
+		jobRevision: id,
+		review: z.strictObject({ operationId: id, decisionId: id }).optional(),
+	}),
 	z.strictObject({ ...copyFields, variantKind: z.literal("language"), targetLocale: documentLocaleSchema }),
 ]);
 export type CreateVariantInput = z.infer<typeof createVariantInputSchema>;
@@ -68,92 +114,138 @@ export const translationSectionSchema = z.enum([
 	"publications",
 	"volunteer",
 ]);
-const blockIndex = z.number().int().nonnegative().max(500).optional();
+const blockIndex = z.number().int().nonnegative().optional();
+const customScope = { customSectionId: id.optional() };
 export const translationTargetSchema = z
 	.union([
 		z.strictObject({ sectionId: z.literal("basics"), field: z.literal("headline") }),
-		z.strictObject({ sectionId: translationSectionSchema, field: z.literal("title") }),
-		z.strictObject({ sectionId: z.literal("summary"), field: z.literal("content"), blockIndex }),
+		z.strictObject({ ...customScope, sectionId: translationSectionSchema, field: z.literal("title") }),
 		z.strictObject({
+			...customScope,
+			sectionId: z.literal("summary"),
+			field: z.literal("content"),
+			itemId: id.optional(),
+			blockIndex,
+		}),
+		z.strictObject({
+			...customScope,
 			sectionId: z.literal("experience"),
 			itemId: id,
 			roleId: id.optional(),
 			field: z.enum(["position", "description"]),
 			blockIndex,
 		}),
-		z.strictObject({ sectionId: z.literal("experience"), itemId: id, field: z.literal("company") }),
+		z.strictObject({ ...customScope, sectionId: z.literal("experience"), itemId: id, field: z.literal("company") }),
 		z.strictObject({
+			...customScope,
 			sectionId: z.literal("education"),
 			itemId: id,
 			field: z.enum(["school", "degree", "area", "description"]),
 			blockIndex,
 		}),
-		z.strictObject({ sectionId: z.literal("skills"), itemId: id, field: z.enum(["name", "proficiency"]) }),
 		z.strictObject({
+			...customScope,
+			sectionId: z.literal("skills"),
+			itemId: id,
+			field: z.enum(["name", "proficiency"]),
+		}),
+		z.strictObject({
+			...customScope,
 			sectionId: z.enum(["skills", "interests"]),
 			itemId: id,
 			field: z.literal("keywords"),
-			index: z.number().int().nonnegative().max(500),
+			index: z.number().int().nonnegative(),
 		}),
-		z.strictObject({ sectionId: z.literal("interests"), itemId: id, field: z.literal("name") }),
+		z.strictObject({ ...customScope, sectionId: z.literal("interests"), itemId: id, field: z.literal("name") }),
 		z.strictObject({
+			...customScope,
 			sectionId: z.literal("awards"),
 			itemId: id,
 			field: z.enum(["title", "awarder", "description"]),
 			blockIndex,
 		}),
 		z.strictObject({
+			...customScope,
 			sectionId: z.literal("certifications"),
 			itemId: id,
 			field: z.enum(["title", "issuer", "description"]),
 			blockIndex,
 		}),
 		z.strictObject({
+			...customScope,
 			sectionId: z.literal("projects"),
 			itemId: id,
 			field: z.enum(["name", "description"]),
 			blockIndex,
 		}),
 		z.strictObject({
+			...customScope,
 			sectionId: z.literal("publications"),
 			itemId: id,
 			field: z.enum(["title", "publisher", "description"]),
 			blockIndex,
 		}),
 		z.strictObject({
+			...customScope,
 			sectionId: z.literal("volunteer"),
 			itemId: id,
 			field: z.enum(["organization", "description"]),
 			blockIndex,
 		}),
-		z.strictObject({ sectionId: z.literal("languages"), itemId: id, field: z.enum(["language", "fluency"]) }),
+		z.strictObject({
+			...customScope,
+			sectionId: z.literal("languages"),
+			itemId: id,
+			field: z.enum(["language", "fluency"]),
+		}),
+		z.strictObject({
+			customSectionId: id,
+			sectionId: z.enum(["profiles", "references", "cover-letter"]),
+			field: z.literal("title"),
+		}),
+		z.strictObject({ customSectionId: id, sectionId: z.literal("profiles"), itemId: id, field: z.literal("network") }),
+		z.strictObject({
+			customSectionId: id,
+			sectionId: z.literal("references"),
+			itemId: id,
+			field: z.enum(["position", "description"]),
+			blockIndex,
+		}),
+		z.strictObject({
+			customSectionId: id,
+			sectionId: z.literal("cover-letter"),
+			itemId: id,
+			field: z.literal("content"),
+			blockIndex,
+		}),
 	])
 	.refine(
 		(target) =>
-			!("blockIndex" in target) ||
-			target.blockIndex === undefined ||
-			target.field === "content" ||
-			target.field === "description",
-		"Block index requires rich text",
+			(target.sectionId !== "summary" ||
+				target.field !== "content" ||
+				Boolean(target.customSectionId) === Boolean(target.itemId)) &&
+			(!("blockIndex" in target) ||
+				target.blockIndex === undefined ||
+				target.field === "content" ||
+				target.field === "description"),
+		"Invalid translation scope or rich-text block",
 	);
 export type TranslationTarget = z.infer<typeof translationTargetSchema>;
 
 export const variantTerminologySchema = z
 	.strictObject({
 		schemaVersion: z.literal(1),
-		terms: z
-			.array(
-				z.strictObject({
-					id,
-					sourceRevision: z.string().min(1).max(200),
-					target: translationTargetSchema,
-					source: z.string().min(1).max(4000),
-					value: z.string().min(1).max(4000),
-					status: z.enum(["pending", "confirmed"]),
-					author: z.enum(["source", "user"]),
-				}),
-			)
-			.max(500),
+		terms: z.array(
+			z.strictObject({
+				id,
+				sourceRevision: z.string().min(1).max(200),
+				target: translationTargetSchema,
+				source: z.string().min(1),
+				value: z.string().min(1),
+				status: z.enum(["pending", "confirmed"]),
+				author: z.enum(["source", "user"]),
+			}),
+		),
 	})
 	.refine(
 		(value) => new Set(value.terms.map((term) => term.id)).size === value.terms.length,
@@ -180,11 +272,23 @@ export const variantFreshnessSchema = variantViewSchema.extend({
 export type VariantView = z.infer<typeof variantViewSchema>;
 export type VariantFreshness = z.infer<typeof variantFreshnessSchema>;
 
-const reviewEnvelope = { schemaVersion: z.literal(1), sourceRevision: sourceRevisionSchema };
+import { withheldJobEvidenceSchema, withheldReviewItemsSchema, type WithheldReviewItems } from "./ai-review";
+export { withheldReviewItemsSchema, type WithheldReviewItems };
+
+const reviewEnvelope = {
+	schemaVersion: z.literal(1),
+	sourceRevision: sourceRevisionSchema,
+	withheld: withheldReviewItemsSchema.optional(),
+};
 export const variantReviewResultSchema = z.discriminatedUnion("kind", [
-	z.strictObject({ ...reviewEnvelope, kind: z.literal("review.job-evidence"), output: jobEvidenceSchema }),
+	z.strictObject({
+		...reviewEnvelope,
+		kind: z.literal("review.job-evidence"),
+		output: jobEvidenceSchema,
+		withheld: withheldJobEvidenceSchema.optional(),
+	}),
 	z.strictObject({ ...reviewEnvelope, kind: z.literal("review.tailoring"), output: tailoringOutputSchema }),
-	z.strictObject({ ...reviewEnvelope, kind: z.literal("review.translation"), output: translationOutputSchema }),
+	z.strictObject({ ...reviewEnvelope, kind: z.literal("review.translation"), output: translationReviewOutputSchema }),
 	z.strictObject({ ...reviewEnvelope, kind: z.literal("review.summary"), output: summaryOutputSchema }),
 ]);
 export type VariantReviewResult = z.infer<typeof variantReviewResultSchema>;
@@ -234,7 +338,7 @@ export const variantDecisionPayloadSchema = z.strictObject({
 	segments: z.record(
 		z.string(),
 		z.strictObject({
-			text: z.string().max(4000),
+			text: z.string(),
 			status: z.enum(["pending", "accepted", "rejected"]),
 			author: z.enum(["model", "user"]),
 		}),
@@ -243,17 +347,42 @@ export const variantDecisionPayloadSchema = z.strictObject({
 	after: savedSnapshotSchema.nullable(),
 });
 export type VariantDecisionPayload = z.infer<typeof variantDecisionPayloadSchema>;
-export const variantReviewViewSchema = z.strictObject({
-	beforeSummary: z.string().max(32000),
-	answeredQuestionIds: z.array(id).max(100),
-	dismissedQuestionIds: z.array(id).max(100),
-	result: variantReviewResultSchema,
-	statuses: variantDecisionViewSchema.shape.statuses,
-	terms: variantTerminologySchema,
-	segments: variantDecisionPayloadSchema.shape.segments,
-	sourceSegments: z.array(z.strictObject({ id, text: z.string().max(JOB_TEXT_LIMIT) })).max(49),
-	updatedAt: z.iso.datetime(),
-	latestDecisionId: id.nullable(),
-	stale: z.boolean(),
-	undoable: z.array(z.strictObject({ decisionId: id, subjectIds: subjects })),
-});
+export const variantReviewViewSchema = z
+	.strictObject({
+		beforeSummary: z.string().max(32000),
+		beforeOrder: tailoringOutputSchema.shape.order.optional(),
+		answeredQuestionIds: z.array(id).max(100),
+		questionAnswers: questionAnswersSchema.optional(),
+		remainingAnswerSlots: z.number().int().nonnegative().optional(),
+		continued: z.boolean().optional(),
+		dismissedQuestionIds: z.array(id).max(100),
+		result: variantReviewResultSchema,
+		statuses: variantDecisionViewSchema.shape.statuses,
+		terms: variantTerminologySchema,
+		segments: variantDecisionPayloadSchema.shape.segments,
+		sourceSegments: z.array(
+			z.strictObject({
+				id,
+				text: z.string(),
+				untranslated: z
+					.strictObject({ partIndex: z.number().int().nonnegative().optional(), reason: z.string().optional() })
+					.optional(),
+			}),
+		),
+		updatedAt: z.iso.datetime(),
+		latestDecisionId: id.nullable(),
+		stale: z.boolean(),
+		undoable: z.array(z.strictObject({ decisionId: id, subjectIds: subjects })),
+	})
+	.superRefine((view, ctx) => {
+		if (view.result.kind === "review.translation") return;
+		view.sourceSegments.forEach((segment, index) => {
+			if (segment.text.length > 32000)
+				ctx.addIssue({
+					code: "custom",
+					path: ["sourceSegments", index, "text"],
+					message: "Job source text exceeds the input limit",
+				});
+		});
+	});
+export type VariantReviewView = z.infer<typeof variantReviewViewSchema>;

@@ -140,7 +140,7 @@ for (const locale of ["ar-SA", "en-US"] as const)
 					await page.keyboard.press("Enter");
 					await expect(page.locator("main")).toBeFocused();
 					// The bilingual example always opens on Arabic, whatever the interface language.
-					await expect(page.locator('[data-example-language="ar"]')).toContainText("عبدالله القحطاني");
+					await expect(page.locator('[data-example-language="ar"]')).toContainText("عبدالإله الجبل");
 					const question = page.getByRole("button", {
 						name: locale === "ar-SA" ? "هل يمكنني استيراد سيرتي الحالية؟" : "Can I import my current CV?",
 						exact: true,

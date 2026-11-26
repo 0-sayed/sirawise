@@ -1,0 +1,182 @@
+[
+	{
+		"id": "translation-en-date",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "subject",
+				"issueClass": "AI_UNSUPPORTED_CLAIM",
+				"stage": "deterministic"
+			}
+		],
+		"retainedIds": ["honest-sibling"]
+	},
+	{
+		"id": "translation-en-hijri",
+		"mode": "deterministic",
+		"caught": [
+			{
+				"itemId": "subject",
+				"issueClass": "AI_UNSUPPORTED_CLAIM",
+				"stage": "deterministic"
+			}
+		],
+		"retainedIds": []
+	},
+	{
+		"id": "translation-en-extra-note",
+		"mode": "deterministic",
+		"caught": [
+			{
+				"itemId": "subject",
+				"issueClass": "AI_CANDIDATE_SCHEMA",
+				"stage": "deterministic"
+			}
+		],
+		"retainedIds": []
+	},
+	{
+		"id": "translation-en-name",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "subject",
+				"issueClass": "AI_UNSUPPORTED_CLAIM",
+				"stage": "deterministic"
+			}
+		],
+		"retainedIds": ["honest-sibling"]
+	},
+	{
+		"id": "translation-en-responsibility",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "subject",
+				"issueClass": "responsibility",
+				"stage": "semantic"
+			}
+		],
+		"retainedIds": ["honest-sibling"]
+	},
+	{
+		"id": "translation-en-polarity",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "subject",
+				"issueClass": "polarity",
+				"stage": "semantic"
+			}
+		],
+		"retainedIds": []
+	},
+	{
+		"id": "translation-en-metrics",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "subject",
+				"issueClass": "responsibility",
+				"stage": "semantic"
+			}
+		],
+		"retainedIds": []
+	},
+	{
+		"id": "translation-en-honest",
+		"mode": "semantic",
+		"caught": [],
+		"retainedIds": ["honest"]
+	},
+	{
+		"id": "translation-ar-quantity",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "subject",
+				"issueClass": "AI_UNSUPPORTED_CLAIM",
+				"stage": "deterministic"
+			}
+		],
+		"retainedIds": ["honest-sibling"]
+	},
+	{
+		"id": "translation-ar-date",
+		"mode": "deterministic",
+		"caught": [
+			{
+				"itemId": "subject",
+				"issueClass": "AI_UNSUPPORTED_CLAIM",
+				"stage": "deterministic"
+			}
+		],
+		"retainedIds": []
+	},
+	{
+		"id": "translation-ar-duplicate-id",
+		"mode": "deterministic",
+		"caught": [
+			{
+				"itemId": "subject",
+				"issueClass": "AI_SOURCE_BINDING",
+				"stage": "deterministic"
+			}
+		],
+		"retainedIds": []
+	},
+	{
+		"id": "translation-ar-credential",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "subject",
+				"issueClass": "credential",
+				"stage": "semantic"
+			}
+		],
+		"retainedIds": ["honest-sibling"]
+	},
+	{
+		"id": "translation-ar-omission",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "subject",
+				"issueClass": "omission",
+				"stage": "semantic"
+			}
+		],
+		"retainedIds": []
+	},
+	{
+		"id": "translation-ar-responsibility",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "subject",
+				"issueClass": "responsibility",
+				"stage": "semantic"
+			}
+		],
+		"retainedIds": ["honest-sibling"]
+	},
+	{
+		"id": "translation-ar-unchanged",
+		"mode": "semantic",
+		"caught": [
+			{
+				"itemId": "subject",
+				"issueClass": "omission",
+				"stage": "semantic"
+			}
+		],
+		"retainedIds": []
+	},
+	{
+		"id": "translation-ar-honest",
+		"mode": "semantic",
+		"caught": [],
+		"retainedIds": ["honest"]
+	}
+]

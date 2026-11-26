@@ -3,10 +3,84 @@ import { createServer } from "node:http";
 import { expect, it } from "vite-plus/test";
 import { z } from "zod";
 import { executeApprovedStep } from "@reactive-resume/api/features/ai/adapter";
-import { withAiRuntime } from "@reactive-resume/api/features/ai/route-policy";
-import { resolveReviewVerifierRoute } from "@reactive-resume/api/features/ai/verifier-policy";
+import { extractionCandidateHandler } from "@reactive-resume/api/features/ai/review-handlers";
+import {
+	completionTokenLimit,
+	getOperationHandler,
+	withAiRuntime,
+} from "@reactive-resume/api/features/ai/route-policy";
+import { jobEvidenceCandidateContract } from "@reactive-resume/api/features/ai/variant-contracts";
+import {
+	resolveReviewVerifierRoute,
+	resolveReviewVerifierRoutes,
+} from "@reactive-resume/api/features/ai/verifier-policy";
 import { resolveWriterRoute } from "@reactive-resume/api/features/ai/writer-policy";
 import { createRealAiRuntime } from "./real-ai-runtime";
+
+it("selects the candidate contracts and approved verifier limits for local requests", () => {
+	const environment = { NODE_ENV: "development", OPENROUTER_API_KEY: "fake-local-only" };
+	const baseline = createRealAiRuntime(environment);
+	const runtime = createRealAiRuntime({ ...environment, LOCAL_REAL_AI_PIPELINES: "candidates" });
+	expect(baseline.handlers["review.translation"]).toMatchObject({ translationPlanVersion: "compact-v1" });
+	expect(baseline.handlers["review.translation"]?.verifier).toBeUndefined();
+	expect(runtime.handlers["review.translation"]?.promptVersion).toBe(
+		baseline.handlers["review.translation"]?.promptVersion,
+	);
+	expect(runtime.handlers["review.translation"]?.verifier).toBeUndefined();
+	const route = runtime.routes[0];
+	if (!route) throw new Error("Missing local route");
+	for (const [kind, contract] of [
+		["review.job-evidence", jobEvidenceCandidateContract],
+		["review.extraction", extractionCandidateHandler],
+	] as const) {
+		const legacy = baseline.handlers[kind];
+		if (!legacy) throw new Error("Missing legacy handler");
+		expect(legacy.promptVersion).not.toBe(contract.promptVersion);
+		withAiRuntime(runtime, () => {
+			expect(getOperationHandler(kind)).toMatchObject({
+				promptVersion: contract.promptVersion,
+				schemaVersion: contract.schemaVersion,
+			});
+			expect(getOperationHandler(kind, legacy)).toBe(legacy);
+		});
+		const writer = resolveWriterRoute(route, { kind, parameters: {} });
+		const { primary, backup } = resolveReviewVerifierRoutes(writer, kind);
+		expect(primary).toMatchObject({
+			maxOutputTokens: kind === "review.job-evidence" ? 9830 : 16384,
+			maxCallCostMicros: 100000,
+		});
+		expect(completionTokenLimit(primary)).toBe(kind === "review.job-evidence" ? 12288 : 20480);
+		expect(backup).toBeUndefined();
+	}
+});
+
+it("rejects the local candidate switch in production mode", () => {
+	expect(() =>
+		createRealAiRuntime({
+			NODE_ENV: "production",
+			LOCAL_REAL_AI_PIPELINES: "candidates",
+			OPENROUTER_API_KEY: "fake-local-only",
+		}),
+	).toThrow("LOCAL_REAL_AI_DEV_ONLY");
+});
+
+it.each([
+	{ kind: "review.translation", callTimeoutMs: 90_000, deadlineMs: 300_000, boundByTogetherPricing: true },
+	{ kind: "review.job-evidence", callTimeoutMs: 90_000, deadlineMs: 240_000, boundByTogetherPricing: true },
+	{ kind: "review.tailoring", callTimeoutMs: 90_000, deadlineMs: 240_000, boundByTogetherPricing: false },
+	{ kind: "review.summary", callTimeoutMs: 60_000, deadlineMs: 120_000, boundByTogetherPricing: false },
+])("gives $kind its bounded execution time", ({ kind, callTimeoutMs, deadlineMs, boundByTogetherPricing }) => {
+	const route = createRealAiRuntime({ OPENROUTER_API_KEY: "fake-local-only" }).routes[0];
+	if (!route) throw new Error("Missing local route");
+	const writer = resolveWriterRoute(route, { kind, parameters: {} });
+	expect(writer).toMatchObject({ callTimeoutMs, deadlineMs, requestCapMicros: 200_000 });
+	expect(resolveReviewVerifierRoute(writer)).toMatchObject({
+		callTimeoutMs,
+		maxCallCostMicros: 100_000,
+		deadlineMs,
+		boundByTogetherPricing,
+	});
+});
 
 it("registers every implemented local review task without enabling benchmark-only interview preparation", () => {
 	const runtime = createRealAiRuntime({ OPENROUTER_API_KEY: "fake-local-only" });
@@ -26,8 +100,9 @@ it("registers every implemented local review task without enabling benchmark-onl
 		model: "openai/gpt-6.1-terra",
 		reasoningEffort: "medium",
 	});
-	for (const kind of ["review.summary", "review.tailoring", "review.translation", "review.cover-letter"])
+	for (const kind of ["review.summary", "review.tailoring", "review.cover-letter"])
 		expect(runtime.handlers[kind]?.verifier).toBeDefined();
+	expect(runtime.handlers["review.translation"]?.verifier).toBeUndefined();
 });
 
 it.each([
@@ -41,9 +116,9 @@ it.each([
 		tokens: 8192,
 	},
 	{ kind: "review.summary", parameters: {}, model: "openai/gpt-6.1-terra", effort: "medium", tokens: 1536 },
-	{ kind: "review.job-evidence", parameters: {}, model: "openai/gpt-6.1-terra", effort: "medium", tokens: 1024 },
-	{ kind: "review.tailoring", parameters: {}, model: "openai/gpt-6.1-terra", effort: "medium", tokens: 1024 },
-	{ kind: "review.translation", parameters: {}, model: "openai/gpt-6-luna", effort: "low", tokens: 960 },
+	{ kind: "review.job-evidence", parameters: {}, model: "openai/gpt-6.1-terra", effort: "medium", tokens: 8192 },
+	{ kind: "review.tailoring", parameters: {}, model: "openai/gpt-6.1-terra", effort: "medium", tokens: 8192 },
+	{ kind: "review.translation", parameters: {}, model: "openai/gpt-6-luna", effort: "low", tokens: 5120 },
 	{ kind: "review.cover-letter", parameters: {}, model: "openai/gpt-6.1-terra", effort: "medium", tokens: 3072 },
 	{ kind: "review.interview-prep", parameters: {}, model: "openai/gpt-6.1-terra", effort: "medium", tokens: 3072 },
 ])(
@@ -142,6 +217,7 @@ it("sends writer and verifier through the production adapter to a local stub wit
 		for (const [index, request] of requests.entries()) {
 			expect(request.provider).toEqual({
 				only: [index === 0 ? "azure" : "together"],
+				...(index === 0 ? {} : { max_price: { prompt: 0.3, completion: 1.2, request: 0 } }),
 				allow_fallbacks: false,
 				require_parameters: true,
 				data_collection: "deny",

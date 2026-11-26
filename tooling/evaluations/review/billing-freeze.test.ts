@@ -44,3 +44,27 @@ it("rejects stale billing metadata even when all sealed bytes match", () => {
 	required((state.amendment.revisions as Record<string, { after: string }>)[required(paths[0])]).after = sha("stale");
 	expect(() => assertFrozenStudy(read, "tasks-v1")).toThrow("STUDY_FREEZE_CHANGED");
 });
+
+it("verifies a new unapproved identity without extending the historical billing amendment", () => {
+	const read = setup("after");
+	const amendmentPath = "tooling/evaluations/review/billing-amendment.json";
+	const amendment = JSON.stringify(state.amendment);
+	const files = Object.fromEntries(
+		[...paths, amendmentPath].sort().map((path) => [path, sha(path === amendmentPath ? amendment : "after")]),
+	);
+	Object.assign(state.freeze, {
+		approvalStatus: "UNAPPROVED",
+		studyId: `tasks-v1-personal-career-${sha(JSON.stringify(files)).slice(0, 12)}`,
+		files,
+	});
+	const readReseal = (path: string) => (path === amendmentPath ? Buffer.from(amendment) : read(path));
+	expect(assertFrozenStudy(readReseal, "tasks-v1")).toBe(state.freeze);
+	expect(() =>
+		assertFrozenStudy(
+			(path) => (path === amendmentPath ? Buffer.from("reassigned amendment") : readReseal(path)),
+			"tasks-v1",
+		),
+	).toThrow("STUDY_FREEZE_CHANGED");
+	state.freeze.studyId = state.amendment.studyId;
+	expect(() => assertFrozenStudy(readReseal, "tasks-v1")).toThrow("STUDY_FREEZE_CHANGED");
+});

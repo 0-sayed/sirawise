@@ -18,6 +18,7 @@ const titles = [
 	["/auth/resume-password", "هذه السيرة الذاتية محمية بكلمة مرور", "This resume is password protected"],
 	["/dashboard/", "مستنداتي", "My documents"],
 	["/dashboard/career/information", "المعلومات المهنية", "Career information"],
+	["/dashboard/resumes/$resumeId/job", "المقارنة بوظيفة", "Job comparison"],
 	["/dashboard/applications/", "طلبات التقديم", "Applications"],
 	["/dashboard/applications/$applicationId/{-$tab}", "طلبات التقديم", "Applications"],
 	["/dashboard/settings/", "الإعدادات", "Settings"],

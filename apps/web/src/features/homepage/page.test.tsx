@@ -81,7 +81,7 @@ it("prerenders the product story, demos and honest pricing without JavaScript", 
 	expect(html).toContain('id="how-it-works"');
 	expect(html).toContain('href="/dashboard/review-guide?locale=en-US"');
 	expect(html).not.toContain('href="/ats-checker');
-	expect(html).toContain("Abdullah Alqahtani");
+	expect(html).toContain("Abdulelah Aljabal");
 	expect(html).toContain("Prepare monthly financial reports.");
 	for (const text of [
 		"Add your facts",

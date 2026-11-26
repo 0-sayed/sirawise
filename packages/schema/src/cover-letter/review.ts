@@ -34,6 +34,7 @@ export const letterGenerationInputSchema = z.strictObject({
 	jobRevision: identifier,
 	expectedSelectionRevision: z.iso.datetime(),
 	documentLocale: z.enum(["ar-SA", "en-US"]),
+	interfaceLocale: z.enum(["ar-SA", "en-US"]).optional(),
 	length: z.enum(["short", "normal"]),
 });
 export type LetterGenerationInput = z.infer<typeof letterGenerationInputSchema>;

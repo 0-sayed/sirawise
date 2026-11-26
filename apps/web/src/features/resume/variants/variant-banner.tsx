@@ -5,10 +5,13 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Badge } from "@reactive-resume/ui/components/badge";
 import { IconButton } from "@reactive-resume/ui/components/icon-button";
+import { cn } from "@reactive-resume/utils/style";
+import { isReviewRunning, useReviewOperationStatus } from "../editor/proposals/review-operation";
+import { TranslationGaps, UntranslatedBadge, useTranslationGapRetry } from "./translation-gaps";
 import { browserStorage, storageKey } from "@/libs/browser-storage";
 import { orpc } from "@/libs/orpc/client";
 /** A copy's stored identity is independent from the interface language and review status. */
-export function VariantBanner({ resumeId }: { resumeId: string }) {
+export function VariantBanner({ resumeId, className }: { resumeId: string; className?: string }) {
 	const family = useQuery(orpc.resume.variants.list.queryOptions({ input: { resumeId } }));
 	const { data: documents } = useQuery(orpc.documents.list.queryOptions({ input: { trashed: false } }));
 	const key = storageKey("variantContext", resumeId);
@@ -32,7 +35,7 @@ export function VariantBanner({ resumeId }: { resumeId: string }) {
 	if (!current || current.variantKind === "base") return null;
 	const job = documents?.find((document) => document.id === resumeId)?.application;
 	return (
-		<section aria-label={t`Copy context`} className="grid gap-2 rounded-lg border border-line p-3">
+		<section aria-label={t`Copy context`} className={cn("grid gap-2 rounded-lg border border-line p-3", className)}>
 			<div className="flex min-w-0 items-center gap-2">
 				<Badge>{current.variantKind === "language" ? <Trans>Language copy</Trans> : <Trans>Job copy</Trans>}</Badge>
 				<span className="type-metadata text-ink-2">
@@ -77,6 +80,38 @@ export function VariantBanner({ resumeId }: { resumeId: string }) {
 					</div>
 				</>
 			)}
+			{current.variantKind === "language" && current.operationId && (
+				<LanguageCopyGaps operationId={current.operationId} collapsed={collapsed} />
+			)}
 		</section>
+	);
+}
+
+function LanguageCopyGaps({ operationId, collapsed }: { operationId: string; collapsed: boolean }) {
+	const status = useReviewOperationStatus(operationId);
+	const running = !!status.data && isReviewRunning(status.data);
+	const review = useQuery({
+		...orpc.ai.variantReview.get.queryOptions({ input: { operationId } }),
+		enabled: !!status.data?.resultId && !running,
+	});
+	const retry = useTranslationGapRetry(operationId, review.data?.stale);
+	if (running || review.data?.stale || review.data?.statuses.translation === "rejected") return null;
+	const result = review.data?.result;
+	const withheld = new Map(
+		result?.kind === "review.translation" ? result.withheld?.items?.map((item) => [item.id, item]) : [],
+	);
+	const gaps =
+		review.data?.sourceSegments.flatMap(({ id, text, untranslated }) =>
+			untranslated
+				? [{ id, text, partIndex: untranslated.partIndex, reason: untranslated.reason ?? withheld.get(id)?.reason }]
+				: [],
+		) ?? [];
+	if (gaps.length === 0) return null;
+	if (collapsed) return <UntranslatedBadge />;
+	return (
+		<>
+			<TranslationGaps gaps={gaps} retry={retry.open} disabled={retry.pending} />
+			{retry.dialog}
+		</>
 	);
 }

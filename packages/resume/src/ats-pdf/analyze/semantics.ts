@@ -1,4 +1,4 @@
-import type { ExtractedDocument, RawExtraction, ResumeSemantics, TextLine } from "../types";
+import type { DateToken, ExtractedDocument, RawExtraction, ResumeSemantics, TextLine } from "../types";
 import {
 	arabicFirstPersonCount,
 	hasArabicContent,
@@ -90,6 +90,22 @@ function isRoleLike(line: TextLine): boolean {
 
 	const capitalized = (text.match(/\b\p{Lu}[\p{L}&.'-]*/gu) ?? []).length;
 	return capitalized >= 2;
+}
+
+function countSplitRoleLines(document: ExtractedDocument, ranges: readonly DateToken[]): number {
+	return ranges.filter((range) => {
+		const date = document.lines[range.lineIndex];
+		const title = document.lines[range.lineIndex - 1];
+		if (!range.parsed || !date || !title || date.text.trim() !== range.raw) return false;
+		return (
+			title.page === date.page &&
+			Math.abs(title.y + title.height - (date.y + date.height)) <= 2 &&
+			title.x + title.width < date.x &&
+			!isBullet(title) &&
+			/^\p{Lu}[\p{L} .&'’-]{1,79}$/u.test(title.text.trim()) &&
+			title.text.trim().includes(" ")
+		);
+	}).length;
 }
 
 function singleCharItemRatio(raw: RawExtraction): number {
@@ -195,7 +211,8 @@ export function buildResumeSemantics(
 		dates: dates.tokens,
 		quality,
 		bulletLineCount: bullets.length,
-		roleLikeLineCount: document.lines.filter(isRoleLike).length,
+		roleLikeLineCount:
+			document.lines.filter(isRoleLike).length || countSplitRoleLines(document, dates.experienceRanges),
 		allCapsLineCount: document.lines.filter((line) => uppercaseHeavy(line.text)).length,
 		quantifiedBulletCount: bullets.filter(isQuantified).length,
 		actionVerbBulletCount: bullets.filter(startsWithActionVerb).length,

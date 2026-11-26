@@ -17,7 +17,9 @@ import {
 	resumeUsesItalic,
 } from "../hooks/use-register-fonts";
 import { extractPageMap, NODE_CONTENT_PREFIX, NODE_SOURCE_PREFIX, parseResumeNodeKey } from "../page-map";
+import { declaresArabicCoverage } from "./font-bytes";
 import { loadFonts } from "./fonts";
+import { writeArabicTextLayer } from "./hijri-text-layer";
 import { loadIcons } from "./icons";
 import { imageSources, loadImages } from "./images";
 import { paginationBreaks, shortEntries, widowAdjustments } from "./pagination";
@@ -238,6 +240,11 @@ export async function renderResumeElement(
 		fontsLoaded,
 		loadImages(imageSources(tree), readImage),
 	]);
+	const arabicCoverage = new Map<string, boolean>();
+	for (const font of fonts) {
+		const coverage = declaresArabicCoverage(font.src as Uint8Array);
+		if (coverage !== undefined) arabicCoverage.set(font.family, coverage);
+	}
 
 	const breakBeforeListItems = new Set<number>();
 	const breakBeforeNodes = new Set<string>();
@@ -250,6 +257,7 @@ export async function renderResumeElement(
 	const layOutOnce = async (keepNestedRowsWhole: boolean) => {
 		const convert = (freeFormHeights?: (number | undefined)[]) =>
 			toFormeDocument(tree, {
+				arabicCoverage,
 				images,
 				keepNestedRowsWhole,
 				breakBeforeListItems,
@@ -276,7 +284,9 @@ export async function renderResumeElement(
 		let result = await render(converted);
 		if (!measuredPagination && result.layout.pages.length > converted.document.children.length) {
 			measuredPagination = true;
-			const measured = await render(toFormeDocument(tree, { images, measurePagination: true, noWrapFontSizes }));
+			const measured = await render(
+				toFormeDocument(tree, { arabicCoverage, images, measurePagination: true, noWrapFontSizes }),
+			);
 			keepWholeNodes = shortEntries(measured.layout, result.layout);
 			if (keepWholeNodes.size > 0) {
 				converted = convert();
@@ -319,7 +329,7 @@ export async function renderResumeElement(
 			converted = convert(heights);
 			result = await render(converted);
 		}
-		return { result, warnings: converted.warnings };
+		return { result, warnings: converted.warnings, hasArabicText: converted.hasArabicText };
 	};
 
 	// Repair the earliest marker first: repairing adjacent candidates together can create
@@ -334,9 +344,9 @@ export async function renderResumeElement(
 		}
 	};
 
-	let { result, warnings } = await layOut(false);
+	let { result, warnings, hasArabicText } = await layOut(false);
 	let needsNestedRowRepair = misplacesABox(result);
-	if (needsNestedRowRepair) ({ result, warnings } = await layOut(true));
+	if (needsNestedRowRepair) ({ result, warnings, hasArabicText } = await layOut(true));
 	// ponytail: three repairs cap rendering cost; remove this workaround when Forme fixes nested pagination.
 	for (let pass = 0; pass < 3; pass++) {
 		const first = unplacedBlocks(result.layout).find((key) => !breakBeforeNodes.has(key));
@@ -344,7 +354,7 @@ export async function renderResumeElement(
 		// Retry the first failed block from a fresh page; later failures may recover without extra breaks.
 		breakBeforeNodes.add(first);
 		needsNestedRowRepair = true;
-		({ result, warnings } = await layOut(true));
+		({ result, warnings, hasArabicText } = await layOut(true));
 	}
 	// Each pass advances one opening. Re-evaluate after reflow so earlier sections cannot strand later headings.
 	for (;;) {
@@ -360,17 +370,17 @@ export async function renderResumeElement(
 		// Marker repairs describe the preceding layout. Keeping them after moving an entry
 		// strands its second bullet on a new page even when the whole opening now fits.
 		breakBeforeListItems.clear();
-		({ result, warnings } = await layOut(needsNestedRowRepair));
+		({ result, warnings, hasArabicText } = await layOut(needsNestedRowRepair));
 		if (!needsNestedRowRepair && misplacesABox(result)) {
 			needsNestedRowRepair = true;
-			({ result, warnings } = await layOut(true));
+			({ result, warnings, hasArabicText } = await layOut(true));
 		}
 	}
 	if (misplacesABox(result))
 		warnings.push("render defect: the engine couldn't place a box; a page may be laid out wrong");
 
 	return {
-		pdf: result.pdf,
+		pdf: hasArabicText ? writeArabicTextLayer(result.pdf) : result.pdf,
 		pageMap: extractPageMap(result.layout),
 		missingFonts: [...new Set(missing)],
 		layout: result.layout,

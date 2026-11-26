@@ -2466,5 +2466,100 @@
 		"reason": "Owner-requested AI worker throughput fix. Run admitted owners concurrently and drain active leases during shutdown. Start queued execution deadlines at the first claim. Preserve prompts, guards, fixtures, scoring and model pins. Incorporate the unchanged D39 billing revisions. No paid results, approval or qualification are reused.",
 		"sha256": "cd2a4cf9a6bf0bcca05b8969b8e978fc441ffc50c10380e330655b204e1dde1e",
 		"freezeHash": "27a6ccb0a8ddbc1679a386eb7c236bac2e697bf00ab580fd6673e223ba670262"
+	},
+	{
+		"name": "tasks-study-before-ai-review-contracts.json",
+		"date": "2026-11-20",
+		"reason": "Owner-requested AI worker throughput fix. Run admitted owners concurrently and drain active leases during shutdown. Start queued execution deadlines at the first claim. Preserve prompts, guards, fixtures, scoring and model pins. Incorporate the unchanged D39 billing revisions. No paid results, approval or qualification are reused.",
+		"originalName": "tasks-study.json",
+		"studyId": "tasks-v1-personal-career-c802ec134cdf",
+		"studyHash": "e82cb647b1a750c872da0f7bb7b8f299e63cc93c7c5ee981423628c66c063b85",
+		"sha256": "caca61f7bb50b047ec6ec1cf801e00bddf96286cf3a6082b878281a6fc9ac64d",
+		"archivePath": "/tmp/sirawise-fixes/ai-redesign-evidence/tasks-study-history/caca61f7bb50b047ec6ec1cf801e00bddf96286cf3a6082b878281a6fc9ac64d.json"
+	},
+	{
+		"name": "guard-controls-before-ai-review-contracts.json",
+		"date": "2026-11-20",
+		"reason": "Owner-requested AI worker throughput fix. Run admitted owners concurrently and drain active leases during shutdown. Start queued execution deadlines at the first claim. Preserve prompts, guards, fixtures, scoring and model pins. Incorporate the unchanged D39 billing revisions. No paid results, approval or qualification are reused.",
+		"originalName": "guard-controls-tasks-v1.json",
+		"freezeHash": "e82cb647b1a750c872da0f7bb7b8f299e63cc93c7c5ee981423628c66c063b85",
+		"sha256": "74672e7ceb253860598b433290c65b851b49d210ac8d1a5d9c88bdd50b8d46a7",
+		"archivePath": "/tmp/sirawise-fixes/ai-redesign-evidence/tasks-study-history/74672e7ceb253860598b433290c65b851b49d210ac8d1a5d9c88bdd50b8d46a7.json"
+	},
+	{
+		"name": "tasks-study-before-translation-retry-approval.json",
+		"date": "2026-11-25",
+		"reason": "Seal the current AI review contracts and guards. Replay the archived judge protocol and scan the controls offline.",
+		"originalName": "tasks-study.json",
+		"studyId": "tasks-v1-personal-career-106f05db7050",
+		"studyHash": "dab2492f62c52fccef809b2de1556b2cf91eae4b00c34f3cb680eb936a070891",
+		"sha256": "0f1782b63f3e608d17dcf24db3846a88f57bf416ca613fa7b5c200300bb2d69d",
+		"archivePath": "/tmp/sirawise-fixes/ai-redesign-evidence/tasks-study-history/0f1782b63f3e608d17dcf24db3846a88f57bf416ca613fa7b5c200300bb2d69d.json"
+	},
+	{
+		"name": "guard-controls-before-translation-retry-approval.json",
+		"date": "2026-11-25",
+		"reason": "Seal the current AI review contracts and guards. Replay the archived judge protocol and scan the controls offline.",
+		"originalName": "guard-controls-tasks-v1.json",
+		"freezeHash": "dab2492f62c52fccef809b2de1556b2cf91eae4b00c34f3cb680eb936a070891",
+		"sha256": "18c3bd05f8433cc262df618c603d05c8b6650736640895c9b4c857b23b3e098b",
+		"archivePath": "/tmp/sirawise-fixes/ai-redesign-evidence/tasks-study-history/18c3bd05f8433cc262df618c603d05c8b6650736640895c9b4c857b23b3e098b.json"
+	},
+	{
+		"name": "tasks-study-before-local-translation-checks.json",
+		"date": "2026-11-26",
+		"reason": "Seal the current AI review contracts after the owner retired the translation checker. The offline controls do not grant approval.",
+		"originalName": "tasks-study.json",
+		"studyId": "tasks-v1-personal-career-b565adba3d4d",
+		"studyHash": "c126a7cb3653b52b638c47015d7c19c29372705461a5921d5c96698ffb089370",
+		"sha256": "5cbe94388c720e2a7ffdff9ba31e8fe8c6162a206aa7bebf240c8b2f5a8db197",
+		"gitBlob": "fd558957620c0b3d9916b0d103469c5663a68ac8"
+	},
+	{
+		"name": "guard-controls-before-local-translation-checks.json",
+		"date": "2026-11-26",
+		"reason": "Seal the current AI review contracts after the owner retired the translation checker. The offline controls do not grant approval.",
+		"originalName": "guard-controls-tasks-v1.json",
+		"freezeHash": "c126a7cb3653b52b638c47015d7c19c29372705461a5921d5c96698ffb089370",
+		"sha256": "e8ca8043774d215401c6be981fec59b5ec7648daa5c92dec766a84f0372448c0",
+		"gitBlob": "0f6b9d0cb73a31beb5d984f6c905a2ba178fed14"
+	},
+	{
+		"name": "tasks-study-before-ai-review-safeguards.json",
+		"date": "2026-11-26",
+		"reason": "Seal the AI review safeguards from PR 35. Offline controls preserve the unapproved benchmark gate.",
+		"originalName": "tasks-study.json",
+		"studyId": "tasks-v1-personal-career-b54c578eca61",
+		"studyHash": "f77c41c4325fe3fdfb939e22290c333ec82be6e98fb4a78ea85e9687def5a395",
+		"sha256": "bb12e25c00daaf96e547b74c8733293d273f4d662851dc7bb4574d71a7b7c67a",
+		"gitBlob": "01a9099e1bad38dc8287112ddee75ddec3c89baa"
+	},
+	{
+		"name": "guard-controls-before-ai-review-safeguards.json",
+		"date": "2026-11-26",
+		"reason": "Seal the AI review safeguards from PR 35. Offline controls preserve the unapproved benchmark gate.",
+		"originalName": "guard-controls-tasks-v1.json",
+		"freezeHash": "f77c41c4325fe3fdfb939e22290c333ec82be6e98fb4a78ea85e9687def5a395",
+		"sha256": "016bab5e9cba1970143a56f6c2ee6bb72b813396c99b2e3dbdee894d8de31c0e",
+		"gitBlob": "e02ad2de4565a2f3fbf1230704574f531bbe8fde"
+	},
+	{
+		"name": "tasks-study-before-job-term-filter.json",
+		"date": "2026-11-26",
+		"reason": "Pin the job-term matcher after the generic-term filter changes. Offline controls preserve the unapproved benchmark gate.",
+		"originalName": "tasks-study.json",
+		"studyId": "tasks-v1-personal-career-98faa6933630",
+		"studyHash": "db53dd4137399deca53f4efbd30e5c403acb03a03b89a0edbb5ac706fb7e4ff4",
+		"sha256": "3e8a84cd8df01ebe0cdc49fa74bb057b5d1224e8ccce465697405f5557fba45d",
+		"gitBlob": "bbb0fe72170416d4af2f62a9404dafd61fcac59d"
+	},
+	{
+		"name": "guard-controls-before-job-term-filter.json",
+		"date": "2026-11-26",
+		"reason": "Pin the job-term matcher after the generic-term filter changes. Offline controls preserve the unapproved benchmark gate.",
+		"originalName": "guard-controls-tasks-v1.json",
+		"freezeHash": "db53dd4137399deca53f4efbd30e5c403acb03a03b89a0edbb5ac706fb7e4ff4",
+		"sha256": "6b62492572fa46527676c7f15a8bb434ea9aedd00f1eb888355d27d1412399cb",
+		"gitBlob": "a749e3f57a0ef5862c8a3a569ebf7ecd5607fcea"
 	}
 ]

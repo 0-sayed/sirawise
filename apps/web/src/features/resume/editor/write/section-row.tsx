@@ -1,4 +1,4 @@
-import type { WriteSection } from "./model";
+import type { Entry, WriteSection } from "./model";
 import type { SectionType } from "@reactive-resume/schema/resume/data";
 import type { KeyboardEvent, ReactNode } from "react";
 import { useSortable } from "@dnd-kit/sortable";
@@ -29,7 +29,7 @@ import { cn } from "@reactive-resume/utils/style";
 import { pendingProposals } from "../proposals/proposals";
 import { useEditorStore } from "../store";
 import { addEntryTo } from "./actions";
-import { countEntriesToCheck, getEntries, getSectionObject } from "./model";
+import { countEntriesToCheck, describeEntry, getEntries, getSectionObject } from "./model";
 import { IconPicker } from "@/components/input/icon-picker";
 import { useCurrentBuilderResumeSelector, useResumeStore, useUpdateResumeData } from "@/features/resume/builder/draft";
 import { usePrompt } from "@/hooks/use-confirm";
@@ -204,16 +204,11 @@ function SectionMenu({ section, title, onMove }: SectionMenuProps) {
 		let unresolved: string[] = [];
 		updateResumeData(
 			(draft) => {
-				const entries = getEntries(draft, section) as never as {
-					id: string;
-					period: string;
-					company?: string;
-					school?: string;
-				}[];
+				const entries = getEntries(draft, section) as Extract<Entry, { period: string }>[];
 				const result = sortSectionItemsByPeriod(entries, locale);
 				unresolved = result.unresolvedIds.map((id) => {
 					const entry = entries.find((item) => item.id === id);
-					return (entry?.company || entry?.school || id).trim();
+					return (entry && describeEntry(section.type, entry).title) || t`Untitled entry`;
 				});
 				entries.splice(0, entries.length, ...result.items);
 			},

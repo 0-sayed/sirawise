@@ -84,7 +84,11 @@ export function EntryCard({ section, entryId, index, count, page, locked, onMove
 
 	if (!entry) return null;
 
-	const { title, meta } = describeEntry(section.type, entry);
+	const { title, meta } = describeEntry(section.type, entry, {
+		locale: page.locale,
+		format: page.dateFormat,
+		presentLabel: t`Present`,
+	});
 	const draft = isDraftEntry(section.type, entry);
 	const primaryField = getPrimaryField(section.type);
 	const hint = draft && primaryField ? DRAFT_HINTS[primaryField] : undefined;
@@ -156,7 +160,11 @@ export function EntryCard({ section, entryId, index, count, page, locked, onMove
 							</Badge>
 						)}
 					</span>
-					{meta && <span className="max-w-full truncate text-xs leading-4 text-ink-3">{meta}</span>}
+					{meta && (
+						<span dir="auto" className="max-w-full truncate text-xs leading-4 text-ink-3">
+							{meta}
+						</span>
+					)}
 				</button>
 
 				{open && !locked && (

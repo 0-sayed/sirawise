@@ -1,4 +1,5 @@
 // oxlint-disable typescript/no-non-null-assertion -- Synthetic fixtures assert required IDs and rows before use.
+import { copyMessage } from "../fixtures/copy";
 import { createSampleResumeFromDashboard } from "../fixtures/resume";
 import { expect, test } from "../fixtures/test";
 
@@ -79,7 +80,7 @@ test("two tabs resolve a stale save without overwriting either draft", async ({ 
 		"Synthetic remote draft",
 	);
 	await page.getByRole("button", { name: "Save my edits as a new copy", exact: true }).click();
-	await expect(page.getByRole("alert").filter({ hasText: "You have reached the limit for base CVs" })).toBeVisible();
+	await expect(page.getByRole("alert").filter({ hasText: copyMessage("allowance.base.title") })).toBeVisible();
 	await expect(page).toHaveURL(url);
 	// Denied copy creation keeps the local recovery draft and leaves the saved CV untouched.
 	expect((await (await page.request.get(`/api/openapi/resumes/${id}`)).json()).data.basics.name).toBe(

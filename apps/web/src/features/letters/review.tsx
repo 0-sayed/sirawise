@@ -2,18 +2,22 @@ import type { CoverLetter } from "@reactive-resume/schema/cover-letter/data";
 import { Trans } from "@lingui/react/macro";
 import { ORPCError } from "@orpc/client";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useId, useRef, useState } from "react";
 import { z } from "zod";
 import { coverLetterOutputSchema } from "@reactive-resume/schema/cover-letter/review";
-import { Button } from "@reactive-resume/ui/components/button";
+import { ActionGroup } from "@reactive-resume/ui/components/action-group";
+import { Button, buttonVariants } from "@reactive-resume/ui/components/button";
 import { Label } from "@reactive-resume/ui/components/label";
 import { NativeSelect } from "@reactive-resume/ui/components/native-select";
 import { SectionCard, SectionCardTitle } from "@reactive-resume/ui/components/section-card";
 import { stripHtml } from "@reactive-resume/utils/string";
 import { useLetterEditorStore } from "./store";
 import { QuerySkeleton } from "@/components/query-skeleton";
+import { useAssistantCopy } from "@/features/assistant/copy.generated";
 import { ReviewLaunch, ReviewNotice, ReviewOperationPanel } from "@/features/resume/editor/proposals/review-operation";
+import { useReviewInterfaceText } from "@/features/resume/variants/review-interface-copy";
+import { AllowanceLimitNotice, getAllowanceReason } from "@/features/usage/allowance-limit";
 import { client } from "@/libs/orpc/client";
 
 const resultSchema = z.object({
@@ -31,6 +35,7 @@ export function LetterReview({
 	expectedRevision: number;
 }) {
 	const letter = useLetterEditorStore((state) => state.letter);
+	const interfaceText = useReviewInterfaceText();
 	const review = useQuery({
 		queryKey: ["letter-review", letterId, operationId],
 		queryFn: () => client.coverLetters.getReview({ letterId, operationId }),
@@ -83,7 +88,7 @@ export function LetterReview({
 			</p>
 		);
 	return (
-		<div className="grid gap-4">
+		<div className="grid gap-4 text-content-start">
 			<SectionCard>
 				<SectionCardTitle>
 					<Trans>Your current letter</Trans>
@@ -103,7 +108,7 @@ export function LetterReview({
 				))}
 				{result.data.output.notes.map((note) => (
 					<p key={note} dir="auto">
-						{note}
+						{interfaceText(note, "finding")}
 					</p>
 				))}
 			</SectionCard>
@@ -127,19 +132,20 @@ export function LetterReview({
 					</Trans>
 				</ReviewNotice>
 			)}
-			<div className="flex flex-wrap justify-end gap-2">
-				<Button variant="secondary" disabled={decision.isPending} onClick={() => decision.mutate("reject")}>
-					<Trans>Reject proposal</Trans>
-				</Button>
+			<ActionGroup responsive="stack">
 				<Button disabled={decision.isPending || letter?.id !== letterId} onClick={() => decision.mutate("accept")}>
 					<Trans>Accept proposal</Trans>
 				</Button>
-			</div>
+				<Button variant="secondary" disabled={decision.isPending} onClick={() => decision.mutate("reject")}>
+					<Trans>Reject proposal</Trans>
+				</Button>
+			</ActionGroup>
 		</div>
 	);
 }
 
 export function LetterReviewComposer({ letter, disabled }: { letter: CoverLetter; disabled: boolean }) {
+	const copy = useAssistantCopy();
 	const navigate = useNavigate();
 	const lengthId = useId();
 	const languageCopy = useMutation({
@@ -156,6 +162,7 @@ export function LetterReviewComposer({ letter, disabled }: { letter: CoverLetter
 		},
 	});
 	const [length, setLength] = useState<"short" | "normal">("normal");
+	const [retryRequest, setRetryRequest] = useState(0);
 	const [started, setStarted] = useState<{ operationId: string; expectedRevision: number } | null>(null);
 	const preparedRevision = useRef(letter.revision);
 	const latest = useQuery({
@@ -164,6 +171,22 @@ export function LetterReviewComposer({ letter, disabled }: { letter: CoverLetter
 	});
 	const currentReview = started ?? latest.data;
 	const locale = letter.style.metadata.page.locale;
+	const job = useQuery({
+		queryKey: ["letter-job", letter.id, letter.sourceResumeId, letter.sourceApplicationId],
+		enabled: !!letter.sourceResumeId,
+		queryFn: async () => {
+			if (!letter.sourceResumeId) throw new Error("LETTER_SOURCE_REQUIRED");
+			if (letter.sourceApplicationId) {
+				const application = await client.applications.getById({ id: letter.sourceApplicationId });
+				return { ready: !!application.jobDescription?.trim(), name: `${application.role} · ${application.company}` };
+			}
+			const evidence = await client.career.jobTargets.evidence({ resumeId: letter.sourceResumeId });
+			return {
+				ready: !!evidence.selection && !!evidence.job?.text.trim(),
+				name: evidence.job ? `${evidence.job.role} · ${evidence.job.employer}` : null,
+			};
+		},
+	});
 	return (
 		<div data-slot="letter-review-composer" className="grid gap-3">
 			<Button variant="secondary" disabled={disabled || languageCopy.isPending} onClick={() => languageCopy.mutate()}>
@@ -173,10 +196,14 @@ export function LetterReviewComposer({ letter, disabled }: { letter: CoverLetter
 					<Trans>Create a separate Arabic letter</Trans>
 				)}
 			</Button>
-			{languageCopy.error && (
-				<ReviewNotice retry={() => languageCopy.mutate()}>
-					<Trans>Could not create the separate letter. Your current letter is kept.</Trans>
-				</ReviewNotice>
+			{getAllowanceReason(languageCopy.error) ? (
+				<AllowanceLimitNotice error={languageCopy.error} />
+			) : (
+				languageCopy.error && (
+					<ReviewNotice retry={() => languageCopy.mutate()}>
+						<Trans>Could not create the separate letter. Your current letter is kept.</Trans>
+					</ReviewNotice>
+				)
 			)}
 			<Label htmlFor={lengthId}>
 				<Trans>Proposal length</Trans>
@@ -198,29 +225,50 @@ export function LetterReviewComposer({ letter, disabled }: { letter: CoverLetter
 				</option>
 			</NativeSelect>
 			<ReviewLaunch
+				retryRequest={retryRequest}
 				kind="review.cover-letter"
-				disabled={disabled || !letter.sourceResumeId || (locale !== "ar-SA" && locale !== "en-US")}
+				disabled={disabled || !job.data?.ready || !letter.sourceResumeId || (locale !== "ar-SA" && locale !== "en-US")}
 				prepare={async () => {
 					const store = useLetterEditorStore.getState();
 					if (!(await store.flush())) throw new Error("SAVE_REQUIRED");
 					const current = useLetterEditorStore.getState().letter;
-					if (!current?.sourceResumeId || current.id !== letter.id) throw new Error("LETTER_EVIDENCE_REQUIRED");
+					if (!current?.sourceResumeId || current.id !== letter.id) throw new Error("LETTER_SOURCE_REQUIRED");
 					const documentLocale = current.style.metadata.page.locale;
 					if (documentLocale !== "ar-SA" && documentLocale !== "en-US") throw new Error("LETTER_LANGUAGE_REQUIRED");
 					const [cv, evidence] = await Promise.all([
 						client.resume.getById({ id: current.sourceResumeId }),
 						client.career.jobTargets.evidence({ resumeId: current.sourceResumeId }),
 					]);
-					if (!evidence.selection) throw new Error("LETTER_EVIDENCE_REQUIRED");
+					let selection = evidence.selection;
+					if (current.sourceApplicationId) {
+						const job = await client.applications.getById({ id: current.sourceApplicationId });
+						if (!job.jobDescription?.trim()) throw new Error("LETTER_JOB_TEXT_REQUIRED");
+						if (
+							!selection ||
+							evidence.job?.role !== job.role ||
+							evidence.job.employer !== job.company ||
+							evidence.job.text !== job.jobDescription
+						) {
+							selection = await client.career.jobTargets.saveAndSelect({
+								resumeId: current.sourceResumeId,
+								expectedUpdatedAt: new Date(cv.updatedAt).toISOString(),
+								expectedSelectionRevision: selection?.revision ?? null,
+								role: job.role,
+								employer: job.company,
+								text: job.jobDescription,
+							});
+						}
+					}
+					if (!selection) throw new Error("LETTER_EVIDENCE_REQUIRED");
 					preparedRevision.current = current.revision;
 					return client.coverLetters.prepareReview({
 						letterId: current.id,
 						expectedLetterRevision: current.revision,
 						resumeId: current.sourceResumeId,
 						expectedUpdatedAt: new Date(cv.updatedAt).toISOString(),
-						jobId: evidence.selection.jobId,
-						jobRevision: evidence.selection.jobRevision,
-						expectedSelectionRevision: evidence.selection.revision,
+						jobId: selection.jobId,
+						jobRevision: selection.jobRevision,
+						expectedSelectionRevision: selection.revision,
 						documentLocale,
 						length,
 					});
@@ -229,19 +277,50 @@ export function LetterReviewComposer({ letter, disabled }: { letter: CoverLetter
 			>
 				<Trans>Review a job-specific letter</Trans>
 			</ReviewLaunch>
-			<p className="type-body text-ink-2">
-				<Trans>
-					Select a saved job in the linked CV first. Only confirmed CV facts support the proposal. Your manual text
-					stays until you accept.
-				</Trans>
-			</p>
+			{job.isError ? (
+				<ReviewNotice retry={() => void job.refetch()}>{copy("review.launch.sourceUnavailable")}</ReviewNotice>
+			) : !letter.sourceResumeId ? (
+				<p className="type-body text-ink-2">{copy("review.launch.cvRequired")}</p>
+			) : job.isPending ? (
+				<QuerySkeleton shape="rows" />
+			) : (
+				<>
+					<p className="type-body text-ink-2">
+						{job.data.ready
+							? copy("review.launch.linkedJob", { job: job.data.name ?? "" })
+							: copy(letter.sourceApplicationId ? "review.launch.jobTextRequired" : "review.launch.jobRequired")}
+					</p>
+					{letter.sourceApplicationId ? (
+						<Link
+							to="/dashboard/applications/$applicationId/{-$tab}"
+							params={{ applicationId: letter.sourceApplicationId, tab: undefined }}
+							className={buttonVariants({ variant: "secondary" })}
+						>
+							{copy("review.launch.editJob")}
+						</Link>
+					) : (
+						<Link
+							to="/dashboard/resumes/$resumeId/job"
+							params={{ resumeId: letter.sourceResumeId }}
+							className={buttonVariants({ variant: "secondary" })}
+						>
+							{copy("review.launch.chooseJob")}
+						</Link>
+					)}
+				</>
+			)}
+			<p className="type-body text-ink-2">{copy("review.launch.linkingHint")}</p>
 			{latest.error && (
 				<ReviewNotice retry={() => void latest.refetch()}>
 					<Trans>Could not reload this review. Your draft is kept.</Trans>
 				</ReviewNotice>
 			)}
 			{currentReview && (
-				<ReviewOperationPanel operationId={currentReview.operationId}>
+				<ReviewOperationPanel
+					kind="review.cover-letter"
+					onRetry={() => setRetryRequest((n) => n + 1)}
+					operationId={currentReview.operationId}
+				>
 					<LetterReview
 						key={currentReview.operationId}
 						letterId={letter.id}

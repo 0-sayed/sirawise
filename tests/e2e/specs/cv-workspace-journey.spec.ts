@@ -19,6 +19,10 @@ test("history restore survives sign-out and fresh sign-in without changing the o
 	await expect(page).toHaveURL(/\/builder\//);
 	const url = page.url();
 	const id = new URL(url).pathname.split("/").at(-1);
+	await expect(page.getByRole("link", { name: "Choose or change the job for this CV" })).toHaveAttribute(
+		"href",
+		`/dashboard/resumes/${id}/job`,
+	);
 	const otherId = await seedExistingResume(page, "Arabic isolation fixture", {
 		...defaultResumeData,
 		metadata: { ...defaultResumeData.metadata, page: { ...defaultResumeData.metadata.page, locale: "ar-SA" } },

@@ -5,6 +5,7 @@ import type { ProposalTarget, ReviewEvidence } from "@reactive-resume/schema/res
 import { createHash } from "node:crypto";
 import { ORPCError } from "@orpc/client";
 import { and, eq, inArray, lte } from "drizzle-orm";
+import { lockAccountForAccounting } from "@reactive-resume/db/account-state";
 import { withOwnerDatabase } from "@reactive-resume/db/owner-scope";
 import {
 	aiImportReviewSource,
@@ -20,8 +21,57 @@ import { reviewTargetSchema } from "@reactive-resume/schema/resume/ai-review";
 import { parseResumeDataForWrite } from "@reactive-resume/schema/resume/write";
 import { generateId } from "@reactive-resume/utils/string";
 import { readJobRevision } from "../career/job-targets";
-import { lockDocumentOwner } from "../documents/ownership";
-import { buildModelPayload, resumeContactValues } from "./payload";
+import {
+	buildModelPayload,
+	MAX_TERRA_WRITER_PAYLOAD_BYTES,
+	prepareImportSelection,
+	resumeContactValues,
+} from "./payload";
+
+export function reviewEvidenceSelection({
+	id,
+	confirmation,
+	quote,
+}: Pick<ReviewEvidence, "id" | "confirmation" | "quote">) {
+	return {
+		id,
+		kind: confirmation === "user_supplied" ? ("user_supplied" as const) : ("confirmed_content" as const),
+		section: "summary" as const,
+		text: quote,
+	};
+}
+
+export function boundQuestionEvidence<T extends Pick<ReviewEvidence, "id" | "confirmation" | "quote">>(
+	evidence: T[],
+): T[] {
+	// Reserve space for the requested action and its optional 500-character instruction.
+	let remaining = MAX_TERRA_WRITER_PAYLOAD_BYTES - 2_200;
+	const selected: T[] = [];
+	for (const entry of evidence) {
+		const bytes = (quote: string) =>
+			Buffer.byteLength(JSON.stringify(reviewEvidenceSelection({ ...entry, quote }))) + 1;
+		const cost = bytes(entry.quote);
+		if (cost <= remaining) {
+			selected.push(entry);
+			remaining -= cost;
+		} else if (!selected.length) {
+			// An oversized first paragraph can still support questions about its leading sentences.
+			const sentences = new Intl.Segmenter(undefined, { granularity: "sentence" }).segment(entry.quote);
+			let quote = "";
+			for (const { segment } of sentences) {
+				if (bytes(quote + segment) > remaining) break;
+				quote += segment;
+			}
+			quote = quote.trimEnd();
+			if (quote) {
+				selected.push({ ...entry, quote });
+				remaining -= bytes(quote);
+			}
+		}
+	}
+	if (!selected.length) throw new Error("AI_INPUT_LIMIT");
+	return selected;
+}
 
 export type ReviewSourceSnapshot = {
 	source: SourceRevision;
@@ -31,7 +81,7 @@ export type ReviewSourceSnapshot = {
 	partial: boolean;
 };
 const digest = (value: string) => createHash("sha256").update(value).digest("hex");
-export const reviewPassageId = (source: SourceRevision, target: ProposalTarget, html: string) =>
+export const reviewPassageId = (source: SourceRevision, target: ProposalTarget, html: string, blockIndex: number) =>
 	digest(
 		JSON.stringify([
 			source.kind,
@@ -42,6 +92,7 @@ export const reviewPassageId = (source: SourceRevision, target: ProposalTarget, 
 			target.roleId ?? null,
 			target.field,
 			html,
+			blockIndex,
 		]),
 	);
 export const sameReviewSource = (a: SourceRevision, b: SourceRevision) =>
@@ -62,12 +113,7 @@ export async function createImportReviewSource(
 	input: { flowId: string; section: string; text: string; partial: boolean; contactValues: string[] },
 ): Promise<{ source: SourceRevision; expiresAt: string }> {
 	if (!input.flowId.trim() || input.flowId.length > 200) throw new ORPCError("BAD_REQUEST");
-	const payload = buildModelPayload({
-		selections: [{ id: "selected", kind: "unconfirmed_source", section: input.section, text: input.text }],
-		contactValues: input.contactValues,
-	});
-	const selected = payload.selections[0];
-	if (!selected) throw new ORPCError("BAD_REQUEST");
+	const selected = prepareImportSelection(input);
 	const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 	const id = generateId();
 	const revision = digest(JSON.stringify([input.flowId, selected.section, selected.text, input.partial]));
@@ -211,6 +257,7 @@ export async function loadBoundReviewAnswer(
 	answer: SourceRevision,
 	resumeSource: SourceRevision,
 	targets: ProposalTarget[],
+	allowReviewScope = false,
 ): Promise<ReviewSourceSnapshot> {
 	const loaded = await loadReviewSource(tx, ownerId, answer);
 	const [parent] = await tx
@@ -233,7 +280,7 @@ export async function loadBoundReviewAnswer(
 		loaded.evidence.length !== 1 ||
 		!loaded.evidence.every((entry) => {
 			const answerTarget = entry.target;
-			return answerTarget && targets.some((target) => sameReviewTarget(answerTarget, target));
+			return answerTarget ? targets.some((target) => sameReviewTarget(answerTarget, target)) : allowReviewScope;
 		})
 	)
 		throw new Error("AI_SOURCE_BINDING");
@@ -267,8 +314,8 @@ export async function prepareResumeReviewInTransaction(
 		const target = reviewTargetSchema.parse(rawTarget);
 		const value = readTarget(data, target);
 		if (value === undefined) throw new ORPCError("BAD_REQUEST");
-		for (const block of splitBlocks(value)) {
-			const id = reviewPassageId(source, target, block.html);
+		for (const [blockIndex, block] of splitBlocks(value).entries()) {
+			const id = reviewPassageId(source, target, block.html, blockIndex);
 			if (evidence.some((entry) => entry.id === id))
 				throw new ORPCError("CONFLICT", { data: { reason: "AI_AMBIGUOUS_PASSAGE" } });
 			const quote = buildModelPayload({
@@ -348,7 +395,8 @@ export async function prepareResumeReviewInTransaction(
 /** Bounded owner-scoped maintenance; failed reads remain closed before cleanup runs. */
 export async function removeExpiredReviewSources(ownerId: string): Promise<void> {
 	await withOwnerDatabase(ownerId, async (tx) => {
-		await lockDocumentOwner(tx, ownerId);
+		const account = await lockAccountForAccounting(tx, ownerId);
+		if (!account || account.deleting) return;
 		const expired = await tx
 			.select({ id: aiImportReviewSource.id })
 			.from(aiImportReviewSource)

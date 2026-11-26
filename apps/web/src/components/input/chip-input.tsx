@@ -92,7 +92,9 @@ function ChipItem({ id, chip, index, isEditing, onEdit, onRemove }: ChipItemProp
 					isDragging && "border-accent bg-sunken shadow-sm",
 				)}
 			>
-				<span className="max-w-32 truncate sm:max-w-44">{chip}</span>
+				<span dir="auto" className="max-w-32 truncate sm:max-w-44">
+					{chip}
+				</span>
 				<div
 					className={cn(
 						"ms-1.5 flex shrink-0 items-center gap-x-0.5 transition-opacity duration-quick group-focus-within/chip:opacity-100 group-hover/chip:opacity-100",
@@ -141,7 +143,13 @@ function ChipItem({ id, chip, index, isEditing, onEdit, onRemove }: ChipItemProp
 	);
 }
 
-type Props = Omit<React.ComponentProps<"div">, "value" | "onChange"> & {
+export type ChipInputHandle = {
+	/** Commits the draft and returns the value to use for the current save. */
+	commit: () => string[];
+};
+
+type Props = Omit<React.ComponentProps<"div">, "value" | "onChange" | "ref"> & {
+	ref?: React.Ref<ChipInputHandle>;
 	value?: string[];
 	defaultValue?: string[];
 	onChange?: (value: string[]) => void;
@@ -150,6 +158,7 @@ type Props = Omit<React.ComponentProps<"div">, "value" | "onChange"> & {
 };
 
 export function ChipInput({
+	ref,
 	value,
 	defaultValue = EMPTY_CHIPS,
 	onChange,
@@ -187,32 +196,27 @@ export function ChipInput({
 				const trimmed = chip.trim();
 				return trimmed ? [trimmed] : [];
 			});
-			if (nextValues.length === 0) return;
+			if (nextValues.length === 0) return chips;
 
 			const newChips = [...new Set([...chips, ...nextValues])];
 			setChips(newChips);
+			return newChips;
 		},
 		[chips, setChips],
-	);
-
-	const addChip = React.useCallback(
-		(chip: string) => {
-			addChips([chip]);
-		},
-		[addChips],
 	);
 
 	const updateChip = React.useCallback(
 		(index: number, newValue: string) => {
 			const trimmed = newValue.trim();
-			if (!trimmed || index < 0 || index >= chips.length) return;
+			if (!trimmed || index < 0 || index >= chips.length) return chips;
 
 			const existingIndex = chips.findIndex((c, i) => c === trimmed && i !== index);
-			if (existingIndex !== -1) return;
+			if (existingIndex !== -1) return chips;
 
 			const newChips = [...chips];
 			newChips[index] = trimmed;
 			setChips(newChips);
+			return newChips;
 		},
 		[chips, setChips],
 	);
@@ -320,28 +324,28 @@ export function ChipInput({
 		[addChips, allowCommas, editingIndex, updateChip],
 	);
 
+	const commit = React.useCallback(() => {
+		if (editingIndex === null && !input.trim()) return chips;
+		const next = editingIndex === null ? addChips([input]) : updateChip(editingIndex, input);
+		setEditingIndex(null);
+		setInput("");
+		return next;
+	}, [addChips, chips, editingIndex, input, updateChip]);
+
+	React.useImperativeHandle(ref, () => ({ commit }), [commit]);
+
 	const handleKeyDown = React.useCallback(
 		(e: React.KeyboardEvent<HTMLInputElement>) => {
 			if (isImeComposing(e)) return;
 			if (e.key === "Enter" || (!allowCommas && e.key === ",")) {
 				e.preventDefault();
-
-				if (editingIndex !== null) {
-					if (input.trim()) {
-						updateChip(editingIndex, input);
-					}
-					setEditingIndex(null);
-					setInput("");
-				} else if (input.trim()) {
-					addChip(input);
-					setInput("");
-				}
+				commit();
 			} else if (e.key === "Escape" && editingIndex !== null) {
 				setEditingIndex(null);
 				setInput("");
 			}
 		},
-		[input, addChip, allowCommas, editingIndex, updateChip],
+		[allowCommas, commit, editingIndex],
 	);
 
 	return (
@@ -383,6 +387,7 @@ export function ChipInput({
 							<Input
 								ref={inputRef}
 								type="text"
+								dir="auto"
 								id={controlId}
 								value={input}
 								autoComplete="off"

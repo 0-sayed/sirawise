@@ -2,7 +2,16 @@ import type { ReviewEvidence, ReviewProposal, ReviewResult } from "@reactive-res
 import type { ResumeData } from "@reactive-resume/schema/resume/data";
 import { proposalTargetSchema, reviewProposalSchema } from "@reactive-resume/schema/resume/ai-review";
 import { parseResumeDataForWrite } from "@reactive-resume/schema/resume/write";
-import { applyTo, blockText, canApplyTo, readTarget, replaceBlockText, writeTarget } from "./proposals";
+import {
+	applyTo,
+	blockText,
+	canApplyTo,
+	proposalStart,
+	readTarget,
+	replaceBlockText,
+	splitBlocks,
+	writeTarget,
+} from "./proposals";
 
 /** An optimistic field fingerprint, never an authorization or evidence authenticity check. */
 export function hashReviewTarget(value: string): string {
@@ -19,6 +28,63 @@ const sameSource = (a: ReviewEvidence["source"], b: ReviewEvidence["source"]) =>
 	a.kind === b.kind && a.id === b.id && a.revision === b.revision;
 const sameTarget = (a: ReviewEvidence["target"], b: ReviewEvidence["target"]) =>
 	a?.sectionId === b?.sectionId && a?.itemId === b?.itemId && a?.roleId === b?.roleId && a?.field === b?.field;
+
+/** Legacy pending proposals can cite a wider span than the one they show for approval. */
+export function hasCompleteReviewScope(proposal: ReviewProposal, evidence: readonly ReviewEvidence[]) {
+	const citedPassages = evidence.filter(
+		(entry) => sameSource(entry.source, proposal.base) && proposal.evidenceIds.includes(entry.id),
+	);
+	const originalCount = splitBlocks(proposal.before).length;
+	return originalCount > 1 ? citedPassages.length === originalCount : citedPassages.length <= originalCount;
+}
+
+export function replaceReviewPassageText(before: string, text: string) {
+	const blocks = splitBlocks(before);
+	const first = blocks[0];
+	if (!first || blocks.length === 1) return replaceBlockText(before, text);
+	// A merge can only remove adjacent paragraph siblings. List boundaries, empty blocks,
+	// and other intervening markup cannot be consumed by a wording proposal.
+	let remaining = before;
+	for (const { html } of blocks) {
+		if (!/^<p[\s>]/i.test(html) || !remaining.startsWith(html)) throw new Error("INVALID_REVIEW_MARKUP");
+		remaining = remaining.slice(html.length).trimStart();
+	}
+	if (remaining) throw new Error("INVALID_REVIEW_MARKUP");
+	return replaceBlockText(first.html, text);
+}
+
+export function repeatsUntouchedReviewPassage(
+	value: string,
+	proposal: Pick<ReviewProposal, "before" | "after" | "blockIndex">,
+) {
+	const start = proposalStart(value, proposal);
+	if (start < 0) return false;
+	const words = (text: string) =>
+		` ${text
+			.toLowerCase()
+			.replace(/[^\p{L}\p{M}\p{N}]+/gu, " ")
+			.trim()} `;
+	const original = words(blockText(proposal.before));
+	const replacement = words(blockText(proposal.after));
+	const untouched = value.slice(0, start) + value.slice(start + proposal.before.length);
+	return splitBlocks(untouched).some(({ text }) => {
+		const passage = words(text);
+		return passage.length > 2 && replacement.includes(passage) && !original.includes(passage);
+	});
+}
+
+/** Positions in stored proposals always refer to the document before this review's changes. */
+export function reviewProposalPosition(proposal: ReviewProposal, activeChanges: readonly ReviewProposal[]) {
+	const index = proposal.blockIndex;
+	if (index === undefined) return proposal;
+	let position = index;
+	for (const change of activeChanges) {
+		if (!sameTarget(change.target, proposal.target) || change.blockIndex === undefined || change.blockIndex >= index)
+			continue;
+		position += splitBlocks(change.after).length - splitBlocks(change.before).length;
+	}
+	return { ...proposal, blockIndex: position };
+}
 
 export function validateReviewEvidence(result: ReviewResult, sources: readonly ReviewEvidence[]): ReviewValidation {
 	const fail = (reason: string, proposalIds: string[] = []): ReviewValidation => ({ ok: false, reason, proposalIds });
@@ -94,7 +160,7 @@ function assertTarget(data: ResumeData, proposal: ReviewProposal): string {
 	if (value === undefined || hashReviewTarget(value) !== proposal.targetHash || !canApplyTo(value, proposal))
 		throw new Error("STALE_REVIEW_TARGET");
 	// Model replacements may only change a passage's plain text, retaining its existing wrapper.
-	if (proposal.after !== replaceBlockText(proposal.before, blockText(proposal.after)))
+	if (proposal.after !== replaceReviewPassageText(proposal.before, blockText(proposal.after)))
 		throw new Error("INVALID_REVIEW_MARKUP");
 	return value;
 }
@@ -108,19 +174,36 @@ export function rebaseReviewProposal(
 	const current = readTarget(data, proposal.target);
 	if (current === undefined) throw new Error("STALE_REVIEW_TARGET");
 	let baseline = current;
-	for (const change of [...acceptedChanges].reverse()) {
-		if (!sameTarget(change.target, proposal.target)) continue;
-		const restored = applyTo(baseline, { before: change.after, after: change.before });
+	const active = acceptedChanges
+		.filter((change) => sameTarget(change.target, proposal.target))
+		.toSorted((a, b) => (a.blockIndex ?? -1) - (b.blockIndex ?? -1));
+	// Restoring earlier blocks first puts each later change back at its original index.
+	for (const change of active) {
+		const restored = applyTo(baseline, { ...change, before: change.after, after: change.before });
 		if (restored === undefined) throw new Error("STALE_REVIEW_TARGET");
 		baseline = restored;
 	}
 	if (hashReviewTarget(baseline) !== proposal.targetHash) throw new Error("STALE_REVIEW_TARGET");
-	const rebased = { ...proposal, targetHash: hashReviewTarget(current) };
+	const start = proposal.before ? proposalStart(baseline, proposal) : 0;
+	if (
+		start < 0 ||
+		active.some((change) => {
+			const changedStart = proposalStart(baseline, change);
+			return changedStart < start + proposal.before.length && start < changedStart + change.before.length;
+		})
+	)
+		throw new Error("STALE_REVIEW_TARGET");
+	if (repeatsUntouchedReviewPassage(baseline, proposal)) throw new Error("DUPLICATE_REVIEW_CONTENT");
+	const rebased = { ...reviewProposalPosition(proposal, active), targetHash: hashReviewTarget(current) };
 	assertTarget(data, rebased);
 	return rebased;
 }
 
-export function applyReviewProposals(data: ResumeData, proposals: readonly ReviewProposal[]): ResumeData {
+export function applyReviewProposals(
+	data: ResumeData,
+	proposals: readonly ReviewProposal[],
+	acceptedChanges: readonly ReviewProposal[] = [],
+): ResumeData {
 	if (!proposals.length || new Set(proposals.map((proposal) => proposal.id)).size !== proposals.length)
 		throw new Error("INVALID_REVIEW_BATCH");
 	const grouped = new Map<
@@ -132,8 +215,9 @@ export function applyReviewProposals(data: ResumeData, proposals: readonly Revie
 		}
 	>();
 	for (const input of proposals) {
-		const proposal = reviewProposalSchema.parse(input);
-		const value = assertTarget(data, proposal);
+		const proposal = rebaseReviewProposal(data, reviewProposalSchema.parse(input), acceptedChanges);
+		const value = readTarget(data, proposal.target);
+		if (value === undefined) throw new Error("STALE_REVIEW_TARGET");
 		const key = JSON.stringify([
 			proposal.target.sectionId,
 			proposal.target.itemId,
@@ -141,7 +225,7 @@ export function applyReviewProposals(data: ResumeData, proposals: readonly Revie
 			proposal.target.field,
 		]);
 		const group = grouped.get(key) ?? { target: proposal.target, value, spans: [] };
-		const start = value.indexOf(proposal.before);
+		const start = proposalStart(value, proposal);
 		const end = start + proposal.before.length;
 		if (group.spans.some((span) => (start < span.end && end > span.start) || start === span.start))
 			throw new Error("OVERLAPPING_REVIEW_PROPOSALS");

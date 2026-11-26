@@ -112,6 +112,7 @@ function toToken(
 
 export type DateAnalysis = {
 	tokens: DateToken[];
+	experienceRanges: DateToken[];
 	unparseableRanges: string[];
 	ambiguousNumericDates: string[];
 	/** Gaps of more than a year between one role ending and the next beginning. */
@@ -199,6 +200,7 @@ export function analyzeDates(document: ExtractedDocument, locale: string, now: D
 
 	return {
 		tokens,
+		experienceRanges: experienceTokens,
 		unparseableRanges: [...new Set(unparseableRanges)],
 		ambiguousNumericDates: [...new Set(ambiguousNumericDates)],
 		gaps: findGaps(experienceTokens),

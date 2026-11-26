@@ -5,7 +5,7 @@ import { cases } from "../corpus";
 import { runBenchmark } from "../runner";
 import { smokeCases } from "../study";
 
-it("core categories retain their approved deterministic receipt", async () => {
+it("core categories produce the expected offline receipt with the current contracts", async () => {
 	const raw: unknown[] = [];
 	const artifact = await runBenchmark({
 		models: loadModels(),
@@ -27,6 +27,7 @@ it("core categories retain their approved deterministic receipt", async () => {
 	const hash = createHash("sha256")
 		.update(JSON.stringify({ raw, calls }, (key, value) => (key === "latencyMs" ? undefined : value)))
 		.digest("hex");
-	// Shared guard v11 and the authorized per-attempt billing ledger define this receipt.
-	expect(hash).toBe("d19d350b874a422888a48585a4ba94d6b07a73331385e73fdc1a8a108e145f29");
+	// Current wording and extraction contracts change the bytes and reservations.
+	// Historical approvals stay bound to their original freeze and receipts.
+	expect(hash).toBe("ad7646477ab27c069b1e8dd2b4e0cb122778a1814b2311baf7572d56a9ef47c1");
 });

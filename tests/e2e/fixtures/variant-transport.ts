@@ -1,6 +1,45 @@
 import type { VariantSnapshot } from "@reactive-resume/api/features/ai/variant-types";
+
+const translationVerificationAttempts = new Map<string, number>();
+const compactWriterAttempts = new Map<string, number>();
+
+function compactRetryMarker(text: string) {
+	return /Compact retry [a-p]{32}/u.exec(text)?.[0];
+}
+export const translationAlignmentSentences = {
+	"en-US": "I built reliable services.",
+	"ar-SA": "بنيت خدمات موثوقة.",
+};
+
 /** Scripted transport for synthetic browser fixtures only; identity output does not measure translation quality. */
 export function scriptedVariantResponse(selections: Array<{ id: string; text: string }>): unknown {
+	const compactSource = selections.find(({ id }) => id === "translation-source");
+	if (compactSource) {
+		const { direction, sourceRevision, segments } = JSON.parse(compactSource.text) as {
+			direction: string;
+			sourceRevision: string;
+			segments: Array<{ id: string; text: string }>;
+		};
+		return {
+			direction,
+			sourceRevision,
+			segments: segments.map(({ id, text }) => {
+				const marker = compactRetryMarker(text);
+				const attempts = marker ? (compactWriterAttempts.get(marker) ?? 0) : 0;
+				if (marker) compactWriterAttempts.set(marker, attempts + 1);
+				return {
+					sourceId: id,
+					text: text
+						.replace("Documented the QA flow.", "وثقت خطوات الاختبار.")
+						.replace(
+							/Supported the release lead on 22% of releases\. Compact retry [a-p]{32}/u,
+							attempts ? "ساندت مسؤول الإصدار في 22% من الإصدارات." : "ساندت مسؤول الإصدار في 23% من الإصدارات.",
+						)
+						.replace("Engineer", "مهندس"),
+				};
+			}),
+		};
+	}
 	const task = selections.find((item) => item.id === "variant-task");
 	if (task) {
 		const metadata = JSON.parse(task.text) as Omit<VariantSnapshot, "cv" | "jobAd">;
@@ -21,19 +60,33 @@ export function scriptedVariantResponse(selections: Array<{ id: string; text: st
 					explanation:
 						span.text === "TypeScript and SAP required"
 							? source.cv[0]?.text
-							: "No supporting evidence was found in this CV.",
+							: span.text.startsWith("Synthetic backup recovery")
+								? "The selected passages do not show SAP."
+								: span.text.startsWith("Synthetic ability claim")
+									? "The candidate cannot use Rust."
+									: "No supporting evidence was found in this CV.",
 				})),
-				notes: [],
+				notes: source.jobAd?.segments.some((span) => span.text === "TypeScript required.")
+					? ["Read the selected evidence before acting.", "The candidate improved delivery by 83%."]
+					: [],
 			};
 		if (source.category === "translation")
 			return {
 				direction: source.direction,
 				sourceRevision: source.sourceRevision,
-				segments: source.cv.map((item) => ({
-					sourceId: item.id,
-					text: item.text,
-					claims: [{ id: "translation", text: item.text, evidenceIds: [item.id], kind: "translation" }],
-				})),
+				segments: source.cv.map((item) => {
+					const text =
+						item.text === translationAlignmentSentences["en-US"]
+							? translationAlignmentSentences["ar-SA"]
+							: item.text === translationAlignmentSentences["ar-SA"]
+								? translationAlignmentSentences["en-US"]
+								: item.text.replace("Documented the QA flow.", "وثقت خطوات الاختبار.");
+					return {
+						sourceId: item.id,
+						text,
+						claims: [{ id: "translation", text, evidenceIds: [item.id], kind: "translation" }],
+					};
+				}),
 				notes: [],
 			};
 		if (source.category === "summary")
@@ -57,7 +110,7 @@ export function scriptedVariantResponse(selections: Array<{ id: string; text: st
 				resumeId: source.resumeId,
 				baseRevision: source.sourceRevision,
 				patches: source.variant.fields.flatMap((field, index) => {
-					const after = field.text.replace(/\bBuilt\b/gu, "Developed");
+					const after = field.text.replace(/\bBuilt\b/gu, "Developed").replace(/بنيت/gu, "طورت");
 					if (after === field.text) return [];
 					return [
 						{
@@ -72,19 +125,27 @@ export function scriptedVariantResponse(selections: Array<{ id: string; text: st
 							},
 							before: field.text,
 							after,
-							why: "Focus the wording on the confirmed TypeScript work without adding facts.",
+							why: field.text.startsWith("بنيت")
+								? "توضح الصياغة العمل المؤكد."
+								: "Focus the wording on the confirmed TypeScript work without adding facts.",
 							evidenceIds: field.evidenceIds,
 							claims: [{ id: "wording", text: after, evidenceIds: field.evidenceIds, kind: "fact" }],
 						},
 					];
 				}),
-				order: [],
+				order: source.jobAd?.segments.some((span) => span.text.includes("Synthetic project reorder"))
+					? source.variant.order
+							.filter(({ sectionId, itemIds }) => sectionId === "projects" && itemIds.length > 1)
+							.map(({ sectionId, itemIds }) => ({ sectionId, itemIds: [...itemIds].reverse() }))
+					: [],
 				notes: [],
 			};
 	}
 	const verification = selections.find((item) => item.id === "variant-verification-task");
 	if (verification) {
 		const inventory = JSON.parse(verification.text) as {
+			category: string;
+			jobEvidenceSchemaVersion?: 2;
 			claims: Array<{ id: string; evidenceIds: string[] }>;
 			premises: Array<{ id: string }>;
 			absence: Array<{ id: string }>;
@@ -94,13 +155,26 @@ export function scriptedVariantResponse(selections: Array<{ id: string; text: st
 		if (!cvEvidence) throw new Error("Missing synthetic CV evidence");
 		const evidence = JSON.parse(cvEvidence.text) as Array<{
 			id: string;
+			text: string;
 		}>;
-		const reason = "Scripted synthetic fixture; no semantic quality qualification.";
+		// A unique paragraph scopes two independent verifier failures to this disposable browser fixture.
+		const stopped = evidence.find((fact) => fact.text.includes("Synthetic batched translation retry"));
+		let rejectStopped = false;
+		if (stopped) {
+			const key = `${stopped.id}:${stopped.text}`;
+			const attempt = (translationVerificationAttempts.get(key) ?? 0) + 1;
+			translationVerificationAttempts.set(key, attempt);
+			rejectStopped = attempt <= 2;
+		}
+		const job = inventory.jobEvidenceSchemaVersion === 2;
+		const reason = job
+			? "Scripted synthetic verdict."
+			: "Scripted synthetic fixture; no semantic quality qualification.";
 		return {
-			schemaVersion: 1,
+			schemaVersion: job ? 2 : 1,
 			verdicts: inventory.claims.map((claim) => ({
 				claimId: claim.id,
-				verdict: "supported",
+				verdict: rejectStopped && stopped && claim.evidenceIds.includes(stopped.id) ? "unsupported" : "supported",
 				evidenceIds: claim.evidenceIds,
 				reason,
 			})),
@@ -109,8 +183,17 @@ export function scriptedVariantResponse(selections: Array<{ id: string; text: st
 				: null,
 			absence: inventory.absence.map((item) => ({ id: item.id, verdict: "confirmed_absent" })),
 			coverage: { status: "complete", reason },
-			premises: inventory.premises.map((item) => ({ id: item.id, verdict: "no_candidate_premise", reason })),
-			quality: { status: "appropriate", reason },
+			premises: inventory.premises.map((item) => ({
+				id: item.id,
+				verdict: job && item.id.startsWith("requirement:") ? "supported" : "no_candidate_premise",
+				reason,
+				...(job ? { issueClass: null } : {}),
+			})),
+			quality: {
+				...(inventory.category === "translation" ? { assessment: "translation_language_quality" } : {}),
+				status: "appropriate",
+				reason,
+			},
 		};
 	}
 	return undefined;

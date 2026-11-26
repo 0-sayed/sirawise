@@ -3,8 +3,8 @@ import { expectedExportDateDisplay, expectedExportTextDisplay } from "./expected
 
 it.each([
 	["2015 - 2017", "2015-2017"],
-	["١٤٤٠ هـ – ١٤٤١ هـ", "1440-1441 هـ"],
-	["۱۴۴۰ هـ - ۱۴۴۱ هـ", "1440-1441 هـ"],
+	["١٤٤٠ هـ – ١٤٤١ هـ", "1440 هـ - 1441 هـ"],
+	["۱۴۴۰ هـ - ۱۴۴۱ هـ", "1440 هـ - 1441 هـ"],
 	["من 2010 إلى 2012", "من 2010 إلى 2012"],
 	["من 2010 حتى 2012", "من 2010 حتى 2012"],
 	["01/2020 – 12/2021", "01/2020-12/2021"],
@@ -31,8 +31,9 @@ it.each([
 	expect(expectedExportDateDisplay(source)).toBe(source);
 });
 
-it("D33 leaves English date spacing intact while normalizing digits", () => {
-	expect(expectedExportDateDisplay("٢٠١٥ – ۲۰۱۷", false)).toBe("2015 – 2017");
+it("projects closed English date ranges as compact numeric runs and preserves English ongoing labels", () => {
+	expect(expectedExportDateDisplay("٢٠١٥ – ۲۰۱۷", false)).toBe("2015-2017");
+	expect(expectedExportDateDisplay("2015 – Present", false)).toBe("2015 – Present");
 });
 
 it("D33 source display keeps tatweel and the exact owner labelled range", () => {

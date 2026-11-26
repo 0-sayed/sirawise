@@ -1,9 +1,9 @@
 import { t } from "@lingui/core/macro";
 import { Plural, Trans } from "@lingui/react/macro";
 import { useMutation } from "@tanstack/react-query";
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { Alert, AlertDescription, AlertActions } from "@reactive-resume/ui/components/alert";
-import { Button } from "@reactive-resume/ui/components/button";
+import { Button, buttonVariants } from "@reactive-resume/ui/components/button";
 import { Icon } from "@reactive-resume/ui/components/icon";
 import { Kbd } from "@reactive-resume/ui/components/kbd";
 import { toast } from "@reactive-resume/ui/components/toast";
@@ -14,6 +14,7 @@ import { BasicsCard } from "./basics-card";
 import { getOutlineRows, summarizeContent } from "./model";
 import { Outline } from "./outline";
 import { useDialogStore } from "@/dialogs/store";
+import { useAssistantCopy } from "@/features/assistant/copy.generated";
 import {
 	useCurrentBuilderResumeSelector,
 	useCurrentResume,
@@ -28,6 +29,7 @@ import { orpc } from "@/libs/orpc/client";
  * section. Every field saves as you type; a locked resume shows the same panel read-only.
  */
 export function WritePanel() {
+	const copy = useAssistantCopy();
 	const resumeId = useCurrentBuilderResumeSelector((resume) => resume.id);
 	const locked = useIsResumeLocked();
 	const locale = useCurrentBuilderResumeSelector((resume) => resume.data.metadata.page.locale);
@@ -46,6 +48,13 @@ export function WritePanel() {
 			<CareerReuseNotice key={resumeId} available={isEmpty && !locked} />
 
 			<BasicsCard locked={locked} />
+			<Link
+				to="/dashboard/resumes/$resumeId/job"
+				params={{ resumeId }}
+				className={buttonVariants({ variant: "secondary" })}
+			>
+				{copy("review.launch.cvJobLink")}
+			</Link>
 
 			<div>
 				<div className="mb-1.5 grid gap-1 px-1 type-metadata text-ink-2">

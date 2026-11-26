@@ -26,7 +26,7 @@ export type LetterSnapshot = GuardContext & {
 	sourceRevision: string;
 };
 const conflict = (): never => {
-	throw new ORPCError("CONFLICT", { message: "LETTER_REVIEW_STALE" });
+	throw new ORPCError("CONFLICT", { message: "LETTER_REVIEW_STALE", data: { reason: "LETTER_REVIEW_STALE" } });
 };
 
 export async function loadLetterSnapshot(
@@ -44,7 +44,7 @@ export async function loadLetterSnapshot(
 		.where(and(eq(coverLetter.userId, ownerId), eq(coverLetter.id, parameters.letterId)))
 		.for("share");
 	if (!row || row.trashedAt) throw new ORPCError("NOT_FOUND");
-	if (row.isLocked) throw new ORPCError("FORBIDDEN", { message: "LETTER_LOCKED" });
+	if (row.isLocked) throw new ORPCError("FORBIDDEN", { message: "LETTER_LOCKED", data: { reason: "LETTER_LOCKED" } });
 	const letter = coverLetterSchema.parse(row);
 	const letterSources = request.sources.filter((source) => source.kind === "cover-letter");
 	if (
@@ -57,7 +57,10 @@ export async function loadLetterSnapshot(
 	)
 		conflict();
 	if (!context.cv.length || !context.jobAd?.segments.length)
-		throw new ORPCError("PRECONDITION_FAILED", { message: "LETTER_EVIDENCE_REQUIRED" });
+		throw new ORPCError("PRECONDITION_FAILED", {
+			message: "LETTER_EVIDENCE_REQUIRED",
+			data: { reason: "LETTER_EVIDENCE_REQUIRED" },
+		});
 	return { ...context, category: "cover-letter", letter, parameters };
 }
 

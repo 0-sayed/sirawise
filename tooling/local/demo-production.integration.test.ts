@@ -52,9 +52,13 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("restricted product
 		await runtime?.end();
 		await fixture?.end();
 		if (admin) {
-			await admin.query(`DROP DATABASE IF EXISTS "${databaseName}" WITH (FORCE)`);
-			await admin.query(`DROP ROLE IF EXISTS "${role}"`);
-			await admin.end();
+			try {
+				// Pool shutdown can finish before Postgres closes the connections.
+				await admin.query(`DROP DATABASE IF EXISTS "${databaseName}"`);
+				await admin.query(`DROP ROLE IF EXISTS "${role}"`);
+			} finally {
+				await admin.end();
+			}
 		}
 	});
 	it(
@@ -117,6 +121,14 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("restricted product
 					.from(tables.user)
 					.where(sql`id = ${saved.id}`);
 				if (!demoUser) throw new Error("Missing production demo owner");
+				const variants = (
+					await fixture.query("select id from resume where user_id=$1 and variant_kind='language'", [saved.id])
+				).rows;
+				expect(variants).toHaveLength(1);
+				for (const variant of variants)
+					expect(
+						await createDemoClient(demoUser, environment.APP_URL).resume.variants.freshness({ resumeId: variant.id }),
+					).toMatchObject({ state: "current", sourceChanged: false, staleFactIds: [] });
 				expect((await createDemoClient(demoUser, environment.APP_URL).ai.usage.get({})).operations.limit).toBeNull();
 				const contentBefore = (
 					await fixture.query("select to_jsonb(r) as row from resume r where user_id=$1 order by id", [saved.id])

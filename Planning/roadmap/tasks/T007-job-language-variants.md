@@ -100,6 +100,34 @@ Implement this inventory with existing shared components, the appropriate shared
 
 ## Acceptance evidence
 
+D36 job page changes, owner decision 2026-11-26 (B-C04, B-C06, B-C07, and B-C09).
+See [the Figma map](../../context/design/figma-map.json) for S19 and S20 desktop and mobile masters.
+The review covers the start, all requirements, question answered, and fact recorded states.
+
+- The context bar keeps the selected CV and job together so that users can see what they are comparing.
+- The keyword panel shows missing terms first and folds each group after six terms so that users can scan the gaps.
+- The tailoring card shows one primary action at each step and keeps approval per edit so that users control what the copy contains.
+- The beta section folds detailed checks and summarizes unchecked requirements so that users see recovery actions without reading unverified claims.
+
+A read-only replay found four broad absence claims, three unsupported importance labels, and one unsupported claim.
+The offline replay withheld 4 of 16 after it reused recorded absence checks with scoped wording. The original held 8 of 16.
+Two responses finished after a retry because the first responses were incomplete. The replay made no paid calls.
+Evidence includes 26 matcher tests, 2,021 web tests, the API suite, and five browser states in Arabic and English at 1440 and 390 pixels.
+
+D36 translation review changes, owner decision 2026-11-26 (B-C05, B-C09 and A13). See
+[the Figma map](../../context/design/figma-map.json) for the S21 masters, translation review, term dialog, and mobile term sheet.
+The owner-approved wireframes guide the redesign. Live Figma access was unavailable.
+
+- The overview uses two cards and opens review in place so that saved copies and draft actions stay distinct.
+- The review uses one approval action because the user approves the full document.
+- The warning folds the untranslated detail so that the user can read the translated sections first.
+- The mobile actions stay above the dashboard tabs so that the save and discard controls stay within reach.
+- The term dialog and retry consent retain their existing approval steps and recovery behavior.
+
+Local evidence uses synthetic CVs and a disposable database. The API and web suites passed.
+Chromium captured the overview, progress, review and mobile actions in Arabic and English at 1440×900 and 390×844.
+Impeccable reported one warning for the shared T002 page background.
+
 - Test exact-version binding, deterministic normalization/denominators, unsupported skills, absent evidence and
   job-only versus CV-change invalidation.
 - Verify AR-interface/EN-document and EN-interface/AR-document, proper nouns, mixed-script skills, reviewed

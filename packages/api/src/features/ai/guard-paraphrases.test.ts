@@ -130,6 +130,9 @@ it.each([
 	["No supporting evidence exists anywhere.", false],
 	["No supporting evidence was found in this CV, so the candidate lacks SAP skills.", false],
 	["تذكر السيرة أن SAP لم يُستخدم في العمل.", true],
+	["لا يوجد في المقاطع المختارة دليل على إعداد تقارير أسبوعية.", true],
+	["لا توجد في المقاطع المختارة خطة عملية لأول تسعين يومًا.", true],
+	["No supporting evidence was found in the selected passages.", true],
 	["SAP is not documented in the CV.", true],
 	["The candidate cannot use SAP.", false],
 	["The CV shows that the candidate cannot use SAP.", false],
@@ -166,6 +169,37 @@ it("production job evidence accepts documented non-use without asserting inabili
 			requirements: [{ ...output.requirements[0], explanation: "The candidate cannot use SAP." }],
 		}),
 	).toThrow("JOB_UNBOUNDED_ABSENCE");
+});
+
+it("accepts Arabic mandatory wording like تتطلب for essential job requirements", () => {
+	const snapshot = {
+		category: "job-evidence" as const,
+		resumeId: "cv",
+		sourceRevision: "r1",
+		cv: [{ id: "fact", section: "experience", text: "خبرة في تحليل المتطلبات وإدارة التغيير." }],
+		jobAd: {
+			segments: [
+				{
+					id: "job:1:1:2",
+					text: "تتطلب الوظيفة عشر سنوات من الخبرة على الأقل وإجادة التواصل وتحليل المتطلبات وإدارة التغيير.",
+				},
+			],
+		},
+	};
+	const output = {
+		requirements: [
+			{
+				id: "req-07",
+				spanIds: ["job:1:1:2"],
+				importance: "essential",
+				verdict: "partial",
+				evidenceIds: ["fact"],
+				explanation: "توضح السيرة خبرة في تحليل المتطلبات وإدارة التغيير.",
+			},
+		],
+		notes: [],
+	};
+	expect(() => validateVariantOutput(snapshot, output)).not.toThrow();
 });
 
 it("distinguishes a denial of a hiring prediction from an actual prediction", () => {

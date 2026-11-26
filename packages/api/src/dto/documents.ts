@@ -1,6 +1,7 @@
 import z from "zod";
 import { applicationStatusSchema } from "@reactive-resume/schema/applications/data";
 import { templateSchema } from "@reactive-resume/schema/templates";
+import { documentTagMaxCount, documentTagMaxLength, normalizeDocumentTag } from "@reactive-resume/utils/ui-format";
 import { paginationShape } from "../pagination";
 
 const documentTypeSchema = z.enum(["resume", "letter"]).describe("resume, or letter (a saved cover letter).");
@@ -54,8 +55,18 @@ export const documentsDto = {
 		input: documentRefSchema.extend({ name: z.string().trim().min(1).max(100) }),
 		output: z.void(),
 	},
+	tags: {
+		output: z.array(z.object({ tag: z.string(), count: z.number().int().positive() })),
+	},
 	setTags: {
-		input: documentRefSchema.extend({ tags: z.array(z.string().trim().min(1).max(40)).max(20) }),
+		input: documentRefSchema.extend({
+			tags: z
+				.array(z.string().overwrite(normalizeDocumentTag).min(1))
+				.max(documentTagMaxCount)
+				.describe(
+					`New tags must be ${documentTagMaxLength} characters or fewer. Longer tags can be reused from owned documents.`,
+				),
+		}),
 		output: z.void(),
 	},
 	setLocked: {

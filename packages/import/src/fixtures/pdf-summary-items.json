@@ -1,0 +1,1123 @@
+{
+	"long": {
+		"coverage": {
+			"pages": [
+				{
+					"pageNumber": 1,
+					"text": "complete",
+					"annotations": "complete",
+					"operators": "skipped"
+				},
+				{
+					"pageNumber": 2,
+					"text": "complete",
+					"annotations": "complete",
+					"operators": "skipped"
+				},
+				{
+					"pageNumber": 3,
+					"text": "complete",
+					"annotations": "complete",
+					"operators": "skipped"
+				}
+			],
+			"reasons": ["page-1-operators-skipped", "page-2-operators-skipped", "page-3-operators-skipped"]
+		},
+		"version": 1,
+		"file": {
+			"name": "long-summary.pdf",
+			"sizeBytes": 104577,
+			"magicBytesOk": true
+		},
+		"pageCount": 1,
+		"truncated": false,
+		"pages": [
+			{
+				"pageNumber": 1,
+				"width": 595.28,
+				"height": 841.89,
+				"rotation": 0,
+				"items": [
+					{
+						"str": "الملخ ص",
+						"dir": "rtl",
+						"transform": [14, 0, 0, 14, 539.24, 726.74],
+						"width": 45.10800000000003,
+						"height": 14,
+						"fontRef": "g_d0_f4",
+						"hasEol": false
+					},
+					{
+						"str": "",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 30.31, 708.74],
+						"width": 0,
+						"height": 0,
+						"fontRef": "g_d0_f2",
+						"hasEol": true
+					},
+					{
+						"str": "بالذ كاء",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 30.31, 708.74],
+						"width": 25.420000000000005,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "التطوير",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 55.82, 708.74],
+						"width": 27.380000000000006,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": " ",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 83.2, 708.74],
+						"width": 3.0600000000000023,
+						"height": 0,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "ف ي",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 86.26, 708.74],
+						"width": 12.220000000000006,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "للمساعدة",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 98.53, 708.74],
+						"width": 31.73,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": " ",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 130.26, 708.74],
+						"width": 1.8600000000000136,
+						"height": 0,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "يوميا",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 132.12, 708.74],
+						"width": 19.649999999999995,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": " ",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 151.77, 708.74],
+						"width": 1.4699999999999989,
+						"height": 0,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "Codex",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 153.24, 708.74],
+						"width": 29.18,
+						"height": 10,
+						"fontRef": "g_d0_f3",
+						"hasEol": false
+					},
+					{
+						"str": " ",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 182.42000000000004, 708.74],
+						"width": 2.3199999999999648,
+						"height": 0,
+						"fontRef": "g_d0_f3",
+						"hasEol": false
+					},
+					{
+						"str": "ويستخ دم",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 184.74, 708.74],
+						"width": 37.710000000000015,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "،",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 221.69, 708.74],
+						"width": 2.12,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "React",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 223.81, 708.74],
+						"width": 26.23,
+						"height": 10,
+						"fontRef": "g_d0_f3",
+						"hasEol": false
+					},
+					{
+						"str": "و",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 250.04, 708.74],
+						"width": 4.68,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": " ",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 254.72, 708.74],
+						"width": 2.3200000000000216,
+						"height": 0,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "PostgreSQL",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 257.04, 708.74],
+						"width": 54.510000000000005,
+						"height": 10,
+						"fontRef": "g_d0_f3",
+						"hasEol": false
+					},
+					{
+						"str": "و",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 311.55, 708.74],
+						"width": 4.68,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": " ",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 316.23, 708.74],
+						"width": 2.319999999999993,
+						"height": 0,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "TypeScript",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 318.55, 708.74],
+						"width": 51.63,
+						"height": 10,
+						"fontRef": "g_d0_f3",
+						"hasEol": false
+					},
+					{
+						"str": "و",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 370.18, 708.74],
+						"width": 4.68,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": " ",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 374.86, 708.74],
+						"width": 2.319999999999993,
+						"height": 0,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "Node.js",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 377.18, 708.74],
+						"width": 35.45,
+						"height": 10,
+						"fontRef": "g_d0_f3",
+						"hasEol": false
+					},
+					{
+						"str": " ",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 412.62999999999994, 708.74],
+						"width": 2.320000000000107,
+						"height": 0,
+						"fontRef": "g_d0_f3",
+						"hasEol": false
+					},
+					{
+						"str": "باستخ دام",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 414.95000000000005, 708.74],
+						"width": 37.59999999999997,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": " ",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 452.55, 708.74],
+						"width": 2.230000000000018,
+						"height": 0,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "ويب",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 454.78000000000003, 708.74],
+						"width": 16.590000000000003,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": " ",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 471.37000000000006, 708.74],
+						"width": 0.8199999999999363,
+						"height": 0,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "تطبيقات",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 472.19, 708.74],
+						"width": 32.86999999999999,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "يطور",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 502.68, 708.74],
+						"width": 18.569999999999943,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": " ",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 521.2499999999999, 708.74],
+						"width": 4.200000000000159,
+						"height": 0,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "برمج يات",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 525.45, 708.74],
+						"width": 35.93000000000005,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "هندس",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 557.44, 708.74],
+						"width": 22.45000000000002,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false,
+						"glyphText": "مهندس"
+					},
+					{
+						"str": "",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 38.97, 693.74],
+						"width": 0,
+						"height": 0,
+						"fontRef": "g_d0_f2",
+						"hasEol": true
+					},
+					{
+						"str": "لمساعدة",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 38.97, 693.74],
+						"width": 29.28,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": " ",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 68.25, 693.74],
+						"width": 1.8599999999999852,
+						"height": 0,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "Chrome",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 70.10999999999999, 693.74],
+						"width": 37.69,
+						"height": 10,
+						"fontRef": "g_d0_f3",
+						"hasEol": false
+					},
+					{
+						"str": " ",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 107.79999999999998, 693.74],
+						"width": 2.3200000000000074,
+						"height": 0,
+						"fontRef": "g_d0_f3",
+						"hasEol": false
+					},
+					{
+						"str": "لمتصف ح",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 110.11999999999999, 693.74],
+						"width": 29.990000000000002,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": " ",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 140.10999999999999, 693.74],
+						"width": 1.4000000000000057,
+						"height": 0,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "وإض اف ة",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 141.51, 693.74],
+						"width": 31.19000000000001,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "Salla",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 169.08999999999997, 693.74],
+						"width": 22.8,
+						"height": 10,
+						"fontRef": "g_d0_f3",
+						"hasEol": false
+					},
+					{
+						"str": " ",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 191.89, 693.74],
+						"width": 4.939999999999998,
+						"height": 0,
+						"fontRef": "g_d0_f3",
+						"hasEol": false
+					},
+					{
+						"str": "وتطبيق",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 196.82999999999998, 693.74],
+						"width": 29.270000000000007,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "التكاليف ،",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 223.86999999999998, 693.74],
+						"width": 37.91000000000001,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "خ ف ض ت",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 259.71, 693.74],
+						"width": 32.93,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "الاصطناعي",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 287.49999999999994, 693.74],
+						"width": 39.93000000000002,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "للذ كاء",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 327.31999999999994, 693.74],
+						"width": 21.889999999999972,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": " ",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 349.20999999999987, 693.74],
+						"width": 1.7000000000001023,
+						"height": 0,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "بوابة",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 350.90999999999997, 693.74],
+						"width": 18.479999999999976,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "بنى",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 369.4, 693.74],
+						"width": 14.09000000000001,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": " ",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 383.49, 693.74],
+						"width": 0.7699999999999818,
+						"height": 0,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "،",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 384.26, 693.74],
+						"width": 2.12,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "BandAI",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 386.38, 693.74],
+						"width": 34.95,
+						"height": 10,
+						"fontRef": "g_d0_f3",
+						"hasEol": false
+					},
+					{
+						"str": " ",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 421.3299999999999, 693.74],
+						"width": 2.32000000000005,
+						"height": 0,
+						"fontRef": "g_d0_f3",
+						"hasEol": false
+					},
+					{
+						"str": "لدى",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 423.65, 693.74],
+						"width": 13.04,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": " ",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 436.69, 693.74],
+						"width": 2.319999999999993,
+						"height": 0,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "أول",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 439.01, 693.74],
+						"width": 13.469999999999978,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": " ",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 452.47999999999996, 693.74],
+						"width": 4.050000000000011,
+						"height": 0,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "برمج يات",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 456.53, 693.74],
+						"width": 35.92999999999999,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "مهندس",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 488.52, 693.74],
+						"width": 27.01000000000002,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": " ",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 515.53, 693.74],
+						"width": 1.4700000000000273,
+						"height": 0,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "بصف ته",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 517, 693.74],
+						"width": 25.049999999999976,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": ".",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 541.84, 693.74],
+						"width": 2.68,
+						"height": 10,
+						"fontRef": "g_d0_f3",
+						"hasEol": false
+					},
+					{
+						"str": " ",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 544.52, 693.74],
+						"width": 1.580000000000041,
+						"height": 0,
+						"fontRef": "g_d0_f3",
+						"hasEol": false
+					},
+					{
+						"str": "الاصطناعي",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 546.1, 693.74],
+						"width": 39.93000000000002,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 410.23, 678.74],
+						"width": 0,
+						"height": 0,
+						"fontRef": "g_d0_f3",
+						"hasEol": true
+					},
+					{
+						"str": ".",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 410.23, 678.74],
+						"width": 2.68,
+						"height": 10,
+						"fontRef": "g_d0_f3",
+						"hasEol": false
+					},
+					{
+						"str": "وتحسينها",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 412.91, 678.74],
+						"width": 36.14000000000005,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": " ",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 449.0500000000001, 678.74],
+						"width": 0.43999999999988404,
+						"height": 0,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "متاج رهم",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 449.49, 678.74],
+						"width": 34.80999999999996,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": " ",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 484.29999999999995, 678.74],
+						"width": 1.150000000000034,
+						"height": 0,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "سياسات",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 485.45, 678.74],
+						"width": 30.08000000000002,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": " ",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 515.53, 678.74],
+						"width": 0.5,
+						"height": 0,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "مراج عة",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 516.03, 678.74],
+						"width": 28.83000000000004,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "على",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 543.44, 678.74],
+						"width": 14.370000000000001,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": " ",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 557.8100000000001, 678.74],
+						"width": 2.32000000000005,
+						"height": 0,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "التج ار",
+						"dir": "rtl",
+						"transform": [10, 0, 0, 10, 560.1300000000001, 678.74],
+						"width": 24.510000000000016,
+						"height": 10,
+						"fontRef": "g_d0_f2",
+						"hasEol": false
+					},
+					{
+						"str": "",
+						"dir": "ltr",
+						"transform": [14, 0, 0, 14, 550.34, 647.24],
+						"width": 0,
+						"height": 0,
+						"fontRef": "g_d0_f4",
+						"hasEol": true
+					}
+				],
+				"operators": null
+			}
+		],
+		"fonts": [
+			{
+				"ref": "g_d0_f1",
+				"name": "IBMPlexSerif",
+				"isType3": false,
+				"isInvalid": false,
+				"missingFile": false,
+				"isMonospace": false,
+				"isSerif": false,
+				"vertical": false
+			},
+			{
+				"ref": "g_d0_f2",
+				"name": "NotoNaskhArabic",
+				"isType3": false,
+				"isInvalid": false,
+				"missingFile": false,
+				"isMonospace": false,
+				"isSerif": false,
+				"vertical": false
+			},
+			{
+				"ref": "g_d0_f3",
+				"name": "IBMPlexSerif",
+				"isType3": false,
+				"isInvalid": false,
+				"missingFile": false,
+				"isMonospace": false,
+				"isSerif": false,
+				"vertical": false
+			},
+			{
+				"ref": "g_d0_f4",
+				"name": "NotoNaskhArabic",
+				"isType3": false,
+				"isInvalid": false,
+				"missingFile": false,
+				"isMonospace": false,
+				"isSerif": false,
+				"vertical": false
+			},
+			{
+				"ref": "g_d0_f5",
+				"name": "IBMPlexSerif-Bold",
+				"isType3": false,
+				"isInvalid": false,
+				"missingFile": false,
+				"isMonospace": false,
+				"isSerif": false,
+				"vertical": false
+			},
+			{
+				"ref": "g_d0_f6",
+				"name": "NotoNaskhArabic-Bold",
+				"isType3": false,
+				"isInvalid": false,
+				"missingFile": false,
+				"isMonospace": false,
+				"isSerif": false,
+				"vertical": false
+			}
+		],
+		"links": [],
+		"metadata": {
+			"producer": "Forme",
+			"creator": "Forme",
+			"title": null,
+			"author": null,
+			"language": "ar-SA",
+			"pdfVersion": "1.7",
+			"isEncrypted": false,
+			"isXfa": false,
+			"isCollection": false,
+			"isTagged": false,
+			"hasAcroForm": false
+		},
+		"operatorsAvailable": false
+	},
+	"arabic": {
+		"coverage": {
+			"pages": [
+				{
+					"pageNumber": 1,
+					"text": "complete",
+					"annotations": "complete",
+					"operators": "skipped"
+				},
+				{
+					"pageNumber": 2,
+					"text": "complete",
+					"annotations": "complete",
+					"operators": "skipped"
+				}
+			],
+			"reasons": ["page-1-operators-skipped", "page-2-operators-skipped"]
+		},
+		"version": 1,
+		"file": {
+			"name": "arabic-summary.pdf",
+			"sizeBytes": 65341,
+			"magicBytesOk": true
+		},
+		"pageCount": 1,
+		"truncated": false,
+		"pages": [
+			{
+				"pageNumber": 1,
+				"width": 595.28,
+				"height": 841.89,
+				"rotation": 0,
+				"items": [
+					{
+						"str": "الملخص المهني",
+						"dir": "rtl",
+						"transform": [14, 0, 0, 14, 470.27, 639.05],
+						"width": 89.01199999999999,
+						"height": 14,
+						"fontRef": "g_d1_f1",
+						"hasEol": false
+					},
+					{
+						"str": "",
+						"dir": "ltr",
+						"transform": [11, 0, 0, 11, 53.815999999999995, 621.06],
+						"width": 0,
+						"height": 0,
+						"fontRef": "g_d1_f2",
+						"hasEol": true
+					},
+					{
+						"str": "مدير عمليات المنتجات وتحسين الخدمات، بخبرة 20 عاما تشمل تنسيق العمليات وقيادة برامج التحسين. تشمل مهاراته التدريب",
+						"dir": "rtl",
+						"transform": [11, 0, 0, 11, 53.815999999999995, 621.06],
+						"width": 508.05700000000036,
+						"height": 11,
+						"fontRef": "g_d1_f2",
+						"hasEol": false
+					},
+					{
+						"str": "",
+						"dir": "ltr",
+						"transform": [11, 0, 0, 11, 47.925999999999995, 605.65],
+						"width": 0,
+						"height": 0,
+						"fontRef": "g_d1_f2",
+						"hasEol": true
+					},
+					{
+						"str": "وإدارة التغيير وتحليل المتطلبات. خفض زمن إعداد التقارير بنسبة 22% من خلال توحيد متطلبات البيانات ومعايير المراجعة، ونسق",
+						"dir": "rtl",
+						"transform": [11, 0, 0, 11, 47.925999999999995, 605.65],
+						"width": 513.9530000000004,
+						"height": 11,
+						"fontRef": "g_d1_f2",
+						"hasEol": false
+					},
+					{
+						"str": "",
+						"dir": "ltr",
+						"transform": [11, 0, 0, 11, 441.38, 590.25],
+						"width": 0,
+						"height": 0,
+						"fontRef": "g_d1_f2",
+						"hasEol": true
+					},
+					{
+						"str": "مراجعات شهرية مع 15 فريقا.",
+						"dir": "rtl",
+						"transform": [11, 0, 0, 11, 441.38, 590.25],
+						"width": 117.89800000000001,
+						"height": 11,
+						"fontRef": "g_d1_f2",
+						"hasEol": false
+					},
+					{
+						"str": "",
+						"dir": "ltr",
+						"transform": [14, 0, 0, 14, 517.98, 535.75],
+						"width": 0,
+						"height": 0,
+						"fontRef": "g_d1_f1",
+						"hasEol": true
+					}
+				],
+				"operators": null
+			}
+		],
+		"fonts": [
+			{
+				"ref": "g_d1_f1",
+				"name": "IBMPlexSansArabic-Bold",
+				"isType3": false,
+				"isInvalid": false,
+				"missingFile": false,
+				"isMonospace": false,
+				"isSerif": false,
+				"vertical": false
+			},
+			{
+				"ref": "g_d1_f2",
+				"name": "IBMPlexSansArabic",
+				"isType3": false,
+				"isInvalid": false,
+				"missingFile": false,
+				"isMonospace": false,
+				"isSerif": false,
+				"vertical": false
+			}
+		],
+		"links": [],
+		"metadata": {
+			"producer": "Forme",
+			"creator": "Forme",
+			"title": null,
+			"author": null,
+			"language": "ar-SA",
+			"pdfVersion": "1.7",
+			"isEncrypted": false,
+			"isXfa": false,
+			"isCollection": false,
+			"isTagged": false,
+			"hasAcroForm": false
+		},
+		"operatorsAvailable": false
+	},
+	"english": {
+		"coverage": {
+			"pages": [
+				{
+					"pageNumber": 1,
+					"text": "complete",
+					"annotations": "complete",
+					"operators": "skipped"
+				},
+				{
+					"pageNumber": 2,
+					"text": "complete",
+					"annotations": "complete",
+					"operators": "skipped"
+				},
+				{
+					"pageNumber": 3,
+					"text": "complete",
+					"annotations": "complete",
+					"operators": "skipped"
+				}
+			],
+			"reasons": ["page-1-operators-skipped", "page-2-operators-skipped", "page-3-operators-skipped"]
+		},
+		"version": 1,
+		"file": {
+			"name": "english-summary.pdf",
+			"sizeBytes": 77483,
+			"magicBytesOk": true
+		},
+		"pageCount": 1,
+		"truncated": false,
+		"pages": [
+			{
+				"pageNumber": 1,
+				"width": 595.28,
+				"height": 841.89,
+				"rotation": 0,
+				"items": [
+					{
+						"str": "Summary",
+						"dir": "ltr",
+						"transform": [14, 0, 0, 14, 14, 726.74],
+						"width": 67.382,
+						"height": 14,
+						"fontRef": "g_d2_f1",
+						"hasEol": false
+					},
+					{
+						"str": "",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 14, 708.74],
+						"width": 0,
+						"height": 0,
+						"fontRef": "g_d2_f2",
+						"hasEol": true
+					},
+					{
+						"str": "Software Engineer building web applications with Node.js, TypeScript, PostgreSQL, and React, and using Codex daily for",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 14, 708.74],
+						"width": 561.51,
+						"height": 10,
+						"fontRef": "g_d2_f2",
+						"hasEol": false
+					},
+					{
+						"str": "",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 14, 693.74],
+						"width": 0,
+						"height": 0,
+						"fontRef": "g_d2_f2",
+						"hasEol": true
+					},
+					{
+						"str": "AI-assisted development. As a Senior Software Engineer at BandAI, built an AI gateway that reduced costs and a Salla",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 14, 693.74],
+						"width": 547.1499999999997,
+						"height": 10,
+						"fontRef": "g_d2_f2",
+						"hasEol": false
+					},
+					{
+						"str": "",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 14, 678.74],
+						"width": 0,
+						"height": 0,
+						"fontRef": "g_d2_f2",
+						"hasEol": true
+					},
+					{
+						"str": "app and Chrome extension to help merchants review and improve store policies.",
+						"dir": "ltr",
+						"transform": [10, 0, 0, 10, 14, 678.74],
+						"width": 377.4899999999999,
+						"height": 10,
+						"fontRef": "g_d2_f2",
+						"hasEol": false
+					},
+					{
+						"str": "",
+						"dir": "ltr",
+						"transform": [14, 0, 0, 14, 14, 647.24],
+						"width": 0,
+						"height": 0,
+						"fontRef": "g_d2_f1",
+						"hasEol": true
+					}
+				],
+				"operators": null
+			}
+		],
+		"fonts": [],
+		"links": [],
+		"metadata": {
+			"producer": "Forme",
+			"creator": "Forme",
+			"title": null,
+			"author": null,
+			"language": "en-US",
+			"pdfVersion": "1.7",
+			"isEncrypted": false,
+			"isXfa": false,
+			"isCollection": false,
+			"isTagged": false,
+			"hasAcroForm": false
+		},
+		"operatorsAvailable": false
+	}
+}

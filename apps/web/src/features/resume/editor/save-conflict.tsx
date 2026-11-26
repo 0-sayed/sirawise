@@ -13,6 +13,7 @@ import { Icon } from "@reactive-resume/ui/components/icon";
 import { SectionCard, SectionCardHeader } from "@reactive-resume/ui/components/section-card";
 import { QuerySkeleton } from "@/components/query-skeleton";
 import { useResumeStore } from "@/features/resume/builder/draft";
+import { AllowanceLimitNotice, getAllowanceReason } from "@/features/usage/allowance-limit";
 import { getResumeErrorMessage } from "@/libs/error-message";
 import { getInterfaceDateLocale } from "@/libs/locale";
 import { orpc } from "@/libs/orpc/client";
@@ -31,7 +32,7 @@ export function SaveConflict() {
 	} = useQuery(orpc.resume.getById.queryOptions({ input: { id: local?.id ?? "" } }));
 	const navigate = useNavigate();
 	const [busy, setBusy] = useState(false);
-	const [error, setError] = useState<string>();
+	const [error, setError] = useState<unknown>();
 	const choose = async (choice: "save-copy" | "open-saved") => {
 		setBusy(true);
 		setError(undefined);
@@ -40,7 +41,7 @@ export function SaveConflict() {
 			const id = await resolve(choice);
 			if (id) await navigate({ to: "/builder/$resumeId", params: { resumeId: id } });
 		} catch (cause) {
-			setError(getResumeErrorMessage(cause));
+			setError(cause);
 		} finally {
 			setBusy(false);
 		}
@@ -111,10 +112,14 @@ export function SaveConflict() {
 			<Button variant="ghost" disabled>
 				<Trans context="editor.conflict.viewHistory">View version history</Trans>
 			</Button>
-			{error && (
-				<Alert variant="error">
-					<AlertDescription>{error}</AlertDescription>
-				</Alert>
+			{getAllowanceReason(error) ? (
+				<AllowanceLimitNotice error={error} />
+			) : (
+				!!error && (
+					<Alert variant="error">
+						<AlertDescription>{getResumeErrorMessage(error)}</AlertDescription>
+					</Alert>
+				)
 			)}
 		</div>
 	);

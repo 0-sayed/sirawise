@@ -21,21 +21,23 @@ const environment = {
 const route = {
 	routeId: "local-real-ai",
 	routeRevision: "provisional-1",
-	dayCapMicros: 3000000,
+	dayCapMicros: 15000000,
 	requestCapMicros: 200000,
 };
 afterEach(() => vi.resetAllMocks());
 
-it("creates only a missing UTC budget and preserves all existing limits, spend, and reservations", async () => {
+it("creates a UTC budget or raises only its concurrency floor", async () => {
 	database.query.mockResolvedValue({ rowCount: 1 });
 	await ensureLocalAiBudget(environment, route);
 	database.query.mockResolvedValue({ rowCount: 0 });
 	await ensureLocalAiBudget(environment, route);
 	for (const [sql, values] of database.query.mock.calls) {
 		expect(sql).toMatch(/CURRENT_TIMESTAMP AT TIME ZONE 'UTC'/);
-		expect(sql).toMatch(/ON CONFLICT \(route_id, route_revision, window_date\) DO NOTHING/);
-		expect(sql).not.toMatch(/UPDATE|DELETE|TRUNCATE/);
-		expect(values).toEqual(["local-real-ai", "provisional-1", 3000000, 200000, 2]);
+		expect(sql).toMatch(
+			/ON CONFLICT \(route_id, route_revision, window_date\)\s+DO UPDATE SET concurrency = GREATEST\(ai_platform_budget\.concurrency, EXCLUDED\.concurrency\)$/,
+		);
+		expect(sql).not.toMatch(/DELETE|TRUNCATE/);
+		expect(values).toEqual(["local-real-ai", "provisional-1", 15000000, 200000, 6]);
 	}
 	expect(database.end).toHaveBeenCalledTimes(2);
 });
@@ -79,7 +81,7 @@ it("pins a verified localhost address before opening the administrative connecti
 	);
 });
 
-it.each([{ dayCapMicros: 3000001 }, { requestCapMicros: 200001 }, { dayCapMicros: 0 }, { routeId: "production" }])(
+it.each([{ dayCapMicros: 15000001 }, { requestCapMicros: 200001 }, { dayCapMicros: 0 }, { routeId: "production" }])(
 	"refuses budget values outside the bounded local route",
 	async (patch) => {
 		await expect(ensureLocalAiBudget(environment, { ...route, ...patch })).rejects.toThrow(

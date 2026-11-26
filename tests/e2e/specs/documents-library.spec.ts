@@ -181,7 +181,7 @@ test.describe("touch controls", () => {
 		await menu().click();
 		await page.getByRole("menuitem", { name: "Tags…", exact: true }).click();
 		const tags = page.getByRole("dialog", { name: "Tags", exact: true });
-		await tags.getByRole("textbox").fill("Synthetic tag");
+		await tags.getByRole("combobox").fill("Synthetic tag");
 		await page.keyboard.press("Enter");
 		await tags.getByRole("button", { name: "Save", exact: true }).click();
 		await expect(tags).not.toBeVisible();

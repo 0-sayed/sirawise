@@ -1,5 +1,5 @@
 /**
- * One synthetic person, Abdullah Alqahtani, an accountant in Riyadh, told in both document languages. These are CV
+ * One synthetic person, Abdulelah Aljabal, an accountant in Riyadh, told in both document languages. These are CV
  * contents (names, roles, dates, skills, document headings and sample job ads), so they stay in the document's own
  * language whatever the interface language is, and are never routed through the interface catalog.
  */
@@ -29,18 +29,18 @@ type ExampleCv = {
 	jobs: Readonly<Record<SampleJobId, { title: string; requirements: readonly Requirement[] }>>;
 };
 
-const email = "abdullah@example.com";
+const email = "abdulelah@example.com";
 export const sampleJobIds = ["accountant", "hr", "sales"] as const satisfies readonly SampleJobId[];
 
 export const landingExample: Readonly<Record<ExampleLanguage, ExampleCv>> = {
 	ar: {
 		lang: "ar-SA",
 		dir: "rtl",
-		name: "عبدالله القحطاني",
+		name: "عبدالإله الجبل",
 		role: "محاسب",
 		location: "الرياض",
 		email,
-		file: "abdullah-cv.pdf",
+		file: "abdulelah-cv.pdf",
 		headings: { summary: "نبذة", experience: "الخبرة العملية", education: "التعليم", skills: "المهارات" },
 		summary: "محاسب يعدّ تقارير مالية واضحة ودقيقة.",
 		job: {
@@ -88,11 +88,11 @@ export const landingExample: Readonly<Record<ExampleLanguage, ExampleCv>> = {
 	en: {
 		lang: "en-US",
 		dir: "ltr",
-		name: "Abdullah Alqahtani",
+		name: "Abdulelah Aljabal",
 		role: "Accountant",
 		location: "Riyadh",
 		email,
-		file: "abdullah-cv.pdf",
+		file: "abdulelah-cv.pdf",
 		headings: { summary: "Summary", experience: "Experience", education: "Education", skills: "Skills" },
 		summary: "Accountant who prepares clear, accurate financial reports.",
 		job: {

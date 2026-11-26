@@ -171,3 +171,9 @@ it.each([
 	);
 	expect(screen.getByRole("link", { name })).toHaveAccessibleName(name);
 });
+
+it.each(["ar-SA", "en-US"] as const)("uses shared section typography for %s", (locale) => {
+	const { container } = render(<BrandIcon locale={locale} />);
+	const name = container.querySelector('[data-slot="brand-name"]');
+	expect(name).toHaveClass("type-section");
+});

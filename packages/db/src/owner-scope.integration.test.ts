@@ -45,7 +45,9 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("owner database sco
 		);
 		await fixture.query(`REVOKE UPDATE,DELETE ON career_fact_revision FROM "${role}"`);
 		await fixture.query(`REVOKE UPDATE,DELETE,TRUNCATE ON ai_usage_ledger FROM "${role}"`);
-		await fixture.query(`REVOKE ALL ON ai_platform_budget,deletion_replay_record,support_access_log FROM "${role}"`);
+		await fixture.query(
+			`REVOKE ALL ON ai_platform_budget,ai_platform_capacity,deletion_replay_record,support_access_log FROM "${role}"`,
+		);
 		await fixture.query(
 			`REVOKE UPDATE,DELETE,TRUNCATE ON cover_letter_proposal_decision FROM "${role}"; REVOKE UPDATE,DELETE,TRUNCATE ON ai_review_decision FROM "${role}"`,
 		);
@@ -79,6 +81,7 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("owner database sco
 		["ai_platform_budget", "SELECT", "spent_micros"],
 		["ai_platform_budget", "INSERT", "spent_micros"],
 		["ai_platform_budget", "UPDATE", "spent_micros"],
+		["ai_platform_capacity", "UPDATE", "max_running"],
 		["deletion_replay_record", "SELECT", "subject_user_ids"],
 		["support_access_log", "INSERT", "purpose"],
 	])("rejects column-only %s %s privileges at startup", async (table, privilege, column) => {
@@ -91,7 +94,7 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("owner database sco
 		}
 	});
 
-	it.each(["deletion_replay_record", "support_access_log"])(
+	it.each(["deletion_replay_record", "support_access_log", "ai_platform_capacity"])(
 		"rejects direct privileges on %s at startup",
 		async (table) => {
 			for (const privilege of ["SELECT", "INSERT", "UPDATE", "DELETE", "TRUNCATE"]) {

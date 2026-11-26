@@ -3,10 +3,10 @@ import { ATS_RULE_CODES } from "@reactive-resume/resume/ats";
 import { PDF_ATS_RULE_CODES } from "@reactive-resume/resume/ats-pdf";
 import { demoCredentials, demoAccountName } from "../../../tooling/local/demo-fixture";
 import { loginViaUi } from "../fixtures/auth";
+import { expect, test } from "../fixtures/demo-test";
 import { createSampleResumeFromDashboard } from "../fixtures/resume";
 import { openReview } from "../fixtures/reviewable-ai";
 import { settleScreen } from "../fixtures/screen";
-import { expect, test } from "../fixtures/test";
 
 // Written for the isolated browser runner. Never seed an owner's live runtime.
 function seedSyntheticDemo() {
@@ -16,7 +16,9 @@ function seedSyntheticDemo() {
 		timeout: 60_000,
 	});
 }
-test("requires authentication and retains a rule destination through sign-in", async ({ page }) => {
+test("requires authentication and retains a rule destination through sign-in", async ({ page, demoLock }) => {
+	test.setTimeout(300_000);
+	await demoLock();
 	seedSyntheticDemo();
 	await page.goto("/dashboard/review-guide?locale=en-US#rule-NO_EMAIL");
 	await expect(page).toHaveURL(/\/auth\/login/);
@@ -58,7 +60,7 @@ test("explores six branches, global bilingual search, severity types, table and 
 		await expect(page.locator("details")).not.toHaveCount(0);
 	}
 	await findingTypes.getByRole("radio", { name: /^All \d+$/u }).click();
-	await page.getByRole("tab", { name: "Data check", exact: true }).click();
+	await page.getByRole("tab", { name: "Information completeness", exact: true }).click();
 	await page.getByRole("searchbox").fill("MISSING_EMAIL");
 	await expect(page.locator("#rule-MISSING_EMAIL")).toBeVisible();
 	await page.getByRole("searchbox").fill("البريد");
@@ -183,7 +185,7 @@ test("keeps segmented guide tabs in URL state and preserves dashboard navigation
 		await page.locator("aside nav a").evaluateAll((links) => links.map((link) => link.getAttribute("href"))),
 	).toEqual(["/dashboard/career/information", "/dashboard", "/dashboard/applications", "/dashboard/trash"]);
 	await expect(page.locator('aside nav a[href*="review-guide"]')).toHaveCount(0);
-	const data = tabs.getByRole("tab", { name: "Data check", exact: true });
+	const data = tabs.getByRole("tab", { name: "Information completeness", exact: true });
 	await data.click();
 	await expect(page).toHaveURL(/tab=data/);
 	await expect(page.locator('[data-guide-area="contact"] [data-guide-source="editor"]')).toHaveText("7");

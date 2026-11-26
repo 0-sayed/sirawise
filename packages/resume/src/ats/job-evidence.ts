@@ -11,8 +11,8 @@ import { matchingWindows } from "../ats-pdf/jd/tokenize";
 import { hashReviewTarget } from "../review-evidence";
 import { isRenderedSection, walkSections } from "./walk";
 
-export const JOB_NORMALIZATION_VERSION = "matching-v2";
-export const JOB_RUBRIC_VERSION = "literal-v1";
+export const JOB_NORMALIZATION_VERSION = "matching-v4";
+export const JOB_RUBRIC_VERSION = "literal-v2";
 const TERM_LIMIT = 35;
 const plain = (value: string) => decodeHtmlEntities(value.replace(/<[^>]*>/gu, " ")).trim();
 
@@ -25,14 +25,13 @@ export function analyzeJobTerms(raw: JobTermAnalysisInput): JobTermReport {
 		throw new Error("JOB_POLICY_CHANGED");
 	const resumeText = input.passages.map((passage) => passage.text).join("\n");
 	const options = { jobDescription: input.jobText, resumeText };
-	const report = matchJobDescription(options);
-	const all = matchJobDescription({ ...options, maxTerms: Number.MAX_SAFE_INTEGER });
+	const { terms: ranked } = matchJobDescription({ ...options, maxTerms: Number.MAX_SAFE_INTEGER });
 	const jobWindows = matchingWindows(input.jobText, MAX_NGRAM_LENGTH);
 	const cvWindows = input.passages.map((passage) => ({
 		passage,
 		windows: matchingWindows(passage.text, MAX_NGRAM_LENGTH),
 	}));
-	const terms = report.terms.map((term, index) => {
+	const terms = ranked.slice(0, TERM_LIMIT).map((term, index) => {
 		const forms = new Set(surfaceFormsOf(term.term));
 		const stem = term.term.split(" ").map(stemFreeText).join(" ");
 		const matches = (value: string) => forms.has(value) || value.split(" ").map(stemFreeText).join(" ") === stem;
@@ -57,15 +56,13 @@ export function analyzeJobTerms(raw: JobTermAnalysisInput): JobTermReport {
 			cvSpans,
 		};
 	});
-	const excludedTerms = all.terms
-		.filter((term) => !terms.some((selected) => selected.term === term.term))
-		.map((term) => term.term);
+	const excludedTerms = ranked.slice(TERM_LIMIT).map((term) => term.term);
 	return {
 		identity: input.identity,
 		state: !input.jobText.trim() ? "not-checked" : !terms.length ? "not-checkable" : "complete",
 		denominator: terms.length,
-		matchedCount: report.matchedCount,
-		unmatchedCount: terms.length - report.matchedCount,
+		matchedCount: terms.filter((term) => term.matched).length,
+		unmatchedCount: terms.filter((term) => !term.matched).length,
 		terms,
 		selection: { limit: TERM_LIMIT, truncated: excludedTerms.length > 0 },
 		excludedTerms,
