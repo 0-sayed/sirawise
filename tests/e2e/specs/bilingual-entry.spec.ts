@@ -34,9 +34,9 @@ for (const path of ["/", "/auth/login"]) {
 						})
 						.first();
 					await expect(trigger).toBeVisible();
-					expect(
-						await trigger.evaluate((element) => Number.parseFloat(getComputedStyle(element).transitionDuration)),
-					).toBeLessThanOrEqual(0.001);
+					await expect
+						.poll(() => trigger.evaluate((element) => Number.parseFloat(getComputedStyle(element).transitionDuration)))
+						.toBeLessThanOrEqual(0.001);
 					await page.screenshot({ path: testInfo.outputPath("entry.png"), fullPage: true });
 				});
 			}
