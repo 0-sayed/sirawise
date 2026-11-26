@@ -3,7 +3,7 @@ import { Plural, Trans } from "@lingui/react/macro";
 import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { Alert, AlertDescription, AlertActions } from "@reactive-resume/ui/components/alert";
-import { Button } from "@reactive-resume/ui/components/button";
+import { Button, buttonVariants } from "@reactive-resume/ui/components/button";
 import { Icon } from "@reactive-resume/ui/components/icon";
 import { Kbd } from "@reactive-resume/ui/components/kbd";
 import { toast } from "@reactive-resume/ui/components/toast";
@@ -48,13 +48,13 @@ export function WritePanel() {
 			<CareerReuseNotice key={resumeId} available={isEmpty && !locked} />
 
 			<BasicsCard locked={locked} />
-			<Button
-				variant="secondary"
-				nativeButton={false}
-				render={<Link to="/dashboard/resumes/$resumeId/job" params={{ resumeId }} />}
+			<Link
+				to="/dashboard/resumes/$resumeId/job"
+				params={{ resumeId }}
+				className={buttonVariants({ variant: "secondary" })}
 			>
 				{copy("review.launch.cvJobLink")}
-			</Button>
+			</Link>
 
 			<div>
 				<div className="mb-1.5 grid gap-1 px-1 type-metadata text-ink-2">
