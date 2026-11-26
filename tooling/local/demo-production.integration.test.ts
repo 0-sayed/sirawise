@@ -52,9 +52,13 @@ describe.skipIf(!process.env.COVER_LETTER_TEST_DATABASE_URL)("restricted product
 		await runtime?.end();
 		await fixture?.end();
 		if (admin) {
-			await admin.query(`DROP DATABASE IF EXISTS "${databaseName}" WITH (FORCE)`);
-			await admin.query(`DROP ROLE IF EXISTS "${role}"`);
-			await admin.end();
+			try {
+				// Pool shutdown can finish before Postgres closes the connections.
+				await admin.query(`DROP DATABASE IF EXISTS "${databaseName}"`);
+				await admin.query(`DROP ROLE IF EXISTS "${role}"`);
+			} finally {
+				await admin.end();
+			}
 		}
 	});
 	it(
