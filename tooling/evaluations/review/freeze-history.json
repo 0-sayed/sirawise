@@ -2523,5 +2523,24 @@
 		"freezeHash": "c126a7cb3653b52b638c47015d7c19c29372705461a5921d5c96698ffb089370",
 		"sha256": "e8ca8043774d215401c6be981fec59b5ec7648daa5c92dec766a84f0372448c0",
 		"gitBlob": "0f6b9d0cb73a31beb5d984f6c905a2ba178fed14"
+	},
+	{
+		"name": "tasks-study-before-ai-review-safeguards.json",
+		"date": "2026-11-26",
+		"reason": "Seal the AI review safeguards from PR 35. Offline controls preserve the unapproved benchmark gate.",
+		"originalName": "tasks-study.json",
+		"studyId": "tasks-v1-personal-career-b54c578eca61",
+		"studyHash": "f77c41c4325fe3fdfb939e22290c333ec82be6e98fb4a78ea85e9687def5a395",
+		"sha256": "bb12e25c00daaf96e547b74c8733293d273f4d662851dc7bb4574d71a7b7c67a",
+		"gitBlob": "01a9099e1bad38dc8287112ddee75ddec3c89baa"
+	},
+	{
+		"name": "guard-controls-before-ai-review-safeguards.json",
+		"date": "2026-11-26",
+		"reason": "Seal the AI review safeguards from PR 35. Offline controls preserve the unapproved benchmark gate.",
+		"originalName": "guard-controls-tasks-v1.json",
+		"freezeHash": "f77c41c4325fe3fdfb939e22290c333ec82be6e98fb4a78ea85e9687def5a395",
+		"sha256": "016bab5e9cba1970143a56f6c2ee6bb72b813396c99b2e3dbdee894d8de31c0e",
+		"gitBlob": "e02ad2de4565a2f3fbf1230704574f531bbe8fde"
 	}
 ]

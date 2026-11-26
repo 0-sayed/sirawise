@@ -1,9 +1,9 @@
 {
 	"study": "tasks-v1",
-	"freezeHash": "f77c41c4325fe3fdfb939e22290c333ec82be6e98fb4a78ea85e9687def5a395",
-	"reason": "Seal the current AI review contracts after the owner retired the translation checker. The offline controls do not grant approval.",
+	"freezeHash": "db53dd4137399deca53f4efbd30e5c403acb03a03b89a0edbb5ac706fb7e4ff4",
+	"reason": "Seal the AI review safeguards from PR 35. Offline controls preserve the unapproved benchmark gate.",
 	"controlsBasis": "Fresh deterministic controls for all categories, the primary scope, and the judge canaries. This scan used no paid calls.",
-	"scannedAt": "2026-11-26T09:46:07.456Z",
+	"scannedAt": "2026-11-26T11:23:22.568Z",
 	"all": {
 		"checked": 1540,
 		"pass": true,
