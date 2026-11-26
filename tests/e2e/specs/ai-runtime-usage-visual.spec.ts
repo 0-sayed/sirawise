@@ -55,18 +55,31 @@ for (const locale of ["en-US", "ar-SA"] as const)
 							? "الذكاء الاصطناعي غير متاح في هذه البيئة."
 							: "AI is not available in this environment."
 						: copyMessage(state === "exhausted" ? "allowance.ai.title" : "allowance.concurrent.title", locale);
-				await expect(page.getByText(text, { exact: true })).toBeVisible();
-				const start = page.getByRole("button", { name: /^(Review wording|مراجعة الصياغة)$/u });
-				if (state === "unavailable") await expect(start).toHaveCount(0);
-				else {
-					await expect(start).toBeDisabled();
-					await expect(page.getByRole("alert").filter({ hasText: text })).toBeVisible();
+				for (const reviewType of ["wording", "summary"] as const) {
+					const name = copyMessage(`review.type.${reviewType}`, locale);
+					await page.getByRole("tab", { name, exact: true }).click();
+					const panel = page.getByRole("tabpanel", { name, exact: true });
+					const notice = panel.getByText(text, { exact: true });
+					await expect(notice).toBeVisible();
+					await expect(page.getByText(text, { exact: true }).filter({ visible: true })).toHaveCount(1);
+					const wordingAction = ar ? "مراجعة الصياغة" : "Review wording";
+					const start = panel.getByRole("button", {
+						name: reviewType === "wording" ? wordingAction : copyMessage("review.summary.launch", locale),
+						exact: true,
+					});
+					if (state === "unavailable") {
+						await expect(start).toHaveCount(0);
+						await expect(panel.getByRole("button", { name: /^(Retry|إعادة المحاولة)$/u })).toBeVisible();
+					} else {
+						await expect(start).toBeDisabled();
+						await expect(panel.getByRole("alert").filter({ hasText: text })).toBeVisible();
+					}
+					await notice.scrollIntoViewIfNeeded();
+					await expect(page.getByRole("button", { name: /View plans|عرض الخطط/u })).toHaveCount(0);
+					await settleScreen(page);
+					if (reviewType === "wording") await page.screenshot({ path: testInfo.outputPath(`${state}.png`) });
+					expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 				}
-				await page.getByText(text, { exact: true }).scrollIntoViewIfNeeded();
-				await expect(page.getByRole("button", { name: /View plans|عرض الخطط/u })).toHaveCount(0);
-				await settleScreen(page);
-				await page.screenshot({ path: testInfo.outputPath(`${state}.png`) });
-				expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 				await restore();
 			}
 			await page.goto("/dashboard");
