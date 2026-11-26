@@ -32,8 +32,10 @@ vi.mock("@reactive-resume/ui/components/checkbox", () => ({
 		checked,
 		disabled,
 		onCheckedChange,
+		"aria-label": name,
 	}: {
 		checked: boolean;
+		"aria-label"?: string;
 		disabled: boolean;
 		onCheckedChange: (checked: boolean) => void;
 	}) => (
@@ -41,6 +43,7 @@ vi.mock("@reactive-resume/ui/components/checkbox", () => ({
 			type="button"
 			role="checkbox"
 			aria-checked={checked}
+			aria-label={name}
 			aria-disabled={disabled}
 			disabled={disabled}
 			onClick={() => onCheckedChange(!checked)}
@@ -91,8 +94,19 @@ it("limits summary facts to the payload capacity and lets users replace a select
 			<SummaryReview locked={false} launchOnly />
 		</Profiler>,
 	);
-	fireEvent.click(screen.getByText("Select facts for the summary"));
-	const boxes = screen.getAllByRole("checkbox");
+	const summary = screen.getByText("Facts for summary").closest("details");
+	expect(summary).not.toHaveAttribute("open");
+	expect(screen.getByRole("button", { name: "Review summary" })).toBeEnabled();
+	expect(screen.getByText("49/49")).toBeVisible();
+	fireEvent.click(screen.getByText("Facts for summary"));
+	expect(screen.getByRole("button", { name: "Skills" })).toBeDefined();
+	const filter = screen.getByRole("searchbox", { name: "Filter facts…" });
+	fireEvent.change(filter, { target: { value: "Skill 49" } });
+	expect(screen.getByText("Skill 49", { selector: "label span" })).toBeDefined();
+	expect(screen.queryByText("Skill 0", { selector: "label span" })).toBeNull();
+	fireEvent.change(filter, { target: { value: "" } });
+	fireEvent.click(screen.getByRole("button", { name: "Clear" }));
+	const boxes = screen.getAllByRole("checkbox").filter((box) => !box.hasAttribute("aria-label"));
 	expect(boxes).toHaveLength(50);
 	const first = boxes[0];
 	const last = boxes[49];

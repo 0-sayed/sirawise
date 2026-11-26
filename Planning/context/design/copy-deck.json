@@ -138862,7 +138862,7 @@
 			"sourceReferences": ["Owner-approved review progress, saved reviews and batched translation copy, 2026-11-21"],
 			"variants": [],
 			"messages": {
-				"ar-SA": "اختر معلومة واحدة على الأقل لمراجعة ملخصك.",
+				"ar-SA": "اختر معلومة مهنية واحدة على الأقل لمراجعة الملخص المهني.",
 				"en-US": "Select at least one fact to review your summary."
 			},
 			"interpolations": [],
@@ -138944,6 +138944,955 @@
 				"sourcePath": "src/features/assistant/copy.generated.ts",
 				"verification": "Delivered-copy bindings and localized behavior tests, 2026-11-21.",
 				"runtimeId": "HpTemq"
+			}
+		},
+		{
+			"key": "review.summary.facts",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "معلومات الملخص المهني",
+				"en-US": "Facts for summary"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Facts for summary",
+				"msgctxt": "review.summary.facts",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "2Mlg9l"
+			}
+		},
+		{
+			"key": "review.summary.allFacts",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "تم اختيار جميع المعلومات ({count})",
+				"en-US": "All {count} facts selected"
+			},
+			"interpolations": [
+				{
+					"name": "count",
+					"type": "number"
+				}
+			],
+			"lingui": {
+				"msgid": "All {count} facts selected",
+				"msgctxt": "review.summary.allFacts",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "8XFrCP"
+			}
+		},
+		{
+			"key": "review.summary.topFacts",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "تم اختيار أهم 49 من أصل {total} معلومة",
+				"en-US": "Top 49 of {total} facts selected"
+			},
+			"interpolations": [
+				{
+					"name": "total",
+					"type": "number"
+				}
+			],
+			"lingui": {
+				"msgid": "Top 49 of {total} facts selected",
+				"msgctxt": "review.summary.topFacts",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "t5APtT"
+			}
+		},
+		{
+			"key": "review.summary.selectedFacts",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "تم اختيار {count} من أصل {total} معلومة",
+				"en-US": "{count} of {total} facts selected"
+			},
+			"interpolations": [
+				{
+					"name": "count",
+					"type": "number"
+				},
+				{
+					"name": "total",
+					"type": "number"
+				}
+			],
+			"lingui": {
+				"msgid": "{count} of {total} facts selected",
+				"msgctxt": "review.summary.selectedFacts",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "fz2gOX"
+			}
+		},
+		{
+			"key": "review.summary.filterFacts",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "تصفية المعلومات…",
+				"en-US": "Filter facts…"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Filter facts…",
+				"msgctxt": "review.summary.filterFacts",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "5m3Asj"
+			}
+		},
+		{
+			"key": "review.summary.selectRecommended",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "اختيار المقترحة",
+				"en-US": "Select recommended"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Select recommended",
+				"msgctxt": "review.summary.selectRecommended",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "uQCpL4"
+			}
+		},
+		{
+			"key": "review.summary.clear",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "مسح",
+				"en-US": "Clear"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Clear",
+				"msgctxt": "review.summary.clear",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "RHfRzb"
+			}
+		},
+		{
+			"key": "review.summary.more",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "المزيد",
+				"en-US": "More"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "More",
+				"msgctxt": "review.summary.more",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "3cO10o"
+			}
+		},
+		{
+			"key": "review.summary.less",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "أقل",
+				"en-US": "Less"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Less",
+				"msgctxt": "review.summary.less",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "Kp9zBr"
+			}
+		},
+		{
+			"key": "review.summary.factLimit",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "يمكنك اختيار 49 معلومة مهنية كحد أقصى لكل مراجعة.",
+				"en-US": "You can select up to 49 professional facts for one review."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "You can select up to 49 professional facts for one review.",
+				"msgctxt": "review.summary.factLimit",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "yAnl7z"
+			}
+		},
+		{
+			"key": "review.summary.limitReached",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "بلغت الحد الأقصى (49 من 49). أزل معلومة لاختيار أخرى.",
+				"en-US": "Limit reached (49 of 49). Uncheck a fact to pick another."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Limit reached (49 of 49). Uncheck a fact to pick another.",
+				"msgctxt": "review.summary.limitReached",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "t3fayy"
+			}
+		},
+		{
+			"key": "review.summary.noFacts",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "أضف معلومة مهنية لمراجعة الملخص المهني.",
+				"en-US": "Add a professional fact to review your summary."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Add a professional fact to review your summary.",
+				"msgctxt": "review.summary.noFacts",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "iaJrXf"
+			}
+		},
+		{
+			"key": "review.summary.noMatches",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "لا توجد معلومات تطابق بحثك.",
+				"en-US": "No facts match your search."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "No facts match your search.",
+				"msgctxt": "review.summary.noMatches",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "Cfh_l0"
+			}
+		},
+		{
+			"key": "review.summary.selectEntry",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "اختيار معلومات {entry}",
+				"en-US": "Select facts for {entry}"
+			},
+			"interpolations": [
+				{
+					"name": "entry",
+					"type": "string"
+				}
+			],
+			"lingui": {
+				"msgid": "Select facts for {entry}",
+				"msgctxt": "review.summary.selectEntry",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "o1Ymri"
+			}
+		},
+		{
+			"key": "review.summary.untitledEntry",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "عنصر بلا عنوان",
+				"en-US": "Untitled entry"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Untitled entry",
+				"msgctxt": "review.summary.untitledEntry",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "eeHrAf"
+			}
+		},
+		{
+			"key": "review.summary.launch",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "مراجعة الملخص المهني",
+				"en-US": "Review summary"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Review summary",
+				"msgctxt": "review.summary.launch",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "ExLemX"
+			}
+		},
+		{
+			"key": "review.type.label",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "نوع المراجعة",
+				"en-US": "Review type"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Review type",
+				"msgctxt": "review.type.label",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "8I7RFh"
+			}
+		},
+		{
+			"key": "review.type.wording",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "الصياغة",
+				"en-US": "Wording"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Wording",
+				"msgctxt": "review.type.wording",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "7t2uVU"
+			}
+		},
+		{
+			"key": "review.type.summary",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "الملخص المهني",
+				"en-US": "Summary"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Summary",
+				"msgctxt": "review.type.summary",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "cRKaE-"
+			}
+		},
+		{
+			"key": "review.type.empty",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "أضف ملخصًا مهنيًا أو خبرة لبدء المراجعة بالمساعد.",
+				"en-US": "Add a summary or career entry to start an AI review."
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Add a summary or career entry to start an AI review.",
+				"msgctxt": "review.type.empty",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "BsOaOd"
+			}
+		},
+		{
+			"key": "review.summary.field.headline",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "العنوان المهني",
+				"en-US": "Headline"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Headline",
+				"msgctxt": "review.summary.field.headline",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "dM17fk"
+			}
+		},
+		{
+			"key": "review.summary.field.title",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "العنوان",
+				"en-US": "Title"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Title",
+				"msgctxt": "review.summary.field.title",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "Gvwp0a"
+			}
+		},
+		{
+			"key": "review.summary.field.name",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "الاسم",
+				"en-US": "Name"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Name",
+				"msgctxt": "review.summary.field.name",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "kY1XbF"
+			}
+		},
+		{
+			"key": "review.summary.field.company",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "الشركة",
+				"en-US": "Company"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Company",
+				"msgctxt": "review.summary.field.company",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "vxTiWC"
+			}
+		},
+		{
+			"key": "review.summary.field.organization",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "الجهة",
+				"en-US": "Organization"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Organization",
+				"msgctxt": "review.summary.field.organization",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "LEbIJ5"
+			}
+		},
+		{
+			"key": "review.summary.field.awarder",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "الجهة المانحة",
+				"en-US": "Awarder"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Awarder",
+				"msgctxt": "review.summary.field.awarder",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "zRPIwC"
+			}
+		},
+		{
+			"key": "review.summary.field.issuer",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "جهة الإصدار",
+				"en-US": "Issuer"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Issuer",
+				"msgctxt": "review.summary.field.issuer",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "0ofQXk"
+			}
+		},
+		{
+			"key": "review.summary.field.publisher",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "الناشر",
+				"en-US": "Publisher"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Publisher",
+				"msgctxt": "review.summary.field.publisher",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "nCQKxG"
+			}
+		},
+		{
+			"key": "review.summary.field.school",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "المؤسسة التعليمية",
+				"en-US": "School"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "School",
+				"msgctxt": "review.summary.field.school",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "NmBfgl"
+			}
+		},
+		{
+			"key": "review.summary.field.degree",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "الدرجة العلمية",
+				"en-US": "Degree"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Degree",
+				"msgctxt": "review.summary.field.degree",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "eelhvb"
+			}
+		},
+		{
+			"key": "review.summary.field.area",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "التخصص",
+				"en-US": "Field of study"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Field of study",
+				"msgctxt": "review.summary.field.area",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "C0zdPU"
+			}
+		},
+		{
+			"key": "review.summary.field.position",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "المسمى الوظيفي",
+				"en-US": "Position"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Position",
+				"msgctxt": "review.summary.field.position",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "tz6A3H"
+			}
+		},
+		{
+			"key": "review.summary.field.description",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "الوصف",
+				"en-US": "Description"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Description",
+				"msgctxt": "review.summary.field.description",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "28xB1h"
+			}
+		},
+		{
+			"key": "review.summary.field.language",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "اللغة",
+				"en-US": "Language"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Language",
+				"msgctxt": "review.summary.field.language",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "UUes0b"
+			}
+		},
+		{
+			"key": "review.summary.field.fluency",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "الطلاقة",
+				"en-US": "Fluency"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Fluency",
+				"msgctxt": "review.summary.field.fluency",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "SMXb1l"
+			}
+		},
+		{
+			"key": "review.summary.field.proficiency",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "مستوى الإتقان",
+				"en-US": "Proficiency"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Proficiency",
+				"msgctxt": "review.summary.field.proficiency",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "g8Baoe"
+			}
+		},
+		{
+			"key": "review.summary.field.keywords",
+			"context": {
+				"surfaces": [],
+				"audience": "Candidate / account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Owner test feedback batch 2, summary fact picker and review type"],
+			"variants": [],
+			"messages": {
+				"ar-SA": "الكلمات المفتاحية",
+				"en-US": "Keywords"
+			},
+			"interpolations": [],
+			"lingui": {
+				"msgid": "Keywords",
+				"msgctxt": "review.summary.field.keywords",
+				"sourceLocale": "en-US",
+				"mappingStatus": "verified binding",
+				"sourcePath": "src/features/resume/variants/copy.generated.ts",
+				"verification": "Delivered copy binding for the summary fact picker and review type.",
+				"runtimeId": "Zjp5dJ"
 			}
 		},
 		{

@@ -19893,3 +19893,188 @@ msgstr "A accepts and R rejects the focused edit. ↑ and ↓ move between edits
 #: src/features/settings/ai/connected-apps.tsx
 msgid "Unknown application"
 msgstr "Unknown application"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.facts"
+msgid "Facts for summary"
+msgstr "Facts for summary"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.allFacts"
+msgid "All {count} facts selected"
+msgstr "All {count} facts selected"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.topFacts"
+msgid "Top 49 of {total} facts selected"
+msgstr "Top 49 of {total} facts selected"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.selectedFacts"
+msgid "{count} of {total} facts selected"
+msgstr "{count} of {total} facts selected"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.filterFacts"
+msgid "Filter facts…"
+msgstr "Filter facts…"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.selectRecommended"
+msgid "Select recommended"
+msgstr "Select recommended"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.clear"
+msgid "Clear"
+msgstr "Clear"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.more"
+msgid "More"
+msgstr "More"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.less"
+msgid "Less"
+msgstr "Less"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.factLimit"
+msgid "You can select up to 49 professional facts for one review."
+msgstr "You can select up to 49 professional facts for one review."
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.limitReached"
+msgid "Limit reached (49 of 49). Uncheck a fact to pick another."
+msgstr "Limit reached (49 of 49). Uncheck a fact to pick another."
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.noFacts"
+msgid "Add a professional fact to review your summary."
+msgstr "Add a professional fact to review your summary."
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.noMatches"
+msgid "No facts match your search."
+msgstr "No facts match your search."
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.selectEntry"
+msgid "Select facts for {entry}"
+msgstr "Select facts for {entry}"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.untitledEntry"
+msgid "Untitled entry"
+msgstr "Untitled entry"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.launch"
+msgid "Review summary"
+msgstr "Review summary"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.type.label"
+msgid "Review type"
+msgstr "Review type"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.type.wording"
+msgid "Wording"
+msgstr "Wording"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.type.summary"
+msgid "Summary"
+msgstr "Summary"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.type.empty"
+msgid "Add a summary or career entry to start an AI review."
+msgstr "Add a summary or career entry to start an AI review."
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.headline"
+msgid "Headline"
+msgstr "Headline"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.title"
+msgid "Title"
+msgstr "Title"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.name"
+msgid "Name"
+msgstr "Name"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.company"
+msgid "Company"
+msgstr "Company"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.organization"
+msgid "Organization"
+msgstr "Organization"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.awarder"
+msgid "Awarder"
+msgstr "Awarder"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.issuer"
+msgid "Issuer"
+msgstr "Issuer"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.publisher"
+msgid "Publisher"
+msgstr "Publisher"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.school"
+msgid "School"
+msgstr "School"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.degree"
+msgid "Degree"
+msgstr "Degree"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.area"
+msgid "Field of study"
+msgstr "Field of study"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.position"
+msgid "Position"
+msgstr "Position"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.description"
+msgid "Description"
+msgstr "Description"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.language"
+msgid "Language"
+msgstr "Language"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.fluency"
+msgid "Fluency"
+msgstr "Fluency"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.proficiency"
+msgid "Proficiency"
+msgstr "Proficiency"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.keywords"
+msgid "Keywords"
+msgstr "Keywords"

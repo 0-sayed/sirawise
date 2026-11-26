@@ -20,6 +20,7 @@ import {
 import { Disclosure, DisclosureContent, DisclosureSummary } from "@reactive-resume/ui/components/disclosure";
 import { EmptyState } from "@reactive-resume/ui/components/empty-state";
 import { NativeSelect } from "@reactive-resume/ui/components/native-select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@reactive-resume/ui/components/tabs";
 import { Textarea } from "@reactive-resume/ui/components/textarea";
 import { getSectionName } from "../check/issues";
 import { useEditorStore } from "../store";
@@ -34,6 +35,7 @@ import { savePendingChanges, useResumeStore } from "@/features/resume/builder/dr
 import { Clarification } from "@/features/resume/variants/clarification";
 import { useVariantsCopy } from "@/features/resume/variants/copy.generated";
 import { useReviewInterfaceText, useReviewSectionTitle } from "@/features/resume/variants/review-interface-copy";
+import { getSummaryFacts } from "@/features/resume/variants/summary-facts";
 import { SummaryReview } from "@/features/resume/variants/summary-review";
 import { TranslationReview } from "@/features/resume/variants/translation-review";
 import { formatInterfaceDate, formatRelativeTime } from "@/libs/locale";
@@ -468,6 +470,7 @@ export function ResumeReviewWorkspace({
 	request?: string | undefined;
 }) {
 	const copy = useAssistantCopy();
+	const variantsCopy = useVariantsCopy();
 	const { i18n } = useLingui();
 	const resume = useResumeStore((state) => state.resume);
 	const revision = useResumeStore((state) => state.acknowledgedUpdatedAt);
@@ -489,7 +492,6 @@ export function ResumeReviewWorkspace({
 	const [openHistory, setOpenHistory] = useState<boolean | undefined>();
 	const [openEntries, setOpenEntries] = useState<Record<string, boolean>>({});
 	const selectId = useId();
-	const scopeId = useId();
 	const needsId = useId();
 	const usage = useQuery(orpc.ai.usage.get.queryOptions());
 	if (!resume) return null;
@@ -503,6 +505,8 @@ export function ResumeReviewWorkspace({
 	const targetKey = (value: ReviewProposal["target"]) =>
 		JSON.stringify([value.sectionId, value.itemId, value.roleId, value.field]);
 	const choices = [...new Map(passages.map((passage) => [targetKey(passage.target), passage])).values()];
+	const hasWording = Boolean(target) || choices.length > 0;
+	const hasSummary = !target && getSummaryFacts(resume.data).length > 0;
 	const selectedAddress =
 		target ?? choices.find(({ target }) => JSON.stringify(target) === selectedTarget)?.target ?? choices[0]?.target;
 	const selected = selectedAddress ? JSON.stringify(selectedAddress) : "";
@@ -592,61 +596,63 @@ export function ResumeReviewWorkspace({
 	const startedNotListed = started && !reviews.some((entry) => entry.operationId === started.operationId);
 	const hasActive = active.length > 0 || startedNotListed;
 	const remaining = usage.data?.operations.remaining;
+	const wording = (
+		<div className="grid gap-2">
+			{!target && choices.length > 0 && (
+				<>
+					<label htmlFor={selectId} className="type-label">
+						<Trans>Text to review</Trans>
+					</label>
+					<NativeSelect id={selectId} value={selected} onChange={(event) => setSelectedTarget(event.target.value)}>
+						{choices.map(({ target, location }) => (
+							<option key={targetKey(target)} value={JSON.stringify(target)}>
+								{location}
+							</option>
+						))}
+					</NativeSelect>
+				</>
+			)}
+			<ReviewLaunch
+				retryRequest={retryRequest}
+				key={resume.id}
+				kind="review.wording"
+				prepare={prepare}
+				disabled={resume.isLocked || !selected}
+				onStarted={(id) => launch(id, "review.wording")}
+			>
+				<Trans>Review wording</Trans>
+			</ReviewLaunch>
+			{!target && (
+				<p className="type-metadata text-ink-2">
+					<Trans>Only this field and its related confirmed facts are reviewed.</Trans>
+				</p>
+			)}
+		</div>
+	);
+	const summary = (
+		<SummaryReview locked={resume.isLocked} launchOnly onStarted={(id) => launch(id, "review.summary")} />
+	);
 	return (
 		<div className="grid min-w-0 gap-4">
-			{!target && (
-				<div className="grid gap-2">
-					<label htmlFor={scopeId} className="type-label">
-						<Trans>Review type</Trans>
-					</label>
-					<NativeSelect
-						id={scopeId}
-						value={scope}
-						onChange={(event) => setScope(event.target.value === "summary" ? "summary" : "wording")}
-					>
-						<option value="wording">
-							<Trans>Wording review</Trans>
-						</option>
-						<option value="summary">
-							<Trans>Summary review</Trans>
-						</option>
-					</NativeSelect>
-				</div>
-			)}
-			{scope === "summary" ? (
-				<SummaryReview locked={resume.isLocked} launchOnly onStarted={(id) => launch(id, "review.summary")} />
+			{hasWording && hasSummary ? (
+				<Tabs value={scope} onValueChange={(value) => setScope(value === "summary" ? "summary" : "wording")}>
+					<TabsList variant="default" layout="equal" size="touch" aria-label={variantsCopy("review.type.label")}>
+						<TabsTrigger value="wording">{variantsCopy("review.type.wording")}</TabsTrigger>
+						<TabsTrigger value="summary">{variantsCopy("review.type.summary")}</TabsTrigger>
+					</TabsList>
+					<TabsContent value="wording" keepMounted>
+						{wording}
+					</TabsContent>
+					<TabsContent value="summary" keepMounted>
+						{summary}
+					</TabsContent>
+				</Tabs>
+			) : hasWording ? (
+				wording
+			) : hasSummary ? (
+				summary
 			) : (
-				<div className="grid gap-2">
-					{!target && choices.length > 0 && (
-						<>
-							<label htmlFor={selectId} className="type-label">
-								<Trans>Text to review</Trans>
-							</label>
-							<NativeSelect id={selectId} value={selected} onChange={(event) => setSelectedTarget(event.target.value)}>
-								{choices.map(({ target, location }) => (
-									<option key={targetKey(target)} value={JSON.stringify(target)}>
-										{location}
-									</option>
-								))}
-							</NativeSelect>
-						</>
-					)}
-					<ReviewLaunch
-						retryRequest={retryRequest}
-						key={resume.id}
-						kind="review.wording"
-						prepare={prepare}
-						disabled={resume.isLocked || !selected}
-						onStarted={(id) => launch(id, "review.wording")}
-					>
-						<Trans>Review wording</Trans>
-					</ReviewLaunch>
-					{!target && (
-						<p className="type-metadata text-ink-2">
-							<Trans>Only this field and its related confirmed facts are reviewed.</Trans>
-						</p>
-					)}
-				</div>
+				<EmptyState density="compact" description={variantsCopy("review.type.empty")} />
 			)}
 			{!target && remaining != null && (
 				<p className="type-metadata text-ink-2">{copy("billing.usage.remainingOperations", { remaining })}</p>
@@ -657,7 +663,7 @@ export function ResumeReviewWorkspace({
 				</ReviewNotice>
 			) : history.isPending && !started ? (
 				<QuerySkeleton shape="rows" label={<Trans>Loading review…</Trans>} />
-			) : !hasActive && !past.length && !target ? (
+			) : !hasActive && !past.length && !target && (hasWording || hasSummary) ? (
 				<EmptyState
 					density="compact"
 					title={<Trans>No reviews yet</Trans>}

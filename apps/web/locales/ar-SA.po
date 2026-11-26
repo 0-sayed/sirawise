@@ -14628,7 +14628,7 @@ msgstr "اختر مزودًا لخدمات الذكاء الاصطناعي"
 #: src/features/resume/variants/copy.generated.ts
 msgctxt "review.summary.factsRequired"
 msgid "Select at least one fact to review your summary."
-msgstr "اختر معلومة واحدة على الأقل لمراجعة ملخصك."
+msgstr "اختر معلومة مهنية واحدة على الأقل لمراجعة الملخص المهني."
 
 #: src/features/resume/variants/summary-review.tsx
 msgid "Select facts for the summary"
@@ -19893,3 +19893,188 @@ msgstr "اضغط A لقبول التعديل المحدد أو R لرفضه. ا�
 #: src/features/settings/ai/connected-apps.tsx
 msgid "Unknown application"
 msgstr "تطبيق غير معروف"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.facts"
+msgid "Facts for summary"
+msgstr "معلومات الملخص المهني"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.allFacts"
+msgid "All {count} facts selected"
+msgstr "تم اختيار جميع المعلومات ({count})"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.topFacts"
+msgid "Top 49 of {total} facts selected"
+msgstr "تم اختيار أهم 49 من أصل {total} معلومة"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.selectedFacts"
+msgid "{count} of {total} facts selected"
+msgstr "تم اختيار {count} من أصل {total} معلومة"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.filterFacts"
+msgid "Filter facts…"
+msgstr "تصفية المعلومات…"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.selectRecommended"
+msgid "Select recommended"
+msgstr "اختيار المقترحة"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.clear"
+msgid "Clear"
+msgstr "مسح"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.more"
+msgid "More"
+msgstr "المزيد"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.less"
+msgid "Less"
+msgstr "أقل"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.factLimit"
+msgid "You can select up to 49 professional facts for one review."
+msgstr "يمكنك اختيار 49 معلومة مهنية كحد أقصى لكل مراجعة."
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.limitReached"
+msgid "Limit reached (49 of 49). Uncheck a fact to pick another."
+msgstr "بلغت الحد الأقصى (49 من 49). أزل معلومة لاختيار أخرى."
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.noFacts"
+msgid "Add a professional fact to review your summary."
+msgstr "أضف معلومة مهنية لمراجعة الملخص المهني."
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.noMatches"
+msgid "No facts match your search."
+msgstr "لا توجد معلومات تطابق بحثك."
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.selectEntry"
+msgid "Select facts for {entry}"
+msgstr "اختيار معلومات {entry}"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.untitledEntry"
+msgid "Untitled entry"
+msgstr "عنصر بلا عنوان"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.launch"
+msgid "Review summary"
+msgstr "مراجعة الملخص المهني"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.type.label"
+msgid "Review type"
+msgstr "نوع المراجعة"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.type.wording"
+msgid "Wording"
+msgstr "الصياغة"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.type.summary"
+msgid "Summary"
+msgstr "الملخص المهني"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.type.empty"
+msgid "Add a summary or career entry to start an AI review."
+msgstr "أضف ملخصًا مهنيًا أو خبرة لبدء المراجعة بالمساعد."
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.headline"
+msgid "Headline"
+msgstr "العنوان المهني"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.title"
+msgid "Title"
+msgstr "العنوان"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.name"
+msgid "Name"
+msgstr "الاسم"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.company"
+msgid "Company"
+msgstr "الشركة"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.organization"
+msgid "Organization"
+msgstr "الجهة"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.awarder"
+msgid "Awarder"
+msgstr "الجهة المانحة"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.issuer"
+msgid "Issuer"
+msgstr "جهة الإصدار"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.publisher"
+msgid "Publisher"
+msgstr "الناشر"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.school"
+msgid "School"
+msgstr "المؤسسة التعليمية"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.degree"
+msgid "Degree"
+msgstr "الدرجة العلمية"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.area"
+msgid "Field of study"
+msgstr "التخصص"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.position"
+msgid "Position"
+msgstr "المسمى الوظيفي"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.description"
+msgid "Description"
+msgstr "الوصف"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.language"
+msgid "Language"
+msgstr "اللغة"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.fluency"
+msgid "Fluency"
+msgstr "الطلاقة"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.proficiency"
+msgid "Proficiency"
+msgstr "مستوى الإتقان"
+
+#: src/features/resume/variants/copy.generated.ts
+msgctxt "review.summary.field.keywords"
+msgid "Keywords"
+msgstr "الكلمات المفتاحية"

@@ -256,6 +256,29 @@ it("restores pending suggestions per field after switching fields and reopening 
 	expect(screen.getByRole("button", { name: "Accept" })).toBeEnabled();
 	expect(mocks.start).not.toHaveBeenCalled();
 });
+it("only shows the review type tabs when wording and summary review are both available", async () => {
+	if (!mocks.current) throw new Error("Missing fixture");
+	const { data } = mocks.current.resume;
+	data.basics.headline = "Software engineer";
+	const view = mount(<ResumeReviewWorkspace />);
+	const tabs = screen.getByRole("tablist", { name: "Review type" });
+	expect(within(tabs).getByRole("tab", { name: "Wording" })).toHaveAttribute("aria-selected", "true");
+	fireEvent.click(within(tabs).getByRole("tab", { name: "Summary" }));
+	expect(await screen.findByRole("button", { name: "Review summary" })).toBeEnabled();
+	expect(mocks.start).not.toHaveBeenCalled();
+	view.unmount();
+	data.summary.content = "";
+	const summaryOnly = mount(<ResumeReviewWorkspace />);
+	expect(screen.queryByRole("tablist", { name: "Review type" })).toBeNull();
+	expect(await screen.findByRole("button", { name: "Review summary" })).toBeEnabled();
+	summaryOnly.unmount();
+	data.basics.headline = "";
+	mount(<ResumeReviewWorkspace />);
+	expect(screen.queryByRole("tablist", { name: "Review type" })).toBeNull();
+	expect(screen.getByText("Add a summary or career entry to start an AI review.")).toBeVisible();
+	expect(screen.queryByRole("button", { name: "Review wording" })).toBeNull();
+});
+
 it("keeps older pending reviews accessible when the same field is reviewed again", async () => {
 	if (!mocks.view || mocks.view.result.kind !== "wording") throw new Error("Missing fixture");
 	const older = structuredClone(mocks.view);

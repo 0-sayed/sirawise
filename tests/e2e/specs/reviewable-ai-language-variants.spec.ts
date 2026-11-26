@@ -137,19 +137,24 @@ for (const locale of ["en-US", "ar-SA"] as const)
 				.getByRole("button", { name: /^(Summary|الملخّص)$/ })
 				.first()
 				.click();
-			const summaryLaunch = page.getByRole("button", { name: /^(Review summary|مراجعة النبذة)$/ });
+			const summaryLaunch = page.getByRole("button", { name: /^(Review summary|مراجعة الملخص المهني)$/ });
+			const facts = page.locator("summary").filter({ hasText: /Facts for summary|معلومات الملخص المهني/u });
+			await expect(facts.locator("..")).not.toHaveAttribute("open");
+			await expect(summaryLaunch).toBeEnabled();
+			await expect(page.getByRole("dialog")).toHaveCount(0);
+			await facts.click();
+			await page.getByRole("button", { name: /^(Clear|مسح)$/u }).click();
 			await expect(summaryLaunch).toBeDisabled();
 			const selectionHint = page.getByText(
 				locale === "ar-SA"
-					? "اختر معلومة واحدة على الأقل لمراجعة ملخصك."
+					? "اختر معلومة مهنية واحدة على الأقل لمراجعة الملخص المهني."
 					: "Select at least one fact to review your summary.",
 			);
 			await expect(selectionHint).toBeVisible();
 			await page
-				.locator("summary")
-				.filter({ hasText: /Select facts for the summary|اختر حقائق/ })
+				.getByRole("button", { name: /^(Select recommended|اختيار المقترحة)$/u })
+				.last()
 				.click();
-			await page.getByRole("checkbox").first().check();
 			await expect(summaryLaunch).toBeEnabled();
 			await expect(selectionHint).toHaveCount(0);
 			await summaryLaunch.click();

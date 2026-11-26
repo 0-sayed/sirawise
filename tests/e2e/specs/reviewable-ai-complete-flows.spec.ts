@@ -190,12 +190,11 @@ for (const locale of ["ar-SA", "en-US"] as const)
 				.getByRole("button", { name: ar ? "الملخّص" : "Summary", exact: true })
 				.first()
 				.click();
-			await page
-				.locator("summary")
-				.filter({ hasText: ar ? "اختر حقائق للنبذة" : "Select facts for the summary" })
-				.click();
-			await page.getByRole("checkbox").first().check();
-			await page.getByRole("button", { name: ar ? "مراجعة النبذة" : "Review summary", exact: true }).click();
+			const facts = page.locator("summary").filter({ hasText: ar ? "معلومات الملخص المهني" : "Facts for summary" });
+			await expect(facts.locator("..")).not.toHaveAttribute("open");
+			const launch = page.getByRole("button", { name: ar ? "مراجعة الملخص المهني" : "Review summary", exact: true });
+			await expect(launch).toBeEnabled();
+			await launch.click();
 			await page
 				.getByRole("dialog")
 				.getByRole("button", { name: ar ? "بدء المراجعة" : "Start review", exact: true })
