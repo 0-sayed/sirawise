@@ -18,3 +18,33 @@ export function normalizeSearchText(value: string): string {
 		"",
 	);
 }
+
+export const documentTagMaxLength = 40;
+export const documentTagMaxCount = 20;
+
+export const normalizeDocumentTag = (tag: string) => tag.trim().replace(/\s+/gu, " ");
+export const documentTagKey = (tag: string) => normalizeDocumentTag(tag).normalize("NFC").toLowerCase();
+
+/** Keep the first spelling of each tag and preserve their order. */
+export function normalizeDocumentTags(tags: readonly string[]) {
+	const unique = new Map<string, string>();
+	for (const tag of tags) {
+		const key = documentTagKey(tag);
+		if (key && !unique.has(key)) unique.set(key, normalizeDocumentTag(tag));
+	}
+	return [...unique.values()];
+}
+
+/** Each document contributes at most one use, even when it has legacy duplicate spellings. */
+export function countDocumentTags(documents: readonly { tags: readonly string[] }[]) {
+	const counts = new Map<string, { tag: string; count: number }>();
+	for (const { tags } of documents) {
+		for (const tag of normalizeDocumentTags(tags)) {
+			const key = documentTagKey(tag);
+			const entry = counts.get(key);
+			if (entry) entry.count += 1;
+			else counts.set(key, { tag, count: 1 });
+		}
+	}
+	return [...counts.values()];
+}

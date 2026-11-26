@@ -63,6 +63,16 @@ export const documentsRouter = {
 			documentsService.counts({ userId: context.user.id, includeLetters: getPersonalToolsAvailability().coverLetters }),
 		),
 
+	tags: protectedProcedure
+		.route(
+			route("GET", "/documents/tags", "listDocumentTags", "List tags", "Counts tags on the user's live documents."),
+		)
+		.input(z.object({}).optional())
+		.output(documentsDto.tags.output)
+		.handler(({ context }) =>
+			documentsService.tags({ userId: context.user.id, includeLetters: getPersonalToolsAvailability().coverLetters }),
+		),
+
 	rename: protectedProcedure
 		.route(route("POST", "/documents/rename", "renameDocument", "Rename a document", "Renames a resume or letter."))
 		.input(documentsDto.rename.input)

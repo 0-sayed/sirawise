@@ -5,6 +5,7 @@ import { ORPCError } from "@orpc/client";
 import { and, count, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import { db } from "@reactive-resume/db/client";
 import * as schema from "@reactive-resume/db/schema";
+import { countDocumentTags, normalizeDocumentTags } from "@reactive-resume/utils/ui-format";
 import { documentIdentitySchema } from "../../dto/documents";
 import { applicationService } from "../applications/service";
 import { coverLetterService } from "../cover-letters/service";
@@ -262,9 +263,28 @@ export const documentsService = {
 		await update(input, { name: input.name, autoName: false }, { name: input.name });
 	},
 
+	tags: async ({ userId, includeLetters = true }: { userId: string; includeLetters?: boolean }) => {
+		const [resumes, letters] = await Promise.all([
+			db
+				.select({ tags: schema.resume.tags })
+				.from(schema.resume)
+				.where(and(eq(schema.resume.userId, userId), isNull(schema.resume.trashedAt))),
+			includeLetters
+				? db
+						.select({ tags: schema.coverLetter.tags })
+						.from(schema.coverLetter)
+						.where(and(eq(schema.coverLetter.userId, userId), isNull(schema.coverLetter.trashedAt)))
+				: [],
+		]);
+		const byName = new Intl.Collator("en-US");
+		return countDocumentTags([...resumes, ...letters]).sort(
+			(a, b) => b.count - a.count || byName.compare(a.tag, b.tag),
+		);
+	},
+
 	setTags: async (input: DocumentRef & { tags: string[] }) => {
 		await assertUnlocked(input);
-		await update(input, { tags: [...new Set(input.tags)] });
+		await update(input, { tags: normalizeDocumentTags(input.tags) });
 	},
 
 	setLocked: (input: DocumentRef & { isLocked: boolean }) =>

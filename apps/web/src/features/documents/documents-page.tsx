@@ -30,7 +30,7 @@ import { cn } from "@reactive-resume/utils/style";
 import { useDocumentsCopy } from "./copy.generated";
 import { LinkApplicationDialog, TagsDialog, useBatchActions } from "./document-actions";
 import { DocumentCard, DocumentRow } from "./document-card";
-import { collectTags, filterDocuments } from "./filter";
+import { collectTagCounts, collectTags, filterDocuments } from "./filter";
 import { LibraryError } from "./library-error";
 import { useStartDocument } from "./new-document-dialog";
 import { FeatureBetaBadge } from "@/components/feature-beta-badge";
@@ -109,6 +109,11 @@ export function DocumentsPage({ search: requestedSearch, onSearchChange }: Docum
 	});
 
 	const all = documents ?? [];
+	const { data: libraryTags = [] } = useQuery({
+		...orpc.documents.tags.queryOptions(),
+		enabled: tagsFor !== null,
+		placeholderData: () => collectTagCounts(all),
+	});
 	const failed = isError && !documents;
 	const loading = useSkeletonLoading(isPending);
 	const filtered = search.q.trim() !== "" || search.tags.length > 0 || search.public === true;
@@ -409,7 +414,7 @@ export function DocumentsPage({ search: requestedSearch, onSearchChange }: Docum
 				onTags={() => setTagsFor(selection)}
 			/>
 			<DropToImport />
-			<TagsDialog documents={tagsFor} onClose={() => setTagsFor(null)} />
+			<TagsDialog documents={tagsFor} libraryTags={libraryTags} locale={locale} onClose={() => setTagsFor(null)} />
 			<LinkApplicationDialog document={linkFor} onClose={() => setLinkFor(null)} />
 		</div>
 	);
@@ -522,7 +527,7 @@ function TagFilter({ tags, active, onChange, showPublic, publicOnly, onPublicCha
 						onClick={() => onChange(isActive ? active.filter((known) => known !== tag) : [...active, tag])}
 						className={chipClassName(isActive)}
 					>
-						#{tag}
+						<bdi dir="auto">#{tag}</bdi>
 					</button>
 				);
 			})}

@@ -230,6 +230,15 @@ export function DocumentCard({
 						<DocumentApplication document={document} />
 					</>
 				)}
+				{library && document.tags.length > 0 && (
+					<div className={documentCardLayout.metadata}>
+						{[...new Set(document.tags)].map((tag) => (
+							<Badge key={tag} shape="tag" dir="auto">
+								{tag}
+							</Badge>
+						))}
+					</div>
+				)}
 				{(isNew || document.isLocked || (isFeatureAvailable("publicSharing") && document.isPublic)) && (
 					<div className={documentCardLayout.indicators}>
 						{isNew && (

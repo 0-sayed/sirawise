@@ -248,3 +248,47 @@ it("retains neutral identity when saved metadata is unavailable", async () => {
 	});
 	expect(list.some((item) => item.id === "foreign-source")).toBe(false);
 });
+
+it("counts each live owned document once per tag and respects the letters gate", async () => {
+	const admin = database.admin();
+	await admin.query(
+		"INSERT INTO resume (id, user_id, name, slug, tags, data, trashed_at) VALUES " +
+			"('tag-a','alice','A','tag-a',ARRAY['Product Design','product  design','Alpha'],$1,NULL)," +
+			"('tag-b','alice','B','tag-b',ARRAY['product design','Zulu'],$1,NULL)," +
+			"('tag-trash','alice','Trash','tag-trash',ARRAY['Hidden'],$1,now())," +
+			"('tag-private','bob','Private','tag-private',ARRAY['Private'],$1,NULL)",
+		[data],
+	);
+	await admin.query(
+		"INSERT INTO cover_letter (id, user_id, name, tags, style, trashed_at) VALUES " +
+			"('tag-letter','alice','Letter',ARRAY['PRODUCT DESIGN','Letter'],$1,NULL)," +
+			"('tag-letter-trash','alice','Trash',ARRAY['Hidden letter'],$1,now())," +
+			"('tag-letter-private','bob','Private',ARRAY['Private letter'],$1,NULL)",
+		[style],
+	);
+
+	// Use the privileged fixture connection to prove the explicit ownership predicates.
+	await withDatabasePool(admin, async () => {
+		const tags = await documentsService.tags({ userId: "alice" });
+		expect(tags.map(({ tag, count }) => [tag.toLowerCase(), count])).toEqual([
+			["product design", 3],
+			["alpha", 1],
+			["letter", 1],
+			["zulu", 1],
+		]);
+		const resumeTags = await documentsService.tags({ userId: "alice", includeLetters: false });
+		expect(resumeTags.map(({ tag, count }) => [tag.toLowerCase(), count])).toEqual([
+			["product design", 2],
+			["alpha", 1],
+			["zulu", 1],
+		]);
+		await expect(
+			documentsService.setTags({ userId: "alice", type: "resume", id: "tag-private", tags: ["Changed"] }),
+		).rejects.toMatchObject({ code: "NOT_FOUND" });
+		await expect(
+			documentsService.setTags({ userId: "alice", type: "letter", id: "tag-letter-private", tags: ["Changed"] }),
+		).rejects.toMatchObject({ code: "NOT_FOUND" });
+	});
+	const stored = await admin.query("SELECT tags FROM resume WHERE id = 'tag-a'");
+	expect(stored.rows[0].tags).toEqual(["Product Design", "product  design", "Alpha"]);
+});

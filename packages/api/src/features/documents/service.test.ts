@@ -44,6 +44,20 @@ beforeEach(() => {
 	);
 });
 
+it("writes one normalized spelling per tag in first-occurrence order", async () => {
+	dbMock.select.mockReturnValueOnce(rows([{ isLocked: false, trashedAt: null }]));
+	const set = updates();
+
+	await documentsService.setTags({
+		userId: "u1",
+		type: "resume",
+		id: "r1",
+		tags: ["  Product   Design ", "product design", "بحث\tوظائف", "بحث وظائف", "  "],
+	});
+
+	expect(set).toHaveBeenCalledExactlyOnceWith({ tags: ["Product Design", "بحث وظائف"] });
+});
+
 describe("Trash", () => {
 	it("won't move a locked document, and keeps the resume's error code", async () => {
 		dbMock.select.mockReturnValueOnce(rows([{ isLocked: true, trashedAt: null }]));

@@ -1,12 +1,17 @@
 import type { DocumentSummary } from "./filter";
+import type { TagSelectionAction } from "./tag-picker";
+import type { TagChange, TagCount, TagLimitError } from "./tag-selection";
 import type { IconName } from "@reactive-resume/ui/components/icon";
+import type { UiLocale } from "@reactive-resume/utils/locale";
 import { plural, t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
+import { ORPCError } from "@orpc/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useCopyToClipboard } from "usehooks-ts";
 import { isFeatureAvailable } from "@reactive-resume/schema/personal-tools";
+import { Alert, AlertDescription, AlertTitle } from "@reactive-resume/ui/components/alert";
 import { Button } from "@reactive-resume/ui/components/button";
 import { ContextMenuContent, ContextMenuItem, ContextMenuSeparator } from "@reactive-resume/ui/components/context-menu";
 import {
@@ -24,9 +29,18 @@ import {
 } from "@reactive-resume/ui/components/dropdown-menu";
 import { Icon } from "@reactive-resume/ui/components/icon";
 import { toast } from "@reactive-resume/ui/components/toast";
+import { documentTagKey, documentTagMaxLength, normalizeDocumentTag } from "@reactive-resume/utils/ui-format";
 import { publicResumeUrl } from "./filter";
 import { useNewDocumentsStore } from "./new-documents";
-import { ChipInput } from "@/components/input/chip-input";
+import { TagPicker } from "./tag-picker";
+import {
+	changeTagSelection,
+	createTagSelection,
+	getLargestTagCount,
+	getTagOptions,
+	getTagUpdates,
+	readTagDraft,
+} from "./tag-selection";
 import { QueryListState } from "@/components/query-list-state";
 import { useDialogStore } from "@/dialogs/store";
 import { ApplicationPicker } from "@/features/applications/components/application-picker";
@@ -419,83 +433,194 @@ export function DocumentMenuContent({
 	);
 }
 
-type TagsDialogProps = { documents: DocumentSummary[] | null; onClose: () => void };
+type TagsDialogProps = {
+	documents: DocumentSummary[] | null;
+	libraryTags: readonly TagCount[];
+	locale: UiLocale;
+	onClose: () => void;
+};
 
-/** The tags every one of these documents has. */
-const sharedTags = (documents: readonly DocumentSummary[]) =>
-	documents[0]?.tags.filter((tag) => documents.every((document) => document.tags.includes(tag))) ?? [];
+function tagSaveError(error: unknown) {
+	if (error instanceof ORPCError && error.code === "BAD_REQUEST") {
+		const data: unknown = error.data;
+		if (typeof data === "object" && data !== null && "issues" in data && Array.isArray(data.issues)) {
+			for (const issue of data.issues) {
+				if (issue?.code !== "too_big" || issue.path?.[0] !== "tags" || typeof issue.maximum !== "number") continue;
+				const limit = issue.maximum;
+				if (issue.origin === "string") return t`Shorten each tag to ${limit} characters or fewer.`;
+				if (issue.origin === "array") return t`Use ${limit} tags or fewer per document.`;
+			}
+		}
+	}
+	return getOrpcErrorMessage(error, { fallback: t`Something went wrong. Try again.` });
+}
 
-/**
- * Tags… for one document from its menu, or for a selection: a tag added goes on each document and a tag removed
- * comes off each, leaving their other tags alone. Locked documents keep theirs.
- */
-export function TagsDialog({ documents: requested, onClose }: TagsDialogProps) {
+export function TagsDialog({ documents: requested, libraryTags, locale, onClose }: TagsDialogProps) {
 	const refresh = useRefreshDocuments();
-	// Closing keeps the documents' tags on screen until the dialog has faded out.
 	const [documents, onDocumentsOpenChangeComplete] = useClosingValue(requested);
-	const [tags, setTags] = useState<string[] | null>(null);
+	const [changes, setChanges] = useState<TagChange[]>([]);
+	const [draft, setDraft] = useState("");
+	const [inputError, setInputError] = useState<TagLimitError | null>(null);
+	const [saveError, setSaveError] = useState<string | null>(null);
+	const [saving, setSaving] = useState(false);
+	const [savedTags, setSavedTags] = useState<Record<string, string[]>>({});
 	const setDocumentTags = useMutation(orpc.documents.setTags.mutationOptions());
-	const shared = documents ? sharedTags(documents) : [];
 
-	const save = async () => {
-		if (!documents) return;
-		const next = tags ?? shared;
-		const removed = shared.filter((tag) => !next.includes(tag));
-		const added = next.filter((tag) => !shared.includes(tag));
-		const results = await Promise.allSettled(
-			documents
-				.filter((document) => !document.isLocked)
-				.map((document) =>
-					setDocumentTags.mutateAsync({
-						type: document.type,
-						id: document.id,
-						tags: [
-							...document.tags.filter((tag) => !removed.includes(tag)),
-							...added.filter((tag) => !document.tags.includes(tag)),
-						],
-					}),
+	const targets = (documents ?? []).map((document) => ({
+		...document,
+		tags: savedTags[`${document.type}:${document.id}`] ?? document.tags,
+	}));
+	const targetCount = targets.filter((document) => !document.isLocked).length;
+	const selected = createTagSelection(targets, changes);
+	const selectedCounts = new Map(selected.map(({ tag, count }) => [documentTagKey(tag), count]));
+	const libraryKeys = new Set(libraryTags.map(({ tag }) => documentTagKey(tag)));
+	const candidates = [
+		...libraryTags,
+		...selected.filter(({ tag }) => !libraryKeys.has(documentTagKey(tag))).map(({ tag }) => ({ tag, count: 0 })),
+	];
+	const options = getTagOptions(draft.trim() ? candidates : libraryTags, draft, locale);
+	const { completed, draft: pending } = readTagDraft(draft);
+	const pendingTags = [...completed, normalizeDocumentTag(pending)].filter(Boolean);
+	const draftLength = Math.max(0, ...pendingTags.map((tag) => tag.length));
+	const resolveTag = (tag: string) => getTagOptions(candidates, tag, locale).exact ?? tag;
+	const preview =
+		draftLength > documentTagMaxLength
+			? { error: "length" as const, updates: [] }
+			: getTagUpdates(
+					targets,
+					pendingTags.reduce((next, tag) => changeTagSelection(next, resolveTag(tag), true), changes),
+				);
+
+	function select(tag: string, action: TagSelectionAction) {
+		const selected =
+			action === "add" || (action === "toggle" && selectedCounts.get(documentTagKey(tag)) !== targetCount);
+		const next = changeTagSelection(changes, tag, selected);
+		const { error } = getTagUpdates(targets, next);
+		setInputError(error);
+		if (error) return;
+		setChanges(next);
+		if (action !== "remove") setDraft("");
+	}
+
+	function changeDraft(value: string, composing: boolean) {
+		setInputError(null);
+		if (composing) {
+			setDraft(value);
+			return;
+		}
+		const { completed, draft } = readTagDraft(value);
+		let next = changes;
+		for (const [index, label] of completed.entries()) {
+			const updated = changeTagSelection(next, resolveTag(label), true);
+			const error = label.length > documentTagMaxLength ? "length" : getTagUpdates(targets, updated).error;
+			if (error) {
+				setChanges(next);
+				setDraft([...completed.slice(index), draft].join(", "));
+				setInputError(error);
+				return;
+			}
+			next = updated;
+		}
+		setChanges(next);
+		setDraft(draft);
+	}
+
+	async function save() {
+		if (saving || preview.error || preview.updates.length === 0) return;
+		setSaving(true);
+		setSaveError(null);
+		try {
+			const results = await Promise.allSettled(preview.updates.map((update) => setDocumentTags.mutateAsync(update)));
+			const succeeded = Object.fromEntries(
+				preview.updates.flatMap(({ type, id, tags }, index) =>
+					results[index]?.status === "fulfilled" ? [[`${type}:${id}`, tags]] : [],
 				),
-		);
-		await refresh();
-		const failure = results.find((result) => result.status === "rejected");
-		if (failure) failed(failure.reason);
-		else onClose();
-	};
+			);
+			const failure = results.find((result) => result.status === "rejected");
+			if (failure) {
+				setSavedTags((previous) => ({ ...previous, ...succeeded }));
+				setSaveError(tagSaveError(failure.reason));
+			}
+			await refresh();
+			if (!failure) onClose();
+		} finally {
+			setSaving(false);
+		}
+	}
 
+	const count = documents?.length ?? 0;
 	return (
 		<Dialog
 			open={requested !== null}
-			onOpenChange={(open) => !open && onClose()}
+			onOpenChange={(open) => !open && !saving && onClose()}
 			onOpenChangeComplete={(open) => {
 				onDocumentsOpenChangeComplete(open);
-				// Unsaved edits are dropped once the dialog has closed, so the chips don't change while it fades.
-				if (!open) setTags(null);
+				if (!open) {
+					setChanges([]);
+					setDraft("");
+					setInputError(null);
+					setSaveError(null);
+					setSavedTags({});
+				}
 			}}
 		>
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>
-						{documents && documents.length > 1 ? (
-							<Trans>Tags for {documents.length} documents</Trans>
+						{count > 1 ? (
+							plural(count, { one: "Tags for # document", other: "Tags for # documents" })
 						) : (
 							<Trans>Tags</Trans>
 						)}
 					</DialogTitle>
 					<DialogDescription>
-						{documents && documents.length > 1 ? (
-							<Trans>
-								Shows the tags they all share. Tags you add go on every document; tags you remove come off every one.
-								Locked documents are left as they are.
-							</Trans>
+						{count > 1 ? (
+							<Trans>Tags marked with a dash apply to some selected documents.</Trans>
 						) : (
-							<Trans>Tags group documents in the library; pick one above the grid to filter by it.</Trans>
+							<Trans>Organize documents with tags so you can filter them in the library.</Trans>
 						)}
 					</DialogDescription>
 				</DialogHeader>
-				<ChipInput value={tags ?? shared} onChange={setTags} />
+				{documents?.some((document) => document.isLocked) && (
+					<Alert variant="info">
+						<Icon name="info" />
+						<AlertDescription>
+							<Trans>Locked documents keep their current tags.</Trans>
+						</AlertDescription>
+					</Alert>
+				)}
+				<TagPicker
+					options={options}
+					selected={selected}
+					targetCount={targetCount}
+					largestTagCount={getLargestTagCount(targets, changes)}
+					draft={draft}
+					draftLength={draftLength}
+					error={preview.error ?? inputError}
+					disabled={saving || targetCount === 0}
+					onDraftChange={changeDraft}
+					onSelect={select}
+				/>
+				{saveError && (
+					<Alert variant="error">
+						<Icon name="warning-circle" />
+						<AlertTitle>
+							<Trans>Could not save tags</Trans>
+						</AlertTitle>
+						<AlertDescription>{saveError}</AlertDescription>
+					</Alert>
+				)}
 				<DialogFooter>
-					<Button onClick={() => void save()} disabled={setDocumentTags.isPending}>
-						<Trans>Save</Trans>
+					<Button variant="secondary" disabled={saving} onClick={onClose}>
+						<Trans>Cancel</Trans>
+					</Button>
+					<Button
+						variant="primary"
+						onClick={() => void save()}
+						loading={saving}
+						disabled={Boolean(preview.error) || preview.updates.length === 0}
+					>
+						{saving ? <Trans>Saving…</Trans> : <Trans>Save</Trans>}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

@@ -65463,10 +65463,10 @@
 				"msgid": "Shows the tags they all share. Tags you add go on every document; tags you remove come off every one. Locked documents are left as they are.",
 				"msgctxt": "",
 				"runtimeId": "RGNbgh",
-				"mappingStatus": "verified runtime extraction",
+				"mappingStatus": "superseded runtime binding; retained design reference",
 				"sourceLocale": "en-US",
 				"sourcePath": "src/features/documents/document-actions.tsx",
-				"verification": "T003 scoped extraction; owner review pending."
+				"verification": "Replaced by the library tag picker."
 			},
 			"review": {
 				"ar-SA": {
@@ -66171,6 +66171,415 @@
 			}
 		},
 		{
+			"key": "workspace.documents.could.not.save.tags_BIQxIX",
+			"messages": {
+				"ar-SA": "تعذّر حفظ الوسوم.",
+				"en-US": "Could not save tags"
+			},
+			"context": {
+				"surfaces": ["screens:S17"],
+				"audience": "candidate/account owner",
+				"translatorNotes": ["Tag save errors keep the draft available for correction and retry."]
+			},
+			"nodeIds": ["21:325", "41:2"],
+			"source": "spec-only",
+			"sourceReferences": ["Documents library tag validation"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Could not save tags",
+				"msgctxt": "",
+				"runtimeId": "BIQxIX",
+				"mappingStatus": "verified binding",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/documents/document-actions.tsx",
+				"verification": "Arabic and English tag dialog regression tests."
+			}
+		},
+		{
+			"key": "workspace.documents.shorten.tag_ccG62I",
+			"messages": {
+				"ar-SA": "اختصر كل وسم إلى {limit} حرفًا أو أقل.",
+				"en-US": "Shorten each tag to {limit} characters or fewer."
+			},
+			"context": {
+				"surfaces": ["screens:S17"],
+				"audience": "candidate/account owner",
+				"translatorNotes": ["Tag save errors keep the draft available for correction and retry."]
+			},
+			"nodeIds": ["21:325", "41:2"],
+			"source": "spec-only",
+			"sourceReferences": ["Documents library tag validation"],
+			"interpolations": [
+				{
+					"name": "limit",
+					"type": "integer",
+					"format": "decimal",
+					"isolation": "Latin digits",
+					"security": "Render only the numeric limit from tag validation."
+				}
+			],
+			"variants": [],
+			"lingui": {
+				"msgid": "Shorten each tag to {limit} characters or fewer.",
+				"msgctxt": "",
+				"runtimeId": "ccG62I",
+				"mappingStatus": "verified binding",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/documents/document-actions.tsx",
+				"verification": "Arabic and English tag dialog regression tests."
+			}
+		},
+		{
+			"key": "workspace.documents.limit.tags_ElK22-",
+			"messages": {
+				"ar-SA": "استخدم {limit} وسمًا أو أقل لكل مستند.",
+				"en-US": "Use {limit} tags or fewer per document."
+			},
+			"context": {
+				"surfaces": ["screens:S17"],
+				"audience": "candidate/account owner",
+				"translatorNotes": ["Tag save errors keep the draft available for correction and retry."]
+			},
+			"nodeIds": ["21:325", "41:2"],
+			"source": "spec-only",
+			"sourceReferences": ["Documents library tag validation"],
+			"interpolations": [
+				{
+					"name": "limit",
+					"type": "integer",
+					"format": "decimal",
+					"isolation": "Latin digits",
+					"security": "Render only the numeric limit from tag validation."
+				}
+			],
+			"variants": [],
+			"lingui": {
+				"msgid": "Use {limit} tags or fewer per document.",
+				"msgctxt": "",
+				"runtimeId": "ElK22-",
+				"mappingStatus": "verified binding",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/documents/document-actions.tsx",
+				"verification": "Arabic and English tag dialog regression tests."
+			}
+		},
+		{
+			"key": "workspace.documents.tag.picker.create_7749Ec",
+			"messages": {
+				"ar-SA": "إنشاء «<0>{create}</0>»",
+				"en-US": "Create “<0>{create}</0>”"
+			},
+			"context": {
+				"surfaces": ["messages:workspace"],
+				"audience": "candidate/account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Documents library tag picker"],
+			"interpolations": [
+				{
+					"name": "create",
+					"type": "string"
+				}
+			],
+			"variants": [],
+			"lingui": {
+				"msgid": "Create “<0>{create}</0>”",
+				"msgctxt": "",
+				"runtimeId": "7749Ec",
+				"mappingStatus": "verified binding",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/documents/tag-picker.tsx",
+				"verification": "Arabic and English tag picker catalog."
+			}
+		},
+		{
+			"key": "workspace.documents.tag.picker.existing_UBl8p2",
+			"messages": {
+				"ar-SA": "الوسوم الموجودة",
+				"en-US": "Existing tags"
+			},
+			"context": {
+				"surfaces": ["messages:workspace"],
+				"audience": "candidate/account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Documents library tag picker"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Existing tags",
+				"msgctxt": "",
+				"runtimeId": "UBl8p2",
+				"mappingStatus": "verified binding",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/documents/tag-picker.tsx",
+				"verification": "Arabic and English tag picker catalog."
+			}
+		},
+		{
+			"key": "workspace.documents.tag.picker.locked_ir4xB8",
+			"messages": {
+				"ar-SA": "تحتفظ المستندات المقفلة بوسومها الحالية.",
+				"en-US": "Locked documents keep their current tags."
+			},
+			"context": {
+				"surfaces": ["messages:workspace"],
+				"audience": "candidate/account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Documents library tag picker"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Locked documents keep their current tags.",
+				"msgctxt": "",
+				"runtimeId": "ir4xB8",
+				"mappingStatus": "verified binding",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/documents/document-actions.tsx",
+				"verification": "Arabic and English tag picker catalog."
+			}
+		},
+		{
+			"key": "workspace.documents.tag.picker.no.matches_lk3etF",
+			"messages": {
+				"ar-SA": "لا توجد وسوم مطابقة.",
+				"en-US": "No matching tags."
+			},
+			"context": {
+				"surfaces": ["messages:workspace"],
+				"audience": "candidate/account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Documents library tag picker"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "No matching tags.",
+				"msgctxt": "",
+				"runtimeId": "lk3etF",
+				"mappingStatus": "verified binding",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/documents/tag-picker.tsx",
+				"verification": "Arabic and English tag picker catalog."
+			}
+		},
+		{
+			"key": "workspace.documents.tag.picker.empty_x1T9Hb",
+			"messages": {
+				"ar-SA": "لا توجد وسوم بعد. اكتب اسمًا لإنشاء أول وسم.",
+				"en-US": "No tags yet. Type a name to create your first tag."
+			},
+			"context": {
+				"surfaces": ["messages:workspace"],
+				"audience": "candidate/account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Documents library tag picker"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "No tags yet. Type a name to create your first tag.",
+				"msgctxt": "",
+				"runtimeId": "x1T9Hb",
+				"mappingStatus": "verified binding",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/documents/tag-picker.tsx",
+				"verification": "Arabic and English tag picker catalog."
+			}
+		},
+		{
+			"key": "workspace.documents.tag.picker.description_g90WWL",
+			"messages": {
+				"ar-SA": "نظّم المستندات بالوسوم لتتمكّن من تصفيتها في المكتبة.",
+				"en-US": "Organize documents with tags so you can filter them in the library."
+			},
+			"context": {
+				"surfaces": ["messages:workspace"],
+				"audience": "candidate/account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Documents library tag picker"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Organize documents with tags so you can filter them in the library.",
+				"msgctxt": "",
+				"runtimeId": "g90WWL",
+				"mappingStatus": "verified binding",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/documents/document-actions.tsx",
+				"verification": "Arabic and English tag picker catalog."
+			}
+		},
+		{
+			"key": "workspace.documents.tag.picker.remove_YCwYxb",
+			"messages": {
+				"ar-SA": "إزالة الوسم {tag}",
+				"en-US": "Remove tag {tag}"
+			},
+			"context": {
+				"surfaces": ["messages:workspace"],
+				"audience": "candidate/account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Documents library tag picker"],
+			"interpolations": [
+				{
+					"name": "tag",
+					"type": "string"
+				}
+			],
+			"variants": [],
+			"lingui": {
+				"msgid": "Remove tag {tag}",
+				"msgctxt": "",
+				"runtimeId": "YCwYxb",
+				"mappingStatus": "verified binding",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/documents/tag-picker.tsx",
+				"verification": "Arabic and English tag picker catalog."
+			}
+		},
+		{
+			"key": "workspace.documents.tag.picker.search_FPx4aW",
+			"messages": {
+				"ar-SA": "ابحث عن وسم أو أنشئ وسمًا…",
+				"en-US": "Search or create a tag…"
+			},
+			"context": {
+				"surfaces": ["messages:workspace"],
+				"audience": "candidate/account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Documents library tag picker"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Search or create a tag…",
+				"msgctxt": "",
+				"runtimeId": "FPx4aW",
+				"mappingStatus": "verified binding",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/documents/tag-picker.tsx",
+				"verification": "Arabic and English tag picker catalog."
+			}
+		},
+		{
+			"key": "workspace.documents.tag.picker.length_WDmoyZ",
+			"messages": {
+				"ar-SA": "يجب ألّا يتجاوز الوسم 40 حرفًا.",
+				"en-US": "Tag must be 40 characters or fewer."
+			},
+			"context": {
+				"surfaces": ["messages:workspace"],
+				"audience": "candidate/account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Documents library tag picker"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Tag must be 40 characters or fewer.",
+				"msgctxt": "",
+				"runtimeId": "WDmoyZ",
+				"mappingStatus": "verified binding",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/documents/tag-picker.tsx",
+				"verification": "Arabic and English tag picker catalog."
+			}
+		},
+		{
+			"key": "workspace.documents.tag.picker.partial_NFHSd6",
+			"messages": {
+				"ar-SA": "الوسوم المعلّمة بشرطة موجودة في بعض المستندات المحددة.",
+				"en-US": "Tags marked with a dash apply to some selected documents."
+			},
+			"context": {
+				"surfaces": ["messages:workspace"],
+				"audience": "candidate/account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Documents library tag picker"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Tags marked with a dash apply to some selected documents.",
+				"msgctxt": "",
+				"runtimeId": "NFHSd6",
+				"mappingStatus": "verified binding",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/documents/document-actions.tsx",
+				"verification": "Arabic and English tag picker catalog."
+			}
+		},
+		{
+			"key": "workspace.documents.tag.picker.count_ZEnLDI",
+			"messages": {
+				"ar-SA": "الحد الأقصى 20 وسمًا لكل مستند.",
+				"en-US": "Up to 20 tags per document."
+			},
+			"context": {
+				"surfaces": ["messages:workspace"],
+				"audience": "candidate/account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Documents library tag picker"],
+			"interpolations": [],
+			"variants": [],
+			"lingui": {
+				"msgid": "Up to 20 tags per document.",
+				"msgctxt": "",
+				"runtimeId": "ZEnLDI",
+				"mappingStatus": "verified binding",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/documents/tag-picker.tsx",
+				"verification": "Arabic and English tag picker catalog."
+			}
+		},
+		{
+			"key": "workspace.documents.tag.picker.batch.title_zhvltk",
+			"messages": {
+				"ar-SA": "{count, plural, zero {وسوم # مستند} one {وسوم مستند واحد} two {وسوم مستندين} few {وسوم # مستندات} many {وسوم # مستندًا} other {وسوم # مستند}}",
+				"en-US": "{count, plural, one {Tags for # document} other {Tags for # documents}}"
+			},
+			"context": {
+				"surfaces": ["messages:workspace"],
+				"audience": "candidate/account owner"
+			},
+			"nodeIds": [],
+			"source": "spec-only",
+			"sourceReferences": ["Documents library tag picker"],
+			"interpolations": [
+				{
+					"name": "count",
+					"type": "integer"
+				}
+			],
+			"variants": [],
+			"lingui": {
+				"msgid": "{count, plural, one {Tags for # document} other {Tags for # documents}}",
+				"msgctxt": "",
+				"runtimeId": "zhvltk",
+				"mappingStatus": "verified binding",
+				"sourceLocale": "en-US",
+				"sourcePath": "src/features/documents/document-actions.tsx",
+				"verification": "Arabic and English tag picker catalog."
+			}
+		},
+		{
 			"key": "workspace.documents.tags_OYHzN1",
 			"messages": {
 				"ar-SA": "الوسوم",
@@ -66233,10 +66642,10 @@
 				"msgid": "Tags for {0} documents",
 				"msgctxt": "",
 				"runtimeId": "6YpmSS",
-				"mappingStatus": "verified runtime extraction",
+				"mappingStatus": "superseded runtime binding; retained design reference",
 				"sourceLocale": "en-US",
 				"sourcePath": "src/features/documents/document-actions.tsx",
-				"verification": "T003 scoped extraction; owner review pending."
+				"verification": "Replaced by the library tag picker."
 			},
 			"review": {
 				"ar-SA": {
@@ -66271,10 +66680,10 @@
 				"msgid": "Tags group documents in the library; pick one above the grid to filter by it.",
 				"msgctxt": "",
 				"runtimeId": "il4NFG",
-				"mappingStatus": "verified runtime extraction",
+				"mappingStatus": "superseded runtime binding; retained design reference",
 				"sourceLocale": "en-US",
 				"sourcePath": "src/features/documents/document-actions.tsx",
-				"verification": "T003 scoped extraction; owner review pending."
+				"verification": "Replaced by the library tag picker."
 			},
 			"review": {
 				"ar-SA": {
@@ -147523,7 +147932,10 @@
 				"billing.plan.manage",
 				"editor.document.pageDescription",
 				"review.audit.copyHDwMak",
-				"review.audit.copy7snnbg"
+				"review.audit.copy7snnbg",
+				"workspace.documents.could.not.save.tags_BIQxIX",
+				"workspace.documents.shorten.tag_ccG62I",
+				"workspace.documents.limit.tags_ElK22-"
 			]
 		},
 		"S18": {
@@ -152218,6 +152630,18 @@
 			"workspace.documents.start.from.one.you.have.and.link.the.application_ZOM7q6",
 			"workspace.documents.stay.here_FLUIeq",
 			"workspace.documents.suggested.from.the.source.and.the.job.change.it.anytime_w87xgh",
+			"workspace.documents.tag.picker.create_7749Ec",
+			"workspace.documents.tag.picker.existing_UBl8p2",
+			"workspace.documents.tag.picker.locked_ir4xB8",
+			"workspace.documents.tag.picker.no.matches_lk3etF",
+			"workspace.documents.tag.picker.empty_x1T9Hb",
+			"workspace.documents.tag.picker.description_g90WWL",
+			"workspace.documents.tag.picker.remove_YCwYxb",
+			"workspace.documents.tag.picker.search_FPx4aW",
+			"workspace.documents.tag.picker.length_WDmoyZ",
+			"workspace.documents.tag.picker.partial_NFHSd6",
+			"workspace.documents.tag.picker.count_ZEnLDI",
+			"workspace.documents.tag.picker.batch.title_zhvltk",
 			"workspace.documents.tags_OYHzN1",
 			"workspace.documents.tags.for.0.documents_6YpmSS",
 			"workspace.documents.tags.group.documents.in.the.library.pick.one.above.the.grid.to.filter.by.it_il4NFG",

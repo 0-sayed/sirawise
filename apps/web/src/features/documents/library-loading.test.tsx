@@ -14,7 +14,12 @@ const { loadDocuments } = vi.hoisted(() => ({ loadDocuments: vi.fn() }));
 const newLetter = vi.hoisted(() => vi.fn());
 
 vi.mock("@/libs/orpc/client", () => ({
-	orpc: { documents: { list: { queryOptions: () => ({ queryKey: ["documents"], queryFn: loadDocuments }) } } },
+	orpc: {
+		documents: {
+			list: { queryOptions: () => ({ queryKey: ["documents"], queryFn: loadDocuments }) },
+			tags: { queryOptions: () => ({ queryKey: ["document-tags"], queryFn: async () => [] }) },
+		},
+	},
 }));
 vi.mock("@tanstack/react-router", () => ({
 	Link: ({ children }: { children: ReactNode }) => <a href="/dashboard">{children}</a>,

@@ -12,10 +12,58 @@ msgstr ""
 msgid "Close"
 msgstr "Close"
 
+#: src/features/documents/tag-picker.tsx
+msgid "Create “<0>{create}</0>”"
+msgstr "Create “<0>{create}</0>”"
+
+#: src/features/documents/tag-picker.tsx
+msgid "Existing tags"
+msgstr "Existing tags"
+
+#: src/features/documents/document-actions.tsx
+msgid "Locked documents keep their current tags."
+msgstr "Locked documents keep their current tags."
+
 #. js-lingui-explicit-id
 #: src/features/locale/provider.tsx
 msgid "More actions"
 msgstr "More actions"
+
+#: src/features/documents/tag-picker.tsx
+msgid "No matching tags."
+msgstr "No matching tags."
+
+#: src/features/documents/tag-picker.tsx
+msgid "No tags yet. Type a name to create your first tag."
+msgstr "No tags yet. Type a name to create your first tag."
+
+#: src/features/documents/document-actions.tsx
+msgid "Organize documents with tags so you can filter them in the library."
+msgstr "Organize documents with tags so you can filter them in the library."
+
+#: src/features/documents/tag-picker.tsx
+msgid "Remove tag {tag}"
+msgstr "Remove tag {tag}"
+
+#: src/features/documents/tag-picker.tsx
+msgid "Search or create a tag…"
+msgstr "Search or create a tag…"
+
+#: src/features/documents/tag-picker.tsx
+msgid "Tag must be 40 characters or fewer."
+msgstr "Tag must be 40 characters or fewer."
+
+#: src/features/documents/document-actions.tsx
+msgid "Tags marked with a dash apply to some selected documents."
+msgstr "Tags marked with a dash apply to some selected documents."
+
+#: src/features/documents/tag-picker.tsx
+msgid "Up to 20 tags per document."
+msgstr "Up to 20 tags per document."
+
+#: src/features/documents/document-actions.tsx
+msgid "{count, plural, one {Tags for # document} other {Tags for # documents}}"
+msgstr "{count, plural, one {Tags for # document} other {Tags for # documents}}"
 
 #. placeholder {0}: application.role
 #. placeholder {1}: application.company
@@ -4991,6 +5039,10 @@ msgstr "Could not save documents."
 #: src/features/applications/components/detail/properties.tsx
 msgid "Could not save properties"
 msgstr "Could not save properties"
+
+#: src/features/documents/document-actions.tsx
+msgid "Could not save tags"
+msgstr "Could not save tags"
 
 #: src/features/applications/components/detail/properties.tsx
 msgid "Could not save tags. Retry Save."
@@ -14929,6 +14981,10 @@ msgstr "Short bullets are easier to scan than long paragraphs."
 msgid "Short date"
 msgstr "Short date"
 
+#: src/features/documents/document-actions.tsx
+msgid "Shorten each tag to {limit} characters or fewer."
+msgstr "Shorten each tag to {limit} characters or fewer."
+
 #: src/features/ats-checker/messages.ts
 msgid "Shorten long bullet points"
 msgstr "Shorten long bullet points"
@@ -15161,10 +15217,6 @@ msgstr "Showing the highest-signal terms from the job ad."
 msgctxt "atsGuide.showing"
 msgid "Showing: {area}"
 msgstr "Showing: {area}"
-
-#: src/features/documents/document-actions.tsx
-msgid "Shows the tags they all share. Tags you add go on every document; tags you remove come off every one. Locked documents are left as they are."
-msgstr "Shows the tags they all share. Tags you add go on every document; tags you remove come off every one. Locked documents are left as they are."
 
 #. Layout editor column label for the secondary sidebar area
 #: src/features/resume/editor/design/template-group.tsx
@@ -16035,15 +16087,6 @@ msgstr "Tags"
 #: src/dialogs/resume/index.tsx
 msgid "Tags can be used to categorize your resume by keywords."
 msgstr "Tags can be used to categorize your resume by keywords."
-
-#. placeholder {0}: documents.length
-#: src/features/documents/document-actions.tsx
-msgid "Tags for {0} documents"
-msgstr "Tags for {0} documents"
-
-#: src/features/documents/document-actions.tsx
-msgid "Tags group documents in the library; pick one above the grid to filter by it."
-msgstr "Tags group documents in the library; pick one above the grid to filter by it."
 
 #: src/features/ats-checker/messages.ts
 msgid "Tags help software follow the reading order."
@@ -18201,6 +18244,10 @@ msgstr "Use short lists for your experience"
 #: src/features/ats-checker/messages.ts
 msgid "Use standard list bullets"
 msgstr "Use standard list bullets"
+
+#: src/features/documents/document-actions.tsx
+msgid "Use {limit} tags or fewer per document."
+msgstr "Use {limit} tags or fewer per document."
 
 #: src/features/ats-checker/messages.ts
 msgid "Use text labels instead of icon-font characters."

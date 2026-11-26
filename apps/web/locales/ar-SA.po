@@ -12,10 +12,58 @@ msgstr ""
 msgid "Close"
 msgstr "إغلاق"
 
+#: src/features/documents/tag-picker.tsx
+msgid "Create “<0>{create}</0>”"
+msgstr "إنشاء «<0>{create}</0>»"
+
+#: src/features/documents/tag-picker.tsx
+msgid "Existing tags"
+msgstr "الوسوم الموجودة"
+
+#: src/features/documents/document-actions.tsx
+msgid "Locked documents keep their current tags."
+msgstr "تحتفظ المستندات المقفلة بوسومها الحالية."
+
 #. js-lingui-explicit-id
 #: src/features/locale/provider.tsx
 msgid "More actions"
 msgstr "المزيد من الإجراءات"
+
+#: src/features/documents/tag-picker.tsx
+msgid "No matching tags."
+msgstr "لا توجد وسوم مطابقة."
+
+#: src/features/documents/tag-picker.tsx
+msgid "No tags yet. Type a name to create your first tag."
+msgstr "لا توجد وسوم بعد. اكتب اسمًا لإنشاء أول وسم."
+
+#: src/features/documents/document-actions.tsx
+msgid "Organize documents with tags so you can filter them in the library."
+msgstr "نظّم المستندات بالوسوم لتتمكّن من تصفيتها في المكتبة."
+
+#: src/features/documents/tag-picker.tsx
+msgid "Remove tag {tag}"
+msgstr "إزالة الوسم {tag}"
+
+#: src/features/documents/tag-picker.tsx
+msgid "Search or create a tag…"
+msgstr "ابحث عن وسم أو أنشئ وسمًا…"
+
+#: src/features/documents/tag-picker.tsx
+msgid "Tag must be 40 characters or fewer."
+msgstr "يجب ألّا يتجاوز الوسم 40 حرفًا."
+
+#: src/features/documents/document-actions.tsx
+msgid "Tags marked with a dash apply to some selected documents."
+msgstr "الوسوم المعلّمة بشرطة موجودة في بعض المستندات المحددة."
+
+#: src/features/documents/tag-picker.tsx
+msgid "Up to 20 tags per document."
+msgstr "الحد الأقصى 20 وسمًا لكل مستند."
+
+#: src/features/documents/document-actions.tsx
+msgid "{count, plural, one {Tags for # document} other {Tags for # documents}}"
+msgstr "{count, plural, zero {وسوم # مستند} one {وسوم مستند واحد} two {وسوم مستندين} few {وسوم # مستندات} many {وسوم # مستندًا} other {وسوم # مستند}}"
 
 #. placeholder {0}: application.role
 #. placeholder {1}: application.company
@@ -4991,6 +5039,10 @@ msgstr "تعذّر حفظ المستندات."
 #: src/features/applications/components/detail/properties.tsx
 msgid "Could not save properties"
 msgstr "تعذّر حفظ الخصائص"
+
+#: src/features/documents/document-actions.tsx
+msgid "Could not save tags"
+msgstr "تعذّر حفظ الوسوم."
 
 #: src/features/applications/components/detail/properties.tsx
 msgid "Could not save tags. Retry Save."
@@ -14929,6 +14981,10 @@ msgstr "تسهل قراءة النقاط القصيرة مقارنة بالفق�
 msgid "Short date"
 msgstr "تاريخ مختصر"
 
+#: src/features/documents/document-actions.tsx
+msgid "Shorten each tag to {limit} characters or fewer."
+msgstr "اختصر كل وسم إلى {limit} حرفًا أو أقل."
+
 #: src/features/ats-checker/messages.ts
 msgid "Shorten long bullet points"
 msgstr "اختصر النقاط الطويلة"
@@ -15161,10 +15217,6 @@ msgstr "نعرض أهم الكلمات المتكررة في الإعلان."
 msgctxt "atsGuide.showing"
 msgid "Showing: {area}"
 msgstr "المعروض: {area}"
-
-#: src/features/documents/document-actions.tsx
-msgid "Shows the tags they all share. Tags you add go on every document; tags you remove come off every one. Locked documents are left as they are."
-msgstr "يعرض الوسوم المشتركة بينها جميعًا. الوسوم التي تضيفها تُضاف إلى كل مستند، والوسوم التي تزيلها تُزال من كل مستند. تبقى المستندات المقفلة كما هي."
 
 #. Layout editor column label for the secondary sidebar area
 #: src/features/resume/editor/design/template-group.tsx
@@ -16035,15 +16087,6 @@ msgstr "الوسوم"
 #: src/dialogs/resume/index.tsx
 msgid "Tags can be used to categorize your resume by keywords."
 msgstr "يمكن استخدام الوسوم لتصنيف سيرتك الذاتية حسب الكلمات المفتاحية."
-
-#. placeholder {0}: documents.length
-#: src/features/documents/document-actions.tsx
-msgid "Tags for {0} documents"
-msgstr "الوسوم لـ {0} من المستندات"
-
-#: src/features/documents/document-actions.tsx
-msgid "Tags group documents in the library; pick one above the grid to filter by it."
-msgstr "تجمع الوسوم المستندات في المكتبة؛ اختر وسمًا فوق الشبكة لتصفية المستندات بحسبه"
 
 #: src/features/ats-checker/messages.ts
 msgid "Tags help software follow the reading order."
@@ -18201,6 +18244,10 @@ msgstr "استخدم قوائم قصيرة لعرض خبراتك"
 #: src/features/ats-checker/messages.ts
 msgid "Use standard list bullets"
 msgstr "استخدم نقاط القوائم المعتادة"
+
+#: src/features/documents/document-actions.tsx
+msgid "Use {limit} tags or fewer per document."
+msgstr "استخدم {limit} وسمًا أو أقل لكل مستند."
 
 #: src/features/ats-checker/messages.ts
 msgid "Use text labels instead of icon-font characters."
