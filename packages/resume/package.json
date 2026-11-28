@@ -29,19 +29,19 @@
 		"test:agent": "vp test run --reporter=agent --reporter=json --outputFile.json=reports/vitest-results.json --passWithNoTests"
 	},
 	"dependencies": {
-		"@bramus/specificity": "^2.4.3",
+		"@bramus/specificity": "^2.4.4",
 		"@reactive-resume/schema": "workspace:*",
 		"@reactive-resume/utils": "workspace:*",
 		"bidi-js": "1.1.0",
 		"css-tree": "^3.2.1",
 		"diff": "catalog:",
-		"fast-json-patch": "^3.1.1",
+		"fast-json-patch": "^3.1.2",
 		"wink-porter2-stemmer": "2.0.1",
 		"zod": "catalog:"
 	},
 	"devDependencies": {
 		"@reactive-resume/config": "workspace:*",
-		"fast-check": "^4.10.2",
+		"fast-check": "^4.11.0",
 		"tsrs": "catalog:",
 		"typescript": "catalog:",
 		"vite-plus": "catalog:"
